@@ -54,12 +54,21 @@ async function main() {
   const prevStatus = await loadPrev('PREV_STATUS_URL', 'status.json');
   const prevStatusMap = new Map((prevStatus?.sources || []).map((s) => [s.key, s]));
 
+  // 信源 key → 配置，用于对旧数据重新套用当前过滤规则
+  const srcByKey = new Map((cfg.sources || []).map((s) => [s.key, s]));
   const cutoff = Date.now() - (settings.days_keep ?? 14) * 86400e3;
   const kept = (prevData?.items || [])
     .filter((it) => new Date(it.published_at).getTime() >= cutoff)
     // 历史数据就地清洗：修复早期版本漏删的 HTML 代码，剔除漏网的纯转推
     .map((it) => ({ ...it, text: htmlToText(it.text) || it.text }))
-    .filter((it) => !(it.kind === 'tweet' && /^RT[ :@]/i.test(it.text)));
+    .filter((it) => !(it.kind === 'tweet' && /^RT[ :@]/i.test(it.text)))
+    // 对旧数据重新套用当前过滤规则：信源改了 filter（如记者号改为只收曼城相关）后，
+    // 之前漏进来的无关内容（如世界杯闲聊）会被清出去
+    .filter((it) => {
+      const src = srcByKey.get(it.source_key);
+      if (!src) return true; // 信源已删除则保留旧条目
+      return passFilter(src.filter || 'city+transfer', it.text, matchers);
+    });
   const knownIds = new Set(kept.map((it) => it.id));
   console.log(`[prev] 保留历史条目 ${kept.length} 条`);
 

@@ -108,7 +108,7 @@ sources:
     tier: T0
     type: twitter
     handle: spbajko
-    filter: none
+    filter: city
     note_zh: 俱乐部传声筒·首席跟队
 
   - key: men_city
@@ -151,7 +151,7 @@ sources:
     tier: T0
     type: twitter
     handle: SamLee
-    filter: none
+    filter: city
     note_zh: 需鉴别是否夹杂私货
 
   - key: athletic_city
