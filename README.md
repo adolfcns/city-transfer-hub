@@ -1,9 +1,9 @@
-# 曼城转会情报站 City Transfer Hub
+﻿# 曼城转会情报站 City Transfer Hub
 
-按「曼城转会窗媒体可信度指南 2026 版」分级（T0 树上等 / T1 权威 / T2 流量 / ITK），自动聚合各媒体、记者在 X 和官网发布的曼城转会新闻。GitHub Actions 每 ~10 分钟抓取一次，发布到 GitHub Pages，支持中文 AI 翻译。
+按「曼城转会窗媒体可信度指南 2026 版」分级（T0 树上等 / T1 权威 / T2 流量 / ITK），自动聚合各媒体、记者在 X 和官网发布的曼城转会新闻。GitHub Actions 每 30 分钟抓取一次，发布到 GitHub Pages，支持中文 AI 翻译。
 
 ```
-GitHub Actions (每10分钟)
+GitHub Actions (每30分钟)
  ├─ RSSHub 容器(临时) ── 抓 20 个记者 X 时间线（需 TWITTER_AUTH_TOKEN）
  ├─ 官方 RSS ─────────── BBC曼城页 / 卫报曼城 / 曼晚 / 天空 / 邮报 / RMC / Teamtalk
  ├─ Google News ──────── 泰晤士报 / 电讯报 / TA / 队报 / 图片报 / 塞尔 / 奥莱 / 球报…
@@ -53,7 +53,7 @@ npm run serve   # 打开 http://localhost:8787 预览
 
 ## 常见问题
 
-- **更新频率**：cron 设的 10 分钟，GitHub 高峰期实际 10~25 分钟一次，属正常
+- **更新频率**：cron 设的 30 分钟（截止日可改 fetch.yml 调回 10 分钟），GitHub 高峰期会再延迟几分钟，属正常
 - **国内访问**：github.io 需要科学上网；手机开代理即可访问
 - **翻译成本**：DeepSeek 只翻新增条目（每次运行通常 0~20 条），每月约 ¥1~5
 - **某个源一直红**：点开 📡 面板看报错；RSS 源可能换了地址，gnews 源偶发 429 下轮自愈
