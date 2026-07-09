@@ -185,6 +185,12 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 .card.t2::before { background: var(--t2); }
 .card.itk::before { background: var(--itk); }
 .card.hwg { border-color: rgba(255,209,102,.55); box-shadow: 0 0 18px rgba(255,209,102,.12); }
+.card.is-new { border-color: var(--sky); box-shadow: 0 0 0 1px var(--sky), 0 0 16px rgba(108,171,221,.22); }
+.card.is-new::after {
+  content: "NEW"; position: absolute; top: 8px; right: 10px;
+  font-size: 10px; font-weight: 800; letter-spacing: .5px;
+  color: var(--navy); background: var(--sky); border-radius: 4px; padding: 1px 6px;
+}
 
 .card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
 .avatar {

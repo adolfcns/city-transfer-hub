@@ -32,6 +32,7 @@ const state = {
   isDemo: false,
   status: null,
   seenIds: new Set(),
+  newIds: new Set(),
   pendingNew: 0,
   filters: loadFilters(),
 };
@@ -118,15 +119,20 @@ async function loadData(isRefresh = false) {
     data = await fetchJSON(DATA_URL);
     state.isDemo = false;
   } catch {
+    // 拉取失败：已有真实数据就保持现状、静默等下一轮。
+    // 绝不用演示数据覆盖真实数据、也绝不虚报"新消息"（这正是之前"↑10条"假象的根源）。
+    if (state.items.length > 0 || isRefresh) return;
+    // 仅在首次加载且从未成功过时，才显示演示占位
     data = { generated_at: new Date().toISOString(), twitter_enabled: false, items: mockItems() };
     state.isDemo = true;
   }
   $('#demo-banner').hidden = !state.isDemo;
   $('#twitter-banner').hidden = state.isDemo || data.twitter_enabled !== false;
 
-  const fresh = (data.items || []).filter((it) => !state.seenIds.has(it.id));
-  if (isRefresh && fresh.length > 0 && state.seenIds.size > 0) {
-    state.pendingNew += fresh.length;
+  const freshIds = (data.items || []).filter((it) => !state.seenIds.has(it.id)).map((it) => it.id);
+  if (isRefresh && freshIds.length > 0 && state.seenIds.size > 0) {
+    freshIds.forEach((id) => state.newIds.add(id));
+    state.pendingNew = state.newIds.size;   // 用集合大小，不累加，避免虚高
     showNewPill();
   }
   for (const it of data.items || []) state.seenIds.add(it.id);
@@ -194,6 +200,7 @@ function render() {
 function renderCard(it) {
   const card = el('article', `card ${TIER_CLASS[it.tier] || 't2'}`);
   if ((it.badges || []).includes('HERE_WE_GO')) card.classList.add('hwg');
+  if (state.newIds.has(it.id)) card.classList.add('is-new');
 
   // 头部
   const head = el('div', 'card-head');
@@ -513,12 +520,16 @@ function bind() {
   $('#btn-status').onclick = openStatus;
   $('#btn-status-close').onclick = closeStatus;
   $('#scrim').onclick = closeStatus;
-  $('#new-pill').onclick = () => {
+  $('#new-pill').onclick = async () => {
     state.pendingNew = 0;
     $('#new-pill').hidden = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    render();
+    await loadData(false);                 // 强制拉最新数据并渲染（不只是重画旧数据）
+    // 新条目高亮保留 6 秒后淡出
+    setTimeout(() => { state.newIds.clear(); render(); }, 6000);
   };
+  // 手机切后台再回来时，浏览器会冻结定时器 → 恢复可见时立即刷新一次
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) loadData(true); });
   updateSrcBtn();
 }
 
