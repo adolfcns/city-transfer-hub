@@ -363,7 +363,17 @@ function showNewPill() {
 // ---------------- 一键触发云端抓取 ----------------
 const GH_REPO = 'adolfcns/city-transfer-hub';
 const GH_WORKFLOW = 'fetch.yml';
+const TRIGGER_COOLDOWN_MS = 60 * 1000;      // 单设备触发冷却
+const FRESH_ENOUGH_MS = 3 * 60 * 1000;      // 数据足够新就不重复抓
+let publicToken = null;                      // 站长公开的触发令牌（data/trigger.json）
 let toastTimer = null;
+
+async function loadPublicToken() {
+  try {
+    const res = await fetch(`./data/trigger.json?t=${Date.now()}`, { cache: 'no-store' });
+    if (res.ok) publicToken = (await res.json()).token || null;
+  } catch { /* 未开启公共触发 */ }
+}
 function toast(msg, type = '') {
   const t = $('#toast');
   t.textContent = msg;
@@ -374,8 +384,21 @@ function toast(msg, type = '') {
 }
 
 async function triggerCloudFetch() {
-  const pat = localStorage.getItem('cth_pat');
+  const pat = localStorage.getItem('cth_pat') || publicToken;
   if (!pat) { $('#trigger-panel').hidden = false; return; }
+  // 数据够新就别浪费一次云端任务
+  const age = Date.now() - new Date(state.generatedAt).getTime();
+  if (age < FRESH_ENOUGH_MS) {
+    toast(`数据 ${Math.max(1, Math.round(age / 60000))} 分钟前刚更新过，已是最新`);
+    return;
+  }
+  // 单设备冷却，防止连点
+  const last = Number(localStorage.getItem('cth_last_trigger') || 0);
+  if (Date.now() - last < TRIGGER_COOLDOWN_MS) {
+    toast('刚触发过了，云端正在抓取，请稍等…');
+    return;
+  }
+  localStorage.setItem('cth_last_trigger', String(Date.now()));
   const btn = $('#btn-trigger');
   btn.disabled = true; btn.classList.add('spin');
   try {
@@ -392,9 +415,13 @@ async function triggerCloudFetch() {
       toast('⚡ 已触发云端抓取，约 2 分钟，完成后自动刷新…');
       fastPollUntilFresh();
     } else if (res.status === 401 || res.status === 403) {
-      localStorage.removeItem('cth_pat');
-      toast('令牌无效或已过期，请重新设置', 'err');
-      $('#trigger-panel').hidden = false;
+      if (localStorage.getItem('cth_pat')) {
+        localStorage.removeItem('cth_pat');
+        toast('令牌无效或已过期，请重新设置', 'err');
+        $('#trigger-panel').hidden = false;
+      } else {
+        toast('站点的公共触发令牌已失效，请联系站长更换', 'err');
+      }
     } else {
       toast(`触发失败（HTTP ${res.status}），可用面板里的 GitHub 手动方式`, 'err');
     }
@@ -516,4 +543,5 @@ bind();
 renderCountdown();
 setInterval(renderCountdown, 60e3);
 loadData(false);
+loadPublicToken();
 setInterval(() => loadData(true), REFRESH_MS);
