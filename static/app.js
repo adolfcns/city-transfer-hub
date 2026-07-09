@@ -363,17 +363,12 @@ function showNewPill() {
 // ---------------- 一键触发云端抓取 ----------------
 const GH_REPO = 'adolfcns/city-transfer-hub';
 const GH_WORKFLOW = 'fetch.yml';
+// 公共触发端点（Cloudflare Worker 代理，令牌藏在 Worker 里不公开）。
+// 留空 = 未开启公共触发，访客点 ⚡ 会看到引导面板。
+const TRIGGER_ENDPOINT = '';
 const TRIGGER_COOLDOWN_MS = 60 * 1000;      // 单设备触发冷却
 const FRESH_ENOUGH_MS = 3 * 60 * 1000;      // 数据足够新就不重复抓
-let publicToken = null;                      // 站长公开的触发令牌（data/trigger.json）
 let toastTimer = null;
-
-async function loadPublicToken() {
-  try {
-    const res = await fetch(`./data/trigger.json?t=${Date.now()}`, { cache: 'no-store' });
-    if (res.ok) publicToken = (await res.json()).token || null;
-  } catch { /* 未开启公共触发 */ }
-}
 function toast(msg, type = '') {
   const t = $('#toast');
   t.textContent = msg;
@@ -384,8 +379,8 @@ function toast(msg, type = '') {
 }
 
 async function triggerCloudFetch() {
-  const pat = localStorage.getItem('cth_pat') || publicToken;
-  if (!pat) { $('#trigger-panel').hidden = false; return; }
+  const pat = localStorage.getItem('cth_pat');
+  if (!pat && !TRIGGER_ENDPOINT) { $('#trigger-panel').hidden = false; return; }
   // 数据够新就别浪费一次云端任务
   const age = Date.now() - new Date(state.generatedAt).getTime();
   if (age < FRESH_ENOUGH_MS) {
@@ -402,31 +397,37 @@ async function triggerCloudFetch() {
   const btn = $('#btn-trigger');
   btn.disabled = true; btn.classList.add('spin');
   try {
-    const res = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`, {
-      method: 'POST',
-      headers: {
-        authorization: `Bearer ${pat}`,
-        accept: 'application/vnd.github+json',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({ ref: 'main' }),
-    });
-    if (res.status === 204) {
-      toast('⚡ 已触发云端抓取，约 2 分钟，完成后自动刷新…');
-      fastPollUntilFresh();
-    } else if (res.status === 401 || res.status === 403) {
-      if (localStorage.getItem('cth_pat')) {
+    let ok = false;
+    if (pat) {
+      // 站长模式：本机令牌直连 GitHub API
+      const res = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`, {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${pat}`,
+          accept: 'application/vnd.github+json',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ ref: 'main' }),
+      });
+      if (res.status === 204) ok = true;
+      else if (res.status === 401 || res.status === 403) {
         localStorage.removeItem('cth_pat');
         toast('令牌无效或已过期，请重新设置', 'err');
         $('#trigger-panel').hidden = false;
-      } else {
-        toast('站点的公共触发令牌已失效，请联系站长更换', 'err');
-      }
+      } else toast(`触发失败（HTTP ${res.status}）`, 'err');
     } else {
-      toast(`触发失败（HTTP ${res.status}），可用面板里的 GitHub 手动方式`, 'err');
+      // 访客模式：走 Worker 代理（令牌在服务端）
+      const res = await fetch(TRIGGER_ENDPOINT, { method: 'POST' });
+      if (res.ok) ok = true;
+      else if (res.status === 429) toast('别人刚触发过，云端正在抓取，稍等自动刷新…');
+      else toast('触发服务暂时不可用，稍后再试', 'err');
+    }
+    if (ok) {
+      toast('⚡ 已触发云端抓取，约 2 分钟，完成后自动刷新…');
+      fastPollUntilFresh();
     }
   } catch {
-    toast('网络错误：无法连到 api.github.com（检查代理）', 'err');
+    toast('网络错误：触发请求没发出去（检查网络/代理）', 'err');
   } finally {
     btn.disabled = false; btn.classList.remove('spin');
   }
@@ -543,5 +544,4 @@ bind();
 renderCountdown();
 setInterval(renderCountdown, 60e3);
 loadData(false);
-loadPublicToken();
 setInterval(() => loadData(true), REFRESH_MS);

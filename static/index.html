@@ -90,7 +90,7 @@
         <button class="icon-btn" id="btn-trigger-close">✕</button>
       </div>
       <p class="modal-p">本站未开启「公共一键触发」时才会看到这个面板。以下两种方式任选：</p>
-      <p class="modal-p">站长提示：在仓库 Secrets 添加 <code>PAGES_TRIGGER_PAT</code>（只授本仓库 Actions 读写的令牌）后，<b>所有访客点 ⚡ 即可直接触发</b>，无需看到本面板。</p>
+      <p class="modal-p">站长提示：部署触发代理（Cloudflare Worker，见仓库 <code>scripts/cloudflare-worker.js</code>）并把地址填进 <code>app.js</code> 的 <code>TRIGGER_ENDPOINT</code> 后，<b>所有访客点 ⚡ 即可直接触发</b>。</p>
 
       <div class="modal-sec">
         <b>方式一 · 零设置</b>
