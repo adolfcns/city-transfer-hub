@@ -165,6 +165,10 @@ function render() {
   feed.textContent = '';
   const items = state.items.filter(passFilter);
 
+  // 选了中文/双语但一条译文都没有 → 提示需要配置翻译密钥
+  const anyZh = state.items.some((it) => it.text_zh);
+  $('#translate-banner').hidden = state.isDemo || anyZh || state.items.length === 0 || state.filters.lang === 'en';
+
   // tier 计数
   const counts = { T0: 0, T1: 0, T2: 0, ITK: 0 };
   for (const it of state.items) counts[it.tier] = (counts[it.tier] || 0) + 1;

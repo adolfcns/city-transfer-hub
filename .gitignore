@@ -2,3 +2,4 @@ node_modules/
 data/*.json
 .env
 *.log
+scripts/local-trigger.vbs
