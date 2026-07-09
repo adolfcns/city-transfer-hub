@@ -46,10 +46,11 @@ export async function fetchTwitter(src, { rsshubUrl, excludeRetweets = true, exc
   const xml = await httpGet(url, { timeout: 30000 });
   const out = [];
   for (const e of parseFeed(xml)) {
-    const text = htmlToText(e.html) || e.title;
-    const t = (e.title || text).trim();
-    if (excludeRetweets && /^RT @/i.test(t)) continue;
-    if (excludeReplies && /^R[e:] @/i.test(t)) continue;
+    const text = htmlToText(e.html) || htmlToText(e.title);
+    const t = (htmlToText(e.title) || text).trim();
+    // RSSHub 的转推标题有 "RT @user:" 和 "RT 昵称" 两种形态
+    if (excludeRetweets && (/^RT[ :@]/i.test(t) || /^RT[ :@]/i.test(text))) continue;
+    if (excludeReplies && /^Re[ :@]/i.test(t)) continue;
     out.push({
       kind: 'tweet',
       text: text.slice(0, 1200),

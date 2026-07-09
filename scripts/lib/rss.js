@@ -41,21 +41,29 @@ export function parseFeed(xml) {
 }
 
 // HTML → 纯文本（推文正文、文章摘要用）
+// 注意顺序：stopNodes 拿到的内容里 HTML 是转义形态（&lt;br&gt;），
+// 必须【先解转义、再删标签】，反过来标签会以文本形式漏进正文
 export function htmlToText(html) {
   if (!html) return '';
   let s = String(html)
-    .replace(/^\s*<!\[CDATA\[/, '').replace(/\]\]>\s*$/, '')
+    .replace(/^\s*<!\[CDATA\[/, '').replace(/\]\]>\s*$/, '');
+  // 1) 解转义（&amp; 最后解，避免 &amp;lt; 双重解码）
+  s = s
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&');
+  // 2) 删标签（引用推文块保留内容并加 ↪ 标记）
+  s = s
+    .replace(/<div[^>]*class="rsshub-quote"[^>]*>/gi, '\n↪ ')
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/(p|div|li|blockquote)>/gi, '\n')
+    .replace(/<video[\s\S]*?(<\/video>|$)/gi, ' ')
     .replace(/<img[^>]*>/gi, ' ')
-    .replace(/<video[\s\S]*?<\/video>/gi, ' ')
+    .replace(/<hr[^>]*>/gi, '\n')
     .replace(/<[^>]+>/g, '');
-  s = s
-    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"').replace(/&#0?39;/g, "'").replace(/&apos;/g, "'")
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)));
   return s.replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim();
 }
 

@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
 import { initHttp, httpGet, mapLimit } from './lib/http.js';
 import { fetchSource } from './lib/sources.js';
+import { htmlToText } from './lib/rss.js';
 import { makeMatchers, passFilter, detectBadges, makeId, mergeItems } from './lib/pipeline.js';
 import { translateNew } from './lib/translate.js';
 
@@ -54,7 +55,11 @@ async function main() {
   const prevStatusMap = new Map((prevStatus?.sources || []).map((s) => [s.key, s]));
 
   const cutoff = Date.now() - (settings.days_keep ?? 14) * 86400e3;
-  const kept = (prevData?.items || []).filter((it) => new Date(it.published_at).getTime() >= cutoff);
+  const kept = (prevData?.items || [])
+    .filter((it) => new Date(it.published_at).getTime() >= cutoff)
+    // 历史数据就地清洗：修复早期版本漏删的 HTML 代码，剔除漏网的纯转推
+    .map((it) => ({ ...it, text: htmlToText(it.text) || it.text }))
+    .filter((it) => !(it.kind === 'tweet' && /^RT[ :@]/i.test(it.text)));
   const knownIds = new Set(kept.map((it) => it.id));
   console.log(`[prev] 保留历史条目 ${kept.length} 条`);
 
