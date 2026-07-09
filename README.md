@@ -32,11 +32,11 @@ GitHub Actions (每10分钟)
 - **热门球员名单** `hot_players`：转会窗期间把绯闻对象名字加进去，命中名字的新闻直接视为曼城相关（例如 `- "Florian Wirtz"`）
 - **filter 字段**：`city+transfer`（综合源）/ `city`（记者个人号）/ `transfer`（曼城专属频道）/ `none`（全收）
 
-### 待确认的信源（欢迎修正）
+### 信源对照备注
 
-- **紫板**：原以为是 Relevo，但 Relevo 已于 2025 年停运。确认后把 yaml 里注释的模板改好取消注释
-- **Sam C**：原图未给出具体 X 账号，确认后取消注释
-- **太阳报 Martin Blackburn**：handle 按 `MartinBlackburn` 配置，若推文通道显示此源持续报错，说明账号名不对，改 yaml 里的 `handle` 即可
+- **紫板** = X 独立记者 [@PurplePanel](https://x.com/PurplePanel)（英超转会与财务），已收录 T1
+- **Sam C**：原图未给出具体账号，暂不收录（确认后照 twitter 模板加一条即可）
+- **太阳报 Martin Blackburn**：真实 handle 为 `SunMartinB`（已核实）
 - **球报**：按葡萄牙 A Bola 配置（abola.pt）
 
 ## 本地运行（开发/调试）

@@ -243,15 +243,14 @@ sources:
     url: https://rmcsport.bfmtv.com/rss/football/
     filter: city+transfer
 
-  # 「紫板」原猜测是 Relevo，但 Relevo 已于 2025 年停运（抓取恒为 0 条）。
-  # 确认「紫板」实际指哪家后，把下面模板改好取消注释即可。
-  #  - key: ziban
-  #    name: 待确认
-  #    name_zh: 紫板
-  #    tier: T1
-  #    type: gnews
-  #    site: 待确认.com
-  #    filter: transfer
+  - key: purple_panel
+    name: Purple Panel
+    name_zh: 紫板 Purple Panel
+    tier: T1
+    type: twitter
+    handle: PurplePanel
+    filter: city
+    note_zh: 独立记者·英超转会与财务
 
   - key: ole
     name: Olé
@@ -370,15 +369,6 @@ sources:
     type: rss
     url: https://www.teamtalk.com/rss
     filter: city+transfer
-
-  # 「Sam C」原图未给出具体账号，确认后取消注释并填 handle
-  # - key: sam_c
-  #   name: Sam C
-  #   name_zh: Sam C
-  #   tier: T2
-  #   type: twitter
-  #   handle: 待确认
-  #   filter: city
 
   - key: bild
     name: BILD
