@@ -365,7 +365,7 @@ const GH_REPO = 'adolfcns/city-transfer-hub';
 const GH_WORKFLOW = 'fetch.yml';
 // 公共触发端点（Cloudflare Worker 代理，令牌藏在 Worker 里不公开）。
 // 留空 = 未开启公共触发，访客点 ⚡ 会看到引导面板。
-const TRIGGER_ENDPOINT = '';
+const TRIGGER_ENDPOINT = 'https://city-trigger.shiqie7272.workers.dev/';
 const TRIGGER_COOLDOWN_MS = 60 * 1000;      // 单设备触发冷却
 const FRESH_ENOUGH_MS = 3 * 60 * 1000;      // 数据足够新就不重复抓
 let toastTimer = null;
