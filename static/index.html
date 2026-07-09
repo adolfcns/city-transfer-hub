@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>曼城转会情报站</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%236CABDD'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%230b1a2a' font-family='Arial' font-weight='bold'>C</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-logo">C</div>
+        <div class="brand-text">
+          <h1>曼城转会情报站</h1>
+          <p class="brand-sub">按媒体可信度分级 · <span id="window-countdown"></span></p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="updated-at" id="updated-at">加载中…</span>
+        <button class="icon-btn" id="btn-status" title="信源健康状态">📡</button>
+        <button class="icon-btn" id="btn-refresh" title="立即刷新">⟳</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="demo-banner" id="demo-banner" hidden>
+    ⚠ 当前显示演示数据 —— 抓取任务尚未产出真实数据（data/items.json 不存在）
+  </div>
+  <div class="demo-banner warn" id="twitter-banner" hidden>
+    ℹ 推文通道未启用：需在 GitHub 仓库 Secrets 配置 <code>TWITTER_AUTH_TOKEN</code>，当前仅显示 RSS / Google News 文章
+  </div>
+
+  <main class="container">
+    <!-- 分级图例 + Tier 筛选 -->
+    <section class="tier-legend" id="tier-legend">
+      <button class="tier-chip t0 active" data-tier="T0"><b>T0</b> 树上等<span class="cnt"></span></button>
+      <button class="tier-chip t1 active" data-tier="T1"><b>T1</b> 权威媒体<span class="cnt"></span></button>
+      <button class="tier-chip t2 active" data-tier="T2"><b>T2</b> 流量媒体<span class="cnt"></span></button>
+      <button class="tier-chip itk active" data-tier="ITK"><b>ITK</b> 圈内人<span class="cnt"></span></button>
+      <button class="legend-help" id="btn-legend" title="分级说明">?</button>
+    </section>
+
+    <div class="legend-detail" id="legend-detail" hidden>
+      <p><span class="badge-tier t0">T0 树上等</span> 最可靠：罗马诺、曼晚（首席跟队 Baj）、BBC、英国天空、TA（D.O & Sam Lee）、邮报（Jack Gaughan）、电讯报 McGrath</p>
+      <p><span class="badge-tier t1">T1 权威媒体</span> 错误较少：太阳报（仅 Blackburn）、Ben Jacobs、莫雷托、队报、RMC、紫板、奥莱、佩杜拉、Yagiz</p>
+      <p><span class="badge-tier t2">T2 流量媒体</span> 偶尔准、看消息源：卫报、泰晤士报、Goal、德/瑞/意天空、ESPN、talkSPORT、塞尔电台、footmercato、Teamtalk、图片报、斯基拉、iPaper、BR、Alan Nixon（仅青训）、球报</p>
+      <p><span class="badge-tier itk">ITK</span> 圈内人爆料号，自行甄别（在 config/sources.yaml 里增删）</p>
+      <p class="legend-credit">分级参考：物述有栖official@懂球帝 · T3 厕纸媒体不收录</p>
+    </div>
+
+    <!-- 筛选栏 -->
+    <section class="filterbar">
+      <input type="search" id="search" placeholder="搜索球员 / 关键词…" autocomplete="off">
+      <div class="src-select" id="src-select">
+        <button class="src-btn" id="src-btn">全部信源 ▾</button>
+        <div class="src-menu" id="src-menu" hidden></div>
+      </div>
+      <div class="seg" id="lang-seg">
+        <button data-lang="zh" class="active">中文</button>
+        <button data-lang="both">双语</button>
+        <button data-lang="en">原文</button>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="only-hot">
+        <span>只看重磅</span>
+      </label>
+    </section>
+
+    <!-- 时间线 -->
+    <section id="feed" class="feed">
+      <div class="loading" id="loading">正在加载情报…</div>
+    </section>
+  </main>
+
+  <!-- 新消息胶囊 -->
+  <button class="new-pill" id="new-pill" hidden>↑ <span id="new-count">0</span> 条新消息</button>
+
+  <!-- 信源状态侧板 -->
+  <aside class="status-panel" id="status-panel" hidden>
+    <div class="status-head">
+      <h2>信源健康状态</h2>
+      <button class="icon-btn" id="btn-status-close">✕</button>
+    </div>
+    <p class="status-sub" id="status-sub"></p>
+    <ul id="status-list" class="status-list"></ul>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+
+  <footer class="foot">
+    <p>内容来自各媒体公开发布，版权归原作者；本站仅作个人聚合阅读，点击卡片可跳原文。</p>
+    <p>分级参考 物述有栖official@懂球帝 · 数据每 ~10 分钟自动更新</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

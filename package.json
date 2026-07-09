@@ -1,0 +1,19 @@
+{
+  "name": "city-transfer-hub",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "曼城转会情报站 - 按媒体可信度分级聚合曼城转会新闻",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "fetch": "node scripts/fetch.js",
+    "serve": "node scripts/serve.js"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.5.1",
+    "undici": "^6.21.1",
+    "yaml": "^2.7.0"
+  }
+}

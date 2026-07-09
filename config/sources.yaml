@@ -1,0 +1,452 @@
+# ==============================================================
+# 曼城转会情报站 - 信源配置（依据「曼城转会窗媒体可信度指南 2026版」）
+# 日常维护只需要改这个文件：加/删信源、改 tier、维护热门球员名单
+#
+# tier 说明:
+#   T0  树上等（最可靠）        T1  权威媒体（错误较少）
+#   T2  流量媒体（偶尔准，看源） ITK 圈内人/爆料号（自行甄别）
+#
+# type 说明:
+#   twitter  经 RSSHub 抓 X 时间线（需要配置 X cookie）
+#   rss      官方 RSS 源直抓
+#   gnews    Google News RSS 站内检索（无 RSS / 有付费墙的媒体）
+#
+# filter 说明（抓到的内容要过哪些关卡才收录）:
+#   city+transfer  既要曼城相关、又要转会相关（综合类媒体源）
+#   city           只要曼城相关（记者个人号，窗口期发言都值得看）
+#   transfer       只要转会相关（本身已是曼城专属频道）
+#   none           全收（曼城专属记者个人号）
+# ==============================================================
+
+settings:
+  days_keep: 14 # 页面保留最近 N 天的内容
+  max_items: 2000 # 条目数量上限
+  exclude_retweets: true # 过滤纯转推（RT）
+  exclude_replies: true # 过滤回复推文
+
+# 判定"与曼城相关"的关键词（不区分大小写，命中任意一个即可）
+city_keywords:
+  - manchester city
+  - man city
+  - man. city
+  - "#mcfc"
+  - mcfc
+  - etihad
+  - guardiola
+  - cityzens
+
+# 判定"与转会相关"的关键词（英文取词根，能同时命中 sign/signing/signed 等；
+# 后半段是西/意/法/德/葡语转会词，用于外语媒体）
+transfer_keywords:
+  - transfer
+  - sign
+  - deal
+  - bid
+  - fee
+  - agree
+  - medical
+  - contract
+  - loan
+  - clause
+  - here we go
+  - exclusive
+  - personal terms
+  - talks
+  - negotiat
+  - target
+  - swoop
+  - offer
+  - approach
+  - join
+  - depart
+  - exit
+  - windows
+  - wants
+  - move
+  # ---- 多语言 ----
+  - fichaje # 西语·签约
+  - fichar
+  - mercado
+  - traspaso
+  - acuerdo
+  - oferta
+  - préstamo
+  - cedido
+  - mercato # 意语·转会市场
+  - trattativa
+  - accordo
+  - offerta
+  - contratto
+  - cessione
+  - prestito
+  - transfert # 法语
+  - wechsel # 德语
+  - vertrag
+  - leihe
+  - transferência # 葡语
+  - contrato
+  - empréstimo
+
+# 热门球员/目标名单：命中名字直接视为"曼城相关"（转会窗期间自行维护，一行一个）
+# 例： - "Florian Wirtz"
+hot_players: []
+
+sources:
+  # ---------------- T0 树上等 ----------------
+  - key: romano
+    name: Fabrizio Romano
+    name_zh: 罗马诺
+    tier: T0
+    type: twitter
+    handle: FabrizioRomano
+    filter: city
+    note_zh: 与维亚纳关系紧密
+
+  - key: bajkowski
+    name: Simon Bajkowski (MEN)
+    name_zh: 曼晚首席跟队 Baj
+    tier: T0
+    type: twitter
+    handle: SBajkowski
+    filter: none
+    note_zh: 俱乐部传声筒·首席跟队
+
+  - key: men_city
+    name: Manchester Evening News
+    name_zh: 曼彻斯特晚报
+    tier: T0
+    type: rss
+    url: https://www.manchestereveningnews.co.uk/all-about/manchester-city-fc?service=rss
+    filter: transfer
+
+  - key: bbc_city
+    name: BBC Sport
+    name_zh: BBC
+    tier: T0
+    type: rss
+    url: https://feeds.bbci.co.uk/sport/football/teams/manchester-city/rss.xml
+    filter: transfer
+    note_zh: 传统权威媒体但较少活跃
+
+  - key: sky_sports
+    name: Sky Sports
+    name_zh: 英国天空体育
+    tier: T0
+    type: rss
+    url: https://www.skysports.com/rss/12040
+    filter: city+transfer
+    note_zh: 传统权威媒体但较少活跃
+
+  - key: ornstein
+    name: David Ornstein (The Athletic)
+    name_zh: TA·奥恩斯坦 D.O
+    tier: T0
+    type: twitter
+    handle: David_Ornstein
+    filter: city
+
+  - key: samlee
+    name: Sam Lee (The Athletic)
+    name_zh: TA·跟队 Sam Lee
+    tier: T0
+    type: twitter
+    handle: SamLee
+    filter: none
+    note_zh: 需鉴别是否夹杂私货
+
+  - key: athletic_city
+    name: The Athletic
+    name_zh: TA 文章
+    tier: T0
+    type: gnews
+    site: nytimes.com/athletic
+    locale: en-US
+    filter: city+transfer
+
+  - key: gaughan
+    name: Jack Gaughan (Daily Mail)
+    name_zh: 邮报·Jack Gaughan
+    tier: T0
+    type: twitter
+    handle: Jack_Gaughan
+    filter: city
+    note_zh: 北方足球（含曼城）权威
+
+  - key: mail_football
+    name: Daily Mail Football
+    name_zh: 邮报足球
+    tier: T0
+    type: rss
+    url: https://www.dailymail.co.uk/sport/football/index.rss
+    filter: city+transfer
+
+  - key: mcgrath
+    name: Mike McGrath (Telegraph)
+    name_zh: 电讯报·McGrath
+    tier: T0
+    type: twitter
+    handle: mcgrathmike
+    filter: city
+    note_zh: 电讯报名记（原图标注 T0）
+
+  # ---------------- T1 权威媒体 ----------------
+  - key: blackburn
+    name: Martin Blackburn (The Sun)
+    name_zh: 太阳报·Blackburn
+    tier: T1
+    type: twitter
+    handle: MartinBlackburn
+    filter: city
+    note_zh: 太阳报仅限此人·上一代传声筒
+
+  - key: telegraph
+    name: The Telegraph
+    name_zh: 电讯报
+    tier: T1
+    type: gnews
+    site: telegraph.co.uk
+    filter: city+transfer
+    note_zh: 其余记者浮动较大
+
+  - key: jacobs
+    name: Ben Jacobs
+    name_zh: Ben Jacobs
+    tier: T1
+    type: twitter
+    handle: JacobsBen
+    filter: city
+    note_zh: 罗马诺狗腿
+
+  - key: moretto
+    name: Matteo Moretto
+    name_zh: 莫雷托
+    tier: T1
+    type: twitter
+    handle: MatteMoretto
+    filter: city
+    note_zh: 前 Relevo 首席，被罗马诺收编
+
+  - key: lequipe
+    name: L'Équipe
+    name_zh: 队报
+    tier: T1
+    type: gnews
+    site: lequipe.fr
+    locale: fr
+    filter: city+transfer
+
+  - key: rmc
+    name: RMC Sport
+    name_zh: RMC
+    tier: T1
+    type: rss
+    url: https://rmcsport.bfmtv.com/rss/football/
+    filter: city+transfer
+
+  # 「紫板」原猜测是 Relevo，但 Relevo 已于 2025 年停运（抓取恒为 0 条）。
+  # 确认「紫板」实际指哪家后，把下面模板改好取消注释即可。
+  #  - key: ziban
+  #    name: 待确认
+  #    name_zh: 紫板
+  #    tier: T1
+  #    type: gnews
+  #    site: 待确认.com
+  #    filter: transfer
+
+  - key: ole
+    name: Olé
+    name_zh: 奥莱报
+    tier: T1
+    type: gnews
+    locale: es-419
+    site: ole.com.ar
+    filter: city+transfer
+
+  - key: pedulla
+    name: Alfredo Pedullà
+    name_zh: 佩杜拉
+    tier: T1
+    type: twitter
+    handle: AlfredoPedulla
+    filter: city
+
+  - key: yagiz
+    name: Yagiz Sabuncuoglu
+    name_zh: Yagiz Sabuncuoglu
+    tier: T1
+    type: twitter
+    handle: yagosabuncuoglu
+    filter: city
+
+  # ---------------- T2 流量媒体 ----------------
+  - key: guardian_city
+    name: The Guardian - Man City
+    name_zh: 卫报
+    tier: T2
+    type: rss
+    url: https://www.theguardian.com/football/manchestercity/rss
+    filter: transfer
+
+  - key: times
+    name: The Times
+    name_zh: 泰晤士报
+    tier: T2
+    type: gnews
+    site: thetimes.com
+    filter: city+transfer
+
+  - key: goal
+    name: Goal
+    name_zh: Goal
+    tier: T2
+    type: gnews
+    site: goal.com
+    filter: city+transfer
+
+  - key: plettenberg
+    name: Florian Plettenberg (Sky DE)
+    name_zh: 德国天空·普拉滕伯格
+    tier: T2
+    type: twitter
+    handle: Plettigoal
+    filter: city
+
+  - key: tavolieri
+    name: Sacha Tavolieri (Sky CH)
+    name_zh: 瑞士天空·Sacha
+    tier: T2
+    type: twitter
+    handle: sachatavolieri
+    filter: city
+
+  - key: espn
+    name: ESPN FC
+    name_zh: ESPN
+    tier: T2
+    type: gnews
+    site: espn.com
+    locale: en-US
+    filter: city+transfer
+
+  - key: talksport
+    name: talkSPORT
+    name_zh: talkSPORT
+    tier: T2
+    type: gnews
+    site: talksport.com
+    locale: en-GB
+    filter: city+transfer
+
+  - key: cadena_ser
+    name: Cadena SER
+    name_zh: 塞尔电台
+    tier: T2
+    type: gnews
+    locale: es
+    site: cadenaser.com
+    filter: city+transfer
+
+  - key: aouna
+    name: Santi Aouna (Foot Mercato)
+    name_zh: footmercato·Santi Aouna
+    tier: T2
+    type: twitter
+    handle: Santi_J_FM
+    filter: city
+
+  - key: sky_italia
+    name: Sky Sport Italia
+    name_zh: 意大利天空体育
+    tier: T2
+    type: gnews
+    locale: it
+    site: sport.sky.it
+    filter: city+transfer
+
+  - key: teamtalk
+    name: TEAMtalk
+    name_zh: Teamtalk
+    tier: T2
+    type: rss
+    url: https://www.teamtalk.com/rss
+    filter: city+transfer
+
+  # 「Sam C」原图未给出具体账号，确认后取消注释并填 handle
+  # - key: sam_c
+  #   name: Sam C
+  #   name_zh: Sam C
+  #   tier: T2
+  #   type: twitter
+  #   handle: 待确认
+  #   filter: city
+
+  - key: bild
+    name: BILD
+    name_zh: 图片报
+    tier: T2
+    type: gnews
+    locale: de
+    site: bild.de
+    filter: city+transfer
+
+  - key: schira
+    name: Nicolò Schira
+    name_zh: 斯基拉
+    tier: T2
+    type: twitter
+    handle: NicoSchira
+    filter: city
+
+  - key: ipaper
+    name: The i Paper
+    name_zh: iPaper
+    tier: T2
+    type: gnews
+    site: inews.co.uk
+    filter: city+transfer
+
+  - key: br
+    name: B/R Football
+    name_zh: BR
+    tier: T2
+    type: twitter
+    handle: brfootball
+    filter: city+transfer
+
+  - key: nixon
+    name: Alan Nixon
+    name_zh: Alan Nixon
+    tier: T2
+    type: twitter
+    handle: reluctantnicko
+    filter: city
+    note_zh: 仅限青训消息可信
+
+  - key: abola
+    name: A Bola
+    name_zh: 球报(葡萄牙·待确认)
+    tier: T2
+    type: gnews
+    locale: pt-PT
+    site: abola.pt
+    filter: city+transfer
+    note_zh: 「球报」疑指葡萄牙 A Bola，如不对请修改
+
+  # ---------------- ITK 圈内人（自行甄别，可自由增删） ----------------
+  - key: city_xtra
+    name: City Xtra
+    name_zh: City Xtra
+    tier: ITK
+    type: twitter
+    handle: City_Xtra
+    filter: transfer
+    note_zh: 曼城圈聚合号·示例，可换成你信任的 ITK
+
+  - key: city_report
+    name: City Report
+    name_zh: City Report
+    tier: ITK
+    type: twitter
+    handle: cityreport_
+    filter: transfer
+    note_zh: 曼城圈聚合号·示例，可换成你信任的 ITK

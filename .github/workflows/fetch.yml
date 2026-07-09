@@ -1,0 +1,92 @@
+name: fetch-and-deploy
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # 每 10 分钟（GitHub 高峰期会有 5~15 分钟延迟）
+  workflow_dispatch: {}       # 手动触发按钮
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 防止重叠运行
+concurrency:
+  group: fetch-deploy
+  cancel-in-progress: false
+
+jobs:
+  fetch-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      TWITTER_AUTH_TOKEN: ${{ secrets.TWITTER_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install deps
+        run: npm ci --no-audit --no-fund
+
+      # 只有配置了 TWITTER_AUTH_TOKEN 才启动 RSSHub（推文通道）
+      - name: Start RSSHub
+        if: ${{ env.TWITTER_AUTH_TOKEN != '' }}
+        run: |
+          IMG=ghcr.io/diygod/rsshub:latest
+          docker pull -q "$IMG" || IMG=docker.io/diygod/rsshub:latest
+          docker run -d --name rsshub -p 1200:1200 \
+            -e NODE_ENV=production \
+            -e LOGGER_LEVEL=error \
+            -e CACHE_TYPE= \
+            -e TWITTER_AUTH_TOKEN="$TWITTER_AUTH_TOKEN" \
+            "$IMG"
+          ok=""
+          for i in $(seq 1 45); do
+            if curl -sf http://127.0.0.1:1200/healthz > /dev/null 2>&1; then ok=1; break; fi
+            sleep 2
+          done
+          if [ -n "$ok" ]; then
+            echo "RSSHub ready"
+            echo "RSSHUB_URL=http://127.0.0.1:1200" >> "$GITHUB_ENV"
+          else
+            echo "::warning::RSSHub 启动失败，本次跳过推文通道"
+            docker logs rsshub | tail -20 || true
+          fi
+
+      - name: Fetch all sources
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          BASE="https://${GITHUB_REPOSITORY_OWNER}.github.io/${REPO_NAME}"
+          export PREV_DATA_URL="${BASE}/data/items.json"
+          export PREV_STATUS_URL="${BASE}/data/status.json"
+          node scripts/fetch.js
+
+      - name: Assemble site
+        run: |
+          mkdir -p site/data
+          cp -r static/. site/
+          cp data/*.json site/data/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
