@@ -195,7 +195,7 @@ sources:
     name_zh: 太阳报·Blackburn
     tier: T1
     type: twitter
-    handle: MartinBlackburn
+    handle: SunMartinB   # 若持续报错可改试 SunMartinB_
     filter: city
     note_zh: 太阳报仅限此人·上一代传声筒
 
