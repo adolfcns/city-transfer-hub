@@ -21,7 +21,8 @@
       <div class="topbar-right">
         <span class="updated-at" id="updated-at">加载中…</span>
         <button class="icon-btn" id="btn-status" title="信源健康状态">📡</button>
-        <button class="icon-btn" id="btn-refresh" title="立即刷新">⟳</button>
+        <button class="icon-btn" id="btn-trigger" title="立即抓取最新消息（触发云端任务）">⚡</button>
+        <button class="icon-btn" id="btn-refresh" title="刷新页面数据">⟳</button>
       </div>
     </div>
   </header>
@@ -80,6 +81,47 @@
 
   <!-- 新消息胶囊 -->
   <button class="new-pill" id="new-pill" hidden>↑ <span id="new-count">0</span> 条新消息</button>
+
+  <!-- 一键抓取设置面板 -->
+  <div class="modal" id="trigger-panel" hidden>
+    <div class="modal-box">
+      <div class="status-head">
+        <h2>⚡ 立即抓取</h2>
+        <button class="icon-btn" id="btn-trigger-close">✕</button>
+      </div>
+      <p class="modal-p">触发一次云端抓取（约 2 分钟出结果，完成后页面自动刷新）。两种方式：</p>
+
+      <div class="modal-sec">
+        <b>方式一 · 零设置</b>
+        <p class="modal-p">跳去 GitHub 页面，点绿色 <code>Run workflow</code> 按钮（需登录你的 GitHub）：</p>
+        <a class="modal-link" id="gh-manual-link" href="https://github.com/adolfcns/city-transfer-hub/actions/workflows/fetch.yml" target="_blank" rel="noopener">打开 GitHub 手动触发 ↗</a>
+      </div>
+
+      <div class="modal-sec">
+        <b>方式二 · 一键模式（推荐，配置一次永久生效）</b>
+        <p class="modal-p">粘贴一个 GitHub 令牌，<b>只保存在你这台设备的浏览器里</b>，不会出现在网页源码或任何服务器上。之后点 ⚡ 就直接触发。</p>
+        <details class="modal-steps">
+          <summary>怎么创建令牌？（六步，1 分钟）</summary>
+          <ol>
+            <li>打开 <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a>（Fine-grained token）</li>
+            <li>Token name 随便填（如 city-hub）；Expiration 选最长（1 年）</li>
+            <li>Repository access → 选 <b>Only select repositories</b> → 勾 <code>city-transfer-hub</code></li>
+            <li>Permissions → Repository permissions → 找到 <b>Actions</b> → 选 <b>Read and write</b></li>
+            <li>点底部 <b>Generate token</b></li>
+            <li>复制 <code>github_pat_</code> 开头的一串，粘到下面</li>
+          </ol>
+        </details>
+        <div class="pat-row">
+          <input type="password" id="pat-input" placeholder="github_pat_… 或 ghp_…" autocomplete="off">
+          <button class="pat-save" id="pat-save">保存并触发</button>
+        </div>
+        <p class="modal-p dim" id="pat-status"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 轻提示 -->
+  <div class="toast" id="toast" hidden></div>
 
   <!-- 信源状态侧板 -->
   <aside class="status-panel" id="status-panel" hidden>

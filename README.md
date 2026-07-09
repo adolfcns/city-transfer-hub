@@ -57,7 +57,7 @@ npm run serve   # 打开 http://localhost:8787 预览
 - **国内访问**：github.io 需要科学上网；手机开代理即可访问
 - **翻译成本**：DeepSeek 只翻新增条目（每次运行通常 0~20 条），每月约 ¥1~5
 - **某个源一直红**：点开 📡 面板看报错；RSS 源可能换了地址，gnews 源偶发 429 下轮自愈
-- **想立刻刷新**：Actions 页签 → fetch-and-deploy → Run workflow
+- **想立刻刷新**：点网页右上角 **⚡** 按钮。首次使用二选一：①面板里点"打开 GitHub 手动触发"（零设置）；②创建一个只授权本仓库 Actions 读写的 Fine-grained Token 粘进面板（一次配置，之后一键触发，令牌只存浏览器本地）。也可以直接到仓库 Actions 页签 → Run workflow
 
 ## 数据与版权
 

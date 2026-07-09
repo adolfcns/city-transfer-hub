@@ -360,6 +360,83 @@ function showNewPill() {
   $('#new-pill').hidden = false;
 }
 
+// ---------------- 一键触发云端抓取 ----------------
+const GH_REPO = 'adolfcns/city-transfer-hub';
+const GH_WORKFLOW = 'fetch.yml';
+let toastTimer = null;
+function toast(msg, type = '') {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = `toast ${type}`;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, 6000);
+}
+
+async function triggerCloudFetch() {
+  const pat = localStorage.getItem('cth_pat');
+  if (!pat) { $('#trigger-panel').hidden = false; return; }
+  const btn = $('#btn-trigger');
+  btn.disabled = true; btn.classList.add('spin');
+  try {
+    const res = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${pat}`,
+        accept: 'application/vnd.github+json',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ ref: 'main' }),
+    });
+    if (res.status === 204) {
+      toast('⚡ 已触发云端抓取，约 2 分钟，完成后自动刷新…');
+      fastPollUntilFresh();
+    } else if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('cth_pat');
+      toast('令牌无效或已过期，请重新设置', 'err');
+      $('#trigger-panel').hidden = false;
+    } else {
+      toast(`触发失败（HTTP ${res.status}），可用面板里的 GitHub 手动方式`, 'err');
+    }
+  } catch {
+    toast('网络错误：无法连到 api.github.com（检查代理）', 'err');
+  } finally {
+    btn.disabled = false; btn.classList.remove('spin');
+  }
+}
+
+// 触发后加速轮询，直到数据变新
+let fastPollTimer = null;
+function fastPollUntilFresh() {
+  const baseline = state.generatedAt;
+  let tries = 0;
+  clearInterval(fastPollTimer);
+  fastPollTimer = setInterval(async () => {
+    tries++;
+    await loadData(true);
+    if (state.generatedAt !== baseline) {
+      clearInterval(fastPollTimer);
+      toast('✓ 数据已更新到最新');
+    } else if (tries >= 24) { // 8 分钟兜底
+      clearInterval(fastPollTimer);
+      toast('云端任务可能在排队，稍后自动刷新会带出新数据');
+    }
+  }, 20000);
+}
+
+function savePat() {
+  const v = $('#pat-input').value.trim();
+  if (!/^(github_pat_|ghp_|gho_)[A-Za-z0-9_]{20,}$/.test(v)) {
+    $('#pat-status').textContent = '格式不对：应以 github_pat_ 或 ghp_ 开头';
+    return;
+  }
+  localStorage.setItem('cth_pat', v);
+  $('#pat-input').value = '';
+  $('#pat-status').textContent = '✓ 已保存到本机浏览器';
+  $('#trigger-panel').hidden = true;
+  triggerCloudFetch();
+}
+
 // ---------------- 倒计时 ----------------
 function renderCountdown() {
   const now = Date.now();
@@ -401,6 +478,10 @@ function bind() {
   hot.checked = state.filters.onlyHot;
   hot.onchange = () => { state.filters.onlyHot = hot.checked; saveFilters(); render(); };
   $('#btn-refresh').onclick = () => loadData(true);
+  $('#btn-trigger').onclick = triggerCloudFetch;
+  $('#btn-trigger-close').onclick = () => { $('#trigger-panel').hidden = true; };
+  $('#trigger-panel').addEventListener('click', (e) => { if (e.target === $('#trigger-panel')) $('#trigger-panel').hidden = true; });
+  $('#pat-save').onclick = savePat;
   $('#btn-status').onclick = openStatus;
   $('#btn-status-close').onclick = closeStatus;
   $('#scrim').onclick = closeStatus;
