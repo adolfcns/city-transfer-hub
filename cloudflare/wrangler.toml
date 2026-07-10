@@ -1,0 +1,8 @@
+# Worker「city-trigger」的部署配置（wrangler deploy -c cloudflare/wrangler.toml）
+# 注意：crons 必须在这里声明，否则命令行部署会把控制台里配的定时器抹掉
+name = "city-trigger"
+main = "../scripts/cloudflare-worker.js"
+compatibility_date = "2026-01-01"
+
+[triggers]
+crons = ["*/30 * * * *"]

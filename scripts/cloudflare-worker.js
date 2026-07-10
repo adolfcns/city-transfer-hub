@@ -13,7 +13,11 @@
 
 const REPO = 'adolfcns/city-transfer-hub';
 const WORKFLOW = 'fetch.yml';
-const ALLOW_ORIGIN = 'https://adolfcns.github.io'; // 只允许本站网页调用
+// 允许调用的站点（主站 + Cloudflare Pages 镜像）
+const ALLOW_ORIGINS = [
+  'https://adolfcns.github.io',
+  'https://city-transfer-hub.pages.dev',
+];
 const COOLDOWN_SECONDS = 90;                        // 访客触发的全局冷却，防止被刷
 
 // 用服务端令牌触发 GitHub 抓取任务
@@ -33,9 +37,11 @@ async function triggerGitHub(env) {
 export default {
   // —— 访客点 ⚡ 时走这里 ——
   async fetch(request, env) {
+    const origin = request.headers.get('Origin') || '';
     const cors = {
-      'Access-Control-Allow-Origin': ALLOW_ORIGIN,
+      'Access-Control-Allow-Origin': ALLOW_ORIGINS.includes(origin) ? origin : ALLOW_ORIGINS[0],
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Vary': 'Origin',
       'content-type': 'application/json',
     };
     if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
