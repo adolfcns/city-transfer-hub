@@ -69,6 +69,8 @@ async function main() {
       if (!src) return true; // 信源已删除则保留旧条目
       return passFilter(src.filter || 'city+transfer', it.text, matchers);
     });
+  // 历史条目的备注与当前配置同步（yaml 删了备注，旧条目上也立刻消失）
+  for (const it of kept) it.note_zh = srcByKey.get(it.source_key)?.note_zh || undefined;
   const knownIds = new Set(kept.map((it) => it.id));
   console.log(`[prev] 保留历史条目 ${kept.length} 条`);
 

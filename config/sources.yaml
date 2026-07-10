@@ -429,8 +429,7 @@ sources:
     tier: ITK
     type: twitter
     handle: City_Xtra
-    filter: transfer
-    note_zh: 曼城圈聚合号·示例，可换成你信任的 ITK
+    filter: none        # 全收：该号所有推文都进时间线
 
   - key: city_report
     name: City Report
@@ -439,4 +438,3 @@ sources:
     type: twitter
     handle: cityreport_
     filter: transfer
-    note_zh: 曼城圈聚合号·示例，可换成你信任的 ITK
