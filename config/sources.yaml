@@ -438,3 +438,12 @@ sources:
     type: twitter
     handle: cityreport_
     filter: transfer
+
+  - key: tolmie
+    name: The Real Tolmie's Hairdoo
+    name_zh: Tolmie's Hairdoo
+    tier: ITK
+    type: twitter
+    handle: RealTolmie
+    filter: none        # 全收：他常打哑谜，关键词过滤会漏掉精华
+    note_zh: 蓝月亮论坛出身·爱发暗示
