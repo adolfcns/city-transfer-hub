@@ -47,10 +47,10 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   border-bottom: 1px solid var(--line);
 }
 .topbar-inner {
-  max-width: 860px; margin: 0 auto; padding: 10px 16px;
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  max-width: 860px; margin: 0 auto; padding: 8px 16px;
+  display: flex; align-items: center; flex-wrap: wrap; column-gap: 12px;
 }
-.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
 .brand-logo {
   width: 42px; height: 42px; flex: none; border-radius: 50%;
   background: var(--sky);
@@ -58,12 +58,18 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 0 0 3px rgba(108,171,221,.35);
 }
-.brand h1 { font-size: 19px; letter-spacing: .5px; white-space: nowrap; }
-.brand-sub { font-size: 12px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand h1 { font-size: 19px; letter-spacing: .5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* 副标题独占报头第二行，按钮永远遮不到；桌面端用缩进对齐到标题正下方（与旧版视觉一致） */
+.brand-sub {
+  flex-basis: 100%; min-width: 0;
+  font-size: 12px; color: var(--text-dim);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin: 2px 0 0 54px;
+}
 #window-countdown { color: var(--sky); }
 .site-url { color: var(--text-dim); }
 .site-url:hover { color: var(--sky); }
-.topbar-right { display: flex; align-items: center; gap: 8px; flex: none; }
+.topbar-right { display: flex; align-items: center; gap: 8px; flex: none; margin-left: auto; }
 .updated-at { font-size: 12px; color: var(--text-dim); }
 .icon-btn {
   background: var(--card); color: var(--text); border: 1px solid var(--line);
@@ -321,6 +327,7 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 @media (max-width: 560px) {
   .brand h1 { font-size: 16px; }
   .updated-at { display: none; }
+  .brand-sub { margin-left: 0; white-space: normal; line-height: 1.5; }   /* 手机：副标题整行铺开，可折行完整显示 */
   .card-body { font-size: 14px; }
   .time { width: 100%; margin-left: 38px; order: 10; }
 }
