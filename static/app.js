@@ -235,17 +235,35 @@ function renderFocusZone() {
     if (matched.length === 0) {
       card.appendChild(el('div', 'focus-empty', '暂无相关消息，抓到会第一时间出现在这里'));
     } else {
-      const list = el('div', 'focus-list');
-      for (const it of matched.slice(0, 3)) {
-        const row = el('div', 'focus-item');
-        row.appendChild(el('span', `badge-tier ${TIER_CLASS[it.tier] || 't2'}`, it.tier));
-        const a = el('a', null, (state.filters.lang === 'en' ? it.text : (it.text_zh || it.text)));
+      // 横滑卡片墙：每张卡一条完整消息
+      const car = el('div', 'focus-carousel');
+      for (const it of matched.slice(0, 12)) {
+        const s = el('article', 'focus-slide');
+        const h = el('div', 'fs-head');
+        h.appendChild(el('span', `badge-tier ${TIER_CLASS[it.tier] || 't2'}`, it.tier));
+        h.appendChild(el('span', 'fs-src', it.source_name_zh || it.source_name));
+        h.appendChild(el('span', 'fs-time', relTime(it.published_at)));
+        s.appendChild(h);
+        s.appendChild(el('div', 'fs-text', state.filters.lang === 'en' ? (it.text || '') : (it.text_zh || it.text || '')));
+        const a = el('a', 'fs-link', it.kind === 'tweet' ? '查看原推 ↗' : '阅读原文 ↗');
         a.href = it.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
-        row.appendChild(a);
-        row.appendChild(el('span', 'ft', relTime(it.published_at)));
-        list.appendChild(row);
+        s.appendChild(a);
+        car.appendChild(s);
       }
-      card.appendChild(list);
+      // 桌面端左右箭头（手机隐藏，手指滑）
+      // 步长 = 一张卡 + 间距，正好落在吸附点上（否则强制吸附会弹回）
+      const step = () => {
+        const s = car.querySelector('.focus-slide');
+        return s ? s.getBoundingClientRect().width + 10 : 310;
+      };
+      const prev = el('button', 'fs-nav', '‹');
+      const next = el('button', 'fs-nav', '›');
+      prev.title = '上一张'; next.title = '下一张';
+      prev.onclick = () => { car.scrollLeft -= step(); };
+      next.onclick = () => { car.scrollLeft += step(); };
+      head.insertBefore(prev, btn);
+      head.insertBefore(next, btn);
+      card.appendChild(car);
     }
     zone.appendChild(card);
   }

@@ -122,23 +122,51 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   border: 1px solid var(--sky); background: transparent; color: var(--sky); transition: .15s;
 }
 .focus-btn.on { background: var(--sky); color: var(--navy); font-weight: 600; }
-.focus-list { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
-.focus-item { display: flex; gap: 6px; align-items: baseline; font-size: 12.5px; min-width: 0; }
-.focus-item a { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.focus-item .ft { color: var(--text-dim); font-size: 11px; flex: none; }
+/* 焦点卡片墙：横向滑动 + 吸附，每张卡完整一条消息 */
+.focus-carousel {
+  display: flex; gap: 10px; margin-top: 8px;
+  overflow-x: auto; scroll-snap-type: x mandatory;
+  padding: 2px 2px 6px; scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+.focus-slide {
+  flex: 0 0 300px; max-width: 86%;
+  scroll-snap-align: start;
+  background: var(--navy); border: 1px solid var(--line); border-radius: 10px;
+  padding: 9px 12px; display: flex; flex-direction: column; gap: 6px;
+}
+.fs-head { display: flex; align-items: center; gap: 6px; font-size: 12px; min-width: 0; }
+.fs-src { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fs-time { margin-left: auto; color: var(--text-dim); font-size: 11px; flex: none; }
+.fs-text {
+  font-size: 12.5px; line-height: 1.55; word-break: break-word;
+  display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;
+}
+.fs-link { font-size: 11px; color: var(--text-dim); margin-top: auto; }
+.fs-link:hover { color: var(--sky); }
+.fs-nav {
+  flex: none; width: 24px; height: 24px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--card); color: var(--text-dim);
+  font-size: 14px; line-height: 1; padding: 0;
+}
+.fs-nav:hover { color: var(--sky); border-color: var(--sky); }
 .focus-empty { margin-top: 6px; font-size: 12px; color: var(--text-dim); }
 .focus-mark { font-size: 12px; flex: none; }
+@media (max-width: 560px) {
+  .focus-slide { flex-basis: 78vw; }
+  .fs-nav { display: none; }   /* 手机直接手指滑 */
+}
 
-/* Tier 图例/筛选 */
-.tier-legend { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+/* Tier 图例/筛选（迷你药丸，含义见 ? 说明与悬浮提示） */
+.tier-legend { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
 .tier-chip {
-  border-radius: 999px; padding: 5px 14px; font-size: 13px;
+  border-radius: 999px; padding: 2px 10px; font-size: 12px;
   background: var(--card); color: var(--text-dim);
   border: 1.5px solid var(--line);
   opacity: .45; transition: .15s;
 }
-.tier-chip b { margin-right: 4px; }
-.tier-chip .cnt { margin-left: 5px; font-size: 11px; opacity: .75; }
+.tier-chip b { margin-right: 0; }
+.tier-chip .cnt { margin-left: 4px; font-size: 11px; opacity: .75; }
 .tier-chip.active { opacity: 1; }
 .tier-chip.t0.active { border-color: var(--t0); color: var(--t0); }
 .tier-chip.t1.active { border-color: var(--t1); color: var(--t1); }
