@@ -69,6 +69,15 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 #window-countdown { color: var(--sky); }
 .site-url { color: var(--text-dim); }
 .site-url:hover { color: var(--sky); }
+/* 报头标语：独占一行，永不遮挡 */
+.brand-slogan {
+  flex-basis: 100%; min-width: 0;
+  font-size: 11px; color: var(--gold);
+  margin: 1px 0 0 54px;
+}
+@media (max-width: 560px) {
+  .brand-slogan { margin-left: 0; }
+}
 .topbar-right { display: flex; align-items: center; gap: 8px; flex: none; margin-left: auto; }
 .updated-at { font-size: 12px; color: var(--text-dim); }
 .icon-btn {
