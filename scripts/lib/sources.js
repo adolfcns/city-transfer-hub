@@ -61,6 +61,53 @@ export async function fetchTwitter(src, { rsshubUrl, excludeRetweets = true, exc
   return out;
 }
 
+// ---------- 焦点对象专属检索（开放搜索，仅收白名单媒体，把 T3 挡在门外） ----------
+// 白名单 = 已配置信源的域名 → 对应信源（借用其名称/分级）
+export function buildDomainMap(sources) {
+  const map = new Map();
+  const put = (host, src) => {
+    host = String(host || '').toLowerCase().replace(/^www\./, '');
+    if (host && !map.has(host)) map.set(host, src);
+  };
+  for (const s of sources) {
+    if (s.type === 'gnews' && s.site) put(s.site.split('/')[0], s);
+    else if (s.type === 'rss' && s.url) { try { put(new URL(s.url).hostname, s); } catch { /* 忽略坏URL */ } }
+  }
+  // RSS 源域名与文章域名不一致的已知别称
+  const bbc = sources.find((s) => s.key === 'bbc_city');
+  if (bbc) { put('bbc.co.uk', bbc); put('bbc.com', bbc); }
+  return map;
+}
+
+function domainMatch(map, url) {
+  let host = '';
+  try { host = new URL(url).hostname.toLowerCase().replace(/^www\./, ''); } catch { return null; }
+  if (map.has(host)) return map.get(host);
+  for (const [k, v] of map) {
+    if (host.endsWith(`.${k}`) || k.endsWith(`.${host}`)) return v;
+  }
+  return null;
+}
+
+export async function fetchFocusGnews(target, domainMap) {
+  const q = encodeURIComponent(`"${target.query || target.aliases?.[0] || target.name}" when:7d`);
+  const url = `https://news.google.com/rss/search?q=${q}&hl=en-GB&gl=GB&ceid=GB:en`;
+  const xml = await httpGet(url);
+  const out = [];
+  for (const e of parseFeed(xml)) {
+    const outlet = e.source ? domainMatch(domainMap, e.source.url) : null;
+    if (!outlet) continue; // 白名单外（含 T3 厕纸媒体）不收
+    out.push({
+      kind: 'article',
+      text: e.title.replace(/\s+-\s+[^-]+$/, ''),
+      url: e.link,
+      published_at: toISO(e.date),
+      outlet,
+    });
+  }
+  return out;
+}
+
 // ---------- 统一入口 ----------
 export async function fetchSource(src, ctx) {
   if (src.type === 'rss') return fetchRss(src);

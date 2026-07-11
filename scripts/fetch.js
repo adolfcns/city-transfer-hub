@@ -11,7 +11,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
 import { initHttp, httpGet, mapLimit } from './lib/http.js';
-import { fetchSource } from './lib/sources.js';
+import { fetchSource, buildDomainMap, fetchFocusGnews } from './lib/sources.js';
 import { htmlToText } from './lib/rss.js';
 import { makeMatchers, passFilter, detectBadges, makeId, mergeItems } from './lib/pipeline.js';
 import { translateNew } from './lib/translate.js';
@@ -41,7 +41,20 @@ async function main() {
 
   const cfg = YAML.parse(await readFile(resolve(ROOT, 'config/sources.yaml'), 'utf8'));
   const settings = cfg.settings || {};
-  const matchers = makeMatchers(cfg);
+  const focusTargets = cfg.focus_targets || [];
+  // 焦点对象的别名并入热门名单：命中名字的消息（含别队动态）在源头就放行
+  const matchers = makeMatchers({
+    ...cfg,
+    hot_players: [...(cfg.hot_players || []), ...focusTargets.flatMap((t) => t.aliases || [])],
+  });
+  // 给条目打 🎯 焦点标记（每轮全量重算，换焦点后旧标记自动消失）
+  const tagFocus = (it) => {
+    const hay = `${it.text || ''} ${it.text_zh || ''}`.toLowerCase();
+    const hit = focusTargets
+      .filter((t) => (t.aliases || []).some((a) => hay.includes(String(a).toLowerCase())))
+      .map((t) => t.key);
+    if (hit.length) it.focus = hit; else delete it.focus;
+  };
   const rsshubUrl = process.env.RSSHUB_URL || '';
   const ctx = {
     rsshubUrl,
@@ -63,8 +76,10 @@ async function main() {
     .map((it) => ({ ...it, text: htmlToText(it.text) || it.text }))
     .filter((it) => !(it.kind === 'tweet' && /^RT[ :@]/i.test(it.text)))
     // 对旧数据重新套用当前过滤规则：信源改了 filter（如记者号改为只收曼城相关）后，
-    // 之前漏进来的无关内容（如世界杯闲聊）会被清出去
+    // 之前漏进来的无关内容（如世界杯闲聊）会被清出去。焦点对象的消息一律豁免。
     .filter((it) => {
+      tagFocus(it);
+      if (it.focus?.length) return true;
       const src = srcByKey.get(it.source_key);
       if (!src) return true; // 信源已删除则保留旧条目
       return passFilter(src.filter || 'city+transfer', it.text, matchers);
@@ -106,6 +121,27 @@ async function main() {
     if (rsshubUrl) await new Promise((r) => setTimeout(r, 2000));
   }
 
+  // 焦点对象专属检索（开放搜索 + 白名单判级，别队动态也能进来）
+  const domainMap = buildDomainMap(sources);
+  const focusEntries = [];
+  for (const t of focusTargets) {
+    const key = `focus_${t.key}`;
+    const prev = prevStatusMap.get(key);
+    try {
+      const entries = await fetchFocusGnews(t, domainMap);
+      // 质量闸：标题必须真的含他的名字（防止 Google 按正文匹配塞进无关综述）
+      const strict = entries.filter((e) =>
+        (t.aliases || []).some((a) => e.text.toLowerCase().includes(String(a).toLowerCase())),
+      );
+      focusEntries.push(...strict);
+      statusList.push({ key, name: `Focus: ${t.name}`, name_zh: `焦点·${t.name_zh}`, tier: '🎯', type: 'gnews', enabled: true, ok: true, items: strict.length, last_success: new Date().toISOString(), error: null });
+      console.log(`[ok] ${key}: ${strict.length} 条（白名单内）`);
+    } catch (e) {
+      statusList.push({ key, name: `Focus: ${t.name}`, name_zh: `焦点·${t.name_zh}`, tier: '🎯', type: 'gnews', enabled: true, ok: false, items: 0, last_success: prev?.last_success || null, error: String(e.message || e).slice(0, 200) });
+      console.warn(`[fail] ${key}: ${e.message}`);
+    }
+  }
+
   // ---------- 过滤 + 成品化 ----------
   const incoming = [];
   for (const src of sources) {
@@ -132,6 +168,28 @@ async function main() {
       });
     }
   }
+  // 焦点检索的条目：借用命中媒体的名称与分级入库（不做曼城过滤——别队动态正是目的）
+  for (const e of focusEntries) {
+    if (!e.url || !e.text) continue;
+    if (new Date(e.published_at).getTime() < cutoff) continue;
+    const id = makeId(e.url);
+    if (knownIds.has(id) || incoming.some((x) => x.id === id)) continue;
+    const o = e.outlet;
+    incoming.push({
+      id,
+      source_key: o.key,
+      source_name: o.name,
+      source_name_zh: o.name_zh || o.name,
+      tier: o.tier,
+      kind: 'article',
+      text: e.text,
+      text_zh: null,
+      url: e.url,
+      published_at: e.published_at,
+      badges: detectBadges(e.text),
+      note_zh: o.note_zh || undefined,
+    });
+  }
   // 同一批内按时间升序合并，保证越早发布的越先当"主条目"
   incoming.sort((a, b) => new Date(a.published_at) - new Date(b.published_at));
   console.log(`[filter] 新增候选 ${incoming.length} 条`);
@@ -145,6 +203,8 @@ async function main() {
   else console.log('[translate] 未配置 DEEPSEEK_API_KEY，跳过');
 
   // ---------- 输出 ----------
+  // 焦点标记全量重算（翻译后的中文别名也能命中）
+  merged.forEach(tagFocus);
   merged.sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
   const finalItems = merged.slice(0, settings.max_items ?? 2000);
   statusList.sort((a, b) => (a.tier > b.tier ? 1 : a.tier < b.tier ? -1 : a.key.localeCompare(b.key)));
@@ -152,7 +212,12 @@ async function main() {
   await mkdir(DATA_DIR, { recursive: true });
   await writeFile(
     resolve(DATA_DIR, 'items.json'),
-    JSON.stringify({ generated_at: new Date().toISOString(), twitter_enabled: Boolean(rsshubUrl), items: finalItems }),
+    JSON.stringify({
+      generated_at: new Date().toISOString(),
+      twitter_enabled: Boolean(rsshubUrl),
+      focus_targets: focusTargets.map(({ key, name, name_zh, desc_zh }) => ({ key, name, name_zh, desc_zh })),
+      items: finalItems,
+    }),
   );
   await writeFile(
     resolve(DATA_DIR, 'status.json'),

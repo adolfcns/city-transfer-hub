@@ -90,6 +90,36 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 /* ============ 主体 ============ */
 .container { max-width: 860px; margin: 0 auto; padding: 14px 16px 60px; }
 
+/* ============ 焦点专区 ============ */
+.focus-zone { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.focus-card {
+  background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--sky);
+  border-radius: 0 12px 12px 0; padding: 10px 14px;
+}
+.focus-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.focus-avatar {
+  width: 30px; height: 30px; border-radius: 50%; flex: none;
+  background: var(--sky); color: #fff; font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.focus-title { font-size: 14px; font-weight: 600; }
+.focus-desc { font-size: 11px; color: var(--text-dim); }
+.focus-count {
+  font-size: 11px; padding: 1px 8px; border-radius: 999px;
+  background: rgba(255,209,102,.15); border: 1px solid rgba(255,209,102,.5); color: var(--gold);
+}
+.focus-btn {
+  margin-left: auto; flex: none; font-size: 12px; padding: 3px 12px; border-radius: 999px;
+  border: 1px solid var(--sky); background: transparent; color: var(--sky); transition: .15s;
+}
+.focus-btn.on { background: var(--sky); color: var(--navy); font-weight: 600; }
+.focus-list { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+.focus-item { display: flex; gap: 6px; align-items: baseline; font-size: 12.5px; min-width: 0; }
+.focus-item a { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.focus-item .ft { color: var(--text-dim); font-size: 11px; flex: none; }
+.focus-empty { margin-top: 6px; font-size: 12px; color: var(--text-dim); }
+.focus-mark { font-size: 12px; flex: none; }
+
 /* Tier 图例/筛选 */
 .tier-legend { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
 .tier-chip {

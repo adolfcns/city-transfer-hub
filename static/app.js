@@ -38,7 +38,7 @@ const state = {
 };
 
 function loadFilters() {
-  const def = { tiers: ['T0', 'T1', 'T2', 'ITK'], sources: null, search: '', onlyHot: false, lang: 'zh' };
+  const def = { tiers: ['T0', 'T1', 'T2', 'ITK'], sources: null, search: '', onlyHot: false, lang: 'zh', focusKey: null };
   try {
     const saved = JSON.parse(localStorage.getItem('cth_filters') || 'null');
     return saved ? Object.assign(def, saved, { search: '' }) : def;
@@ -140,6 +140,7 @@ async function loadData(isRefresh = false) {
   state.items = data.items || [];
   state.generatedAt = data.generated_at;
   state.twitterEnabled = data.twitter_enabled;
+  state.focusTargets = data.focus_targets || [];
   $('#updated-at').textContent = `更新于 ${relTime(data.generated_at)}`;
 
   buildSourceMenu();
@@ -155,6 +156,7 @@ function currentSourceKeys() {
 }
 function passFilter(it) {
   const f = state.filters;
+  if (f.focusKey && !(it.focus || []).includes(f.focusKey)) return false;
   if (!f.tiers.includes(it.tier)) return false;
   if (f.sources && !f.sources.includes(it.source_key)) return false;
   if (f.onlyHot && !(it.badges || []).some((b) => HOT_BADGES.has(b))) return false;
@@ -167,6 +169,7 @@ function passFilter(it) {
 
 // ---------------- 渲染 ----------------
 function render() {
+  renderFocusZone();
   const feed = $('#feed');
   feed.textContent = '';
   const items = state.items.filter(passFilter);
@@ -197,6 +200,57 @@ function render() {
   }
 }
 
+// ---------------- 焦点专区 ----------------
+function renderFocusZone() {
+  const zone = $('#focus-zone');
+  const targets = state.focusTargets || [];
+  zone.hidden = targets.length === 0 || state.isDemo;
+  zone.textContent = '';
+  if (zone.hidden) return;
+
+  const todayKey = dayKey(new Date().toISOString());
+  for (const t of targets) {
+    const matched = state.items.filter((it) => (it.focus || []).includes(t.key));
+    const todayCount = matched.filter((it) => dayKey(it.published_at) === todayKey).length;
+
+    const card = el('div', 'focus-card');
+    const head = el('div', 'focus-head');
+    head.appendChild(el('div', 'focus-avatar', initialsOf(t.name)));
+    const tt = el('div');
+    tt.appendChild(el('div', 'focus-title', `🎯 ${t.name_zh} · 传闻追踪`));
+    tt.appendChild(el('div', 'focus-desc', `${t.desc_zh || t.name} · 今日 ${todayCount} 条 / 共 ${matched.length} 条`));
+    head.appendChild(tt);
+    const hot = matched.filter((it) => it.tier === 'T0').length;
+    if (hot > 0) head.appendChild(el('span', 'focus-count', `T0 已跟进 ${hot} 条`));
+    const btn = el('button', `focus-btn${state.filters.focusKey === t.key ? ' on' : ''}`,
+      state.filters.focusKey === t.key ? '正在只看他 ✕' : '只看他');
+    btn.onclick = () => {
+      state.filters.focusKey = state.filters.focusKey === t.key ? null : t.key;
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    head.appendChild(btn);
+    card.appendChild(head);
+
+    if (matched.length === 0) {
+      card.appendChild(el('div', 'focus-empty', '暂无相关消息，抓到会第一时间出现在这里'));
+    } else {
+      const list = el('div', 'focus-list');
+      for (const it of matched.slice(0, 3)) {
+        const row = el('div', 'focus-item');
+        row.appendChild(el('span', `badge-tier ${TIER_CLASS[it.tier] || 't2'}`, it.tier));
+        const a = el('a', null, (state.filters.lang === 'en' ? it.text : (it.text_zh || it.text)));
+        a.href = it.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        row.appendChild(a);
+        row.appendChild(el('span', 'ft', relTime(it.published_at)));
+        list.appendChild(row);
+      }
+      card.appendChild(list);
+    }
+    zone.appendChild(card);
+  }
+}
+
 function renderCard(it) {
   const card = el('article', `card ${TIER_CLASS[it.tier] || 't2'}`);
   if ((it.badges || []).includes('HERE_WE_GO')) card.classList.add('hwg');
@@ -211,6 +265,11 @@ function renderCard(it) {
   const tierBadge = el('span', `badge-tier ${TIER_CLASS[it.tier]}`, it.tier);
   head.appendChild(tierBadge);
   if (it.note_zh) head.appendChild(el('span', 'src-note', it.note_zh));
+  if ((it.focus || []).length) {
+    const m = el('span', 'focus-mark', '🎯');
+    m.title = '焦点追踪对象相关';
+    head.appendChild(m);
+  }
   head.appendChild(el('span', 'kind', it.kind === 'tweet' ? '𝕏' : '📰'));
   const time = el('span', 'time', relTime(it.published_at));
   time.title = new Date(it.published_at).toLocaleString('zh-CN');

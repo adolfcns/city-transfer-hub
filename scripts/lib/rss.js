@@ -22,6 +22,8 @@ export function parseFeed(xml) {
       link: txt(it.link).trim() || it.guid?.['#text'] || txt(it.guid).trim(),
       html: txt(it['content:encoded']) || txt(it.description),
       date: txt(it.pubDate) || txt(it['dc:date']),
+      // Google News 会标注文章原始媒体（用于焦点检索的白名单判级）
+      source: it.source ? { name: txt(it.source).trim(), url: it.source['@_url'] || '' } : null,
     }));
   }
   // Atom

@@ -91,6 +91,23 @@ transfer_keywords:
 # 例： - "Florian Wirtz"
 hot_players: []
 
+# ==============================================================
+# 焦点追踪对象：与他相关的所有消息（含别队动态）进入页面顶部专区卡，
+# 并在时间线带 🎯 标记。可同时配多个。
+#   aliases  中英文都写全（命中任一即算他的消息）
+#   query    专属 Google News 检索词（默认取第一个别名）
+#   注意：大众姓氏（如 Silva）务必用全名当别名，避免误伤
+# ==============================================================
+focus_targets:
+  - key: bouaddi
+    name: Ayyoub Bouaddi
+    name_zh: 布阿迪
+    desc_zh: 里尔中场 · 2007年生
+    query: Bouaddi
+    aliases:
+      - Bouaddi
+      - 布阿迪
+
 sources:
   # ---------------- T0 树上等 ----------------
   - key: romano
