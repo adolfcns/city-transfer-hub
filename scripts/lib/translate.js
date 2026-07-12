@@ -3,7 +3,7 @@
 import { request, Agent } from 'undici';
 
 const API = 'https://api.deepseek.com/chat/completions';
-const MAX_PER_RUN = 60;   // 单次运行翻译上限（成本保险丝）
+const MAX_PER_RUN = 150;  // 单次运行翻译上限（成本保险丝；世界杯/窗口高峰单轮新增可能过百）
 const BATCH = 15;
 
 async function callDeepSeek(key, texts) {
