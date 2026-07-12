@@ -44,6 +44,7 @@ export default {
     const cors = {
       'Access-Control-Allow-Origin': ALLOW_ORIGINS.includes(origin) ? origin : ALLOW_ORIGINS[0],
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'content-type',
       'Vary': 'Origin',
       'content-type': 'application/json',
     };
