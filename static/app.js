@@ -645,6 +645,16 @@ function bind() {
   hot.onchange = () => { state.filters.onlyHot = hot.checked; saveFilters(); render(); };
   $('#btn-refresh').onclick = () => loadData(true);
   $('#btn-trigger').onclick = triggerCloudFetch;
+  // 一键收藏：复制网址 + 按设备给出最短收藏路径（浏览器不允许网页直接写书签）
+  $('#btn-fav').onclick = async () => {
+    try { await navigator.clipboard.writeText('https://adolfcns.github.io/city-transfer-hub/'); } catch { /* 剪贴板不可用则只提示 */ }
+    const ua = navigator.userAgent;
+    let msg;
+    if (/iPhone|iPad|iPod/i.test(ua)) msg = '网址已复制 ✓ iPhone：点浏览器"分享"按钮 → 添加到主屏幕或收藏';
+    else if (/Android/i.test(ua)) msg = '网址已复制 ✓ 点浏览器右上角菜单 ⋮ → 添加书签';
+    else msg = `网址已复制 ✓ 按 ${/Mac/i.test(ua) ? '⌘D' : 'Ctrl+D'} 即可收藏本站 💙`;
+    toast(msg);
+  };
   $('#btn-trigger-close').onclick = () => { $('#trigger-panel').hidden = true; };
   $('#trigger-panel').addEventListener('click', (e) => { if (e.target === $('#trigger-panel')) $('#trigger-panel').hidden = true; });
   $('#pat-save').onclick = savePat;

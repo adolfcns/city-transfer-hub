@@ -74,7 +74,15 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   flex-basis: 100%; min-width: 0;
   font-size: 11px; color: var(--gold);
   margin: 1px 0 0 54px;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
+.fav-btn {
+  font-size: 11px; padding: 1px 10px; border-radius: 999px;
+  border: 1px solid rgba(255,209,102,.55); background: rgba(255,209,102,.12);
+  color: var(--gold); font-weight: 600; transition: .12s; line-height: 1.6;
+}
+.fav-btn:hover { border-color: var(--gold); background: rgba(255,209,102,.22); }
+.fav-btn:active { transform: scale(.95); }
 @media (max-width: 560px) {
   .brand-slogan { margin-left: 0; }
 }
