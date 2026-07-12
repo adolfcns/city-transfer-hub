@@ -176,6 +176,10 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line);
   background: transparent; color: var(--text-dim); font-size: 13px;
 }
+.react-legend { margin-left: auto; font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+@media (max-width: 560px) {
+  .react-legend { margin-left: 0; flex-basis: 100%; white-space: normal; }
+}
 .legend-help:hover { color: var(--sky); border-color: var(--sky); }
 .legend-detail {
   background: var(--card); border: 1px solid var(--line); border-radius: 12px;
