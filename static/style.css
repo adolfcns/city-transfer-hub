@@ -296,6 +296,19 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 }
 @keyframes pulse { 50% { box-shadow: 0 0 10px rgba(255,209,102,.35); } }
 
+/* 表情互动栏 */
+.react-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 9px; }
+.react-chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 13px; padding: 2px 9px; border-radius: 999px;
+  background: var(--navy); border: 1px solid var(--line); color: var(--text-dim);
+  transition: .12s; line-height: 1.4;
+}
+.react-chip:hover { border-color: var(--sky); }
+.react-chip.on { border-color: var(--sky); background: rgba(22,48,90,.07); }
+.react-chip .rc-n { font-size: 11.5px; font-weight: 600; color: var(--sky); }
+.react-chip:active { transform: scale(.94); }
+
 .card-foot { display: flex; align-items: center; gap: 12px; margin-top: 8px; font-size: 12px; }
 .card-foot a { color: var(--text-dim); }
 .card-foot a:hover { color: var(--sky); }
