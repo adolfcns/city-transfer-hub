@@ -23,9 +23,6 @@ const BADGE_ZH = {
   YOUTH: '青训',
 };
 const HOT_BADGES = new Set(['HERE_WE_GO', 'OFFICIAL', 'EXCLUSIVE', 'DONE_DEAL']);
-// 表情互动（计数存在 Cloudflare Worker 的数据库里，全站共享）
-const REACTIONS = ['🔥', '💙', '👀', '😂', '🤨'];
-const REACTION_TIPS = { '🔥': '重磅', '💙': '蓝月亮', '👀': '吃瓜', '😂': '离谱', '🤨': '不信' };
 
 // ---------------- 状态 ----------------
 const state = {
@@ -37,8 +34,6 @@ const state = {
   seenIds: new Set(),
   newIds: new Set(),
   pendingNew: 0,
-  reactions: null,   // null=服务未就绪(隐藏表情栏)；{itemId:{emoji:n}}
-  myReacts: new Set(JSON.parse(localStorage.getItem('cth_reacts') || '[]')),
   filters: loadFilters(),
 };
 
@@ -345,23 +340,6 @@ function renderCard(it) {
     card.appendChild(row);
   }
 
-  // 表情互动栏（服务就绪才显示）
-  if (state.reactions !== null) {
-    const bar = el('div', 'react-bar');
-    const counts = state.reactions[it.id] || {};
-    for (const emo of REACTIONS) {
-      const mine = state.myReacts.has(`${it.id}:${emo}`);
-      const n = counts[emo] || 0;
-      const chip = el('button', `react-chip${mine ? ' on' : ''}`);
-      chip.title = REACTION_TIPS[emo];
-      chip.appendChild(el('span', null, emo));
-      if (n > 0) chip.appendChild(el('span', 'rc-n', String(n)));
-      chip.onclick = () => toggleReact(it, emo);
-      bar.appendChild(chip);
-    }
-    card.appendChild(bar);
-  }
-
   // 底部
   const foot = el('div', 'card-foot');
   const link = el('a', null, it.kind === 'tweet' ? '查看原推 ↗' : '阅读原文 ↗');
@@ -466,39 +444,6 @@ function showNewPill() {
   $('#new-pill').hidden = false;
 }
 
-// ---------------- 表情互动 ----------------
-async function loadReactions() {
-  if (!TRIGGER_ENDPOINT) return;
-  try {
-    const res = await fetch(`${TRIGGER_ENDPOINT}reactions?t=${Date.now()}`);
-    if (!res.ok) return;
-    state.reactions = await res.json();
-    render();
-  } catch { /* 服务未就绪则不显示表情栏 */ }
-}
-
-async function toggleReact(it, emoji) {
-  const key = `${it.id}:${emoji}`;
-  const mine = state.myReacts.has(key);
-  const op = mine ? '-1' : '+1';
-  // 乐观更新
-  const bucket = (state.reactions[it.id] ||= {});
-  bucket[emoji] = Math.max(0, (bucket[emoji] || 0) + (mine ? -1 : 1));
-  if (mine) state.myReacts.delete(key); else state.myReacts.add(key);
-  localStorage.setItem('cth_reacts', JSON.stringify([...state.myReacts]));
-  render();
-  try {
-    const res = await fetch(`${TRIGGER_ENDPOINT}react`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ id: it.id, emoji, op }),
-    });
-    if (res.ok) {
-      const { n } = await res.json();
-      if (typeof n === 'number') { bucket[emoji] = n; render(); }
-    }
-  } catch { /* 网络失败就保留乐观值，下次全量刷新会校正 */ }
-}
 const GH_REPO = 'adolfcns/city-transfer-hub';
 const GH_WORKFLOW = 'fetch.yml';
 // 公共触发端点（Cloudflare Worker 代理，令牌藏在 Worker 里不公开）。
@@ -696,6 +641,4 @@ bind();
 renderCountdown();
 setInterval(renderCountdown, 60e3);
 loadData(false);
-loadReactions();
 setInterval(() => loadData(true), REFRESH_MS);
-setInterval(loadReactions, REFRESH_MS * 2);

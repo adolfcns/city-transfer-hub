@@ -6,9 +6,3 @@ compatibility_date = "2026-01-01"
 
 [triggers]
 crons = ["*/30 * * * *"]
-
-# 表情计数数据库（免费额度：每天 500 万读 / 10 万写）
-[[d1_databases]]
-binding = "DB"
-database_name = "city-reactions"
-database_id = "9d9a9184-513d-4fc6-8f67-695d2637920e"
