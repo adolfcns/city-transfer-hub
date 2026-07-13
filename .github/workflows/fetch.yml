@@ -98,3 +98,10 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx --yes wrangler@4 pages deploy site --project-name=city-transfer-hub --branch=main 2>&1 | tail -3
+
+      # 仅在代码推送/手动运行时更新 Worker；定时抓取不重复部署
+      - name: Deploy Cloudflare Worker
+        if: ${{ github.event_name != 'schedule' && env.CLOUDFLARE_API_TOKEN != '' }}
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4 deploy --config cloudflare/wrangler.toml

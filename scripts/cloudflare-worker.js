@@ -20,6 +20,36 @@ const ALLOW_ORIGINS = [
   'http://localhost:8787', // 本地调试
 ];
 const COOLDOWN_SECONDS = 90;                        // 访客触发的全局冷却，防止被刷
+const PRAYER_ROW_ID = '0000000000001894';           // 专用行，1894 对应俱乐部成立年份
+const PRAYER_EMOJI = '💙';
+const PRAYER_RATE_SECONDS = 1;
+let prayerSchemaReady = false;
+
+async function ensurePrayerSchema(env) {
+  if (prayerSchemaReady) return;
+  await env.DB.prepare(
+    'CREATE TABLE IF NOT EXISTS reactions (' +
+      'id TEXT NOT NULL, emoji TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, ' +
+      'PRIMARY KEY (id, emoji))',
+  ).run();
+  prayerSchemaReady = true;
+}
+
+async function readPrayerCount(env) {
+  await ensurePrayerSchema(env);
+  const row = await env.DB.prepare('SELECT n FROM reactions WHERE id = ? AND emoji = ?')
+    .bind(PRAYER_ROW_ID, PRAYER_EMOJI).first();
+  return Number(row?.n || 0);
+}
+
+async function incrementPrayerCount(env) {
+  await ensurePrayerSchema(env);
+  await env.DB.prepare(
+    'INSERT INTO reactions (id, emoji, n) VALUES (?, ?, 1) ' +
+    'ON CONFLICT(id, emoji) DO UPDATE SET n = n + 1',
+  ).bind(PRAYER_ROW_ID, PRAYER_EMOJI).run();
+  return readPrayerCount(env);
+}
 
 // 用服务端令牌触发 GitHub 抓取任务
 async function triggerGitHub(env) {
@@ -39,13 +69,49 @@ export default {
   // —— 访客点 ⚡ 时走这里 ——
   async fetch(request, env) {
     const origin = request.headers.get('Origin') || '';
+    const originAllowed = !origin || ALLOW_ORIGINS.includes(origin);
     const cors = {
       'Access-Control-Allow-Origin': ALLOW_ORIGINS.includes(origin) ? origin : ALLOW_ORIGINS[0],
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'content-type',
       'Vary': 'Origin',
       'content-type': 'application/json',
+      'cache-control': 'no-store',
     };
     if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
+    const path = new URL(request.url).pathname;
+
+    // —— 全站木鱼：GET 读取总数，POST 原子 +1 ——
+    if (path === '/prayer') {
+      if (!originAllowed) {
+        return new Response(JSON.stringify({ ok: false, reason: 'origin' }), { status: 403, headers: cors });
+      }
+      if (!env.DB) {
+        return new Response(JSON.stringify({ ok: false, reason: 'no_db' }), { status: 503, headers: cors });
+      }
+      try {
+        if (request.method === 'GET') {
+          return new Response(JSON.stringify({ ok: true, count: await readPrayerCount(env) }), { headers: cors });
+        }
+        if (request.method === 'POST') {
+          const cache = caches.default;
+          const ip = request.headers.get('CF-Connecting-IP') || 'anonymous';
+          const gate = new Request(`https://prayer-limit.internal/${encodeURIComponent(ip)}`);
+          if (await cache.match(gate)) {
+            return new Response(JSON.stringify({ ok: false, reason: 'slow_down', count: await readPrayerCount(env) }), {
+              status: 429, headers: { ...cors, 'retry-after': String(PRAYER_RATE_SECONDS) },
+            });
+          }
+          const count = await incrementPrayerCount(env);
+          await cache.put(gate, new Response('1', { headers: { 'cache-control': `max-age=${PRAYER_RATE_SECONDS}` } }));
+          return new Response(JSON.stringify({ ok: true, count }), { headers: cors });
+        }
+        return new Response(JSON.stringify({ ok: false, reason: 'method' }), { status: 405, headers: cors });
+      } catch {
+        return new Response(JSON.stringify({ ok: false, reason: 'db_error' }), { status: 503, headers: cors });
+      }
+    }
+
     if (request.method !== 'POST') {
       return new Response(JSON.stringify({ ok: false, reason: 'use POST' }), { status: 405, headers: cors });
     }

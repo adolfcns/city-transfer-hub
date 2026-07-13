@@ -6,3 +6,9 @@ compatibility_date = "2026-01-01"
 
 [triggers]
 crons = ["*/30 * * * *"]
+
+# 复用现有 D1 数据库保存全站木鱼累计次数
+[[d1_databases]]
+binding = "DB"
+database_name = "city-reactions"
+database_id = "9d9a9184-513d-4fc6-8f67-695d2637920e"

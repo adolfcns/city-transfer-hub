@@ -366,6 +366,7 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   transform: translateY(-2px); border-color: #bfe7fb;
   box-shadow: 0 13px 32px rgba(28,44,91,.34);
 }
+.city-prayer:disabled { cursor: wait; opacity: .88; }
 .city-prayer:focus-visible { outline: 3px solid rgba(108,171,221,.4); outline-offset: 3px; }
 .city-prayer img {
   width: 31px; height: 31px; flex: none; border-radius: 50%;
@@ -490,12 +491,12 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   .library-actions.compact .library-action { min-height: 26px; }
   .city-prayer {
     right: 10px; bottom: calc(11px + env(safe-area-inset-bottom));
-    max-width: 126px; padding: 6px 9px 6px 6px; gap: 5px;
+    max-width: 148px; padding: 6px 9px 6px 6px; gap: 5px;
   }
   .city-prayer img { width: 28px; height: 28px; }
   .prayer-emoji { font-size: 16px; }
   .prayer-copy strong { font-size: 10px; }
-  .prayer-copy small { display: none; }
+  .prayer-copy small { display: block; font-size: 8px; }
   .foot { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 }
 
@@ -504,7 +505,7 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   .library-seg button { font-size: 11px; }
   .filterbar { gap: 7px; }
   .seg button { padding-inline: 10px; }
-  .city-prayer { max-width: 120px; }
+  .city-prayer { max-width: 144px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -145,27 +145,78 @@ function savePrayerCount(count) {
   try { localStorage.setItem(PRAYER_KEY, String(count)); } catch { /* 本次访问内仍可继续互动 */ }
 }
 
-function renderPrayerCount(count) {
+function compactCount(count) {
+  if (count < 10000) return count.toLocaleString('zh-CN');
+  const value = count / 10000;
+  return `${value >= 100 ? Math.round(value) : value.toFixed(1).replace(/\.0$/, '')}万`;
+}
+
+function renderPrayerCount(localCount, globalCount = null) {
   const button = $('#city-prayer');
-  $('#prayer-count').textContent = count > 0 ? `本机已敲 ${count} 次` : '点击敲一下';
-  button.setAttribute('aria-label', count > 0
-    ? `点击曼城木鱼，为球员祈福；本机已敲 ${count} 次`
-    : '点击曼城木鱼，为球员祈福');
+  const hasGlobal = Number.isSafeInteger(globalCount) && globalCount >= 0;
+  $('#prayer-count').textContent = hasGlobal
+    ? `全站 ${compactCount(globalCount)} 次`
+    : localCount > 0 ? `本机已敲 ${localCount} 次` : '点击敲一下';
+  button.setAttribute('aria-label', hasGlobal
+    ? `点击曼城木鱼，为球员祈福；全站累计 ${globalCount} 次；本机已敲 ${localCount} 次`
+    : localCount > 0
+      ? `点击曼城木鱼，为球员祈福；本机已敲 ${localCount} 次`
+      : '点击曼城木鱼，为球员祈福');
 }
 
 function bindPrayer() {
   const button = $('#city-prayer');
-  let count = loadPrayerCount();
-  renderPrayerCount(count);
-  button.onclick = () => {
-    count = Math.min(count + 1, 999999);
-    savePrayerCount(count);
-    renderPrayerCount(count);
+  let localCount = loadPrayerCount();
+  let globalCount = null;
+  let requestInFlight = false;
+  renderPrayerCount(localCount, globalCount);
+
+  const requestPrayer = async (method) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3500);
+    try {
+      return await fetch(PRAYER_ENDPOINT, { method, cache: 'no-store', signal: controller.signal });
+    } finally { clearTimeout(timer); }
+  };
+
+  requestPrayer('GET').then(async (res) => {
+    if (!res.ok) return;
+    const data = await res.json();
+    if (Number.isSafeInteger(data.count) && data.count >= 0) {
+      globalCount = data.count;
+      renderPrayerCount(localCount, globalCount);
+    }
+  }).catch(() => { /* workers.dev 不可达时继续显示本机次数 */ });
+
+  button.onclick = async () => {
+    if (requestInFlight) return;
+    requestInFlight = true;
+    button.disabled = true;
+    localCount = Math.min(localCount + 1, 999999);
+    savePrayerCount(localCount);
+    renderPrayerCount(localCount, globalCount);
     button.classList.remove('hit');
     requestAnimationFrame(() => button.classList.add('hit'));
     setTimeout(() => button.classList.remove('hit'), 360);
     try { navigator.vibrate?.(30); } catch { /* 部分浏览器不支持轻触震动 */ }
-    toast(`咚！已为曼城球员送上祝福 💙（本机第 ${count} 次）`);
+    toast(`咚！已为曼城球员送上祝福 💙（本机第 ${localCount} 次）`);
+    try {
+      const res = await requestPrayer('POST');
+      const data = await res.json().catch(() => ({}));
+      if (Number.isSafeInteger(data.count) && data.count >= 0) {
+        globalCount = data.count;
+        renderPrayerCount(localCount, globalCount);
+      }
+      if (res.ok && Number.isSafeInteger(globalCount)) {
+        toast(`咚！祝福已汇入全站 💙 目前共 ${globalCount.toLocaleString('zh-CN')} 次`);
+      } else if (res.status === 429) toast('祝福收到啦，稍慢一点再敲 💙');
+      else toast('祝福已保存在本机，云端计数暂时不可用');
+    } catch {
+      toast('祝福已保存在本机，云端暂未连接');
+    } finally {
+      requestInFlight = false;
+      button.disabled = false;
+    }
   };
 }
 
@@ -586,6 +637,7 @@ const GH_WORKFLOW = 'fetch.yml';
 // 公共触发端点（Cloudflare Worker 代理，令牌藏在 Worker 里不公开）。
 // 留空 = 未开启公共触发，访客点 ⚡ 会看到引导面板。
 const TRIGGER_ENDPOINT = 'https://city-trigger.shiqie7272.workers.dev/';
+const PRAYER_ENDPOINT = `${TRIGGER_ENDPOINT}prayer`;
 const TRIGGER_COOLDOWN_MS = 60 * 1000;      // 单设备触发冷却
 const FRESH_ENOUGH_MS = 3 * 60 * 1000;      // 数据足够新就不重复抓
 let toastTimer = null;
