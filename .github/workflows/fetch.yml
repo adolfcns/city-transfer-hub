@@ -77,6 +77,7 @@ jobs:
           mkdir -p site/data
           cp -r static/. site/
           cp data/*.json site/data/
+          sed -i "s/__BUILD_VERSION__/${GITHUB_SHA}/g" site/index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -97,16 +98,7 @@ jobs:
         if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx --yes wrangler@4 pages deploy site --project-name=city-transfer-hub --branch=main 2>&1 | tail -3
-
-      # 仅在代码推送/手动运行时更新 Worker；定时抓取不重复部署
-      - name: Deploy Cloudflare Worker
-        if: ${{ github.event_name != 'schedule' && env.CLOUDFLARE_API_TOKEN != '' }}
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          DEPLOY_CONFIG="cloudflare/wrangler.deploy.toml"
-          cp cloudflare/wrangler.toml "$DEPLOY_CONFIG"
           DB_ID="$(npx --yes wrangler@4 d1 list --json | node -e 'let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{ const rows=JSON.parse(s); const db=rows.find(x=>x.name==="city-reactions"); if(db) process.stdout.write(db.uuid||db.id||""); })')"
           if [ -z "$DB_ID" ]; then
             npx --yes wrangler@4 d1 create city-reactions --location apac
@@ -116,26 +108,50 @@ jobs:
             echo "::error::D1 database city-reactions was not found after provisioning"
             exit 1
           fi
+          echo "PRAYER_DB_ID=$DB_ID" >> "$GITHUB_ENV"
+
+          cp cloudflare/pages-worker.js site/_worker.js
+          cp cloudflare/pages-routes.json site/_routes.json
+          PAGES_CONFIG_DIR="cloudflare/pages-deploy"
+          mkdir -p "$PAGES_CONFIG_DIR"
+          printf 'name = "city-transfer-hub"\ncompatibility_date = "2026-07-13"\npages_build_output_dir = "../../site"\n\n[[d1_databases]]\nbinding = "DB"\ndatabase_name = "city-reactions"\ndatabase_id = "%s"\n' "$DB_ID" > "$PAGES_CONFIG_DIR/wrangler.toml"
+          (cd "$PAGES_CONFIG_DIR" && npx --yes wrangler@4 pages deploy --branch=main)
+
+      # 仅在代码推送/手动运行时更新 Worker；定时抓取不重复部署
+      - name: Deploy Cloudflare Worker
+        if: ${{ github.event_name != 'schedule' && env.CLOUDFLARE_API_TOKEN != '' }}
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          DEPLOY_CONFIG="cloudflare/wrangler.deploy.toml"
+          cp cloudflare/wrangler.toml "$DEPLOY_CONFIG"
+          DB_ID="${PRAYER_DB_ID:-}"
+          if [ -z "$DB_ID" ]; then
+            echo "::error::D1 database binding was not prepared by the Pages deployment"
+            exit 1
+          fi
           printf '\n[[d1_databases]]\nbinding = "DB"\ndatabase_name = "city-reactions"\ndatabase_id = "%s"\n' "$DB_ID" >> "$DEPLOY_CONFIG"
           echo "Deploying Worker with D1 binding DB -> $DB_ID"
           npx --yes wrangler@4 deploy --config "$DEPLOY_CONFIG"
 
       - name: Verify prayer counter API
-        if: ${{ github.event_name != 'schedule' && env.CLOUDFLARE_API_TOKEN != '' }}
+        if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
         run: |
           node --input-type=module <<'NODE'
-          const url = 'https://city-trigger.shiqie7272.workers.dev/prayer';
+          const url = 'https://city-transfer-hub.pages.dev/prayer';
+          const origin = 'https://adolfcns.github.io';
           for (let attempt = 1; attempt <= 10; attempt += 1) {
             try {
               const response = await fetch(url, {
-                headers: { Origin: 'https://adolfcns.github.io' },
+                headers: { Origin: origin },
               });
               const body = await response.json();
-              if (response.ok && body.ok === true && Number.isInteger(body.count)) {
-                console.log(`Prayer counter ready: ${body.count}`);
+              const cors = response.headers.get('access-control-allow-origin');
+              if (response.ok && body.ok === true && Number.isInteger(body.count) && cors === origin) {
+                console.log(`Direct prayer counter ready: ${body.count}`);
                 process.exit(0);
               }
-              console.log(`Attempt ${attempt}: HTTP ${response.status}`, body);
+              console.log(`Attempt ${attempt}: HTTP ${response.status}, CORS ${cors}`, body);
             } catch (error) {
               console.log(`Attempt ${attempt}: ${error.message}`);
             }

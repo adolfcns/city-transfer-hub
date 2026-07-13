@@ -151,40 +151,53 @@ function compactCount(count) {
   return `${value >= 100 ? Math.round(value) : value.toFixed(1).replace(/\.0$/, '')}万`;
 }
 
-function renderPrayerCount(localCount, globalCount = null) {
+function renderPrayerCount(localCount, globalCount = null, syncState = 'loading') {
   const button = $('#city-prayer');
-  const hasGlobal = Number.isSafeInteger(globalCount) && globalCount >= 0;
+  const hasGlobal = syncState !== 'error' && Number.isSafeInteger(globalCount) && globalCount >= 0;
   $('#prayer-count').textContent = hasGlobal
     ? `全站已敲 ${compactCount(globalCount)} 次`
-    : '全站次数加载中';
+    : syncState === 'error' ? '全站同步暂不可用' : '全站次数加载中';
   button.setAttribute('aria-label', hasGlobal
     ? `点击曼城木鱼，为球员带来好运；全站已敲 ${globalCount} 次`
-    : '点击曼城木鱼，为球员带来好运；全站次数加载中');
+    : `点击曼城木鱼，为球员带来好运；${syncState === 'error' ? '全站同步暂不可用' : '全站次数加载中'}`);
 }
 
 function bindPrayer() {
   const button = $('#city-prayer');
   let localCount = loadPrayerCount();
   let globalCount = null;
+  let syncState = 'loading';
+  let activeEndpoint = PRAYER_ENDPOINTS[0];
   let requestInFlight = false;
-  renderPrayerCount(localCount, globalCount);
+  renderPrayerCount(localCount, globalCount, syncState);
 
-  const requestPrayer = async (method) => {
+  const fetchPrayer = async (endpoint, method) => {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3500);
+    const timer = setTimeout(() => controller.abort(), 5000);
     try {
-      return await fetch(PRAYER_ENDPOINT, { method, cache: 'no-store', signal: controller.signal });
+      return await fetch(endpoint, { method, cache: 'no-store', signal: controller.signal });
     } finally { clearTimeout(timer); }
   };
 
-  requestPrayer('GET').then(async (res) => {
-    if (!res.ok) return;
-    const data = await res.json();
-    if (Number.isSafeInteger(data.count) && data.count >= 0) {
-      globalCount = data.count;
-      renderPrayerCount(localCount, globalCount);
+  const loadGlobalCount = async () => {
+    for (const endpoint of PRAYER_ENDPOINTS) {
+      try {
+        const res = await fetchPrayer(endpoint, 'GET');
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !Number.isSafeInteger(data.count) || data.count < 0) continue;
+        if (requestInFlight) return;
+        activeEndpoint = endpoint;
+        globalCount = data.count;
+        syncState = 'ready';
+        renderPrayerCount(localCount, globalCount, syncState);
+        return;
+      } catch { /* 读取可安全尝试下一个入口 */ }
     }
-  }).catch(() => { /* workers.dev 不可达时继续显示本机次数 */ });
+    if (requestInFlight) return;
+    syncState = 'error';
+    renderPrayerCount(localCount, globalCount, syncState);
+  };
+  loadGlobalCount();
 
   button.onclick = async () => {
     if (requestInFlight) return;
@@ -192,24 +205,32 @@ function bindPrayer() {
     button.disabled = true;
     localCount = Math.min(localCount + 1, 999999);
     savePrayerCount(localCount);
-    renderPrayerCount(localCount, globalCount);
+    renderPrayerCount(localCount, globalCount, syncState);
     button.classList.remove('hit');
     requestAnimationFrame(() => button.classList.add('hit'));
     setTimeout(() => button.classList.remove('hit'), 360);
     try { navigator.vibrate?.(30); } catch { /* 部分浏览器不支持轻触震动 */ }
     toast('咚！已为曼城球员带来好运 💙');
     try {
-      const res = await requestPrayer('POST');
+      // 写入只请求已成功读取的同一个入口，网络超时时不跨入口重试，避免重复 +1。
+      const res = await fetchPrayer(activeEndpoint, 'POST');
       const data = await res.json().catch(() => ({}));
       if (Number.isSafeInteger(data.count) && data.count >= 0) {
         globalCount = data.count;
-        renderPrayerCount(localCount, globalCount);
+        syncState = 'ready';
+        renderPrayerCount(localCount, globalCount, syncState);
       }
       if (res.ok && Number.isSafeInteger(globalCount)) {
         toast(`咚！好运已汇入全站 💙 全站已敲 ${globalCount.toLocaleString('zh-CN')} 次`);
       } else if (res.status === 429) toast('好运收到啦，稍慢一点再敲 💙');
-      else toast('本次好运已保存在本机，全站计数暂时不可用');
+      else {
+        syncState = 'error';
+        renderPrayerCount(localCount, globalCount, syncState);
+        toast('本次好运已保存在本机，全站计数暂时不可用');
+      }
     } catch {
+      syncState = 'error';
+      renderPrayerCount(localCount, globalCount, syncState);
       toast('本次好运已保存在本机，全站计数暂未连接');
     } finally {
       requestInFlight = false;
@@ -635,7 +656,11 @@ const GH_WORKFLOW = 'fetch.yml';
 // 公共触发端点（Cloudflare Worker 代理，令牌藏在 Worker 里不公开）。
 // 留空 = 未开启公共触发，访客点 ⚡ 会看到引导面板。
 const TRIGGER_ENDPOINT = 'https://city-trigger.shiqie7272.workers.dev/';
-const PRAYER_ENDPOINT = `${TRIGGER_ENDPOINT}prayer`;
+// 全站计数优先走国内可直连的 Pages；Worker 仅作为读取备用入口。
+const PRAYER_ENDPOINTS = [
+  'https://city-transfer-hub.pages.dev/prayer',
+  `${TRIGGER_ENDPOINT}prayer`,
+];
 const TRIGGER_COOLDOWN_MS = 60 * 1000;      // 单设备触发冷却
 const FRESH_ENOUGH_MS = 3 * 60 * 1000;      // 数据足够新就不重复抓
 let toastTimer = null;
