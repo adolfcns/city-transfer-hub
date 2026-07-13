@@ -281,6 +281,13 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 /* ============ 时间线 ============ */
 .feed { display: flex; flex-direction: column; gap: 10px; }
 .loading, .empty { text-align: center; color: var(--text-dim); padding: 60px 0; font-size: 14px; }
+.feed-more {
+  align-self: center; min-width: 210px; margin: 10px 0 2px; padding: 9px 18px;
+  border: 1px solid var(--burgundy); border-radius: 7px;
+  background: var(--cream); color: var(--burgundy); font-size: 12px; font-weight: 700;
+}
+.feed-more:hover { background: var(--cream-deep); }
+.feed-end { text-align: center; color: var(--text-dim); font-size: 11px; padding: 12px 0 2px; }
 .day-sep {
   display: flex; align-items: center; gap: 12px;
   color: var(--sky); font-size: 13px; font-weight: 600;

@@ -25,6 +25,8 @@ const BADGE_ZH = {
 const HOT_BADGES = new Set(['HERE_WE_GO', 'OFFICIAL', 'EXCLUSIVE', 'DONE_DEAL']);
 const LIBRARY_KEY = 'cth_library_v1';
 const PRAYER_KEY = 'cth_city_prayer_v1';
+const FEED_BATCH_SIZE = 24;
+const SEARCH_DEBOUNCE_MS = 140;
 
 // ---------------- 状态 ----------------
 const state = {
@@ -39,6 +41,13 @@ const state = {
   library: loadLibrary(),
   filters: loadFilters(),
 };
+let feedItems = [];
+let feedCursor = 0;
+let feedLastDay = null;
+let feedObserver = null;
+let feedAppending = false;
+let feedGeneration = 0;
+let searchRenderTimer = null;
 
 function loadFilters() {
   const def = { tiers: ['T0', 'T1', 'T2', 'ITK'], sources: null, search: '', onlyHot: false, lang: 'zh', focusKey: null, libraryView: 'all' };
@@ -80,21 +89,21 @@ function toggleFavorite(it) {
   if (state.library.favorites.has(id)) state.library.favorites.delete(id);
   else state.library.favorites.add(id);
   saveLibrary();
-  render();
+  refreshLibraryUi(it, 'favorite');
 }
 function toggleRead(it) {
   const id = itemId(it);
   if (state.library.read.has(id)) state.library.read.delete(id);
   else state.library.read.add(id);
   saveLibrary();
-  render();
+  refreshLibraryUi(it, 'read');
 }
 function markRead(it) {
   const id = itemId(it);
   if (state.library.read.has(id)) return;
   state.library.read.add(id);
   saveLibrary();
-  updateLibraryBar();
+  refreshLibraryUi(it, 'read');
 }
 function buildLibraryActions(it, compact = false) {
   const id = itemId(it);
@@ -116,6 +125,53 @@ function buildLibraryActions(it, compact = false) {
   read.onclick = () => toggleRead(it);
   actions.append(favorite, read);
   return actions;
+}
+function syncLibraryActions(root, id) {
+  const actions = root.querySelector('.library-actions');
+  if (!actions) return;
+  const compact = actions.classList.contains('compact');
+  const isFavorite = state.library.favorites.has(id);
+  const isRead = state.library.read.has(id);
+  const favorite = actions.querySelector('.library-action.favorite');
+  const read = actions.querySelector('.library-action.read');
+  if (favorite) {
+    favorite.classList.toggle('on', isFavorite);
+    favorite.textContent = compact ? (isFavorite ? '★' : '☆') : (isFavorite ? '★ 已收藏' : '☆ 收藏');
+    favorite.title = isFavorite ? '取消收藏' : '收藏这条消息';
+    favorite.setAttribute('aria-label', favorite.title);
+    favorite.setAttribute('aria-pressed', isFavorite ? 'true' : 'false');
+  }
+  if (read) {
+    read.classList.toggle('on', isRead);
+    read.textContent = compact ? (isRead ? '✓' : '○') : (isRead ? '✓ 已读' : '○ 标记已读');
+    read.title = isRead ? '标记为未读' : '标记为已读';
+    read.setAttribute('aria-label', read.title);
+    read.setAttribute('aria-pressed', isRead ? 'true' : 'false');
+  }
+}
+function syncRenderedItem(it) {
+  const id = itemId(it);
+  document.querySelectorAll('article[data-item-id]').forEach((node) => {
+    if (node.dataset.itemId !== id) return;
+    node.classList.toggle('is-read', state.library.read.has(id));
+    syncLibraryActions(node, id);
+  });
+}
+function syncAllRenderedItems() {
+  const byId = new Map(state.items.map((it) => [itemId(it), it]));
+  document.querySelectorAll('article[data-item-id]').forEach((node) => {
+    const it = byId.get(node.dataset.itemId);
+    if (!it) return;
+    node.classList.toggle('is-read', state.library.read.has(node.dataset.itemId));
+    syncLibraryActions(node, node.dataset.itemId);
+  });
+}
+function refreshLibraryUi(it, changedState) {
+  updateLibraryBar();
+  const filterNeedsRefresh = (changedState === 'favorite' && state.filters.libraryView === 'favorites')
+    || (changedState === 'read' && state.filters.libraryView === 'unread');
+  if (filterNeedsRefresh) renderFeed();
+  else syncRenderedItem(it);
 }
 function updateLibraryBar() {
   const currentIds = new Set(state.items.map(itemId));
@@ -361,12 +417,14 @@ function passFilter(it) {
 
 // ---------------- 渲染 ----------------
 function render() {
+  clearTimeout(searchRenderTimer);
+  searchRenderTimer = null;
   renderFocusZone();
   updateLibraryBar();
-  const feed = $('#feed');
-  feed.textContent = '';
-  const items = state.items.filter(passFilter);
+  renderFeed();
+}
 
+function updateFeedSummary() {
   // 选了中文/双语但一条译文都没有 → 提示需要配置翻译密钥
   const anyZh = state.items.some((it) => it.text_zh);
   $('#translate-banner').hidden = state.isDemo || anyZh || state.items.length === 0 || state.filters.lang === 'en';
@@ -377,8 +435,27 @@ function render() {
   document.querySelectorAll('.tier-chip').forEach((chip) => {
     chip.querySelector('.cnt').textContent = counts[chip.dataset.tier] || 0;
   });
+}
 
-  if (items.length === 0) {
+function stopFeedObserver() {
+  feedObserver?.disconnect();
+  feedObserver = null;
+}
+
+function renderFeed() {
+  stopFeedObserver();
+  feedGeneration++;
+  const feed = $('#feed');
+  feed.textContent = '';
+  feedItems = state.items.filter(passFilter);
+  feedCursor = 0;
+  feedLastDay = null;
+  feedAppending = false;
+  feed.dataset.total = String(feedItems.length);
+  feed.dataset.rendered = '0';
+  updateFeedSummary();
+
+  if (feedItems.length === 0) {
     const emptyText = state.filters.libraryView === 'favorites'
       ? '还没有收藏消息，点击卡片上的“☆ 收藏”即可加入'
       : state.filters.libraryView === 'unread'
@@ -387,15 +464,66 @@ function render() {
     feed.appendChild(el('div', 'empty', emptyText));
     return;
   }
-  let lastDay = null;
-  for (const it of items) {
+  appendNextFeedBatch();
+}
+
+function appendNextFeedBatch() {
+  if (feedAppending || feedCursor >= feedItems.length) return;
+  feedAppending = true;
+  stopFeedObserver();
+  $('#feed-more')?.remove();
+  $('#feed-end')?.remove();
+
+  const feed = $('#feed');
+  const fragment = document.createDocumentFragment();
+  const end = Math.min(feedCursor + FEED_BATCH_SIZE, feedItems.length);
+  for (let i = feedCursor; i < end; i++) {
+    const it = feedItems[i];
     const dk = dayKey(it.published_at);
-    if (dk !== lastDay) {
-      feed.appendChild(el('div', 'day-sep', dayLabel(it.published_at)));
-      lastDay = dk;
+    if (dk !== feedLastDay) {
+      fragment.appendChild(el('div', 'day-sep', dayLabel(it.published_at)));
+      feedLastDay = dk;
     }
-    feed.appendChild(renderCard(it));
+    fragment.appendChild(renderCard(it));
   }
+  feedCursor = end;
+  feed.dataset.rendered = String(feedCursor);
+  feed.appendChild(fragment);
+  feedAppending = false;
+
+  if (feedCursor >= feedItems.length) {
+    if (feedItems.length > FEED_BATCH_SIZE) {
+      const endNote = el('div', 'feed-end', `已加载全部 ${feedItems.length} 条`);
+      endNote.id = 'feed-end';
+      feed.appendChild(endNote);
+    }
+    return;
+  }
+
+  const more = el('button', 'feed-more', `继续加载 · 已显示 ${feedCursor}/${feedItems.length}`);
+  more.id = 'feed-more';
+  more.type = 'button';
+  more.onclick = appendNextFeedBatch;
+  feed.appendChild(more);
+  if ('IntersectionObserver' in window) {
+    const generation = feedGeneration;
+    feedObserver = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      stopFeedObserver();
+      requestAnimationFrame(() => {
+        if (generation === feedGeneration) appendNextFeedBatch();
+      });
+    }, { rootMargin: '500px 0px' });
+    feedObserver.observe(more);
+  }
+}
+
+function scheduleSearchRender() {
+  clearTimeout(searchRenderTimer);
+  searchRenderTimer = setTimeout(() => {
+    searchRenderTimer = null;
+    renderFeed();
+  }, SEARCH_DEBOUNCE_MS);
 }
 
 // ---------------- 焦点专区 ----------------
@@ -437,6 +565,7 @@ function renderFocusZone() {
       const car = el('div', 'focus-carousel');
       for (const it of matched.slice(0, 12)) {
         const s = el('article', 'focus-slide');
+        s.dataset.itemId = itemId(it);
         if (state.library.read.has(itemId(it))) s.classList.add('is-read');
         const h = el('div', 'fs-head');
         h.appendChild(el('span', `badge-tier ${TIER_CLASS[it.tier] || 't2'}`, it.tier));
@@ -447,7 +576,7 @@ function renderFocusZone() {
         const fsFoot = el('div', 'fs-foot');
         const a = el('a', 'fs-link', it.kind === 'tweet' ? '查看原推 ↗' : '阅读原文 ↗');
         a.href = it.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
-        a.onclick = () => { markRead(it); requestAnimationFrame(render); };
+        a.onclick = () => { markRead(it); };
         fsFoot.appendChild(a);
         fsFoot.appendChild(buildLibraryActions(it, true));
         s.appendChild(fsFoot);
@@ -474,6 +603,7 @@ function renderFocusZone() {
 
 function renderCard(it) {
   const card = el('article', `card ${TIER_CLASS[it.tier] || 't2'}`);
+  card.dataset.itemId = itemId(it);
   if (state.library.read.has(itemId(it))) card.classList.add('is-read');
   if ((it.badges || []).includes('HERE_WE_GO')) card.classList.add('hwg');
   if (state.newIds.has(it.id)) card.classList.add('is-new');
@@ -548,7 +678,7 @@ function renderCard(it) {
   const foot = el('div', 'card-foot');
   const link = el('a', null, it.kind === 'tweet' ? '查看原推 ↗' : '阅读原文 ↗');
   link.href = it.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
-  link.onclick = () => { markRead(it); requestAnimationFrame(render); };
+  link.onclick = () => { markRead(it); };
   foot.appendChild(link);
   if (it.dupes && it.dupes.length) {
     const btn = el('button', 'dupes-btn', `另有 ${it.dupes.length} 个来源 ▾`);
@@ -784,7 +914,10 @@ function bind() {
     };
   });
   $('#btn-legend').onclick = () => { const d = $('#legend-detail'); d.hidden = !d.hidden; };
-  $('#search').oninput = (e) => { state.filters.search = e.target.value.trim(); render(); };
+  $('#search').oninput = (e) => {
+    state.filters.search = e.target.value.trim();
+    scheduleSearchRender();
+  };
   $('#src-btn').onclick = (e) => { e.stopPropagation(); $('#src-menu').hidden = !$('#src-menu').hidden; };
   document.addEventListener('click', (e) => {
     if (!$('#src-select').contains(e.target)) $('#src-menu').hidden = true;
@@ -810,7 +943,9 @@ function bind() {
   $('#mark-all-read').onclick = () => {
     for (const it of state.items) state.library.read.add(itemId(it));
     saveLibrary();
-    render();
+    updateLibraryBar();
+    if (state.filters.libraryView === 'unread') renderFeed();
+    else syncAllRenderedItems();
   };
   $('#btn-refresh').onclick = () => loadData(true);
   $('#btn-trigger').onclick = triggerCloudFetch;
@@ -836,7 +971,10 @@ function bind() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     await loadData(false);                 // 强制拉最新数据并渲染（不只是重画旧数据）
     // 新条目高亮保留 6 秒后淡出
-    setTimeout(() => { state.newIds.clear(); render(); }, 6000);
+    setTimeout(() => {
+      state.newIds.clear();
+      document.querySelectorAll('.card.is-new').forEach((card) => card.classList.remove('is-new'));
+    }, 6000);
   };
   // 手机切后台再回来时，浏览器会冻结定时器 → 恢复可见时立即刷新一次
   document.addEventListener('visibilitychange', () => { if (!document.hidden) loadData(true); });
