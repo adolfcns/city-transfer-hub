@@ -434,7 +434,7 @@ function openStatus() {
   list.textContent = '';
   const s = state.status;
   $('#status-sub').textContent = s
-    ? `上次抓取 ${relTime(s.updated_at)} · 绿=正常 黄=空结果 红=失败 灰=未启用`
+    ? `上次抓取 ${relTime(s.updated_at)} · 绿=正常 红=失败 灰=未启用 · 「抓」=从源头拿到的原始条数，「入」=通过曼城过滤新入库的条数（记者聊别的话题时 入=0 属正常）`
     : '暂无状态数据（本地演示模式）';
   if (!s) return;
   for (const src of s.sources || []) {
@@ -449,7 +449,7 @@ function openStatus() {
     const meta = src.enabled === false
       ? '未启用'
       : src.ok
-        ? `${src.items ?? 0} 条 · ${src.last_success ? relTime(src.last_success) : '—'}`
+        ? `抓 ${src.items ?? 0} · 入 ${src.admitted ?? '—'} · ${src.last_success ? relTime(src.last_success) : '—'}`
         : (src.error || '抓取失败').slice(0, 40);
     const m = el('span', 's-meta', meta);
     if (src.error) m.title = src.error;

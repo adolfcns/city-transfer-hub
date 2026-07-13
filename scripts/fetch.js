@@ -190,6 +190,11 @@ async function main() {
       note_zh: o.note_zh || undefined,
     });
   }
+  // 回填每个源"本轮新入库"条数（面板显示 抓X·入Y，避免误读）
+  const admittedBySrc = {};
+  for (const it of incoming) admittedBySrc[it.source_key] = (admittedBySrc[it.source_key] || 0) + 1;
+  for (const s of statusList) s.admitted = admittedBySrc[s.key] || 0;
+
   // 同一批内按时间升序合并，保证越早发布的越先当"主条目"
   incoming.sort((a, b) => new Date(a.published_at) - new Date(b.published_at));
   console.log(`[filter] 新增候选 ${incoming.length} 条`);
