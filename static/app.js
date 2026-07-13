@@ -23,6 +23,8 @@ const BADGE_ZH = {
   YOUTH: '青训',
 };
 const HOT_BADGES = new Set(['HERE_WE_GO', 'OFFICIAL', 'EXCLUSIVE', 'DONE_DEAL']);
+const LIBRARY_KEY = 'cth_library_v1';
+const PRAYER_KEY = 'cth_city_prayer_v1';
 
 // ---------------- 状态 ----------------
 const state = {
@@ -34,19 +36,137 @@ const state = {
   seenIds: new Set(),
   newIds: new Set(),
   pendingNew: 0,
+  library: loadLibrary(),
   filters: loadFilters(),
 };
 
 function loadFilters() {
-  const def = { tiers: ['T0', 'T1', 'T2', 'ITK'], sources: null, search: '', onlyHot: false, lang: 'zh', focusKey: null };
+  const def = { tiers: ['T0', 'T1', 'T2', 'ITK'], sources: null, search: '', onlyHot: false, lang: 'zh', focusKey: null, libraryView: 'all' };
   try {
     const saved = JSON.parse(localStorage.getItem('cth_filters') || 'null');
-    return saved ? Object.assign(def, saved, { search: '' }) : def;
+    const loaded = saved ? Object.assign(def, saved, { search: '' }) : def;
+    if (!['all', 'unread', 'favorites'].includes(loaded.libraryView)) loaded.libraryView = 'all';
+    return loaded;
   } catch { return def; }
 }
 function saveFilters() {
-  const { tiers, sources, onlyHot, lang } = state.filters;
-  localStorage.setItem('cth_filters', JSON.stringify({ tiers, sources, onlyHot, lang }));
+  const { tiers, sources, onlyHot, lang, libraryView } = state.filters;
+  localStorage.setItem('cth_filters', JSON.stringify({ tiers, sources, onlyHot, lang, libraryView }));
+}
+function loadLibrary() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LIBRARY_KEY) || 'null');
+    return {
+      favorites: new Set(Array.isArray(saved?.favorites) ? saved.favorites.map(String) : []),
+      read: new Set(Array.isArray(saved?.read) ? saved.read.map(String) : []),
+    };
+  } catch {
+    return { favorites: new Set(), read: new Set() };
+  }
+}
+function saveLibrary() {
+  try {
+    localStorage.setItem(LIBRARY_KEY, JSON.stringify({
+      favorites: [...state.library.favorites],
+      read: [...state.library.read],
+    }));
+  } catch { /* 浏览器禁用本机存储时，本次访问内仍可使用 */ }
+}
+function itemId(it) {
+  return String(it.id || it.url);
+}
+function toggleFavorite(it) {
+  const id = itemId(it);
+  if (state.library.favorites.has(id)) state.library.favorites.delete(id);
+  else state.library.favorites.add(id);
+  saveLibrary();
+  render();
+}
+function toggleRead(it) {
+  const id = itemId(it);
+  if (state.library.read.has(id)) state.library.read.delete(id);
+  else state.library.read.add(id);
+  saveLibrary();
+  render();
+}
+function markRead(it) {
+  const id = itemId(it);
+  if (state.library.read.has(id)) return;
+  state.library.read.add(id);
+  saveLibrary();
+  updateLibraryBar();
+}
+function buildLibraryActions(it, compact = false) {
+  const id = itemId(it);
+  const actions = el('div', compact ? 'library-actions compact' : 'library-actions');
+  const favorite = el('button', `library-action favorite${state.library.favorites.has(id) ? ' on' : ''}`,
+    compact ? (state.library.favorites.has(id) ? '★' : '☆') : (state.library.favorites.has(id) ? '★ 已收藏' : '☆ 收藏'));
+  favorite.type = 'button';
+  favorite.title = state.library.favorites.has(id) ? '取消收藏' : '收藏这条消息';
+  favorite.setAttribute('aria-label', favorite.title);
+  favorite.setAttribute('aria-pressed', state.library.favorites.has(id) ? 'true' : 'false');
+  favorite.onclick = () => toggleFavorite(it);
+
+  const read = el('button', `library-action read${state.library.read.has(id) ? ' on' : ''}`,
+    compact ? (state.library.read.has(id) ? '✓' : '○') : (state.library.read.has(id) ? '✓ 已读' : '○ 标记已读'));
+  read.type = 'button';
+  read.title = state.library.read.has(id) ? '标记为未读' : '标记为已读';
+  read.setAttribute('aria-label', read.title);
+  read.setAttribute('aria-pressed', state.library.read.has(id) ? 'true' : 'false');
+  read.onclick = () => toggleRead(it);
+  actions.append(favorite, read);
+  return actions;
+}
+function updateLibraryBar() {
+  const currentIds = new Set(state.items.map(itemId));
+  const favoriteCount = [...state.library.favorites].filter((id) => currentIds.has(id)).length;
+  const unreadCount = state.items.reduce((n, it) => n + (state.library.read.has(itemId(it)) ? 0 : 1), 0);
+  $('#count-all').textContent = String(state.items.length);
+  $('#count-unread').textContent = String(unreadCount);
+  $('#count-favorites').textContent = String(favoriteCount);
+  document.querySelectorAll('[data-library-view]').forEach((button) => {
+    const active = button.dataset.libraryView === state.filters.libraryView;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+  const markAll = $('#mark-all-read');
+  markAll.disabled = unreadCount === 0;
+  markAll.textContent = unreadCount === 0 ? '全部已读' : '全部标为已读';
+}
+
+function loadPrayerCount() {
+  try {
+    const value = Number(localStorage.getItem(PRAYER_KEY) || 0);
+    return Number.isSafeInteger(value) && value >= 0 ? Math.min(value, 999999) : 0;
+  } catch { return 0; }
+}
+
+function savePrayerCount(count) {
+  try { localStorage.setItem(PRAYER_KEY, String(count)); } catch { /* 本次访问内仍可继续互动 */ }
+}
+
+function renderPrayerCount(count) {
+  const button = $('#city-prayer');
+  $('#prayer-count').textContent = count > 0 ? `本机已敲 ${count} 次` : '点击敲一下';
+  button.setAttribute('aria-label', count > 0
+    ? `点击曼城木鱼，为球员祈福；本机已敲 ${count} 次`
+    : '点击曼城木鱼，为球员祈福');
+}
+
+function bindPrayer() {
+  const button = $('#city-prayer');
+  let count = loadPrayerCount();
+  renderPrayerCount(count);
+  button.onclick = () => {
+    count = Math.min(count + 1, 999999);
+    savePrayerCount(count);
+    renderPrayerCount(count);
+    button.classList.remove('hit');
+    requestAnimationFrame(() => button.classList.add('hit'));
+    setTimeout(() => button.classList.remove('hit'), 360);
+    try { navigator.vibrate?.(30); } catch { /* 部分浏览器不支持轻触震动 */ }
+    toast(`咚！已为曼城球员送上祝福 💙（本机第 ${count} 次）`);
+  };
 }
 
 // ---------------- 工具 ----------------
@@ -160,6 +280,8 @@ function passFilter(it) {
   if (!f.tiers.includes(it.tier)) return false;
   if (f.sources && !f.sources.includes(it.source_key)) return false;
   if (f.onlyHot && !(it.badges || []).some((b) => HOT_BADGES.has(b))) return false;
+  if (f.libraryView === 'unread' && state.library.read.has(itemId(it))) return false;
+  if (f.libraryView === 'favorites' && !state.library.favorites.has(itemId(it))) return false;
   if (f.search) {
     const hay = `${it.text || ''} ${it.text_zh || ''} ${it.source_name} ${it.source_name_zh || ''}`.toLowerCase();
     if (!hay.includes(f.search.toLowerCase())) return false;
@@ -170,6 +292,7 @@ function passFilter(it) {
 // ---------------- 渲染 ----------------
 function render() {
   renderFocusZone();
+  updateLibraryBar();
   const feed = $('#feed');
   feed.textContent = '';
   const items = state.items.filter(passFilter);
@@ -186,7 +309,12 @@ function render() {
   });
 
   if (items.length === 0) {
-    feed.appendChild(el('div', 'empty', '没有符合筛选条件的消息'));
+    const emptyText = state.filters.libraryView === 'favorites'
+      ? '还没有收藏消息，点击卡片上的“☆ 收藏”即可加入'
+      : state.filters.libraryView === 'unread'
+        ? '当前没有未读消息'
+        : '没有符合筛选条件的消息';
+    feed.appendChild(el('div', 'empty', emptyText));
     return;
   }
   let lastDay = null;
@@ -204,7 +332,7 @@ function render() {
 function renderFocusZone() {
   const zone = $('#focus-zone');
   const targets = state.focusTargets || [];
-  zone.hidden = targets.length === 0 || state.isDemo;
+  zone.hidden = targets.length === 0 || state.isDemo || state.filters.libraryView !== 'all';
   zone.textContent = '';
   if (zone.hidden) return;
 
@@ -239,15 +367,20 @@ function renderFocusZone() {
       const car = el('div', 'focus-carousel');
       for (const it of matched.slice(0, 12)) {
         const s = el('article', 'focus-slide');
+        if (state.library.read.has(itemId(it))) s.classList.add('is-read');
         const h = el('div', 'fs-head');
         h.appendChild(el('span', `badge-tier ${TIER_CLASS[it.tier] || 't2'}`, it.tier));
         h.appendChild(el('span', 'fs-src', it.source_name_zh || it.source_name));
         h.appendChild(el('span', 'fs-time', relTime(it.published_at)));
         s.appendChild(h);
         s.appendChild(el('div', 'fs-text', state.filters.lang === 'en' ? (it.text || '') : (it.text_zh || it.text || '')));
+        const fsFoot = el('div', 'fs-foot');
         const a = el('a', 'fs-link', it.kind === 'tweet' ? '查看原推 ↗' : '阅读原文 ↗');
         a.href = it.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
-        s.appendChild(a);
+        a.onclick = () => { markRead(it); requestAnimationFrame(render); };
+        fsFoot.appendChild(a);
+        fsFoot.appendChild(buildLibraryActions(it, true));
+        s.appendChild(fsFoot);
         car.appendChild(s);
       }
       // 桌面端左右箭头（手机隐藏，手指滑）
@@ -271,6 +404,7 @@ function renderFocusZone() {
 
 function renderCard(it) {
   const card = el('article', `card ${TIER_CLASS[it.tier] || 't2'}`);
+  if (state.library.read.has(itemId(it))) card.classList.add('is-read');
   if ((it.badges || []).includes('HERE_WE_GO')) card.classList.add('hwg');
   if (state.newIds.has(it.id)) card.classList.add('is-new');
 
@@ -344,6 +478,7 @@ function renderCard(it) {
   const foot = el('div', 'card-foot');
   const link = el('a', null, it.kind === 'tweet' ? '查看原推 ↗' : '阅读原文 ↗');
   link.href = it.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+  link.onclick = () => { markRead(it); requestAnimationFrame(render); };
   foot.appendChild(link);
   if (it.dupes && it.dupes.length) {
     const btn = el('button', 'dupes-btn', `另有 ${it.dupes.length} 个来源 ▾`);
@@ -356,9 +491,11 @@ function renderCard(it) {
     }
     btn.onclick = () => { list.hidden = !list.hidden; };
     foot.appendChild(btn);
+    foot.appendChild(buildLibraryActions(it));
     card.appendChild(foot);
     card.appendChild(list);
   } else {
+    foot.appendChild(buildLibraryActions(it));
     card.appendChild(foot);
   }
   return card;
@@ -588,6 +725,18 @@ function bind() {
   const hot = $('#only-hot');
   hot.checked = state.filters.onlyHot;
   hot.onchange = () => { state.filters.onlyHot = hot.checked; saveFilters(); render(); };
+  document.querySelectorAll('[data-library-view]').forEach((button) => {
+    button.onclick = () => {
+      state.filters.libraryView = button.dataset.libraryView;
+      saveFilters();
+      render();
+    };
+  });
+  $('#mark-all-read').onclick = () => {
+    for (const it of state.items) state.library.read.add(itemId(it));
+    saveLibrary();
+    render();
+  };
   $('#btn-refresh').onclick = () => loadData(true);
   $('#btn-trigger').onclick = triggerCloudFetch;
   // 一键收藏：复制网址 + 按设备给出最短收藏路径（浏览器不允许网页直接写书签）
@@ -616,6 +765,7 @@ function bind() {
   };
   // 手机切后台再回来时，浏览器会冻结定时器 → 恢复可见时立即刷新一次
   document.addEventListener('visibilitychange', () => { if (!document.hidden) loadData(true); });
+  bindPrayer();
   updateSrcBtn();
 }
 

@@ -22,7 +22,7 @@
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand">
-        <div class="brand-logo">C</div>
+        <img class="brand-logo" src="assets/man-city-crest.svg" alt="曼城队徽">
         <h1>曼城转会情报站</h1>
       </div>
       <div class="topbar-right">
@@ -85,6 +85,16 @@
       </label>
     </section>
 
+    <!-- 本机收藏 / 已读状态 -->
+    <section class="librarybar" aria-label="消息状态筛选">
+      <div class="library-seg" id="library-seg">
+        <button type="button" class="active" data-library-view="all" aria-pressed="true">全部 <span id="count-all">0</span></button>
+        <button type="button" data-library-view="unread" aria-pressed="false">只看未读 <span id="count-unread">0</span></button>
+        <button type="button" data-library-view="favorites" aria-pressed="false">我的收藏 <span id="count-favorites">0</span></button>
+      </div>
+      <button type="button" class="mark-all-read" id="mark-all-read">全部标为已读</button>
+    </section>
+
     <!-- 时间线 -->
     <section id="feed" class="feed">
       <div class="loading" id="loading">正在加载情报…</div>
@@ -93,6 +103,16 @@
 
   <!-- 新消息胶囊 -->
   <button class="new-pill" id="new-pill" hidden>↑ <span id="new-count">0</span> 条新消息</button>
+
+  <!-- 曼城木鱼：轻松互动，次数仅保存在当前设备 -->
+  <button class="city-prayer" id="city-prayer" type="button" title="点击曼城木鱼，为球员祈福" aria-label="点击曼城木鱼，为球员祈福">
+    <img src="assets/man-city-crest.svg" alt="">
+    <span class="prayer-emoji" aria-hidden="true">🔨🐟</span>
+    <span class="prayer-copy">
+      <strong>为球员祈福</strong>
+      <small id="prayer-count">点击敲一下</small>
+    </span>
+  </button>
 
   <!-- 一键抓取设置面板 -->
   <div class="modal" id="trigger-panel" hidden>
