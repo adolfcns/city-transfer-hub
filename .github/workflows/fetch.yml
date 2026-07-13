@@ -108,9 +108,39 @@ jobs:
           DEPLOY_CONFIG="cloudflare/wrangler.deploy.toml"
           cp cloudflare/wrangler.toml "$DEPLOY_CONFIG"
           DB_ID="$(npx --yes wrangler@4 d1 list --json | node -e 'let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{ const rows=JSON.parse(s); const db=rows.find(x=>x.name==="city-reactions"); if(db) process.stdout.write(db.uuid||db.id||""); })')"
-          if [ -n "$DB_ID" ]; then
-            printf '\n[[d1_databases]]\nbinding = "DB"\ndatabase_name = "city-reactions"\ndatabase_id = "%s"\n' "$DB_ID" >> "$DEPLOY_CONFIG"
-          else
-            npx --yes wrangler@4 d1 create city-reactions --location apac --binding DB --update-config --config "$DEPLOY_CONFIG"
+          if [ -z "$DB_ID" ]; then
+            npx --yes wrangler@4 d1 create city-reactions --location apac
+            DB_ID="$(npx --yes wrangler@4 d1 list --json | node -e 'let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{ const rows=JSON.parse(s); const db=rows.find(x=>x.name==="city-reactions"); if(db) process.stdout.write(db.uuid||db.id||""); })')"
           fi
+          if [ -z "$DB_ID" ]; then
+            echo "::error::D1 database city-reactions was not found after provisioning"
+            exit 1
+          fi
+          printf '\n[[d1_databases]]\nbinding = "DB"\ndatabase_name = "city-reactions"\ndatabase_id = "%s"\n' "$DB_ID" >> "$DEPLOY_CONFIG"
+          echo "Deploying Worker with D1 binding DB -> $DB_ID"
           npx --yes wrangler@4 deploy --config "$DEPLOY_CONFIG"
+
+      - name: Verify prayer counter API
+        if: ${{ github.event_name != 'schedule' && env.CLOUDFLARE_API_TOKEN != '' }}
+        run: |
+          node --input-type=module <<'NODE'
+          const url = 'https://city-trigger.shiqie7272.workers.dev/prayer';
+          for (let attempt = 1; attempt <= 10; attempt += 1) {
+            try {
+              const response = await fetch(url, {
+                headers: { Origin: 'https://adolfcns.github.io' },
+              });
+              const body = await response.json();
+              if (response.ok && body.ok === true && Number.isInteger(body.count)) {
+                console.log(`Prayer counter ready: ${body.count}`);
+                process.exit(0);
+              }
+              console.log(`Attempt ${attempt}: HTTP ${response.status}`, body);
+            } catch (error) {
+              console.log(`Attempt ${attempt}: ${error.message}`);
+            }
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+          }
+          console.error('Prayer counter API did not become ready');
+          process.exit(1);
+          NODE

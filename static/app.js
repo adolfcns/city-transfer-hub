@@ -155,13 +155,11 @@ function renderPrayerCount(localCount, globalCount = null) {
   const button = $('#city-prayer');
   const hasGlobal = Number.isSafeInteger(globalCount) && globalCount >= 0;
   $('#prayer-count').textContent = hasGlobal
-    ? `全站 ${compactCount(globalCount)} 次`
-    : localCount > 0 ? `本机已敲 ${localCount} 次` : '点击敲一下';
+    ? `全站已敲 ${compactCount(globalCount)} 次`
+    : '全站次数加载中';
   button.setAttribute('aria-label', hasGlobal
-    ? `点击曼城木鱼，为球员祈福；全站累计 ${globalCount} 次；本机已敲 ${localCount} 次`
-    : localCount > 0
-      ? `点击曼城木鱼，为球员祈福；本机已敲 ${localCount} 次`
-      : '点击曼城木鱼，为球员祈福');
+    ? `点击曼城木鱼，为球员带来好运；全站已敲 ${globalCount} 次`
+    : '点击曼城木鱼，为球员带来好运；全站次数加载中');
 }
 
 function bindPrayer() {
@@ -199,7 +197,7 @@ function bindPrayer() {
     requestAnimationFrame(() => button.classList.add('hit'));
     setTimeout(() => button.classList.remove('hit'), 360);
     try { navigator.vibrate?.(30); } catch { /* 部分浏览器不支持轻触震动 */ }
-    toast(`咚！已为曼城球员送上祝福 💙（本机第 ${localCount} 次）`);
+    toast('咚！已为曼城球员带来好运 💙');
     try {
       const res = await requestPrayer('POST');
       const data = await res.json().catch(() => ({}));
@@ -208,11 +206,11 @@ function bindPrayer() {
         renderPrayerCount(localCount, globalCount);
       }
       if (res.ok && Number.isSafeInteger(globalCount)) {
-        toast(`咚！祝福已汇入全站 💙 目前共 ${globalCount.toLocaleString('zh-CN')} 次`);
-      } else if (res.status === 429) toast('祝福收到啦，稍慢一点再敲 💙');
-      else toast('祝福已保存在本机，云端计数暂时不可用');
+        toast(`咚！好运已汇入全站 💙 全站已敲 ${globalCount.toLocaleString('zh-CN')} 次`);
+      } else if (res.status === 429) toast('好运收到啦，稍慢一点再敲 💙');
+      else toast('本次好运已保存在本机，全站计数暂时不可用');
     } catch {
-      toast('祝福已保存在本机，云端暂未连接');
+      toast('本次好运已保存在本机，全站计数暂未连接');
     } finally {
       requestInFlight = false;
       button.disabled = false;
