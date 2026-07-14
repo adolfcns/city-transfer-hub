@@ -93,9 +93,10 @@ function loadLibrary() {
     return {
       favorites: new Set(Array.isArray(saved?.favorites) ? saved.favorites.map(String) : []),
       read: new Set(Array.isArray(saved?.read) ? saved.read.map(String) : []),
+      hiddenPinned: new Set(Array.isArray(saved?.hiddenPinned) ? saved.hiddenPinned.map(String).slice(-2000) : []),
     };
   } catch {
-    return { favorites: new Set(), read: new Set() };
+    return { favorites: new Set(), read: new Set(), hiddenPinned: new Set() };
   }
 }
 function saveLibrary() {
@@ -103,6 +104,7 @@ function saveLibrary() {
     localStorage.setItem(LIBRARY_KEY, JSON.stringify({
       favorites: [...state.library.favorites],
       read: [...state.library.read],
+      hiddenPinned: [...state.library.hiddenPinned].slice(-2000),
     }));
   } catch { /* 浏览器禁用本机存储时，本次访问内仍可使用 */ }
 }
@@ -184,6 +186,29 @@ function markRead(it) {
   state.library.read.add(id);
   saveLibrary();
   refreshLibraryUi(it, 'read');
+}
+function hidePinnedItem(it, card) {
+  const id = itemId(it);
+  state.library.read.add(id);
+  state.library.hiddenPinned.add(id);
+  saveLibrary();
+  updateLibraryBar();
+  card?.classList.add('is-hiding');
+  setTimeout(() => renderFocusZone(), card ? 130 : 0);
+  toast('已读并隐藏这条专区消息');
+}
+function restoreHiddenPinned(items) {
+  const currentIds = new Set((items || []).map(itemId));
+  let restored = 0;
+  for (const id of [...state.library.hiddenPinned]) {
+    if (!currentIds.has(id)) continue;
+    state.library.hiddenPinned.delete(id);
+    restored++;
+  }
+  if (restored === 0) return;
+  saveLibrary();
+  renderFocusZone();
+  toast(`已恢复 ${restored} 条专区消息`);
 }
 function buildLibraryActions(it, compact = false) {
   const id = itemId(it);
@@ -539,14 +564,11 @@ function chooseItemReaction(it, reaction) {
     toast(`你已经选择了「${def.label}」`);
     return;
   }
-  const counts = itemReactionCounts(id);
-  if (REACTION_KEYS.has(previous)) counts[previous] = Math.max(0, (counts[previous] || 0) - 1);
-  counts[reaction] = (counts[reaction] || 0) + 1;
   state.reactionPrefs.votes[id] = reaction;
   state.reactionPrefs.pending[id] = reaction;
   saveReactionPrefs();
   syncReactionBars(id);
-  toast(`${def.emoji} 已选择「${def.label}」`);
+  toast(`${def.emoji} 已选择「${def.label}」，正在同步`);
   sendItemReaction(id, reaction);
 }
 
@@ -847,17 +869,34 @@ function renderFocusZone() {
   zone.hidden = !shouldShowPinnedStrip(allPinned);
   if (zone.hidden) return;
 
+  const visiblePinned = allPinned.filter((it) => !state.library.hiddenPinned.has(itemId(it)));
+  const hiddenCount = allPinned.length - visiblePinned.length;
   const targets = state.focusTargets || [];
   const activeTargets = targets.filter((target) => allPinned.some((it) => (it.focus || []).includes(target.key)));
   const targetNames = activeTargets.map((target) => target.name_zh || target.name).join(' · ');
-  const displayed = allPinned.slice(0, PINNED_RUMOR_LIMIT);
+  const displayed = visiblePinned.slice(0, PINNED_RUMOR_LIMIT);
 
   const head = el('div', 'focus-strip-head');
   head.appendChild(el('h2', 'focus-strip-title', `📌 重点绯闻${targetNames ? ` · ${targetNames}` : ''}`));
-  head.appendChild(el('span', 'focus-strip-total', `共 ${allPinned.length} 条`));
-  const progress = el('span', 'focus-strip-progress', `1 / ${displayed.length}`);
+  head.appendChild(el('span', 'focus-strip-total', hiddenCount > 0
+    ? `剩余 ${visiblePinned.length} · 隐藏 ${hiddenCount}`
+    : `共 ${allPinned.length} 条`));
+  if (hiddenCount > 0) {
+    const restore = el('button', 'focus-strip-restore', '恢复');
+    restore.type = 'button';
+    restore.title = `恢复已隐藏的 ${hiddenCount} 条专区消息`;
+    restore.setAttribute('aria-label', restore.title);
+    restore.onclick = () => restoreHiddenPinned(allPinned);
+    head.appendChild(restore);
+  }
+  const progress = el('span', 'focus-strip-progress', displayed.length ? `1 / ${displayed.length}` : '0 / 0');
   head.appendChild(progress);
   zone.appendChild(head);
+
+  if (displayed.length === 0) {
+    zone.appendChild(el('div', 'focus-strip-empty', '置顶消息已全部读完并隐藏，可点击上方“恢复”重新查看。'));
+    return;
+  }
 
   const track = el('div', 'focus-track');
   for (const it of displayed) {
@@ -869,6 +908,12 @@ function renderFocusZone() {
     cardHead.appendChild(el('span', `badge-tier ${TIER_CLASS[it.tier] || 't2'}`, it.tier));
     cardHead.appendChild(el('span', 'pinned-source', it.source_name_zh || it.source_name));
     cardHead.appendChild(el('span', 'pinned-time', relTime(it.published_at)));
+    const hide = el('button', 'pinned-hide', '✓ 隐藏');
+    hide.type = 'button';
+    hide.title = '标记已读并从置顶专区隐藏';
+    hide.setAttribute('aria-label', hide.title);
+    hide.onclick = () => hidePinnedItem(it, card);
+    cardHead.appendChild(hide);
     card.appendChild(cardHead);
 
     if (activeTargets.length > 1) {

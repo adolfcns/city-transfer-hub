@@ -125,12 +125,21 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 /* ============ 重点绯闻置顶横滑栏 ============ */
 .focus-zone { margin-bottom: 11px; }
 .focus-strip-head {
-  display: flex; align-items: baseline; gap: 8px; min-width: 0;
+  display: flex; align-items: center; gap: 8px; min-width: 0;
   margin: 0 2px 7px;
 }
 .focus-strip-title { margin: 0; font-size: 14px; color: var(--text); line-height: 1.35; }
 .focus-strip-total { color: var(--text-dim); font-size: 11px; }
+.focus-strip-restore {
+  flex: none; padding: 2px 6px; border: 1px solid var(--line-strong); border-radius: 6px;
+  background: var(--cream); color: var(--burgundy); font-size: 10px; line-height: 1.4;
+}
+.focus-strip-restore:hover { background: var(--cream-deep); border-color: var(--burgundy); }
 .focus-strip-progress { margin-left: auto; color: var(--text-dim); font-size: 10px; font-variant-numeric: tabular-nums; }
+.focus-strip-empty {
+  padding: 11px 12px; border: 1px dashed var(--line-strong); border-radius: 10px;
+  background: rgba(255,255,255,.55); color: var(--text-dim); font-size: 12px; text-align: center;
+}
 .focus-track {
   display: flex; gap: 9px; overflow-x: auto; scroll-snap-type: x mandatory;
   scroll-padding-left: 1px; padding: 1px 1px 5px;
@@ -152,9 +161,18 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 .pinned-card.t2::before { background: var(--t2); }
 .pinned-card.itk::before { background: var(--itk); }
 .pinned-card.is-read { opacity: .76; }
+.pinned-card.is-hiding { opacity: 0; transform: scale(.97); transition: opacity .13s, transform .13s; }
 .pinned-head { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .pinned-source { font-size: 12px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pinned-time { margin-left: auto; color: var(--text-dim); font-size: 10px; flex: none; }
+.pinned-hide {
+  flex: none; min-height: 24px; padding: 2px 5px; border: 1px solid var(--line); border-radius: 6px;
+  background: rgba(255,255,255,.68); color: var(--text-dim); font-size: 10px; line-height: 1;
+}
+.pinned-hide:hover { color: var(--burgundy); border-color: var(--burgundy); background: var(--cream-deep); }
+.pinned-hide:focus-visible, .focus-strip-restore:focus-visible {
+  outline: 3px solid rgba(21, 95, 159, .18); outline-offset: 2px;
+}
 .pinned-target { color: var(--sky); font-size: 10px; font-weight: 700; }
 .pinned-text {
   font-size: 13px; line-height: 1.55; word-break: break-word;
@@ -584,6 +602,11 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   .focus-zone { margin-bottom: 9px; }
   .focus-strip-head { margin-bottom: 6px; }
   .focus-strip-title { font-size: 13px; }
+  .focus-strip-total { font-size: 10px; }
+  .focus-strip-restore { padding-inline: 5px; }
+  .pinned-head { gap: 5px; }
+  .pinned-source { font-size: 11.5px; }
+  .pinned-hide { min-height: 23px; padding-inline: 4px; font-size: 9.5px; }
   .pinned-card { flex-basis: calc(100% - 34px); max-width: none; min-height: 154px; }
   .reaction-legend {
     grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: 3px; row-gap: 6px;
@@ -652,5 +675,5 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .city-prayer, .city-prayer.hit { transition: none; animation: none; }
+  .city-prayer, .city-prayer.hit, .pinned-card.is-hiding { transition: none; animation: none; }
 }

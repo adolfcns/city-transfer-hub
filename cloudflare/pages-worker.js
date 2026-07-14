@@ -43,8 +43,34 @@ async function ensureSchema(env) {
         'item_id TEXT NOT NULL, voter_id TEXT NOT NULL, reaction TEXT NOT NULL, updated_at INTEGER NOT NULL, ' +
         'PRIMARY KEY (item_id, voter_id))',
     ),
+    env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS reaction_vote_history (' +
+        'item_id TEXT NOT NULL, voter_id TEXT NOT NULL, reaction TEXT NOT NULL, ' +
+        'claim_id TEXT NOT NULL, created_at INTEGER NOT NULL, ' +
+        'PRIMARY KEY (item_id, voter_id, reaction))',
+    ),
+    env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS interaction_meta (' +
+        'key TEXT PRIMARY KEY, value TEXT NOT NULL)',
+    ),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_reaction_votes_item ON reaction_votes(item_id)'),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_reaction_vote_history_item ON reaction_vote_history(item_id)'),
   ]);
+  const historySeeded = await env.DB.prepare('SELECT value FROM interaction_meta WHERE key = ?')
+    .bind('reaction_history_v1').first();
+  if (!historySeeded) {
+    await env.DB.batch([
+      env.DB.prepare(
+        'INSERT OR IGNORE INTO reaction_vote_history ' +
+          '(item_id, voter_id, reaction, claim_id, created_at) ' +
+          `SELECT item_id, voter_id, reaction, ?, updated_at FROM reaction_votes WHERE reaction IN (${REACTION_KEYS.map(() => '?').join(',')})`,
+      ).bind('legacy', ...REACTION_KEYS),
+      env.DB.prepare(
+        'INSERT INTO interaction_meta (key, value) VALUES (?, ?) ' +
+          'ON CONFLICT(key) DO UPDATE SET value = excluded.value',
+      ).bind('reaction_history_v1', String(Date.now())),
+    ]);
+  }
   schemaReady = true;
 }
 
@@ -92,28 +118,25 @@ async function readReactionCounts(env, ids = null) {
 
 async function recordReaction(env, itemId, voterId, reaction) {
   await ensureSchema(env);
-  const previous = await env.DB.prepare(
-    'SELECT reaction FROM reaction_votes WHERE item_id = ? AND voter_id = ?',
-  ).bind(itemId, voterId).first();
-  if (previous?.reaction === reaction) return readReactionCounts(env, [itemId]);
-
-  const statements = [];
-  if (REACTION_KEYS.includes(previous?.reaction)) {
-    statements.push(env.DB.prepare(
-      'UPDATE reactions SET n = MAX(n - 1, 0) WHERE id = ? AND emoji = ?',
-    ).bind(itemId, previous.reaction));
-  }
-  statements.push(
+  const now = Date.now();
+  const claimId = `c_${crypto.randomUUID().replace(/-/g, '')}`;
+  await env.DB.batch([
     env.DB.prepare(
-      'INSERT INTO reactions (id, emoji, n) VALUES (?, ?, 1) ' +
-        'ON CONFLICT(id, emoji) DO UPDATE SET n = n + 1',
-    ).bind(itemId, reaction),
+      'INSERT OR IGNORE INTO reaction_vote_history ' +
+        '(item_id, voter_id, reaction, claim_id, created_at) VALUES (?, ?, ?, ?, ?)',
+    ).bind(itemId, voterId, reaction, claimId, now),
+    env.DB.prepare(
+      'INSERT INTO reactions (id, emoji, n) ' +
+        'SELECT ?, ?, 1 WHERE EXISTS (' +
+          'SELECT 1 FROM reaction_vote_history ' +
+          'WHERE item_id = ? AND voter_id = ? AND reaction = ? AND claim_id = ?' +
+        ') ON CONFLICT(id, emoji) DO UPDATE SET n = n + 1',
+    ).bind(itemId, reaction, itemId, voterId, reaction, claimId),
     env.DB.prepare(
       'INSERT INTO reaction_votes (item_id, voter_id, reaction, updated_at) VALUES (?, ?, ?, ?) ' +
         'ON CONFLICT(item_id, voter_id) DO UPDATE SET reaction = excluded.reaction, updated_at = excluded.updated_at',
-    ).bind(itemId, voterId, reaction, Date.now()),
-  );
-  await env.DB.batch(statements);
+    ).bind(itemId, voterId, reaction, now),
+  ]);
   return readReactionCounts(env, [itemId]);
 }
 
