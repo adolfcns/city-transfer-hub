@@ -214,8 +214,8 @@ function renderPrayerCount(localCount, globalCount = null, syncState = 'loading'
     ? `全站已敲 ${compactCount(globalCount)} 次`
     : syncState === 'error' ? '全站同步暂不可用' : '全站次数加载中';
   button.setAttribute('aria-label', hasGlobal
-    ? `点击曼城木鱼，为球员带来好运；全站已敲 ${globalCount} 次`
-    : `点击曼城木鱼，为球员带来好运；${syncState === 'error' ? '全站同步暂不可用' : '全站次数加载中'}`);
+    ? `点击曼城木鱼，为球队带来好运；全站已敲 ${globalCount} 次`
+    : `点击曼城木鱼，为球队带来好运；${syncState === 'error' ? '全站同步暂不可用' : '全站次数加载中'}`);
 }
 
 function bindPrayer() {
@@ -266,7 +266,7 @@ function bindPrayer() {
     requestAnimationFrame(() => button.classList.add('hit'));
     setTimeout(() => button.classList.remove('hit'), 360);
     try { navigator.vibrate?.(30); } catch { /* 部分浏览器不支持轻触震动 */ }
-    toast('咚！已为曼城球员带来好运 💙');
+    toast('咚！已为球队带来好运 💙');
     try {
       // 写入只请求已成功读取的同一个入口，网络超时时不跨入口重试，避免重复 +1。
       const res = await fetchPrayer(activeEndpoint, 'POST');
