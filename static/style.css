@@ -181,7 +181,7 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 }
 
 /* Tier 图例/筛选（迷你药丸，含义见 ? 说明与悬浮提示） */
-.tier-legend { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.tier-legend { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 5px; }
 .tier-chip {
   border-radius: 999px; padding: 2px 10px; font-size: 12px;
   background: var(--card); color: var(--text-dim);
@@ -200,6 +200,12 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   background: transparent; color: var(--text-dim); font-size: 13px;
 }
 .legend-help:hover { color: var(--sky); border-color: var(--sky); }
+.reaction-legend {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin: 0 0 10px; color: var(--text-dim); font-size: 10px; line-height: 1.4;
+}
+.reaction-legend span { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.reaction-legend b { font-size: 12px; line-height: 1; font-weight: 400; }
 .legend-detail {
   background: var(--card); border: 1px solid var(--line); border-radius: 12px;
   padding: 12px 16px; margin-bottom: 12px; font-size: 13px; color: var(--text-dim);
@@ -277,6 +283,16 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 .library-seg button span { margin-left: 2px; opacity: .72; }
 .mark-all-read { margin-left: auto; border: 1px solid var(--line); background: var(--card); }
 .mark-all-read:disabled { opacity: .5; cursor: default; }
+.lang-select {
+  display: inline-flex; align-items: center; gap: 5px; flex: none;
+  color: var(--text-dim); font-size: 12px;
+}
+.lang-select select {
+  min-height: 30px; border: 1px solid var(--line); border-radius: 7px;
+  background: var(--card); color: var(--text); padding: 4px 22px 4px 8px;
+  font: inherit; outline: none;
+}
+.lang-select select:focus { border-color: var(--sky); }
 
 /* ============ 时间线 ============ */
 .feed { display: flex; flex-direction: column; gap: 10px; }
@@ -632,31 +648,52 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   .updated-at { display: none; }
   .brand-sub { margin-left: 0; white-space: normal; line-height: 1.5; }   /* 手机：副标题整行铺开，可折行完整显示 */
   .container { width: 100%; overflow: hidden; }
+  .tier-legend {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) 30px;
+    gap: 4px; margin-bottom: 4px;
+  }
+  .tier-chip { min-width: 0; padding: 4px 2px; border-radius: 7px; }
+  .legend-help { width: 30px; height: 30px; border-radius: 7px; }
+  .reaction-legend {
+    justify-content: space-between; gap: 3px; margin: 0 1px 8px;
+    font-size: 9.5px; flex-wrap: nowrap;
+  }
+  .reaction-legend b { font-size: 11px; }
   .filterbar {
-    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px;
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 8px;
+    margin-bottom: 8px;
   }
-  #search { grid-column: 1 / -1; width: 100%; min-width: 0; }
+  #search { grid-column: 1 / -1; width: 100%; min-width: 0; min-height: 38px; padding-block: 7px; }
   .src-select { grid-column: 1; min-width: 0; }
-  .src-btn { width: 100%; }
-  .filterbar .seg {
-    grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%;
-  }
-  .filterbar .seg button { min-width: 0; padding-inline: 6px; }
+  .src-btn { width: 100%; min-height: 36px; padding-block: 6px; }
   .toggle { grid-column: 2; grid-row: 2; white-space: nowrap; }
   .card-body { font-size: 14px; }
   .time { width: auto; flex-basis: calc(100% - 38px); margin-left: 38px; order: 10; }
-  .librarybar { align-items: stretch; flex-direction: column; margin-top: -4px; }
-  .library-seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; gap: 4px; }
-  .library-seg button { min-width: 0; padding: 7px 2px; white-space: nowrap; }
-  .mark-all-read { align-self: flex-end; margin-top: -4px; }
-  .library-actions { width: 100%; margin-left: 0; }
-  .library-action { flex: 1; min-height: 34px; }
+  .librarybar { align-items: center; flex-direction: row; gap: 4px; margin: 0 0 10px; }
+  .library-seg { display: flex; flex: 1 1 auto; min-width: 0; width: auto; gap: 2px; padding: 2px; }
+  .library-seg button { flex: 1; min-width: 0; min-height: 30px; padding: 5px 3px; font-size: 11px; white-space: nowrap; }
+  .lang-select { gap: 0; }
+  .lang-select > span { display: none; }
+  .lang-select select { width: 58px; min-height: 34px; padding: 4px 16px 4px 6px; font-size: 11px; }
+  .mark-all-read { flex: none; min-height: 34px; margin: 0; padding: 5px 7px; font-size: 11px; white-space: nowrap; }
+  .card-foot { gap: 6px; margin-top: 6px; flex-wrap: nowrap; }
+  .card-foot > a, .dupes-btn { white-space: nowrap; }
+  .card .library-actions { width: auto; margin-left: auto; gap: 4px; flex: none; }
+  .card .library-action {
+    flex: none; width: 30px; height: 30px; min-height: 30px; padding: 0; font-size: 0;
+  }
+  .card .library-action::before { font-size: 14px; line-height: 1; }
+  .card .library-action.favorite::before { content: "☆"; }
+  .card .library-action.favorite.on::before { content: "★"; }
+  .card .library-action.read::before { content: "○"; }
+  .card .library-action.read.on::before { content: "✓"; }
   .library-actions.compact { width: auto; margin-left: auto; }
   .library-actions.compact .library-action { min-height: 26px; }
-  .reaction-bar { gap: 4px; }
-  .reaction-btn { min-height: 44px; padding-inline: 3px; gap: 3px; }
-  .reaction-emoji { font-size: 18px; }
-  .reaction-bar.compact .reaction-btn { min-height: 34px; }
+  .reaction-bar { gap: 3px; margin-top: 4px; padding-top: 4px; }
+  .reaction-btn { min-height: 34px; padding: 2px 3px; gap: 2px; }
+  .reaction-emoji { font-size: 16px; }
+  .reaction-count { font-size: 11px; }
+  .reaction-bar.compact .reaction-btn { min-height: 30px; }
   .city-prayer {
     right: 10px; bottom: calc(11px + env(safe-area-inset-bottom));
     max-width: 168px; padding: 5px 9px 5px 6px; gap: 6px;
@@ -673,9 +710,12 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 
 @media (max-width: 380px) {
   .brand h1 { font-size: 15px; }
-  .library-seg button { font-size: 11px; }
+  .library-seg button { font-size: 10px; padding-inline: 2px; }
   .filterbar { gap: 7px; }
-  .seg button { padding-inline: 10px; }
+  .reaction-legend { font-size: 9px; }
+  .reaction-legend b { font-size: 10px; }
+  .lang-select select { width: 54px; padding-left: 5px; }
+  .mark-all-read { padding-inline: 5px; font-size: 10px; }
   .city-prayer { max-width: 162px; }
 }
 

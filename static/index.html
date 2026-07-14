@@ -58,6 +58,13 @@
       <button class="tier-chip itk active" data-tier="ITK" title="圈内人（自行甄别）"><b>ITK</b><span class="cnt"></span></button>
       <button class="legend-help" id="btn-legend" title="分级说明">?</button>
     </section>
+    <div class="reaction-legend" aria-label="消息表情含义">
+      <span><b aria-hidden="true">🔥</b>火爆</span>
+      <span><b aria-hidden="true">💙</b>蓝月之心</span>
+      <span><b aria-hidden="true">👀</b>观望</span>
+      <span><b aria-hidden="true">😂</b>离谱</span>
+      <span><b aria-hidden="true">🤨</b>不信</span>
+    </div>
 
     <div class="legend-detail" id="legend-detail" hidden>
       <p><span class="badge-tier t0">T0 树上等</span> 最可靠：罗马诺、曼晚（首席跟队 Baj）、BBC、英国天空、TA（D.O & Sam Lee）、邮报（Jack Gaughan）、电讯报 McGrath</p>
@@ -74,11 +81,6 @@
         <button class="src-btn" id="src-btn">全部信源 ▾</button>
         <div class="src-menu" id="src-menu" hidden></div>
       </div>
-      <div class="seg" id="lang-seg">
-        <button data-lang="zh" class="active">中文</button>
-        <button data-lang="both">双语</button>
-        <button data-lang="en">原文</button>
-      </div>
       <label class="toggle">
         <input type="checkbox" id="only-hot">
         <span>只看重磅</span>
@@ -89,10 +91,18 @@
     <section class="librarybar" aria-label="消息状态筛选">
       <div class="library-seg" id="library-seg">
         <button type="button" class="active" data-library-view="all" aria-pressed="true">全部 <span id="count-all">0</span></button>
-        <button type="button" data-library-view="unread" aria-pressed="false">只看未读 <span id="count-unread">0</span></button>
-        <button type="button" data-library-view="favorites" aria-pressed="false">我的收藏 <span id="count-favorites">0</span></button>
+        <button type="button" data-library-view="unread" aria-pressed="false">未读 <span id="count-unread">0</span></button>
+        <button type="button" data-library-view="favorites" aria-pressed="false">收藏 <span id="count-favorites">0</span></button>
       </div>
-      <button type="button" class="mark-all-read" id="mark-all-read">全部标为已读</button>
+      <label class="lang-select" for="lang-select">
+        <span>显示</span>
+        <select id="lang-select" aria-label="消息语言">
+          <option value="zh">中文</option>
+          <option value="both">双语</option>
+          <option value="en">原文</option>
+        </select>
+      </label>
+      <button type="button" class="mark-all-read" id="mark-all-read" title="将全部消息标为已读" aria-label="将全部消息标为已读">✓ 全读</button>
     </section>
 
     <!-- 时间线 -->

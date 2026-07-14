@@ -261,8 +261,11 @@ function updateLibraryBar() {
     button.setAttribute('aria-pressed', active ? 'true' : 'false');
   });
   const markAll = $('#mark-all-read');
+  markAll.hidden = unreadCount === 0;
   markAll.disabled = unreadCount === 0;
-  markAll.textContent = unreadCount === 0 ? '全部已读' : '全部标为已读';
+  markAll.textContent = '✓ 全读';
+  markAll.title = `将 ${unreadCount} 条未读消息全部标为已读`;
+  markAll.setAttribute('aria-label', markAll.title);
 }
 
 function loadPrayerCount() {
@@ -1184,14 +1187,12 @@ function bind() {
   document.addEventListener('click', (e) => {
     if (!$('#src-select').contains(e.target)) $('#src-menu').hidden = true;
   });
-  document.querySelectorAll('#lang-seg button').forEach((b) => {
-    b.classList.toggle('active', b.dataset.lang === state.filters.lang);
-    b.onclick = () => {
-      state.filters.lang = b.dataset.lang;
-      document.querySelectorAll('#lang-seg button').forEach((x) => x.classList.toggle('active', x === b));
-      saveFilters(); render();
-    };
-  });
+  const langSelect = $('#lang-select');
+  langSelect.value = state.filters.lang;
+  langSelect.onchange = () => {
+    state.filters.lang = langSelect.value;
+    saveFilters(); render();
+  };
   const hot = $('#only-hot');
   hot.checked = state.filters.onlyHot;
   hot.onchange = () => { state.filters.onlyHot = hot.checked; saveFilters(); render(); };
