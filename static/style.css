@@ -170,7 +170,7 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 .pinned-link:hover { color: var(--burgundy); }
 .focus-mark { font-size: 12px; flex: none; }
 .reaction-legend {
-  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; gap: 8px;
+  display: grid; grid-template-columns: 1.3fr 1fr 1.1fr 1fr 1.6fr; align-items: center; gap: 8px;
   margin: 0 1px 10px; color: var(--text-dim); font-size: 12px; line-height: 1.4;
 }
 .reaction-legend span {
