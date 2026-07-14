@@ -234,6 +234,60 @@ sources:
     filter: city
     note_zh: 罗马诺狗腿
 
+  - key: hirst
+    name: Paul Hirst (The Times)
+    name_zh: 泰晤士报·Paul Hirst
+    tier: T1
+    type: twitter
+    handle: hirstclass
+    filter: city
+    note_zh: 曼彻斯特双雄跟队记者，补充曼城本地线
+
+  - key: rob_dawson
+    name: Rob Dawson (ESPN)
+    name_zh: ESPN·Rob Dawson
+    tier: T1
+    type: twitter
+    handle: RobDawsonESPN
+    filter: city
+    note_zh: ESPN 曼彻斯特记者，擅长俱乐部与合同消息
+
+  - key: ben_ransom
+    name: Ben Ransom (Sky Sports)
+    name_zh: 天空体育·Ben Ransom
+    tier: T1
+    type: twitter
+    handle: BenRansomSky
+    filter: city
+    note_zh: 天空体育西北部记者，长期报道曼城
+
+  - key: hawkins
+    name: Fabrice Hawkins (RMC Sport)
+    name_zh: RMC·Fabrice Hawkins
+    tier: T1
+    type: twitter
+    handle: FabriceHawkins
+    filter: city
+    note_zh: 法国转会线，补充法甲与卖方俱乐部消息
+
+  - key: tanzi
+    name: Loic Tanzi (L'Equipe)
+    name_zh: 队报·Loïc Tanzi
+    tier: T1
+    type: twitter
+    handle: Tanziloic
+    filter: city
+    note_zh: 法国转会记者，补充法甲目标动态
+
+  - key: dimarzio
+    name: Gianluca Di Marzio (Sky Sport Italia)
+    name_zh: 意大利天空·迪马济奥
+    tier: T1
+    type: twitter
+    handle: DiMarzio
+    filter: city
+    note_zh: 意大利转会记者，补充意甲与经纪人线索
+
   - key: moretto
     name: Matteo Moretto
     name_zh: 莫雷托
