@@ -872,6 +872,7 @@ function renderFocusZone() {
     link.rel = 'noopener noreferrer';
     link.onclick = () => { markRead(it); };
     card.appendChild(link);
+    card.appendChild(buildReactionBar(it, true));
     track.appendChild(card);
   }
 
@@ -887,6 +888,7 @@ function renderFocusZone() {
   }, { passive: true });
 
   zone.appendChild(track);
+  queueReactionCounts(displayed);
 }
 
 function renderCard(it) {
