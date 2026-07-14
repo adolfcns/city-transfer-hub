@@ -25,6 +25,16 @@ const BADGE_ZH = {
 const HOT_BADGES = new Set(['HERE_WE_GO', 'OFFICIAL', 'EXCLUSIVE', 'DONE_DEAL']);
 const LIBRARY_KEY = 'cth_library_v1';
 const PRAYER_KEY = 'cth_city_prayer_v1';
+const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
+const REACTION_SNAPSHOT_URL = './data/reactions.json';
+const REACTION_DEFS = Object.freeze([
+  { key: 'fire', emoji: '🔥', label: '火爆' },
+  { key: 'heart', emoji: '💙', label: '蓝月之心' },
+  { key: 'watch', emoji: '👀', label: '观望' },
+  { key: 'wild', emoji: '😂', label: '离谱' },
+  { key: 'doubt', emoji: '🤨', label: '不信' },
+]);
+const REACTION_KEYS = new Set(REACTION_DEFS.map((item) => item.key));
 const FEED_BATCH_SIZE = 24;
 const SEARCH_DEBOUNCE_MS = 140;
 
@@ -35,10 +45,14 @@ const state = {
   twitterEnabled: null,
   isDemo: false,
   status: null,
+  sourceCatalog: [],
   seenIds: new Set(),
   newIds: new Set(),
   pendingNew: 0,
   library: loadLibrary(),
+  reactionCounts: {},
+  reactionPrefs: loadReactionPrefs(),
+  reactionEndpoint: null,
   filters: loadFilters(),
 };
 let feedItems = [];
@@ -48,6 +62,12 @@ let feedObserver = null;
 let feedAppending = false;
 let feedGeneration = 0;
 let searchRenderTimer = null;
+const reactionLiveLoaded = new Set();
+const reactionReadQueue = new Set();
+const reactionInFlight = new Set();
+let reactionReadTimer = null;
+let reactionSnapshotLoaded = false;
+let reactionPendingFlush = false;
 
 function loadFilters() {
   const def = { tiers: ['T0', 'T1', 'T2', 'ITK'], sources: null, search: '', onlyHot: false, lang: 'zh', focusKey: null, libraryView: 'all' };
@@ -81,6 +101,61 @@ function saveLibrary() {
     }));
   } catch { /* 浏览器禁用本机存储时，本次访问内仍可使用 */ }
 }
+
+function newAnonymousVoterId() {
+  try {
+    if (crypto.randomUUID) return `v_${crypto.randomUUID().replace(/-/g, '')}`;
+  } catch { /* 非安全上下文时使用随机兜底 */ }
+  return `v_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 18)}`;
+}
+
+function loadReactionPrefs() {
+  const empty = { voter: newAnonymousVoterId(), votes: {}, pending: {} };
+  try {
+    const saved = JSON.parse(localStorage.getItem(ITEM_REACTIONS_KEY) || 'null');
+    if (!saved || typeof saved !== 'object') return empty;
+    const voter = /^[A-Za-z0-9_-]{12,80}$/.test(String(saved.voter || '')) ? String(saved.voter) : empty.voter;
+    const cleanMap = (value) => Object.fromEntries(Object.entries(value || {})
+      .filter(([id, reaction]) => /^[A-Za-z0-9_-]{1,128}$/.test(id) && REACTION_KEYS.has(reaction))
+      .slice(-2000));
+    return { voter, votes: cleanMap(saved.votes), pending: cleanMap(saved.pending) };
+  } catch { return empty; }
+}
+
+function saveReactionPrefs() {
+  try { localStorage.setItem(ITEM_REACTIONS_KEY, JSON.stringify(state.reactionPrefs)); } catch { /* 本次访问内仍可投票 */ }
+}
+
+function blankItemReactionCounts() {
+  return Object.fromEntries(REACTION_DEFS.map(({ key }) => [key, 0]));
+}
+
+function normalizeItemReactionCounts(value) {
+  const out = {};
+  for (const [id, counts] of Object.entries(value || {})) {
+    if (!/^[A-Za-z0-9_-]{1,128}$/.test(id) || !counts || typeof counts !== 'object') continue;
+    out[id] = blankItemReactionCounts();
+    for (const { key } of REACTION_DEFS) {
+      const n = Number(counts[key] || 0);
+      out[id][key] = Number.isSafeInteger(n) && n >= 0 ? n : 0;
+    }
+  }
+  return out;
+}
+
+function mergeItemReactionCounts(value) {
+  Object.assign(state.reactionCounts, normalizeItemReactionCounts(value));
+}
+
+function itemReactionCounts(id) {
+  state.reactionCounts[id] ||= blankItemReactionCounts();
+  return state.reactionCounts[id];
+}
+
+function compactReactionCount(count) {
+  return count > 999 ? '999+' : String(Math.max(0, count || 0));
+}
+
 function itemId(it) {
   return String(it.id || it.url);
 }
@@ -295,6 +370,166 @@ function bindPrayer() {
   };
 }
 
+// ---------------- 每条消息的全站表情 ----------------
+function syncReactionBars(id) {
+  const counts = itemReactionCounts(id);
+  const selected = state.reactionPrefs.votes[id] || null;
+  document.querySelectorAll('article[data-item-id]').forEach((article) => {
+    if (article.dataset.itemId !== id) return;
+    article.querySelectorAll('.reaction-btn').forEach((button) => {
+      const def = REACTION_DEFS.find((item) => item.key === button.dataset.reaction);
+      if (!def) return;
+      const count = counts[def.key] || 0;
+      const active = selected === def.key;
+      button.classList.toggle('selected', active);
+      button.disabled = reactionInFlight.has(id);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      button.setAttribute('aria-label', `${def.label}，全站 ${count} 次${active ? '，你已选择' : ''}`);
+      button.title = `${def.label} · 全站 ${count} 次`;
+      const countNode = button.querySelector('.reaction-count');
+      if (countNode) countNode.textContent = compactReactionCount(count);
+    });
+  });
+}
+
+function syncAllReactionBars() {
+  const ids = new Set([...document.querySelectorAll('article[data-item-id]')].map((node) => node.dataset.itemId));
+  ids.forEach(syncReactionBars);
+}
+
+function buildReactionBar(it, compact = false) {
+  const id = itemId(it);
+  const counts = itemReactionCounts(id);
+  const selected = state.reactionPrefs.votes[id] || null;
+  const bar = el('div', `reaction-bar${compact ? ' compact' : ''}`);
+  bar.setAttribute('role', 'group');
+  bar.setAttribute('aria-label', '给这条消息选择一个表情');
+  for (const def of REACTION_DEFS) {
+    const active = selected === def.key;
+    const button = el('button', `reaction-btn${active ? ' selected' : ''}`);
+    button.type = 'button';
+    button.dataset.reaction = def.key;
+    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    button.setAttribute('aria-label', `${def.label}，全站 ${counts[def.key] || 0} 次${active ? '，你已选择' : ''}`);
+    button.title = `${def.label} · 全站 ${counts[def.key] || 0} 次`;
+    const emoji = el('span', 'reaction-emoji', def.emoji);
+    emoji.setAttribute('aria-hidden', 'true');
+    button.append(emoji, el('span', 'reaction-count', compactReactionCount(counts[def.key] || 0)));
+    button.onclick = () => chooseItemReaction(it, def.key);
+    bar.appendChild(button);
+  }
+  return bar;
+}
+
+async function fetchReactionEndpoint(url, options = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5000);
+  try {
+    return await fetch(url, { cache: 'no-store', signal: controller.signal, ...options });
+  } finally { clearTimeout(timer); }
+}
+
+async function loadReactionSnapshot() {
+  if (reactionSnapshotLoaded) return;
+  reactionSnapshotLoaded = true;
+  try {
+    const res = await fetch(`${REACTION_SNAPSHOT_URL}?t=${Date.now()}`, { cache: 'no-store' });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.counts) {
+      mergeItemReactionCounts(data.counts);
+      syncAllReactionBars();
+    }
+  } catch { /* 同站快照失败时仍显示本地 0，不阻塞页面 */ }
+}
+
+function queueReactionCounts(items) {
+  for (const it of items || []) {
+    const id = itemId(it);
+    if (!reactionLiveLoaded.has(id)) reactionReadQueue.add(id);
+  }
+  if (reactionReadTimer || reactionReadQueue.size === 0) return;
+  reactionReadTimer = setTimeout(flushReactionCountQueue, 0);
+}
+
+async function flushReactionCountQueue() {
+  reactionReadTimer = null;
+  const ids = [...reactionReadQueue].slice(0, 48);
+  ids.forEach((id) => reactionReadQueue.delete(id));
+  if (reactionReadQueue.size) reactionReadTimer = setTimeout(flushReactionCountQueue, 20);
+  if (ids.length === 0) return;
+
+  for (const endpoint of REACTION_ENDPOINTS) {
+    try {
+      const res = await fetchReactionEndpoint(`${endpoint}?ids=${encodeURIComponent(ids.join(','))}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok !== true || !data.counts) continue;
+      state.reactionEndpoint = endpoint;
+      mergeItemReactionCounts(data.counts);
+      ids.forEach((id) => reactionLiveLoaded.add(id));
+      ids.forEach(syncReactionBars);
+      flushPendingReactions();
+      return;
+    } catch { /* 尝试下一个直连接口 */ }
+  }
+}
+
+async function sendItemReaction(id, reaction, silent = false) {
+  if (reactionInFlight.has(id)) return false;
+  const endpoint = state.reactionEndpoint || REACTION_ENDPOINTS[0];
+  reactionInFlight.add(id);
+  syncReactionBars(id);
+  try {
+    const res = await fetchReactionEndpoint(endpoint, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id, reaction, voter: state.reactionPrefs.voter }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.ok !== true || !data.counts?.[id]) throw new Error(data.reason || `HTTP ${res.status}`);
+    state.reactionEndpoint = endpoint;
+    mergeItemReactionCounts(data.counts);
+    if (state.reactionPrefs.pending[id] === reaction) delete state.reactionPrefs.pending[id];
+    saveReactionPrefs();
+    if (!silent) toast('表情已同步到全站 ✓');
+    return true;
+  } catch {
+    if (!silent) toast('表情已保存在本机，全站同步稍后自动重试');
+    return false;
+  } finally {
+    reactionInFlight.delete(id);
+    syncReactionBars(id);
+  }
+}
+
+function chooseItemReaction(it, reaction) {
+  const id = itemId(it);
+  const def = REACTION_DEFS.find((item) => item.key === reaction);
+  if (!def) return;
+  const previous = state.reactionPrefs.votes[id] || null;
+  if (previous === reaction) {
+    toast(`你已经选择了「${def.label}」`);
+    return;
+  }
+  const counts = itemReactionCounts(id);
+  if (REACTION_KEYS.has(previous)) counts[previous] = Math.max(0, (counts[previous] || 0) - 1);
+  counts[reaction] = (counts[reaction] || 0) + 1;
+  state.reactionPrefs.votes[id] = reaction;
+  state.reactionPrefs.pending[id] = reaction;
+  saveReactionPrefs();
+  syncReactionBars(id);
+  toast(`${def.emoji} 已选择「${def.label}」`);
+  sendItemReaction(id, reaction);
+}
+
+async function flushPendingReactions() {
+  if (reactionPendingFlush || !state.reactionEndpoint) return;
+  reactionPendingFlush = true;
+  try {
+    const pending = Object.entries(state.reactionPrefs.pending).slice(0, 12);
+    for (const [id, reaction] of pending) await sendItemReaction(id, reaction, true);
+  } finally { reactionPendingFlush = false; }
+}
+
 // ---------------- 工具 ----------------
 const $ = (sel) => document.querySelector(sel);
 function el(tag, cls, text) {
@@ -384,20 +619,38 @@ async function loadData(isRefresh = false) {
   for (const it of data.items || []) state.seenIds.add(it.id);
 
   state.items = data.items || [];
+  if (isRefresh) reactionLiveLoaded.clear();
   state.generatedAt = data.generated_at;
   state.twitterEnabled = data.twitter_enabled;
   state.focusTargets = data.focus_targets || [];
+  state.sourceCatalog = data.sources || [];
   $('#updated-at').textContent = `更新于 ${relTime(data.generated_at)}`;
 
   buildSourceMenu();
   render();
 
-  fetchJSON(STATUS_URL).then((s) => { state.status = s; renderStatusDot(); }).catch(() => {});
+  fetchJSON(STATUS_URL).then((s) => {
+    state.status = s;
+    buildSourceMenu();
+    updateSrcBtn();
+    renderStatusDot();
+  }).catch(() => {});
 }
 
 // ---------------- 筛选 ----------------
 function currentSourceKeys() {
-  return [...new Map(state.items.map((it) => [it.source_key, it])).values()]
+  const byKey = new Map(state.items.map((it) => [it.source_key, it]));
+  const configuredSources = [...(state.sourceCatalog || []), ...(state.status?.sources || [])];
+  for (const src of configuredSources) {
+    if (!TIER_CLASS[src.tier] || byKey.has(src.key)) continue;
+    byKey.set(src.key, {
+      source_key: src.key,
+      source_name: src.name,
+      source_name_zh: src.name_zh || src.name,
+      tier: src.tier,
+    });
+  }
+  return [...byKey.values()]
     .sort((a, b) => (a.tier > b.tier ? 1 : -1));
 }
 function passFilter(it) {
@@ -477,6 +730,7 @@ function appendNextFeedBatch() {
   const feed = $('#feed');
   const fragment = document.createDocumentFragment();
   const end = Math.min(feedCursor + FEED_BATCH_SIZE, feedItems.length);
+  const batchItems = feedItems.slice(feedCursor, end);
   for (let i = feedCursor; i < end; i++) {
     const it = feedItems[i];
     const dk = dayKey(it.published_at);
@@ -489,6 +743,7 @@ function appendNextFeedBatch() {
   feedCursor = end;
   feed.dataset.rendered = String(feedCursor);
   feed.appendChild(fragment);
+  queueReactionCounts(batchItems);
   feedAppending = false;
 
   if (feedCursor >= feedItems.length) {
@@ -573,6 +828,7 @@ function renderFocusZone() {
         h.appendChild(el('span', 'fs-time', relTime(it.published_at)));
         s.appendChild(h);
         s.appendChild(el('div', 'fs-text', state.filters.lang === 'en' ? (it.text || '') : (it.text_zh || it.text || '')));
+        s.appendChild(buildReactionBar(it, true));
         const fsFoot = el('div', 'fs-foot');
         const a = el('a', 'fs-link', it.kind === 'tweet' ? '查看原推 ↗' : '阅读原文 ↗');
         a.href = it.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
@@ -598,6 +854,7 @@ function renderFocusZone() {
       card.appendChild(car);
     }
     zone.appendChild(card);
+    queueReactionCounts(matched.slice(0, 12));
   }
 }
 
@@ -698,6 +955,7 @@ function renderCard(it) {
     foot.appendChild(buildLibraryActions(it));
     card.appendChild(foot);
   }
+  card.appendChild(buildReactionBar(it));
   return card;
 }
 
@@ -790,6 +1048,10 @@ const TRIGGER_ENDPOINT = 'https://city-trigger.shiqie7272.workers.dev/';
 const PRAYER_ENDPOINTS = [
   'https://city-transfer-hub.pages.dev/prayer',
   `${TRIGGER_ENDPOINT}prayer`,
+];
+const REACTION_ENDPOINTS = [
+  'https://city-transfer-hub.pages.dev/reactions',
+  `${TRIGGER_ENDPOINT}reactions`,
 ];
 const TRIGGER_COOLDOWN_MS = 60 * 1000;      // 单设备触发冷却
 const FRESH_ENOUGH_MS = 3 * 60 * 1000;      // 数据足够新就不重复抓
@@ -1001,6 +1263,7 @@ function mockItems() {
 
 // ---------------- 启动 ----------------
 bind();
+loadReactionSnapshot();
 renderCountdown();
 setInterval(renderCountdown, 60e3);
 loadData(false);

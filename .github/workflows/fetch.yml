@@ -72,6 +72,14 @@ jobs:
           export PREV_STATUS_URL="${BASE}/data/status.json"
           node scripts/fetch.js
 
+      - name: Snapshot item reactions
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          BASE="https://${GITHUB_REPOSITORY_OWNER}.github.io/${REPO_NAME}"
+          export REACTIONS_ENDPOINT="https://city-transfer-hub.pages.dev/reactions"
+          export PREV_REACTIONS_URL="${BASE}/data/reactions.json"
+          node scripts/snapshot-reactions.js
+
       - name: Assemble site
         run: |
           mkdir -p site/data
@@ -134,11 +142,12 @@ jobs:
           echo "Deploying Worker with D1 binding DB -> $DB_ID"
           npx --yes wrangler@4 deploy --config "$DEPLOY_CONFIG"
 
-      - name: Verify prayer counter API
+      - name: Verify interaction APIs
         if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
         run: |
           node --input-type=module <<'NODE'
           const url = 'https://city-transfer-hub.pages.dev/prayer';
+          const reactionsUrl = 'https://city-transfer-hub.pages.dev/reactions?ids=api_smoke_read';
           const origin = 'https://adolfcns.github.io';
           for (let attempt = 1; attempt <= 10; attempt += 1) {
             try {
@@ -147,8 +156,14 @@ jobs:
               });
               const body = await response.json();
               const cors = response.headers.get('access-control-allow-origin');
-              if (response.ok && body.ok === true && Number.isInteger(body.count) && cors === origin) {
-                console.log(`Direct prayer counter ready: ${body.count}`);
+              const reactionsResponse = await fetch(reactionsUrl, { headers: { Origin: origin } });
+              const reactionsBody = await reactionsResponse.json();
+              const reactionsCors = reactionsResponse.headers.get('access-control-allow-origin');
+              const reactionsReady = reactionsResponse.ok && reactionsBody.ok === true
+                && reactionsBody.counts && reactionsBody.counts.api_smoke_read
+                && reactionsCors === origin;
+              if (response.ok && body.ok === true && Number.isInteger(body.count) && cors === origin && reactionsReady) {
+                console.log(`Direct interactions ready: prayer=${body.count}, reactions=ok`);
                 process.exit(0);
               }
               console.log(`Attempt ${attempt}: HTTP ${response.status}, CORS ${cors}`, body);

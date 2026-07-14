@@ -221,6 +221,7 @@ async function main() {
       generated_at: new Date().toISOString(),
       twitter_enabled: Boolean(rsshubUrl),
       focus_targets: focusTargets.map(({ key, name, name_zh, desc_zh }) => ({ key, name, name_zh, desc_zh })),
+      sources: sources.map(({ key, name, name_zh, tier, type }) => ({ key, name, name_zh, tier, type })),
       items: finalItems,
     }),
   );

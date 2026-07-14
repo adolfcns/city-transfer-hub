@@ -367,6 +367,35 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 .library-actions.compact { gap: 4px; margin-left: auto; }
 .library-actions.compact .library-action { width: 26px; height: 26px; padding: 0; }
 
+/* ============ 每条消息的全站表情 ============ */
+.reaction-bar {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px;
+  margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--line);
+}
+.reaction-btn {
+  min-width: 0; min-height: 36px; padding: 4px 6px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  background: var(--cream); color: var(--text-dim);
+  border: 1px solid var(--line-strong); border-radius: 6px;
+  font-size: 12px; line-height: 1; touch-action: manipulation;
+  box-shadow: 0 2px 0 rgba(20, 45, 80, .04);
+  transition: transform .12s, background .12s, border-color .12s, color .12s;
+}
+.reaction-btn:hover { background: var(--cream-deep); border-color: var(--burgundy); color: var(--burgundy); }
+.reaction-btn:active { transform: scale(.96); }
+.reaction-btn:focus-visible { outline: 3px solid rgba(21, 95, 159, .18); outline-offset: 2px; }
+.reaction-btn.selected {
+  background: #e8f5fd; border-color: var(--sky); color: var(--sky);
+  box-shadow: inset 0 0 0 1px rgba(21, 95, 159, .10);
+}
+.reaction-btn:disabled { cursor: wait; opacity: .72; }
+.reaction-emoji { font-size: 17px; line-height: 1; }
+.reaction-count { min-width: 1ch; font-variant-numeric: tabular-nums; font-weight: 700; }
+.reaction-bar.compact { gap: 3px; margin-top: 1px; padding-top: 5px; }
+.reaction-bar.compact .reaction-btn { min-height: 29px; padding: 2px 3px; gap: 2px; }
+.reaction-bar.compact .reaction-emoji { font-size: 14px; }
+.reaction-bar.compact .reaction-count { font-size: 10px; }
+
 /* ============ 曼城木鱼 · 右下悬浮互动 ============ */
 .city-prayer {
   position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 65;
@@ -624,6 +653,10 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   .library-action { flex: 1; min-height: 34px; }
   .library-actions.compact { width: auto; margin-left: auto; }
   .library-actions.compact .library-action { min-height: 26px; }
+  .reaction-bar { gap: 4px; }
+  .reaction-btn { min-height: 44px; padding-inline: 3px; gap: 3px; }
+  .reaction-emoji { font-size: 18px; }
+  .reaction-bar.compact .reaction-btn { min-height: 34px; }
   .city-prayer {
     right: 10px; bottom: calc(11px + env(safe-area-inset-bottom));
     max-width: 168px; padding: 5px 9px 5px 6px; gap: 6px;

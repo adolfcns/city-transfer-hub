@@ -23,32 +23,105 @@ const COOLDOWN_SECONDS = 90;                        // 访客触发的全局冷�
 const PRAYER_ROW_ID = '0000000000001894';           // 专用行，1894 对应俱乐部成立年份
 const PRAYER_EMOJI = '💙';
 const PRAYER_RATE_SECONDS = 1;
-let prayerSchemaReady = false;
+const REACTION_KEYS = ['fire', 'heart', 'watch', 'wild', 'doubt'];
+const ITEM_ID_RE = /^[A-Za-z0-9_-]{1,128}$/;
+const VOTER_ID_RE = /^[A-Za-z0-9_-]{12,80}$/;
+const MAX_REACTION_IDS = 48;
+let schemaReady = false;
 
-async function ensurePrayerSchema(env) {
-  if (prayerSchemaReady) return;
-  await env.DB.prepare(
-    'CREATE TABLE IF NOT EXISTS reactions (' +
-      'id TEXT NOT NULL, emoji TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, ' +
-      'PRIMARY KEY (id, emoji))',
-  ).run();
-  prayerSchemaReady = true;
+async function ensureSchema(env) {
+  if (schemaReady) return;
+  await env.DB.batch([
+    env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS reactions (' +
+        'id TEXT NOT NULL, emoji TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, ' +
+        'PRIMARY KEY (id, emoji))',
+    ),
+    env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS reaction_votes (' +
+        'item_id TEXT NOT NULL, voter_id TEXT NOT NULL, reaction TEXT NOT NULL, updated_at INTEGER NOT NULL, ' +
+        'PRIMARY KEY (item_id, voter_id))',
+    ),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_reaction_votes_item ON reaction_votes(item_id)'),
+  ]);
+  schemaReady = true;
 }
 
 async function readPrayerCount(env) {
-  await ensurePrayerSchema(env);
+  await ensureSchema(env);
   const row = await env.DB.prepare('SELECT n FROM reactions WHERE id = ? AND emoji = ?')
     .bind(PRAYER_ROW_ID, PRAYER_EMOJI).first();
   return Number(row?.n || 0);
 }
 
 async function incrementPrayerCount(env) {
-  await ensurePrayerSchema(env);
+  await ensureSchema(env);
   await env.DB.prepare(
     'INSERT INTO reactions (id, emoji, n) VALUES (?, ?, 1) ' +
     'ON CONFLICT(id, emoji) DO UPDATE SET n = n + 1',
   ).bind(PRAYER_ROW_ID, PRAYER_EMOJI).run();
   return readPrayerCount(env);
+}
+
+function blankReactionCounts() {
+  return Object.fromEntries(REACTION_KEYS.map((key) => [key, 0]));
+}
+
+async function readReactionCounts(env, ids = null) {
+  await ensureSchema(env);
+  const args = [...REACTION_KEYS];
+  let where = `emoji IN (${REACTION_KEYS.map(() => '?').join(',')})`;
+  if (ids?.length) {
+    where += ` AND id IN (${ids.map(() => '?').join(',')})`;
+    args.push(...ids);
+  } else {
+    where += ' AND id <> ?';
+    args.push(PRAYER_ROW_ID);
+  }
+  const result = await env.DB.prepare(`SELECT id, emoji, n FROM reactions WHERE ${where}`).bind(...args).all();
+  const counts = {};
+  for (const row of result.results || []) {
+    if (!REACTION_KEYS.includes(row.emoji) || !ITEM_ID_RE.test(row.id)) continue;
+    counts[row.id] ||= blankReactionCounts();
+    counts[row.id][row.emoji] = Math.max(0, Number(row.n || 0));
+  }
+  if (ids?.length) for (const id of ids) counts[id] ||= blankReactionCounts();
+  return counts;
+}
+
+async function recordReaction(env, itemId, voterId, reaction) {
+  await ensureSchema(env);
+  const previous = await env.DB.prepare(
+    'SELECT reaction FROM reaction_votes WHERE item_id = ? AND voter_id = ?',
+  ).bind(itemId, voterId).first();
+  if (previous?.reaction === reaction) return readReactionCounts(env, [itemId]);
+
+  const statements = [];
+  if (REACTION_KEYS.includes(previous?.reaction)) {
+    statements.push(env.DB.prepare(
+      'UPDATE reactions SET n = MAX(n - 1, 0) WHERE id = ? AND emoji = ?',
+    ).bind(itemId, previous.reaction));
+  }
+  statements.push(
+    env.DB.prepare(
+      'INSERT INTO reactions (id, emoji, n) VALUES (?, ?, 1) ' +
+        'ON CONFLICT(id, emoji) DO UPDATE SET n = n + 1',
+    ).bind(itemId, reaction),
+    env.DB.prepare(
+      'INSERT INTO reaction_votes (item_id, voter_id, reaction, updated_at) VALUES (?, ?, ?, ?) ' +
+        'ON CONFLICT(item_id, voter_id) DO UPDATE SET reaction = excluded.reaction, updated_at = excluded.updated_at',
+    ).bind(itemId, voterId, reaction, Date.now()),
+  );
+  await env.DB.batch(statements);
+  return readReactionCounts(env, [itemId]);
+}
+
+function parseReactionIds(url) {
+  const raw = url.searchParams.get('ids');
+  if (!raw) return [];
+  const ids = [...new Set(raw.split(',').map((id) => id.trim()).filter(Boolean))];
+  if (ids.length > MAX_REACTION_IDS || ids.some((id) => !ITEM_ID_RE.test(id))) return null;
+  return ids;
 }
 
 // 用服务端令牌触发 GitHub 抓取任务
@@ -105,6 +178,41 @@ export default {
           const count = await incrementPrayerCount(env);
           await cache.put(gate, new Response('1', { headers: { 'cache-control': `max-age=${PRAYER_RATE_SECONDS}` } }));
           return new Response(JSON.stringify({ ok: true, count }), { headers: cors });
+        }
+        return new Response(JSON.stringify({ ok: false, reason: 'method' }), { status: 405, headers: cors });
+      } catch {
+        return new Response(JSON.stringify({ ok: false, reason: 'db_error' }), { status: 503, headers: cors });
+      }
+    }
+
+    // —— 每条消息的五种表情：批量读取；同一匿名设备每条消息保留一个选择 ——
+    if (path === '/reactions') {
+      if (!originAllowed) {
+        return new Response(JSON.stringify({ ok: false, reason: 'origin' }), { status: 403, headers: cors });
+      }
+      if (!env.DB) {
+        return new Response(JSON.stringify({ ok: false, reason: 'no_db' }), { status: 503, headers: cors });
+      }
+      try {
+        const url = new URL(request.url);
+        if (request.method === 'GET') {
+          const ids = parseReactionIds(url);
+          if (ids === null) {
+            return new Response(JSON.stringify({ ok: false, reason: 'bad_ids' }), { status: 400, headers: cors });
+          }
+          const counts = await readReactionCounts(env, ids.length ? ids : null);
+          return new Response(JSON.stringify({ ok: true, counts }), { headers: cors });
+        }
+        if (request.method === 'POST') {
+          const body = await request.json().catch(() => ({}));
+          const itemId = String(body.id || '');
+          const voterId = String(body.voter || '');
+          const reaction = String(body.reaction || '');
+          if (!ITEM_ID_RE.test(itemId) || !VOTER_ID_RE.test(voterId) || !REACTION_KEYS.includes(reaction)) {
+            return new Response(JSON.stringify({ ok: false, reason: 'bad_request' }), { status: 400, headers: cors });
+          }
+          const counts = await recordReaction(env, itemId, voterId, reaction);
+          return new Response(JSON.stringify({ ok: true, counts, selected: reaction }), { headers: cors });
         }
         return new Response(JSON.stringify({ ok: false, reason: 'method' }), { status: 405, headers: cors });
       } catch {
