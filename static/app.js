@@ -69,6 +69,7 @@ const reactionInFlight = new Set();
 let reactionReadTimer = null;
 let reactionSnapshotLoaded = false;
 let reactionPendingFlush = false;
+let shareCardInFlight = false;
 
 function loadFilters() {
   const def = { sources: null, search: '', lang: 'zh', libraryView: 'all' };
@@ -229,6 +230,245 @@ function itemShareCopy(it) {
   };
 }
 
+const SHARE_CARD_WIDTH = 1080;
+const SHARE_CARD_HEIGHT = 1440;
+const SHARE_CARD_FONT = '"Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif';
+const shareCardImageCache = new Map();
+
+function loadShareCardImage(src) {
+  if (shareCardImageCache.has(src)) return shareCardImageCache.get(src);
+  const pending = new Promise((resolve, reject) => {
+    const image = new Image();
+    image.decoding = 'async';
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error(`无法加载分享卡素材：${src}`));
+    image.src = src;
+  });
+  shareCardImageCache.set(src, pending);
+  return pending;
+}
+
+function roundedCanvasPath(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function fillRoundedCanvasRect(ctx, x, y, width, height, radius, fill) {
+  roundedCanvasPath(ctx, x, y, width, height, radius);
+  ctx.fillStyle = fill;
+  ctx.fill();
+}
+
+function cardFont(ctx, size, weight = 600) {
+  ctx.font = `${weight} ${size}px ${SHARE_CARD_FONT}`;
+}
+
+function wrapCardText(ctx, text, maxWidth, maxLines) {
+  const chars = Array.from(String(text || '').replace(/\s+/g, ' ').trim());
+  const lines = [];
+  let line = '';
+  let consumed = 0;
+  for (let index = 0; index < chars.length; index++) {
+    const candidate = line + chars[index];
+    if (line && ctx.measureText(candidate).width > maxWidth) {
+      lines.push(line);
+      line = chars[index];
+      if (lines.length === maxLines) {
+        consumed = index;
+        break;
+      }
+    } else {
+      line = candidate;
+    }
+    consumed = index + 1;
+  }
+  if (lines.length < maxLines && line) lines.push(line);
+  if (consumed < chars.length && lines.length) {
+    let last = lines[lines.length - 1];
+    while (last && ctx.measureText(`${last}…`).width > maxWidth) last = last.slice(0, -1);
+    lines[lines.length - 1] = `${last}…`;
+  }
+  return lines;
+}
+
+function shareCardPublishedAt(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '发布时间未知';
+  try {
+    return new Intl.DateTimeFormat('zh-CN', {
+      timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hour12: false,
+    }).format(date).replaceAll('/', '-');
+  } catch { return date.toLocaleString('zh-CN', { hour12: false }); }
+}
+
+function shareCardTextStyle(length) {
+  if (length <= 80) return { size: 48, lineHeight: 70, maxLines: 7 };
+  if (length <= 150) return { size: 40, lineHeight: 60, maxLines: 8 };
+  if (length <= 260) return { size: 34, lineHeight: 52, maxLines: 10 };
+  return { size: 30, lineHeight: 46, maxLines: 11 };
+}
+
+async function buildSingleMessageShareCard(it) {
+  const chinese = String(it.text_zh || '').trim();
+  if (!chinese) throw new Error('NO_CHINESE_TEXT');
+  const canvas = document.createElement('canvas');
+  canvas.width = SHARE_CARD_WIDTH;
+  canvas.height = SHARE_CARD_HEIGHT;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('CANVAS_UNAVAILABLE');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  const background = ctx.createLinearGradient(0, 0, SHARE_CARD_WIDTH, SHARE_CARD_HEIGHT);
+  background.addColorStop(0, '#071d34');
+  background.addColorStop(.58, '#0b2a4a');
+  background.addColorStop(1, '#164c73');
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, SHARE_CARD_WIDTH, SHARE_CARD_HEIGHT);
+
+  ctx.save();
+  ctx.globalAlpha = .42;
+  ctx.strokeStyle = '#6cabdd';
+  ctx.lineWidth = 76;
+  ctx.beginPath();
+  ctx.arc(1015, 85, 275, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = .12;
+  ctx.fillStyle = '#8dd2f2';
+  ctx.beginPath();
+  ctx.arc(80, 850, 280, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  const assetBase = new URL('./assets/', document.baseURI).href;
+  const [crest, qr] = await Promise.all([
+    loadShareCardImage(`${assetBase}man-city-crest.svg`),
+    loadShareCardImage(`${assetBase}site-qr.png`),
+  ]);
+  ctx.drawImage(crest, 72, 58, 142, 142);
+
+  cardFont(ctx, 30, 700);
+  ctx.fillStyle = '#8dd2f2';
+  ctx.fillText('曼城转会情报站', 248, 96);
+  cardFont(ctx, 66, 900);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText('单条消息速报', 248, 170);
+  cardFont(ctx, 23, 500);
+  ctx.fillStyle = '#c8e7f8';
+  ctx.fillText('中文聚合 · 信源分级 · 原文可追溯', 248, 218);
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(0, 0, 0, .26)';
+  ctx.shadowBlur = 28;
+  ctx.shadowOffsetY = 14;
+  fillRoundedCanvasRect(ctx, 60, 286, 960, 790, 30, '#f8fcff');
+  ctx.restore();
+
+  const tierAccent = { T0: '#f2c94c', T1: '#4aa9dc', T2: '#91a2b2', ITK: '#6cabdd' }[it.tier] || '#6cabdd';
+  fillRoundedCanvasRect(ctx, 60, 286, 14, 790, 7, tierAccent);
+  fillRoundedCanvasRect(ctx, 102, 334, it.tier === 'ITK' ? 100 : 80, 54, 15, '#6cabdd');
+  cardFont(ctx, 27, 900);
+  ctx.fillStyle = '#071d34';
+  ctx.textAlign = 'center';
+  ctx.fillText(it.tier || 'T2', 102 + (it.tier === 'ITK' ? 50 : 40), 371);
+  ctx.textAlign = 'left';
+
+  const source = it.source_name_zh || it.source_name || '未知信源';
+  cardFont(ctx, 31, 800);
+  ctx.fillStyle = '#0b2a4a';
+  ctx.fillText(source, 225, 371);
+  cardFont(ctx, 22, 500);
+  ctx.fillStyle = '#657d91';
+  ctx.textAlign = 'right';
+  ctx.fillText(shareCardPublishedAt(it.published_at), 966, 371);
+  ctx.textAlign = 'left';
+  ctx.strokeStyle = '#d4e5ef';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(102, 426);
+  ctx.lineTo(966, 426);
+  ctx.stroke();
+
+  const bodyStyle = shareCardTextStyle(Array.from(chinese).length);
+  cardFont(ctx, bodyStyle.size, 700);
+  ctx.fillStyle = '#102f4c';
+  const lines = wrapCardText(ctx, chinese, 820, bodyStyle.maxLines);
+  const bodyAreaHeight = 500;
+  const textBlockHeight = Math.max(bodyStyle.size, (lines.length - 1) * bodyStyle.lineHeight + bodyStyle.size);
+  let textY = 500 + Math.max(0, (bodyAreaHeight - textBlockHeight) / 2);
+  for (const line of lines) {
+    ctx.fillText(line, 106, textY);
+    textY += bodyStyle.lineHeight;
+  }
+
+  const badges = (it.badges || []).map((badge) => BADGE_ZH[badge]).filter(Boolean).slice(0, 2);
+  if (badges.length) {
+    let badgeX = 106;
+    for (const badge of badges) {
+      cardFont(ctx, 21, 800);
+      const width = Math.ceil(ctx.measureText(badge).width) + 34;
+      fillRoundedCanvasRect(ctx, badgeX, 992, width, 44, 13, '#dff3ff');
+      ctx.fillStyle = '#0b5b88';
+      ctx.fillText(badge, badgeX + 17, 1022);
+      badgeX += width + 12;
+    }
+  }
+
+  const footer = ctx.createLinearGradient(0, 1140, SHARE_CARD_WIDTH, SHARE_CARD_HEIGHT);
+  footer.addColorStop(0, '#8dd2f2');
+  footer.addColorStop(1, '#6cabdd');
+  ctx.fillStyle = footer;
+  ctx.fillRect(0, 1140, SHARE_CARD_WIDTH, 300);
+  cardFont(ctx, 29, 900);
+  ctx.fillStyle = '#071d34';
+  ctx.fillText('完整消息及原文来源请查看曼城转会情报站', 62, 1216);
+  cardFont(ctx, 25, 800);
+  ctx.fillStyle = '#0b2a4a';
+  ctx.fillText('adolfcns.github.io/city-transfer-hub/', 62, 1286);
+  cardFont(ctx, 19, 600);
+  ctx.fillStyle = '#244969';
+  ctx.fillText('扫码查看实时更新', 62, 1345);
+
+  fillRoundedCanvasRect(ctx, 842, 1172, 184, 184, 18, '#ffffff');
+  ctx.drawImage(qr, 854, 1184, 160, 160);
+  cardFont(ctx, 17, 700);
+  ctx.fillStyle = '#0b2a4a';
+  ctx.textAlign = 'center';
+  ctx.fillText('扫码进入情报站', 934, 1392);
+  ctx.textAlign = 'left';
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('PNG_EXPORT_FAILED')), 'image/png', .96);
+  });
+}
+
+function shareCardFilename(it) {
+  const source = String(it.source_name_zh || it.source_name || '消息').replace(/[\\/:*?"<>|]/g, '-').slice(0, 24);
+  return `曼城转会情报-${source}-${Date.now()}.png`;
+}
+
+function downloadShareCard(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
 async function copyText(text) {
   try {
     if (navigator.clipboard?.writeText) {
@@ -250,11 +490,48 @@ async function copyText(text) {
 }
 
 async function shareItem(it) {
+  if (shareCardInFlight) return;
+  if (!String(it.text_zh || '').trim()) {
+    toast('这条消息暂时没有中文，补译完成后即可生成分享图片');
+    return;
+  }
+  shareCardInFlight = true;
   const payload = itemShareCopy(it);
+  toast('正在生成这条消息的分享图片…');
+  try {
+    const blob = await buildSingleMessageShareCard(it);
+    const filename = shareCardFilename(it);
+    const file = typeof File === 'function' ? new File([blob], filename, { type: 'image/png' }) : null;
+    if (file && navigator.share && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: payload.title,
+          text: '完整消息及原文来源请查看曼城转会情报站',
+        });
+        toast('感谢分享这条曼城情报 💙');
+        return;
+      } catch (error) {
+        if (error?.name === 'AbortError') return;
+      }
+    }
+    downloadShareCard(blob, filename);
+    const copied = await copyText(payload.url);
+    toast(copied ? '分享图片已保存，网站地址也已复制 ✓' : '分享图片已保存 ✓');
+    return;
+  } catch (error) {
+    if (error?.message === 'NO_CHINESE_TEXT') {
+      toast('这条消息暂时没有中文，补译完成后即可生成分享图片');
+      return;
+    }
+  } finally {
+    shareCardInFlight = false;
+  }
+
   if (navigator.share) {
     try {
       await navigator.share(payload);
-      toast('感谢分享这条曼城情报 💙');
+      toast('图片生成失败，已改为分享文字和网站地址');
       return;
     } catch (error) {
       if (error?.name === 'AbortError') return;
@@ -268,8 +545,8 @@ async function shareItem(it) {
 function buildShareButton(it, compact = false) {
   const share = el('button', 'library-action share', compact ? '↗' : '↗ 分享这条');
   share.type = 'button';
-  share.title = '分享这条消息';
-  share.setAttribute('aria-label', '分享这条消息');
+  share.title = '生成图片并分享这条消息';
+  share.setAttribute('aria-label', '生成图片并分享这条消息');
   share.onclick = () => { shareItem(it); };
   return share;
 }
