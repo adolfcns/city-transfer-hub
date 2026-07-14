@@ -392,11 +392,11 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 /* ============ 曼城木鱼 · 右下悬浮互动 ============ */
 .city-prayer {
   position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 65;
-  width: min(306px, calc(100vw - 24px));
-  display: flex; align-items: center; gap: 10px;
+  width: auto; max-width: calc(100vw - 24px);
+  display: flex; align-items: center;
   border: 1.5px solid var(--burgundy); border-radius: 14px;
   background: rgba(255, 250, 240, .97); color: #2f2225;
-  padding: 8px 12px 8px 8px;
+  padding: 8px 12px;
   box-shadow: 0 10px 28px rgba(91, 46, 38, .16);
   transition: transform .15s, box-shadow .15s, border-color .15s;
   touch-action: manipulation; text-align: left;
@@ -408,11 +408,7 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 }
 .city-prayer:disabled { cursor: wait; opacity: .88; }
 .city-prayer:focus-visible { outline: 3px solid rgba(122,24,48,.22); outline-offset: 3px; }
-.city-prayer img {
-  width: 46px; height: 46px; flex: none; border-radius: 0;
-  background: transparent; object-fit: contain; padding: 0;
-}
-.prayer-copy { display: flex; flex: 1; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.24; }
+.prayer-copy { display: flex; flex: 0 1 auto; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.24; }
 .prayer-copy strong { font-size: 13px; color: #2f2225; white-space: nowrap; }
 .prayer-cta { margin-top: 2px; color: var(--burgundy); font-size: 11px; font-weight: 700; white-space: nowrap; }
 .prayer-copy small { margin-top: 2px; font-size: 9.5px; color: var(--text-dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -657,9 +653,8 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   .reaction-bar.compact .reaction-btn { min-height: 30px; }
   .city-prayer {
     right: 10px; bottom: calc(11px + env(safe-area-inset-bottom));
-    width: min(252px, calc(100vw - 20px)); padding: 7px 9px 7px 7px; gap: 8px;
+    width: auto; max-width: calc(100vw - 20px); padding: 7px 10px;
   }
-  .city-prayer img { width: 42px; height: 42px; }
   .prayer-copy strong { font-size: 11px; }
   .prayer-cta { font-size: 10px; }
   .prayer-copy small { display: block; font-size: 8.5px; }
@@ -679,7 +674,7 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   .reaction-legend { font-size: 10.5px; }
   .reaction-legend b { font-size: 14px; }
   .mark-all-read { padding-inline: 5px; font-size: 10px; }
-  .city-prayer { width: min(242px, calc(100vw - 18px)); }
+  .city-prayer { width: auto; max-width: calc(100vw - 18px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
