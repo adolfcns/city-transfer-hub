@@ -210,9 +210,74 @@ function restoreHiddenPinned(items) {
   renderFocusZone();
   toast(`已恢复 ${restored} 条专区消息`);
 }
+
+function sharePageUrl() {
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.hash = '';
+  return url.href;
+}
+
+function itemShareCopy(it) {
+  const source = it.source_name_zh || it.source_name || '未知信源';
+  const raw = String(it.text_zh || it.text || '').replace(/\s+/g, ' ').trim();
+  const summary = raw.length > 180 ? `${raw.slice(0, 179)}…` : raw;
+  return {
+    title: `曼城转会情报｜${it.tier} ${source}`,
+    text: `[${it.tier}] ${source}\n${summary}\n\n来自：曼城转会情报站`,
+    url: sharePageUrl(),
+  };
+}
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch { /* 继续使用兼容复制 */ }
+
+  const area = document.createElement('textarea');
+  area.value = text;
+  area.setAttribute('readonly', '');
+  area.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
+  document.body.appendChild(area);
+  area.select();
+  let copied = false;
+  try { copied = document.execCommand('copy'); } catch { /* 浏览器不支持兼容复制 */ }
+  area.remove();
+  return copied;
+}
+
+async function shareItem(it) {
+  const payload = itemShareCopy(it);
+  if (navigator.share) {
+    try {
+      await navigator.share(payload);
+      toast('感谢分享这条曼城情报 💙');
+      return;
+    } catch (error) {
+      if (error?.name === 'AbortError') return;
+    }
+  }
+
+  const copied = await copyText(`${payload.title}\n${payload.text}\n${payload.url}`);
+  toast(copied ? '消息和网站地址已复制，可以去微信或微博分享 ✓' : '暂时无法调起分享，请复制浏览器地址');
+}
+
+function buildShareButton(it, compact = false) {
+  const share = el('button', 'library-action share', compact ? '↗' : '↗ 分享这条');
+  share.type = 'button';
+  share.title = '分享这条消息';
+  share.setAttribute('aria-label', '分享这条消息');
+  share.onclick = () => { shareItem(it); };
+  return share;
+}
+
 function buildLibraryActions(it, compact = false) {
   const id = itemId(it);
   const actions = el('div', compact ? 'library-actions compact' : 'library-actions');
+  const share = buildShareButton(it, compact);
   const favorite = el('button', `library-action favorite${state.library.favorites.has(id) ? ' on' : ''}`,
     compact ? (state.library.favorites.has(id) ? '★' : '☆') : (state.library.favorites.has(id) ? '★ 已收藏' : '☆ 收藏'));
   favorite.type = 'button';
@@ -228,7 +293,7 @@ function buildLibraryActions(it, compact = false) {
   read.setAttribute('aria-label', read.title);
   read.setAttribute('aria-pressed', state.library.read.has(id) ? 'true' : 'false');
   read.onclick = () => toggleRead(it);
-  actions.append(favorite, read);
+  actions.append(share, favorite, read);
   return actions;
 }
 function syncLibraryActions(root, id) {
@@ -315,15 +380,32 @@ function compactCount(count) {
   return `${value >= 100 ? Math.round(value) : value.toFixed(1).replace(/\.0$/, '')}万`;
 }
 
+function prayerMilestoneStep(count) {
+  if (count < 100) return 50;
+  if (count < 1000) return 100;
+  if (count < 10000) return 500;
+  return 1000;
+}
+
+function nextPrayerMilestone(count) {
+  const step = prayerMilestoneStep(count);
+  const target = Math.ceil((count + 1) / step) * step;
+  return { target, remaining: Math.max(0, target - count), step };
+}
+
 function renderPrayerCount(localCount, globalCount = null, syncState = 'loading') {
   const button = $('#city-prayer');
   const hasGlobal = syncState !== 'error' && Number.isSafeInteger(globalCount) && globalCount >= 0;
-  $('#prayer-count').textContent = hasGlobal
-    ? `全站已敲 ${compactCount(globalCount)} 次`
+  const milestone = hasGlobal ? nextPrayerMilestone(globalCount) : null;
+  const status = hasGlobal
+    ? `全站 ${compactCount(globalCount)} 次 · 距 ${compactCount(milestone.target)} 还差 ${compactCount(milestone.remaining)}`
     : syncState === 'error' ? '全站同步暂不可用' : '全站次数加载中';
-  button.setAttribute('aria-label', hasGlobal
-    ? `点击曼城木鱼，为球队带来好运；全站已敲 ${globalCount} 次`
-    : `点击曼城木鱼，为球队带来好运；${syncState === 'error' ? '全站同步暂不可用' : '全站次数加载中'}`);
+  $('#prayer-count').textContent = status;
+  const accessible = hasGlobal
+    ? `蓝月集合，冲击 ${milestone.target} 次好运里程碑。点击木鱼，为曼城增加一次好运。全站已送出 ${globalCount} 次，距离目标还差 ${milestone.remaining} 次。`
+    : `蓝月集合，点击木鱼为曼城增加一次好运。${syncState === 'error' ? '全站同步暂不可用。' : '全站次数加载中。'}`;
+  button.title = accessible;
+  button.setAttribute('aria-label', accessible);
 }
 
 function bindPrayer() {
@@ -374,7 +456,7 @@ function bindPrayer() {
     requestAnimationFrame(() => button.classList.add('hit'));
     setTimeout(() => button.classList.remove('hit'), 360);
     try { navigator.vibrate?.(30); } catch { /* 部分浏览器不支持轻触震动 */ }
-    toast('咚！已为球队带来好运 💙');
+    toast('咚！你的这份好运正在汇入蓝月 💙');
     try {
       // 写入只请求已成功读取的同一个入口，网络超时时不跨入口重试，避免重复 +1。
       const res = await fetchPrayer(activeEndpoint, 'POST');
@@ -385,7 +467,11 @@ function bindPrayer() {
         renderPrayerCount(localCount, globalCount, syncState);
       }
       if (res.ok && Number.isSafeInteger(globalCount)) {
-        toast(`咚！好运已汇入全站 💙 全站已敲 ${globalCount.toLocaleString('zh-CN')} 次`);
+        const { target, remaining, step } = nextPrayerMilestone(globalCount);
+        const achieved = globalCount > 0 && globalCount % step === 0;
+        toast(achieved
+          ? `咚！达成 ${globalCount.toLocaleString('zh-CN')} 次蓝月好运里程碑 💙`
+          : `咚！好运已汇入全站 💙 距 ${target.toLocaleString('zh-CN')} 次还差 ${remaining.toLocaleString('zh-CN')} 次`);
       } else if (res.status === 429) toast('好运收到啦，稍慢一点再敲 💙');
       else {
         syncState = 'error';
@@ -938,7 +1024,9 @@ function renderFocusZone() {
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
     link.onclick = () => { markRead(it); };
-    card.appendChild(link);
+    const pinnedActions = el('div', 'pinned-actions');
+    pinnedActions.append(link, buildShareButton(it));
+    card.appendChild(pinnedActions);
     card.appendChild(buildReactionBar(it, true, 'pinned'));
     track.appendChild(card);
   }
