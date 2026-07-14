@@ -70,6 +70,7 @@ let reactionReadTimer = null;
 let reactionSnapshotLoaded = false;
 let reactionPendingFlush = false;
 let shareCardInFlight = false;
+let sharedMessageRevealed = false;
 
 function loadFilters() {
   const def = { sources: null, search: '', lang: 'zh', libraryView: 'all' };
@@ -212,22 +213,41 @@ function restoreHiddenPinned(items) {
   toast(`已恢复 ${restored} 条专区消息`);
 }
 
-function sharePageUrl() {
+function itemShareUrl(it) {
   const url = new URL(window.location.href);
   url.search = '';
   url.hash = '';
+  url.searchParams.set('msg', itemId(it));
   return url.href;
 }
 
-function itemShareCopy(it) {
-  const source = it.source_name_zh || it.source_name || '未知信源';
-  const raw = String(it.text_zh || it.text || '').replace(/\s+/g, ' ').trim();
-  const summary = raw.length > 180 ? `${raw.slice(0, 179)}…` : raw;
-  return {
-    title: `曼城转会情报｜${it.tier} ${source}`,
-    text: `[${it.tier}] ${source}\n${summary}\n\n来自：曼城转会情报站`,
-    url: sharePageUrl(),
-  };
+function requestedMessageId() {
+  try { return new URLSearchParams(window.location.search).get('msg') || ''; }
+  catch { return ''; }
+}
+
+function prepareRequestedMessageView() {
+  if (sharedMessageRevealed) return;
+  const id = requestedMessageId();
+  if (!id || !state.items.some((it) => itemId(it) === id)) return;
+  state.filters.sources = null;
+  state.filters.search = '';
+  state.filters.libraryView = 'all';
+  state.library.hiddenPinned.delete(id);
+}
+
+function revealRequestedMessage() {
+  if (sharedMessageRevealed) return;
+  const id = requestedMessageId();
+  if (!id) return;
+  const target = [...document.querySelectorAll('article[data-item-id]')]
+    .find((node) => node.dataset.itemId === id);
+  if (!target) return;
+  sharedMessageRevealed = true;
+  target.classList.add('shared-message-target');
+  target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+  toast('已为你定位到这条消息');
+  setTimeout(() => target.classList.remove('shared-message-target'), 4200);
 }
 
 const SHARE_CARD_WIDTH = 1080;
@@ -469,6 +489,37 @@ function downloadShareCard(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
+function showShareCardSavePreview(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const overlay = el('div', 'share-save-overlay');
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-label', '保存分享图片');
+  const panel = el('div', 'share-save-panel');
+  const title = el('strong', 'share-save-title', '保存到手机');
+  const hint = el('p', 'share-save-hint', '若浏览器没有自动保存，请长按下方图片，选择“保存图片”或“存储到相册”。');
+  const image = el('img', 'share-save-image');
+  image.src = url;
+  image.alt = '当前消息的曼城转会分享图片';
+  const controls = el('div', 'share-save-controls');
+  const download = el('a', 'share-save-download', '↓ 再次下载');
+  download.href = url;
+  download.download = filename;
+  const close = el('button', 'share-save-close', '完成');
+  close.type = 'button';
+  const dismiss = () => {
+    overlay.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 500);
+  };
+  close.onclick = dismiss;
+  overlay.onclick = (event) => { if (event.target === overlay) dismiss(); };
+  controls.append(download, close);
+  panel.append(title, hint, image, controls);
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+  close.focus({ preventScroll: true });
+}
+
 async function copyText(text) {
   try {
     if (navigator.clipboard?.writeText) {
@@ -489,72 +540,64 @@ async function copyText(text) {
   return copied;
 }
 
-async function shareItem(it) {
-  if (shareCardInFlight) return;
+async function copyItemLink(it) {
+  const copied = await copyText(itemShareUrl(it));
+  toast(copied ? '这条消息的专属链接已复制 ✓' : '复制失败，请复制浏览器地址');
+}
+
+async function saveItemImage(it) {
+  if (shareCardInFlight) {
+    toast('图片正在生成，请稍候');
+    return;
+  }
   if (!String(it.text_zh || '').trim()) {
-    toast('这条消息暂时没有中文，补译完成后即可生成分享图片');
+    toast('这条消息暂时没有中文，补译完成后即可保存图片');
     return;
   }
   shareCardInFlight = true;
-  const payload = itemShareCopy(it);
-  toast('正在生成这条消息的分享图片…');
+  toast('正在生成这条消息的图片…');
   try {
     const blob = await buildSingleMessageShareCard(it);
     const filename = shareCardFilename(it);
-    const file = typeof File === 'function' ? new File([blob], filename, { type: 'image/png' }) : null;
-    if (file && navigator.share && navigator.canShare?.({ files: [file] })) {
-      try {
-        await navigator.share({
-          files: [file],
-          title: payload.title,
-          text: '完整消息及原文来源请查看曼城转会情报站',
-        });
-        toast('感谢分享这条曼城情报 💙');
-        return;
-      } catch (error) {
-        if (error?.name === 'AbortError') return;
-      }
-    }
     downloadShareCard(blob, filename);
-    const copied = await copyText(payload.url);
-    toast(copied ? '分享图片已保存，网站地址也已复制 ✓' : '分享图片已保存 ✓');
-    return;
-  } catch (error) {
-    if (error?.message === 'NO_CHINESE_TEXT') {
-      toast('这条消息暂时没有中文，补译完成后即可生成分享图片');
-      return;
+    const needsLongPressFallback = /iP(?:hone|ad|od)|MicroMessenger/i.test(navigator.userAgent)
+      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (needsLongPressFallback) {
+      showShareCardSavePreview(blob, filename);
+      toast('已尝试下载；也可以长按图片保存到相册');
+    } else {
+      toast('图片已开始下载；若相册未显示，请查看“下载”文件夹 ✓');
     }
+  } catch {
+    toast('图片生成失败，请稍后再试');
   } finally {
     shareCardInFlight = false;
   }
-
-  if (navigator.share) {
-    try {
-      await navigator.share(payload);
-      toast('图片生成失败，已改为分享文字和网站地址');
-      return;
-    } catch (error) {
-      if (error?.name === 'AbortError') return;
-    }
-  }
-
-  const copied = await copyText(`${payload.title}\n${payload.text}\n${payload.url}`);
-  toast(copied ? '消息和网站地址已复制，可以去微信或微博分享 ✓' : '暂时无法调起分享，请复制浏览器地址');
 }
 
-function buildShareButton(it, compact = false) {
-  const share = el('button', 'library-action share', compact ? '↗' : '↗ 分享这条');
+function buildCopyLinkButton(it, compact = false) {
+  const share = el('button', 'library-action copy-link', compact ? '🔗' : '🔗 复制链接');
   share.type = 'button';
-  share.title = '生成图片并分享这条消息';
-  share.setAttribute('aria-label', '生成图片并分享这条消息');
-  share.onclick = () => { shareItem(it); };
+  share.title = '复制这条消息的专属链接';
+  share.setAttribute('aria-label', '复制这条消息的专属链接');
+  share.onclick = () => { copyItemLink(it); };
   return share;
+}
+
+function buildSaveImageButton(it, compact = false) {
+  const save = el('button', 'library-action save', compact ? '↓' : '↓ 保存图片');
+  save.type = 'button';
+  save.title = '直接下载这条消息的图片';
+  save.setAttribute('aria-label', '直接下载这条消息的图片');
+  save.onclick = () => { saveItemImage(it); };
+  return save;
 }
 
 function buildLibraryActions(it, compact = false) {
   const id = itemId(it);
   const actions = el('div', compact ? 'library-actions compact' : 'library-actions');
-  const share = buildShareButton(it, compact);
+  const share = buildCopyLinkButton(it, compact);
+  const save = buildSaveImageButton(it, compact);
   const favorite = el('button', `library-action favorite${state.library.favorites.has(id) ? ' on' : ''}`,
     compact ? (state.library.favorites.has(id) ? '★' : '☆') : (state.library.favorites.has(id) ? '★ 已收藏' : '☆ 收藏'));
   favorite.type = 'button';
@@ -570,7 +613,7 @@ function buildLibraryActions(it, compact = false) {
   read.setAttribute('aria-label', read.title);
   read.setAttribute('aria-pressed', state.library.read.has(id) ? 'true' : 'false');
   read.onclick = () => toggleRead(it);
-  actions.append(share, favorite, read);
+  actions.append(share, save, favorite, read);
   return actions;
 }
 function syncLibraryActions(root, id) {
@@ -1038,6 +1081,7 @@ async function loadData(isRefresh = false) {
   state.twitterEnabled = data.twitter_enabled;
   state.focusTargets = data.focus_targets || [];
   state.sourceCatalog = data.sources || [];
+  prepareRequestedMessageView();
   $('#updated-at').textContent = `更新于 ${relTime(data.generated_at)}`;
 
   buildSourceMenu();
@@ -1090,6 +1134,7 @@ function render() {
   renderFocusZone();
   updateLibraryBar();
   renderFeed();
+  requestAnimationFrame(() => requestAnimationFrame(revealRequestedMessage));
 }
 
 function updateFeedSummary() {
@@ -1113,6 +1158,9 @@ function renderFeed() {
     ? new Set(pinned.slice(0, PINNED_RUMOR_LIMIT).map(itemId))
     : null;
   feedItems = state.items.filter(passFilter).filter((it) => !pinnedIds?.has(itemId(it)));
+  const sharedId = requestedMessageId();
+  const sharedIndex = sharedId ? feedItems.findIndex((it) => itemId(it) === sharedId) : -1;
+  if (sharedIndex > 0) feedItems.unshift(...feedItems.splice(sharedIndex, 1));
   feedCursor = 0;
   feedLastDay = null;
   feedAppending = false;
@@ -1198,9 +1246,13 @@ function scheduleSearchRender() {
 function pinnedStripItems() {
   const targetKeys = new Set((state.focusTargets || []).map((target) => target.key));
   if (targetKeys.size === 0) return [];
-  return state.items
+  const items = state.items
     .filter((it) => (it.focus || []).some((key) => targetKeys.has(key)))
     .sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at));
+  const sharedId = requestedMessageId();
+  const sharedIndex = sharedId ? items.findIndex((it) => itemId(it) === sharedId) : -1;
+  if (sharedIndex > 0) items.unshift(...items.splice(sharedIndex, 1));
+  return items;
 }
 
 function shouldShowPinnedStrip(items = pinnedStripItems()) {
@@ -1302,7 +1354,7 @@ function renderFocusZone() {
     link.rel = 'noopener noreferrer';
     link.onclick = () => { markRead(it); };
     const pinnedActions = el('div', 'pinned-actions');
-    pinnedActions.append(link, buildShareButton(it));
+    pinnedActions.append(link, buildCopyLinkButton(it), buildSaveImageButton(it));
     card.appendChild(pinnedActions);
     card.appendChild(buildReactionBar(it, true, 'pinned'));
     track.appendChild(card);
