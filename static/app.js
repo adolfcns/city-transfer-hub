@@ -27,11 +27,12 @@ const PRAYER_KEY = 'cth_city_prayer_v1';
 const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
 const REACTION_SNAPSHOT_URL = './data/reactions.json';
 const REACTION_DEFS = Object.freeze([
-  { key: 'fire', emoji: '🔥', label: '火爆' },
+  // 保留 fire 键以延续已有全站计数，仅更新前台展示语义。
+  { key: 'fire', emoji: '🙅', label: '你不要过来啊' },
   { key: 'heart', emoji: '💙', label: '速度入城' },
   { key: 'watch', emoji: '👀', label: '观望' },
   { key: 'wild', emoji: '😂', label: '什么鬼' },
-  { key: 'doubt', emoji: '🤨', label: '不信' },
+  { key: 'doubt', emoji: '🤨', label: '绝对不可能' },
 ]);
 const REACTION_KEYS = new Set(REACTION_DEFS.map((item) => item.key));
 const FEED_BATCH_SIZE = 24;
