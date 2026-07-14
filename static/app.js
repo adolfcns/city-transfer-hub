@@ -22,20 +22,20 @@ const BADGE_ZH = {
   DONE_DEAL: '完成交易',
   YOUTH: '青训',
 };
-const HOT_BADGES = new Set(['HERE_WE_GO', 'OFFICIAL', 'EXCLUSIVE', 'DONE_DEAL']);
 const LIBRARY_KEY = 'cth_library_v1';
 const PRAYER_KEY = 'cth_city_prayer_v1';
 const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
 const REACTION_SNAPSHOT_URL = './data/reactions.json';
 const REACTION_DEFS = Object.freeze([
   { key: 'fire', emoji: '🔥', label: '火爆' },
-  { key: 'heart', emoji: '💙', label: '蓝月之心' },
+  { key: 'heart', emoji: '💙', label: '速度入城' },
   { key: 'watch', emoji: '👀', label: '观望' },
-  { key: 'wild', emoji: '😂', label: '离谱' },
+  { key: 'wild', emoji: '😂', label: '什么鬼' },
   { key: 'doubt', emoji: '🤨', label: '不信' },
 ]);
 const REACTION_KEYS = new Set(REACTION_DEFS.map((item) => item.key));
 const FEED_BATCH_SIZE = 24;
+const PINNED_RUMOR_LIMIT = 30;
 const SEARCH_DEBOUNCE_MS = 140;
 
 // ---------------- 状态 ----------------
@@ -70,17 +70,21 @@ let reactionSnapshotLoaded = false;
 let reactionPendingFlush = false;
 
 function loadFilters() {
-  const def = { tiers: ['T0', 'T1', 'T2', 'ITK'], sources: null, search: '', onlyHot: false, lang: 'zh', focusKey: null, libraryView: 'all' };
+  const def = { sources: null, search: '', lang: 'zh', libraryView: 'all' };
   try {
     const saved = JSON.parse(localStorage.getItem('cth_filters') || 'null');
-    const loaded = saved ? Object.assign(def, saved, { search: '' }) : def;
-    if (!['all', 'unread', 'favorites'].includes(loaded.libraryView)) loaded.libraryView = 'all';
-    return loaded;
+    if (!saved || typeof saved !== 'object') return def;
+    return {
+      sources: Array.isArray(saved.sources) ? saved.sources.map(String) : null,
+      search: '',
+      lang: ['zh', 'both', 'en'].includes(saved.lang) ? saved.lang : 'zh',
+      libraryView: ['all', 'unread', 'favorites'].includes(saved.libraryView) ? saved.libraryView : 'all',
+    };
   } catch { return def; }
 }
 function saveFilters() {
-  const { tiers, sources, onlyHot, lang, libraryView } = state.filters;
-  localStorage.setItem('cth_filters', JSON.stringify({ tiers, sources, onlyHot, lang, libraryView }));
+  const { sources, lang, libraryView } = state.filters;
+  localStorage.setItem('cth_filters', JSON.stringify({ sources, lang, libraryView }));
 }
 function loadLibrary() {
   try {
@@ -658,14 +662,15 @@ function currentSourceKeys() {
 }
 function passFilter(it) {
   const f = state.filters;
-  if (f.focusKey && !(it.focus || []).includes(f.focusKey)) return false;
-  if (!f.tiers.includes(it.tier)) return false;
   if (f.sources && !f.sources.includes(it.source_key)) return false;
-  if (f.onlyHot && !(it.badges || []).some((b) => HOT_BADGES.has(b))) return false;
   if (f.libraryView === 'unread' && state.library.read.has(itemId(it))) return false;
   if (f.libraryView === 'favorites' && !state.library.favorites.has(itemId(it))) return false;
   if (f.search) {
-    const hay = `${it.text || ''} ${it.text_zh || ''} ${it.source_name} ${it.source_name_zh || ''}`.toLowerCase();
+    const focusTerms = (it.focus || []).flatMap((key) => {
+      const target = (state.focusTargets || []).find((item) => item.key === key);
+      return target ? [target.name, target.name_zh, target.desc_zh] : [];
+    }).filter(Boolean).join(' ');
+    const hay = `${it.text || ''} ${it.text_zh || ''} ${it.source_name} ${it.source_name_zh || ''} ${focusTerms}`.toLowerCase();
     if (!hay.includes(f.search.toLowerCase())) return false;
   }
   return true;
@@ -684,13 +689,6 @@ function updateFeedSummary() {
   // 选了中文/双语但一条译文都没有 → 提示需要配置翻译密钥
   const anyZh = state.items.some((it) => it.text_zh);
   $('#translate-banner').hidden = state.isDemo || anyZh || state.items.length === 0 || state.filters.lang === 'en';
-
-  // tier 计数
-  const counts = { T0: 0, T1: 0, T2: 0, ITK: 0 };
-  for (const it of state.items) counts[it.tier] = (counts[it.tier] || 0) + 1;
-  document.querySelectorAll('.tier-chip').forEach((chip) => {
-    chip.querySelector('.cnt').textContent = counts[chip.dataset.tier] || 0;
-  });
 }
 
 function stopFeedObserver() {
@@ -703,7 +701,11 @@ function renderFeed() {
   feedGeneration++;
   const feed = $('#feed');
   feed.textContent = '';
-  feedItems = state.items.filter(passFilter);
+  const pinned = pinnedStripItems();
+  const pinnedIds = shouldShowPinnedStrip(pinned)
+    ? new Set(pinned.slice(0, PINNED_RUMOR_LIMIT).map(itemId))
+    : null;
+  feedItems = state.items.filter(passFilter).filter((it) => !pinnedIds?.has(itemId(it)));
   feedCursor = 0;
   feedLastDay = null;
   feedAppending = false;
@@ -780,85 +782,111 @@ function scheduleSearchRender() {
   clearTimeout(searchRenderTimer);
   searchRenderTimer = setTimeout(() => {
     searchRenderTimer = null;
+    renderFocusZone();
     renderFeed();
   }, SEARCH_DEBOUNCE_MS);
 }
 
-// ---------------- 焦点专区 ----------------
+// ---------------- 重点绯闻置顶横滑栏 ----------------
+function pinnedStripItems() {
+  const targetKeys = new Set((state.focusTargets || []).map((target) => target.key));
+  if (targetKeys.size === 0) return [];
+  return state.items
+    .filter((it) => (it.focus || []).some((key) => targetKeys.has(key)))
+    .sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at));
+}
+
+function shouldShowPinnedStrip(items = pinnedStripItems()) {
+  const f = state.filters;
+  return items.length > 0
+    && !state.isDemo
+    && f.libraryView === 'all'
+    && !f.search
+    && f.sources === null;
+}
+
+function appendPinnedText(card, it) {
+  const zh = it.text_zh || it.text || '';
+  const en = it.text || it.text_zh || '';
+  if (state.filters.lang === 'en') {
+    card.appendChild(el('div', 'pinned-text en', en));
+    return;
+  }
+  card.appendChild(el('div', 'pinned-text', zh));
+  if (state.filters.lang === 'both' && it.text_zh && it.text) {
+    card.appendChild(el('div', 'pinned-text secondary', en));
+  }
+}
+
 function renderFocusZone() {
   const zone = $('#focus-zone');
-  const targets = state.focusTargets || [];
-  zone.hidden = targets.length === 0 || state.isDemo || state.filters.libraryView !== 'all';
+  const allPinned = pinnedStripItems();
   zone.textContent = '';
+  zone.hidden = !shouldShowPinnedStrip(allPinned);
   if (zone.hidden) return;
 
-  const todayKey = dayKey(new Date().toISOString());
-  for (const t of targets) {
-    const matched = state.items.filter((it) => (it.focus || []).includes(t.key));
-    const todayCount = matched.filter((it) => dayKey(it.published_at) === todayKey).length;
+  const targets = state.focusTargets || [];
+  const activeTargets = targets.filter((target) => allPinned.some((it) => (it.focus || []).includes(target.key)));
+  const targetNames = activeTargets.map((target) => target.name_zh || target.name).join(' · ');
+  const displayed = allPinned.slice(0, PINNED_RUMOR_LIMIT);
 
-    const card = el('div', 'focus-card');
-    const head = el('div', 'focus-head');
-    head.appendChild(el('div', 'focus-avatar', initialsOf(t.name)));
-    const tt = el('div');
-    tt.appendChild(el('div', 'focus-title', `🎯 ${t.name_zh} · 传闻追踪`));
-    tt.appendChild(el('div', 'focus-desc', `${t.desc_zh || t.name} · 今日 ${todayCount} 条 / 共 ${matched.length} 条`));
-    head.appendChild(tt);
-    const hot = matched.filter((it) => it.tier === 'T0').length;
-    if (hot > 0) head.appendChild(el('span', 'focus-count', `T0 已跟进 ${hot} 条`));
-    const btn = el('button', `focus-btn${state.filters.focusKey === t.key ? ' on' : ''}`,
-      state.filters.focusKey === t.key ? '正在只看他 ✕' : '只看他');
-    btn.onclick = () => {
-      state.filters.focusKey = state.filters.focusKey === t.key ? null : t.key;
-      render();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-    head.appendChild(btn);
-    card.appendChild(head);
+  const head = el('div', 'focus-strip-head');
+  head.appendChild(el('h2', 'focus-strip-title', `📌 重点绯闻${targetNames ? ` · ${targetNames}` : ''}`));
+  head.appendChild(el('span', 'focus-strip-total', `共 ${allPinned.length} 条`));
+  const progress = el('span', 'focus-strip-progress', `1 / ${displayed.length}`);
+  head.appendChild(progress);
+  zone.appendChild(head);
 
-    if (matched.length === 0) {
-      card.appendChild(el('div', 'focus-empty', '暂无相关消息，抓到会第一时间出现在这里'));
-    } else {
-      // 横滑卡片墙：每张卡一条完整消息
-      const car = el('div', 'focus-carousel');
-      for (const it of matched.slice(0, 12)) {
-        const s = el('article', 'focus-slide');
-        s.dataset.itemId = itemId(it);
-        if (state.library.read.has(itemId(it))) s.classList.add('is-read');
-        const h = el('div', 'fs-head');
-        h.appendChild(el('span', `badge-tier ${TIER_CLASS[it.tier] || 't2'}`, it.tier));
-        h.appendChild(el('span', 'fs-src', it.source_name_zh || it.source_name));
-        h.appendChild(el('span', 'fs-time', relTime(it.published_at)));
-        s.appendChild(h);
-        s.appendChild(el('div', 'fs-text', state.filters.lang === 'en' ? (it.text || '') : (it.text_zh || it.text || '')));
-        s.appendChild(buildReactionBar(it, true));
-        const fsFoot = el('div', 'fs-foot');
-        const a = el('a', 'fs-link', it.kind === 'tweet' ? '查看原推 ↗' : '阅读原文 ↗');
-        a.href = it.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
-        a.onclick = () => { markRead(it); };
-        fsFoot.appendChild(a);
-        fsFoot.appendChild(buildLibraryActions(it, true));
-        s.appendChild(fsFoot);
-        car.appendChild(s);
-      }
-      // 桌面端左右箭头（手机隐藏，手指滑）
-      // 步长 = 一张卡 + 间距，正好落在吸附点上（否则强制吸附会弹回）
-      const step = () => {
-        const s = car.querySelector('.focus-slide');
-        return s ? s.getBoundingClientRect().width + 10 : 310;
-      };
-      const prev = el('button', 'fs-nav', '‹');
-      const next = el('button', 'fs-nav', '›');
-      prev.title = '上一张'; next.title = '下一张';
-      prev.onclick = () => { car.scrollLeft -= step(); };
-      next.onclick = () => { car.scrollLeft += step(); };
-      head.insertBefore(prev, btn);
-      head.insertBefore(next, btn);
-      card.appendChild(car);
+  const track = el('div', 'focus-track');
+  for (const it of displayed) {
+    const card = el('article', `pinned-card ${TIER_CLASS[it.tier] || 't2'}`);
+    card.dataset.itemId = itemId(it);
+    if (state.library.read.has(itemId(it))) card.classList.add('is-read');
+
+    const cardHead = el('div', 'pinned-head');
+    cardHead.appendChild(el('span', `badge-tier ${TIER_CLASS[it.tier] || 't2'}`, it.tier));
+    cardHead.appendChild(el('span', 'pinned-source', it.source_name_zh || it.source_name));
+    cardHead.appendChild(el('span', 'pinned-time', relTime(it.published_at)));
+    card.appendChild(cardHead);
+
+    if (activeTargets.length > 1) {
+      const names = activeTargets
+        .filter((target) => (it.focus || []).includes(target.key))
+        .map((target) => target.name_zh || target.name)
+        .join(' · ');
+      if (names) card.appendChild(el('div', 'pinned-target', `🎯 ${names}`));
     }
-    zone.appendChild(card);
-    queueReactionCounts(matched.slice(0, 12));
+
+    appendPinnedText(card, it);
+
+    const badges = (it.badges || []).filter((badge) => BADGE_ZH[badge]).slice(0, 2);
+    if (badges.length) {
+      const badgeRow = el('div', 'pinned-badges');
+      badges.forEach((badge) => badgeRow.appendChild(el('span', `ev-badge${badge === 'HERE_WE_GO' ? ' gold' : ''}`, BADGE_ZH[badge])));
+      card.appendChild(badgeRow);
+    }
+
+    const link = el('a', 'pinned-link', it.kind === 'tweet' ? '查看原推 ↗' : '阅读原文 ↗');
+    link.href = it.url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.onclick = () => { markRead(it); };
+    card.appendChild(link);
+    track.appendChild(card);
   }
+
+  let frame = 0;
+  track.addEventListener('scroll', () => {
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+      const first = track.querySelector('.pinned-card');
+      const step = first ? first.getBoundingClientRect().width + 9 : track.clientWidth;
+      const current = Math.min(displayed.length, Math.max(1, Math.round(track.scrollLeft / step) + 1));
+      progress.textContent = `${current} / ${displayed.length}`;
+    });
+  }, { passive: true });
+
+  zone.appendChild(track);
 }
 
 function renderCard(it) {
@@ -1168,17 +1196,6 @@ function renderCountdown() {
 
 // ---------------- 事件绑定 ----------------
 function bind() {
-  document.querySelectorAll('.tier-chip').forEach((chip) => {
-    const t = chip.dataset.tier;
-    chip.classList.toggle('active', state.filters.tiers.includes(t));
-    chip.onclick = () => {
-      const f = state.filters;
-      f.tiers = f.tiers.includes(t) ? f.tiers.filter((x) => x !== t) : [...f.tiers, t];
-      chip.classList.toggle('active', f.tiers.includes(t));
-      saveFilters(); render();
-    };
-  });
-  $('#btn-legend').onclick = () => { const d = $('#legend-detail'); d.hidden = !d.hidden; };
   $('#search').oninput = (e) => {
     state.filters.search = e.target.value.trim();
     scheduleSearchRender();
@@ -1187,15 +1204,14 @@ function bind() {
   document.addEventListener('click', (e) => {
     if (!$('#src-select').contains(e.target)) $('#src-menu').hidden = true;
   });
-  const langSelect = $('#lang-select');
-  langSelect.value = state.filters.lang;
-  langSelect.onchange = () => {
-    state.filters.lang = langSelect.value;
-    saveFilters(); render();
-  };
-  const hot = $('#only-hot');
-  hot.checked = state.filters.onlyHot;
-  hot.onchange = () => { state.filters.onlyHot = hot.checked; saveFilters(); render(); };
+  document.querySelectorAll('#lang-seg button').forEach((button) => {
+    button.classList.toggle('active', button.dataset.lang === state.filters.lang);
+    button.onclick = () => {
+      state.filters.lang = button.dataset.lang;
+      document.querySelectorAll('#lang-seg button').forEach((item) => item.classList.toggle('active', item === button));
+      saveFilters(); render();
+    };
+  });
   document.querySelectorAll('[data-library-view]').forEach((button) => {
     button.onclick = () => {
       state.filters.libraryView = button.dataset.libraryView;

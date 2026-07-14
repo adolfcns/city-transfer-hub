@@ -47,31 +47,15 @@
   </div>
 
   <main class="container">
-    <!-- 焦点专区（有 focus_targets 配置时由 JS 渲染） -->
+    <!-- 重点绯闻置顶横滑栏（有 focus_targets 配置时由 JS 渲染） -->
     <section class="focus-zone" id="focus-zone" hidden></section>
 
-    <!-- 分级图例 + Tier 筛选 -->
-    <section class="tier-legend" id="tier-legend">
-      <button class="tier-chip t0 active" data-tier="T0" title="树上等（最可靠）"><b>T0</b><span class="cnt"></span></button>
-      <button class="tier-chip t1 active" data-tier="T1" title="权威媒体（错误较少）"><b>T1</b><span class="cnt"></span></button>
-      <button class="tier-chip t2 active" data-tier="T2" title="流量媒体（偶尔准）"><b>T2</b><span class="cnt"></span></button>
-      <button class="tier-chip itk active" data-tier="ITK" title="圈内人（自行甄别）"><b>ITK</b><span class="cnt"></span></button>
-      <button class="legend-help" id="btn-legend" title="分级说明">?</button>
-    </section>
     <div class="reaction-legend" aria-label="消息表情含义">
       <span><b aria-hidden="true">🔥</b>火爆</span>
-      <span><b aria-hidden="true">💙</b>蓝月之心</span>
+      <span><b aria-hidden="true">💙</b>速度入城</span>
       <span><b aria-hidden="true">👀</b>观望</span>
-      <span><b aria-hidden="true">😂</b>离谱</span>
+      <span><b aria-hidden="true">😂</b>什么鬼</span>
       <span><b aria-hidden="true">🤨</b>不信</span>
-    </div>
-
-    <div class="legend-detail" id="legend-detail" hidden>
-      <p><span class="badge-tier t0">T0 树上等</span> 最可靠：罗马诺、曼晚（首席跟队 Baj）、BBC、英国天空、TA（D.O & Sam Lee）、邮报（Jack Gaughan）、电讯报 McGrath</p>
-      <p><span class="badge-tier t1">T1 权威媒体</span> 错误较少：太阳报（仅 Blackburn）、Ben Jacobs、莫雷托、队报、RMC、紫板（Purple Panel）、奥莱、佩杜拉、Yagiz</p>
-      <p><span class="badge-tier t2">T2 流量媒体</span> 偶尔准、看消息源：卫报、泰晤士报、Goal、德/瑞/意天空、ESPN、talkSPORT、塞尔电台、footmercato、Teamtalk、图片报、斯基拉、iPaper、BR、Alan Nixon（仅青训）、球报</p>
-      <p><span class="badge-tier itk">ITK</span> 圈内人爆料号，自行甄别（在 config/sources.yaml 里增删）</p>
-      <p class="legend-credit">分级参考：物述有栖official@懂球帝 · T3 厕纸媒体不收录</p>
     </div>
 
     <!-- 筛选栏 -->
@@ -81,10 +65,11 @@
         <button class="src-btn" id="src-btn">全部信源 ▾</button>
         <div class="src-menu" id="src-menu" hidden></div>
       </div>
-      <label class="toggle">
-        <input type="checkbox" id="only-hot">
-        <span>只看重磅</span>
-      </label>
+      <div class="seg" id="lang-seg" aria-label="消息语言">
+        <button type="button" data-lang="zh">中文</button>
+        <button type="button" data-lang="both">双语</button>
+        <button type="button" data-lang="en">原文</button>
+      </div>
     </section>
 
     <!-- 本机收藏 / 已读状态 -->
@@ -94,14 +79,6 @@
         <button type="button" data-library-view="unread" aria-pressed="false">未读 <span id="count-unread">0</span></button>
         <button type="button" data-library-view="favorites" aria-pressed="false">收藏 <span id="count-favorites">0</span></button>
       </div>
-      <label class="lang-select" for="lang-select">
-        <span>显示</span>
-        <select id="lang-select" aria-label="消息语言">
-          <option value="zh">中文</option>
-          <option value="both">双语</option>
-          <option value="en">原文</option>
-        </select>
-      </label>
       <button type="button" class="mark-all-read" id="mark-all-read" title="将全部消息标为已读" aria-label="将全部消息标为已读">✓ 全读</button>
     </section>
 
