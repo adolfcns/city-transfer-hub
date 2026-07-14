@@ -383,18 +383,29 @@ function syncReactionBars(id) {
   const selected = state.reactionPrefs.votes[id] || null;
   document.querySelectorAll('article[data-item-id]').forEach((article) => {
     if (article.dataset.itemId !== id) return;
-    article.querySelectorAll('.reaction-btn').forEach((button) => {
-      const def = REACTION_DEFS.find((item) => item.key === button.dataset.reaction);
-      if (!def) return;
-      const count = counts[def.key] || 0;
-      const active = selected === def.key;
-      button.classList.toggle('selected', active);
-      button.disabled = reactionInFlight.has(id);
-      button.setAttribute('aria-pressed', active ? 'true' : 'false');
-      button.setAttribute('aria-label', `${def.label}，全站 ${count} 次${active ? '，你已选择' : ''}`);
-      button.title = `${def.label} · 全站 ${count} 次`;
-      const countNode = button.querySelector('.reaction-count');
-      if (countNode) countNode.textContent = compactReactionCount(count);
+    article.querySelectorAll('.reaction-bar').forEach((bar) => {
+      bar.querySelectorAll('.reaction-btn').forEach((button) => {
+        const def = REACTION_DEFS.find((item) => item.key === button.dataset.reaction);
+        if (!def) return;
+        const count = counts[def.key] || 0;
+        const active = selected === def.key;
+        button.classList.toggle('selected', active);
+        button.disabled = reactionInFlight.has(id);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        button.setAttribute('aria-label', `${def.label}，全站 ${count} 次${active ? '，你已选择' : ''}`);
+        button.title = `${def.label} · 全站 ${count} 次`;
+        const countNode = button.querySelector('.reaction-count');
+        if (countNode) {
+          countNode.hidden = count === 0;
+          countNode.textContent = count > 0 ? compactReactionCount(count) : '';
+        }
+      });
+      const total = REACTION_DEFS.reduce((sum, def) => sum + (counts[def.key] || 0), 0);
+      const hint = bar.querySelector('.reaction-hint');
+      if (hint) {
+        hint.textContent = total === 0 ? hint.dataset.emptyText : hint.dataset.activeText;
+        hint.hidden = !hint.textContent;
+      }
     });
   });
 }
@@ -404,24 +415,34 @@ function syncAllReactionBars() {
   ids.forEach(syncReactionBars);
 }
 
-function buildReactionBar(it, compact = false) {
+function buildReactionBar(it, compact = false, context = 'feed') {
   const id = itemId(it);
   const counts = itemReactionCounts(id);
   const selected = state.reactionPrefs.votes[id] || null;
   const bar = el('div', `reaction-bar${compact ? ' compact' : ''}`);
   bar.setAttribute('role', 'group');
   bar.setAttribute('aria-label', '给这条消息选择一个表情');
+  const total = REACTION_DEFS.reduce((sum, def) => sum + (counts[def.key] || 0), 0);
+  const hint = el('span', 'reaction-hint');
+  hint.dataset.emptyText = context === 'pinned' ? '你怎么看？ · 抢先表态' : '抢先表态';
+  hint.dataset.activeText = context === 'pinned' ? '你怎么看？' : '';
+  hint.textContent = total === 0 ? hint.dataset.emptyText : hint.dataset.activeText;
+  hint.hidden = !hint.textContent;
+  bar.appendChild(hint);
   for (const def of REACTION_DEFS) {
     const active = selected === def.key;
+    const count = counts[def.key] || 0;
     const button = el('button', `reaction-btn${active ? ' selected' : ''}`);
     button.type = 'button';
     button.dataset.reaction = def.key;
     button.setAttribute('aria-pressed', active ? 'true' : 'false');
-    button.setAttribute('aria-label', `${def.label}，全站 ${counts[def.key] || 0} 次${active ? '，你已选择' : ''}`);
-    button.title = `${def.label} · 全站 ${counts[def.key] || 0} 次`;
+    button.setAttribute('aria-label', `${def.label}，全站 ${count} 次${active ? '，你已选择' : ''}`);
+    button.title = `${def.label} · 全站 ${count} 次`;
     const emoji = el('span', 'reaction-emoji', def.emoji);
     emoji.setAttribute('aria-hidden', 'true');
-    button.append(emoji, el('span', 'reaction-count', compactReactionCount(counts[def.key] || 0)));
+    const countNode = el('span', 'reaction-count', count > 0 ? compactReactionCount(count) : '');
+    countNode.hidden = count === 0;
+    button.append(emoji, countNode);
     button.onclick = () => chooseItemReaction(it, def.key);
     bar.appendChild(button);
   }
@@ -872,7 +893,7 @@ function renderFocusZone() {
     link.rel = 'noopener noreferrer';
     link.onclick = () => { markRead(it); };
     card.appendChild(link);
-    card.appendChild(buildReactionBar(it, true));
+    card.appendChild(buildReactionBar(it, true, 'pinned'));
     track.appendChild(card);
   }
 
