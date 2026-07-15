@@ -381,12 +381,24 @@ async function buildSingleMessageShareCard(it) {
   cardFont(ctx, 30, 700);
   ctx.fillStyle = '#8dd2f2';
   ctx.fillText('曼城转会情报站', 248, 96);
+
+  fillRoundedCanvasRect(ctx, 535, 57, 430, 56, 28, 'rgba(7, 29, 52, .78)');
+  roundedCanvasPath(ctx, 535, 57, 430, 56, 28);
+  ctx.strokeStyle = 'rgba(141, 210, 242, .82)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  cardFont(ctx, 21, 800);
+  ctx.fillStyle = '#dff3ff';
+  ctx.textAlign = 'center';
+  ctx.fillText('扫完这个码，你也是半个罗马诺', 750, 94);
+  ctx.textAlign = 'left';
+
   cardFont(ctx, 66, 900);
   ctx.fillStyle = '#ffffff';
   ctx.fillText('单条消息速报', 248, 170);
   cardFont(ctx, 23, 500);
   ctx.fillStyle = '#c8e7f8';
-  ctx.fillText('中文聚合 · 信源分级 · 原文可追溯', 248, 218);
+  ctx.fillText('24小时自动更新曼城转会动态 · 原文可追溯', 248, 218);
 
   ctx.save();
   ctx.shadowColor = 'rgba(0, 0, 0, .26)';
@@ -458,7 +470,7 @@ async function buildSingleMessageShareCard(it) {
   ctx.fillText('adolfcns.github.io/city-transfer-hub/', 62, 1286);
   cardFont(ctx, 19, 600);
   ctx.fillStyle = '#244969';
-  ctx.fillText('24小时自动更新曼城转会动态 · 原文可追溯', 62, 1345);
+  ctx.fillText('扫码查看实时更新', 62, 1345);
 
   fillRoundedCanvasRect(ctx, 842, 1172, 184, 184, 18, '#ffffff');
   ctx.drawImage(qr, 854, 1184, 160, 160);
