@@ -462,10 +462,11 @@ async function buildSingleMessageShareCard(it) {
 
   fillRoundedCanvasRect(ctx, 842, 1172, 184, 184, 18, '#ffffff');
   ctx.drawImage(qr, 854, 1184, 160, 160);
-  cardFont(ctx, 17, 700);
+  cardFont(ctx, 17, 800);
   ctx.fillStyle = '#0b2a4a';
   ctx.textAlign = 'center';
-  ctx.fillText('扫码进入情报站', 934, 1392);
+  ctx.fillText('您的分享，', 934, 1382);
+  ctx.fillText('是我继续更新的动力', 934, 1408);
   ctx.textAlign = 'left';
 
   return new Promise((resolve, reject) => {
