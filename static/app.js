@@ -451,16 +451,14 @@ async function buildSingleMessageShareCard(it) {
   footer.addColorStop(1, '#6cabdd');
   ctx.fillStyle = footer;
   ctx.fillRect(0, 1140, SHARE_CARD_WIDTH, 300);
-  cardFont(ctx, 29, 900);
+  cardFont(ctx, 38, 900);
   ctx.fillStyle = '#071d34';
-  ctx.fillText('完整消息及原文来源请查看曼城转会情报站', 62, 1216);
-  ctx.fillText('扫完这个码，你也是半个罗马诺', 62, 1266);
-  cardFont(ctx, 25, 800);
+  ctx.fillText('扫完这个码，你也是半个罗马诺', 62, 1204);
+  cardFont(ctx, 23, 800);
   ctx.fillStyle = '#0b2a4a';
-  ctx.fillText('adolfcns.github.io/city-transfer-hub/', 62, 1324);
-  cardFont(ctx, 19, 600);
-  ctx.fillStyle = '#244969';
-  ctx.fillText('扫码查看实时更新', 62, 1371);
+  ctx.fillText('完整消息及原文来源请查看曼城转会情报站', 62, 1260);
+  ctx.fillText('adolfcns.github.io/city-transfer-hub/', 62, 1312);
+  ctx.fillText('备用站：city-transfer-hub.pages.dev/', 62, 1364);
 
   fillRoundedCanvasRect(ctx, 842, 1172, 184, 184, 18, '#ffffff');
   ctx.drawImage(qr, 854, 1184, 160, 160);
