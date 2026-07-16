@@ -1407,6 +1407,26 @@ function renderFocusZone() {
 
   const head = el('div', 'focus-strip-head');
   head.appendChild(el('h2', 'focus-strip-title', `📌 重点绯闻${targetNames ? ` · ${targetNames}` : ''}`));
+  if (activeTargets.length > 0) {
+    const followButtons = el('div', 'focus-follow-buttons');
+    for (const target of activeTargets) {
+      const name = focusTargetName(target);
+      const following = state.playerFollows.has(String(target.key));
+      const follow = el('button', `focus-follow${following ? ' on' : ''}`);
+      follow.type = 'button';
+      follow.appendChild(el('span', 'follow-label-full',
+        following ? `🔔 已关注 ${name}` : `＋ 关注 ${name}`));
+      follow.appendChild(el('span', 'follow-label-short', following ? '🔔 关注中' : '＋ 关注'));
+      follow.setAttribute('aria-pressed', String(following));
+      follow.setAttribute('aria-label', following ? `取消关注 ${name}` : `关注 ${name}`);
+      follow.title = following
+        ? `取消关注 ${name}`
+        : `关注 ${name}，出现 T0、报价或官宣时提醒`;
+      follow.onclick = () => { togglePlayerFollow(target); };
+      followButtons.appendChild(follow);
+    }
+    head.appendChild(followButtons);
+  }
   head.appendChild(el('span', 'focus-strip-total', hiddenCount > 0
     ? `剩余 ${visiblePinned.length} · 隐藏 ${hiddenCount}`
     : `共 ${allPinned.length} 条`));
@@ -1421,27 +1441,6 @@ function renderFocusZone() {
   const progress = el('span', 'focus-strip-progress', displayed.length ? `1 / ${displayed.length}` : '0 / 0');
   head.appendChild(progress);
   zone.appendChild(head);
-
-  if (activeTargets.length > 0) {
-    const followRow = el('div', 'focus-follow-row');
-    const followButtons = el('div', 'focus-follow-buttons');
-    for (const target of activeTargets) {
-      const name = focusTargetName(target);
-      const following = state.playerFollows.has(String(target.key));
-      const follow = el('button', `focus-follow${following ? ' on' : ''}`,
-        following ? `🔔 已关注 ${name}` : `＋ 关注 ${name}`);
-      follow.type = 'button';
-      follow.setAttribute('aria-pressed', String(following));
-      follow.title = following
-        ? `取消关注 ${name}`
-        : `关注 ${name}，出现 T0、报价或官宣时提醒`;
-      follow.onclick = () => { togglePlayerFollow(target); };
-      followButtons.appendChild(follow);
-    }
-    followRow.appendChild(followButtons);
-    followRow.appendChild(el('span', 'focus-follow-hint', '出现 T0、报价或官宣时提醒'));
-    zone.appendChild(followRow);
-  }
 
   if (displayed.length === 0) {
     zone.appendChild(el('div', 'focus-strip-empty', '置顶消息已全部读完并隐藏，可点击上方“恢复”重新查看。'));

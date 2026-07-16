@@ -136,20 +136,16 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 }
 .focus-strip-restore:hover { background: var(--cream-deep); border-color: var(--burgundy); }
 .focus-strip-progress { margin-left: auto; color: var(--text-dim); font-size: 10px; font-variant-numeric: tabular-nums; }
-.focus-follow-row {
-  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
-  margin: -1px 2px 8px;
-}
-.focus-follow-buttons { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.focus-follow-buttons { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; flex: none; }
 .focus-follow {
-  min-height: 30px; padding: 4px 9px; border: 1px solid var(--line-strong); border-radius: 7px;
+  min-height: 28px; padding: 3px 7px; border: 1px solid var(--line-strong); border-radius: 7px;
   background: var(--cream); color: var(--burgundy); font-size: 11px; font-weight: 700;
   line-height: 1.2; touch-action: manipulation;
 }
 .focus-follow:hover { border-color: var(--burgundy); background: var(--cream-deep); }
 .focus-follow.on { border-color: var(--sky); background: rgba(108,171,221,.13); color: var(--t1); }
 .focus-follow:focus-visible { outline: 3px solid rgba(21,95,159,.18); outline-offset: 2px; }
-.focus-follow-hint { color: var(--text-dim); font-size: 11px; }
+.follow-label-short { display: none; }
 .focus-strip-empty {
   padding: 11px 12px; border: 1px dashed var(--line-strong); border-radius: 10px;
   background: rgba(255,255,255,.55); color: var(--text-dim); font-size: 12px; text-align: center;
@@ -661,9 +657,10 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   .focus-strip-title { font-size: 13px; }
   .focus-strip-total, .focus-strip-progress { font-size: 12px; }
   .focus-strip-restore { min-height: 36px; padding-inline: 8px; font-size: 12px; }
-  .focus-follow-row { margin-bottom: 9px; gap: 6px 8px; }
-  .focus-follow { min-height: 44px; padding-inline: 11px; font-size: 13px; }
-  .focus-follow-hint { flex-basis: 100%; font-size: 12px; }
+  .focus-follow-buttons { gap: 4px; }
+  .focus-follow { min-height: 32px; padding: 4px 7px; font-size: 12px; }
+  .follow-label-full { display: none; }
+  .follow-label-short { display: inline; }
   .pinned-head { gap: 5px; }
   .pinned-source { font-size: 12px; }
   .pinned-time, .pinned-target, .pinned-text.secondary, .pinned-link { font-size: 12px; }
