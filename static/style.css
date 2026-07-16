@@ -136,6 +136,20 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 }
 .focus-strip-restore:hover { background: var(--cream-deep); border-color: var(--burgundy); }
 .focus-strip-progress { margin-left: auto; color: var(--text-dim); font-size: 10px; font-variant-numeric: tabular-nums; }
+.focus-follow-row {
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+  margin: -1px 2px 8px;
+}
+.focus-follow-buttons { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.focus-follow {
+  min-height: 30px; padding: 4px 9px; border: 1px solid var(--line-strong); border-radius: 7px;
+  background: var(--cream); color: var(--burgundy); font-size: 11px; font-weight: 700;
+  line-height: 1.2; touch-action: manipulation;
+}
+.focus-follow:hover { border-color: var(--burgundy); background: var(--cream-deep); }
+.focus-follow.on { border-color: var(--sky); background: rgba(108,171,221,.13); color: var(--t1); }
+.focus-follow:focus-visible { outline: 3px solid rgba(21,95,159,.18); outline-offset: 2px; }
+.focus-follow-hint { color: var(--text-dim); font-size: 11px; }
 .focus-strip-empty {
   padding: 11px 12px; border: 1px dashed var(--line-strong); border-radius: 10px;
   background: rgba(255,255,255,.55); color: var(--text-dim); font-size: 12px; text-align: center;
@@ -636,23 +650,29 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   .brand-logo { width: 36px; height: 36px; font-size: 20px; }
   .brand h1 { font-size: 16px; }
   .topbar-right { gap: 6px; }
-  .topbar-right .icon-btn { width: 32px; height: 32px; }
+  .topbar-right .icon-btn { width: 44px; height: 44px; }
   .updated-at { display: none; }
   .brand-sub { margin-left: 0; white-space: normal; line-height: 1.5; }   /* 手机：副标题整行铺开，可折行完整显示 */
+  .brand-slogan { font-size: 12px; }
+  .fav-btn { min-height: 40px; padding-inline: 12px; font-size: 12px; }
   .container { width: 100%; overflow: hidden; }
   .focus-zone { margin-bottom: 9px; }
-  .focus-strip-head { margin-bottom: 6px; }
+  .focus-strip-head { margin-bottom: 6px; flex-wrap: wrap; }
   .focus-strip-title { font-size: 13px; }
-  .focus-strip-total { font-size: 10px; }
-  .focus-strip-restore { padding-inline: 5px; }
+  .focus-strip-total, .focus-strip-progress { font-size: 12px; }
+  .focus-strip-restore { min-height: 36px; padding-inline: 8px; font-size: 12px; }
+  .focus-follow-row { margin-bottom: 9px; gap: 6px 8px; }
+  .focus-follow { min-height: 44px; padding-inline: 11px; font-size: 13px; }
+  .focus-follow-hint { flex-basis: 100%; font-size: 12px; }
   .pinned-head { gap: 5px; }
-  .pinned-source { font-size: 11.5px; }
-  .pinned-hide { min-height: 23px; padding-inline: 4px; font-size: 9.5px; }
-  .pinned-actions .library-action { min-height: 25px; padding-inline: 6px; font-size: 9.5px; }
+  .pinned-source { font-size: 12px; }
+  .pinned-time, .pinned-target, .pinned-text.secondary, .pinned-link { font-size: 12px; }
+  .pinned-hide { min-height: 36px; padding-inline: 7px; font-size: 12px; }
+  .pinned-actions .library-action { min-height: 36px; padding-inline: 8px; font-size: 12px; }
   .pinned-card { flex-basis: calc(100% - 34px); max-width: none; min-height: 154px; }
   .reaction-legend {
     grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: 3px; row-gap: 6px;
-    margin: 0 1px 9px; font-size: 11.5px;
+    margin: 0 1px 9px; font-size: 12px;
   }
   .reaction-legend span { grid-column: span 2; gap: 3px; }
   .reaction-legend span:nth-child(n + 4) { grid-column: span 3; }
@@ -661,22 +681,24 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
     display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 8px;
     margin-bottom: 8px;
   }
-  #search { grid-column: 1 / -1; width: 100%; min-width: 0; min-height: 38px; padding-block: 7px; }
+  #search { grid-column: 1 / -1; width: 100%; min-width: 0; min-height: 44px; padding-block: 8px; font-size: 16px; }
   .src-select { grid-column: 1; min-width: 0; }
-  .src-btn { width: 100%; min-height: 32px; padding-block: 5px; }
+  .src-btn { width: 100%; min-height: 44px; padding-block: 7px; }
   .filterbar .seg { grid-column: 2; grid-row: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; }
-  .filterbar .seg button { min-width: 43px; min-height: 32px; padding: 5px 7px; font-size: 11px; }
+  .filterbar .seg button { min-width: 43px; min-height: 44px; padding: 7px; font-size: 12px; }
   .card-body { font-size: 14px; }
+  .badge-tier, .src-note, .ev-badge, .feed-end, .reaction-hint, .status-list .s-meta { font-size: 12px; }
+  .card.is-new::after { font-size: 12px; }
   .time { width: auto; flex-basis: calc(100% - 38px); margin-left: 38px; order: 10; }
   .librarybar { align-items: center; flex-direction: row; gap: 8px; margin: -3px 0 9px; }
   .library-seg { display: flex; flex: 1 1 auto; min-width: 0; width: auto; gap: 12px; padding: 0; }
-  .library-seg button { min-width: 0; padding: 4px 1px; font-size: 11px; white-space: nowrap; }
-  .mark-all-read { flex: none; min-height: 28px; margin: 0; padding: 4px 6px; font-size: 10px; white-space: nowrap; }
+  .library-seg button { min-width: 0; min-height: 40px; padding: 7px 1px; font-size: 12px; white-space: nowrap; }
+  .mark-all-read { flex: none; min-height: 40px; margin: 0; padding: 7px 8px; font-size: 12px; white-space: nowrap; }
   .card-foot { gap: 6px; margin-top: 6px; flex-wrap: nowrap; }
   .card-foot > a, .dupes-btn { white-space: nowrap; }
   .card .library-actions { width: auto; margin-left: auto; gap: 4px; flex: none; }
   .card .library-action {
-    flex: none; width: 30px; height: 30px; min-height: 30px; padding: 0; font-size: 0;
+    flex: none; width: 40px; height: 40px; min-height: 40px; padding: 0; font-size: 0;
   }
   .card .library-action::before { font-size: 14px; line-height: 1; }
   .card .library-action.copy-link::before { content: "🔗"; }
@@ -686,19 +708,21 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   .card .library-action.read::before { content: "○"; }
   .card .library-action.read.on::before { content: "✓"; }
   .library-actions.compact { width: auto; margin-left: auto; }
-  .library-actions.compact .library-action { min-height: 26px; }
+  .library-actions.compact .library-action { width: 40px; height: 40px; min-height: 40px; }
   .reaction-bar { gap: 3px; margin-top: 4px; padding-top: 4px; }
-  .reaction-btn { min-height: 34px; padding: 2px 3px; gap: 2px; }
+  .reaction-btn { min-height: 44px; padding: 4px 3px; gap: 2px; }
   .reaction-emoji { font-size: 16px; }
-  .reaction-count { font-size: 11px; }
-  .reaction-bar.compact .reaction-btn { min-height: 30px; }
+  .reaction-count, .reaction-bar.compact .reaction-count { font-size: 12px; }
+  .reaction-bar.compact .reaction-btn { min-height: 44px; }
   .city-prayer {
     right: 10px; bottom: calc(11px + env(safe-area-inset-bottom));
-    width: auto; max-width: calc(100vw - 20px); padding: 7px 10px;
+    width: auto; max-width: calc(100vw - 20px); min-height: 52px; padding: 8px 11px;
   }
-  .prayer-copy strong { font-size: 11px; }
-  .prayer-cta { font-size: 10px; }
-  .prayer-copy small { display: block; font-size: 8.5px; }
+  .prayer-copy strong { font-size: 13px; }
+  .prayer-cta { font-size: 12px; }
+  .prayer-copy small { display: block; font-size: 12px; }
+  .share-save-action { min-height: 44px; }
+  .pat-row input { font-size: 16px; }
   .pinned-card, .card, .modal-box {
     -webkit-backdrop-filter: none; backdrop-filter: none;
     background: rgba(255, 255, 255, .92);
@@ -709,12 +733,12 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 @media (max-width: 380px) {
   .brand h1 { font-size: 15px; }
   .library-seg { gap: 9px; }
-  .library-seg button { font-size: 10px; }
+  .library-seg button { font-size: 12px; }
   .filterbar { gap: 7px; }
   .filterbar .seg button { min-width: 40px; padding-inline: 6px; }
-  .reaction-legend { font-size: 10.5px; }
+  .reaction-legend { font-size: 12px; }
   .reaction-legend b { font-size: 14px; }
-  .mark-all-read { padding-inline: 5px; font-size: 10px; }
+  .mark-all-read { padding-inline: 6px; font-size: 12px; }
   .city-prayer { width: auto; max-width: calc(100vw - 18px); }
 }
 

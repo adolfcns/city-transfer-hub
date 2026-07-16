@@ -25,6 +25,7 @@ const BADGE_ZH = {
 const LIBRARY_KEY = 'cth_library_v1';
 const PRAYER_KEY = 'cth_city_prayer_v1';
 const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
+const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
 const REACTION_SNAPSHOT_URL = './data/reactions.json';
 const REACTION_DEFS = Object.freeze([
   // 保留 fire 键以延续已有全站计数，仅更新前台展示语义。
@@ -47,10 +48,12 @@ const state = {
   isDemo: false,
   status: null,
   sourceCatalog: [],
+  focusTargets: [],
   seenIds: new Set(),
   newIds: new Set(),
   pendingNew: 0,
   library: loadLibrary(),
+  playerFollows: loadPlayerFollows(),
   reactionCounts: {},
   reactionPrefs: loadReactionPrefs(),
   reactionEndpoint: null,
@@ -109,6 +112,111 @@ function saveLibrary() {
       hiddenPinned: [...state.library.hiddenPinned].slice(-2000),
     }));
   } catch { /* 浏览器禁用本机存储时，本次访问内仍可使用 */ }
+}
+
+function loadPlayerFollows() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PLAYER_FOLLOWS_KEY) || '[]');
+    return new Set(Array.isArray(saved) ? saved.map(String).filter(Boolean).slice(-100) : []);
+  } catch { return new Set(); }
+}
+
+function savePlayerFollows() {
+  try { localStorage.setItem(PLAYER_FOLLOWS_KEY, JSON.stringify([...state.playerFollows].slice(-100))); }
+  catch { /* 浏览器禁用本机存储时，本次访问内仍可继续关注 */ }
+}
+
+function focusTargetName(target) {
+  return target?.name_zh || target?.name || '该球员';
+}
+
+async function togglePlayerFollow(target) {
+  const key = String(target?.key || '');
+  if (!key) return;
+  const name = focusTargetName(target);
+  if (state.playerFollows.has(key)) {
+    state.playerFollows.delete(key);
+    savePlayerFollows();
+    renderFocusZone();
+    toast(`已取消关注 ${name}`);
+    return;
+  }
+
+  state.playerFollows.add(key);
+  savePlayerFollows();
+  renderFocusZone();
+
+  if (!('Notification' in window) || !window.isSecureContext) {
+    toast(`已关注 ${name}；出现 T0、报价或官宣时会在站内提醒`);
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    toast(`已关注 ${name}；页面在后台时也会发送系统通知`);
+    return;
+  }
+  if (Notification.permission === 'denied') {
+    toast(`已关注 ${name}；系统通知被浏览器关闭，站内提醒仍然有效`);
+    return;
+  }
+
+  try {
+    const permission = await Notification.requestPermission();
+    toast(permission === 'granted'
+      ? `已关注 ${name}；页面在后台时也会发送系统通知`
+      : `已关注 ${name}；未开启系统通知，站内提醒仍然有效`);
+  } catch {
+    toast(`已关注 ${name}；出现重要进展时会在站内提醒`);
+  }
+}
+
+function playerAlertReason(it) {
+  const badges = new Set(it.badges || []);
+  const reasons = [];
+  if (badges.has('OFFICIAL') || badges.has('DONE_DEAL')) reasons.push('官宣');
+  if (badges.has('HERE_WE_GO')) reasons.push('HERE WE GO');
+  if (badges.has('BID')) reasons.push('报价');
+  if (it.tier === 'T0') reasons.push('T0');
+  return [...new Set(reasons)].join(' · ');
+}
+
+function followedPlayerAlerts(items) {
+  return (items || []).flatMap((it) => {
+    const reason = playerAlertReason(it);
+    if (!reason) return [];
+    const itemFocus = new Set((it.focus || []).map(String));
+    const targets = (state.focusTargets || [])
+      .filter((target) => state.playerFollows.has(String(target.key)) && itemFocus.has(String(target.key)));
+    if (!targets.length) return [];
+    return [{ it, reason, names: targets.map(focusTargetName).join('、') }];
+  });
+}
+
+function notifyFollowedPlayers(items) {
+  const alerts = followedPlayerAlerts(items);
+  if (!alerts.length) return;
+  const first = alerts[0];
+  const summary = String(first.it.text_zh || first.it.text || '有一条新的重要转会消息')
+    .replace(/\s+/g, ' ').trim().slice(0, 90);
+  const more = alerts.length > 1 ? `，另有 ${alerts.length - 1} 条` : '';
+  const title = `🔔 ${first.names}：${first.reason}`;
+  toast(`${title}｜${summary}${more}`);
+
+  if (!document.hidden || !('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    const notice = new Notification(title, {
+      body: `${summary}${more}`,
+      icon: new URL('assets/man-city-crest.svg', window.location.href).href,
+      tag: `cth-player-${itemId(first.it)}`,
+    });
+    notice.onclick = () => {
+      notice.close();
+      window.focus();
+      const card = [...document.querySelectorAll('article[data-item-id]')]
+        .find((node) => node.dataset.itemId === itemId(first.it));
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      else window.location.href = itemShareUrl(first.it);
+    };
+  } catch { /* 部分移动浏览器仅支持站内提醒 */ }
 }
 
 function newAnonymousVoterId() {
@@ -1069,20 +1177,24 @@ async function loadData(isRefresh = false) {
   $('#demo-banner').hidden = !state.isDemo;
   $('#twitter-banner').hidden = state.isDemo || data.twitter_enabled !== false;
 
-  const freshIds = (data.items || []).filter((it) => !state.seenIds.has(it.id)).map((it) => it.id);
-  if (isRefresh && freshIds.length > 0 && state.seenIds.size > 0) {
+  const incomingItems = data.items || [];
+  const hadSeenItems = state.seenIds.size > 0;
+  const freshItems = incomingItems.filter((it) => !state.seenIds.has(it.id));
+  const freshIds = freshItems.map((it) => it.id);
+  if (isRefresh && freshIds.length > 0 && hadSeenItems) {
     freshIds.forEach((id) => state.newIds.add(id));
     state.pendingNew = state.newIds.size;   // 用集合大小，不累加，避免虚高
     showNewPill();
   }
-  for (const it of data.items || []) state.seenIds.add(it.id);
+  for (const it of incomingItems) state.seenIds.add(it.id);
 
-  state.items = data.items || [];
+  state.items = incomingItems;
   if (isRefresh) reactionLiveLoaded.clear();
   state.generatedAt = data.generated_at;
   state.twitterEnabled = data.twitter_enabled;
   state.focusTargets = data.focus_targets || [];
   state.sourceCatalog = data.sources || [];
+  if (isRefresh && freshItems.length > 0 && hadSeenItems) notifyFollowedPlayers(freshItems);
   prepareRequestedMessageView();
   $('#updated-at').textContent = `更新于 ${relTime(data.generated_at)}`;
 
@@ -1309,6 +1421,27 @@ function renderFocusZone() {
   const progress = el('span', 'focus-strip-progress', displayed.length ? `1 / ${displayed.length}` : '0 / 0');
   head.appendChild(progress);
   zone.appendChild(head);
+
+  if (activeTargets.length > 0) {
+    const followRow = el('div', 'focus-follow-row');
+    const followButtons = el('div', 'focus-follow-buttons');
+    for (const target of activeTargets) {
+      const name = focusTargetName(target);
+      const following = state.playerFollows.has(String(target.key));
+      const follow = el('button', `focus-follow${following ? ' on' : ''}`,
+        following ? `🔔 已关注 ${name}` : `＋ 关注 ${name}`);
+      follow.type = 'button';
+      follow.setAttribute('aria-pressed', String(following));
+      follow.title = following
+        ? `取消关注 ${name}`
+        : `关注 ${name}，出现 T0、报价或官宣时提醒`;
+      follow.onclick = () => { togglePlayerFollow(target); };
+      followButtons.appendChild(follow);
+    }
+    followRow.appendChild(followButtons);
+    followRow.appendChild(el('span', 'focus-follow-hint', '出现 T0、报价或官宣时提醒'));
+    zone.appendChild(followRow);
+  }
 
   if (displayed.length === 0) {
     zone.appendChild(el('div', 'focus-strip-empty', '置顶消息已全部读完并隐藏，可点击上方“恢复”重新查看。'));
