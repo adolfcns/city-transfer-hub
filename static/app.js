@@ -26,6 +26,7 @@ const LIBRARY_KEY = 'cth_library_v1';
 const PRAYER_KEY = 'cth_city_prayer_v1';
 const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
 const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
+const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
 const REACTION_SNAPSHOT_URL = './data/reactions.json';
 const REACTION_DEFS = Object.freeze([
   // 保留 fire 键以延续已有全站计数，仅更新前台展示语义。
@@ -39,6 +40,23 @@ const REACTION_KEYS = new Set(REACTION_DEFS.map((item) => item.key));
 const FEED_BATCH_SIZE = 24;
 const PINNED_RUMOR_LIMIT = 30;
 const SEARCH_DEBOUNCE_MS = 140;
+const NICKNAME_CHANGE_MS = 7 * 24 * 60 * 60 * 1000;
+const NICKNAME_BLOCKED_TERMS = [
+  '站长', '管理员', '官方', '客服', '系统', '小编',
+  '总书记', '国家主席', '主席', '总理', '总统', '首相', '议员', '部长', '市长', '省长', '州长',
+  '国王', '女王', '皇帝', '天皇', '领袖', '政府', '政党', '共产党', '国民党', '民主党', '共和党',
+  '议会', '国务院', '中南海', '白宫', '克里姆林宫', '人大', '政协', '外交部',
+  '习近平', '毛泽东', '邓小平', '江泽民', '胡锦涛', '李强', '李克强', '孙中山', '蒋介石',
+  '特朗普', '川普', '拜登', '奥巴马', '克林顿', '布什', '普京', '泽连斯基', '马克龙',
+  '默克尔', '朔尔茨', '斯塔默', '苏纳克', '约翰逊', '莫迪', '石破茂', '岸田文雄',
+  '安倍晋三', '金正恩', '金正日', '尹锡悦', '李在明', '文在寅', '卢拉', '博索纳罗',
+  '马杜罗', '卡斯特罗', '列宁', '斯大林', '希特勒', '墨索里尼', '马克思', '恩格斯',
+  '切格瓦拉', '撒切尔', '丘吉尔', '里根', '戈尔巴乔夫', '叶利钦', '阿萨德',
+  '内塔尼亚胡', '哈梅内伊', '霍梅尼', '埃尔多安', '欧尔班',
+  'president', 'premier', 'primeminister', 'minister', 'senator', 'congress', 'government',
+  'communist', 'democrat', 'republican', 'putin', 'trump', 'biden', 'obama', 'xijinping',
+  'zelensky', 'macron', 'modi', 'hitler', 'stalin', 'lenin', 'maozedong',
+];
 
 // ---------------- 状态 ----------------
 const state = {
@@ -57,6 +75,9 @@ const state = {
   reactionCounts: {},
   reactionPrefs: loadReactionPrefs(),
   reactionEndpoint: null,
+  commentCounts: {},
+  commentProfile: loadCommentProfile(),
+  commentEndpoint: null,
   filters: loadFilters(),
 };
 let feedItems = [];
@@ -72,6 +93,11 @@ const reactionInFlight = new Set();
 let reactionReadTimer = null;
 let reactionSnapshotLoaded = false;
 let reactionPendingFlush = false;
+const commentLiveLoaded = new Set();
+const commentReadQueue = new Set();
+let commentReadTimer = null;
+let activeCommentItem = null;
+let commentRequestInFlight = false;
 let shareCardInFlight = false;
 let sharedMessageRevealed = false;
 
@@ -124,6 +150,52 @@ function loadPlayerFollows() {
 function savePlayerFollows() {
   try { localStorage.setItem(PLAYER_FOLLOWS_KEY, JSON.stringify([...state.playerFollows].slice(-100))); }
   catch { /* 浏览器禁用本机存储时，本次访问内仍可继续关注 */ }
+}
+
+function loadCommentProfile() {
+  const empty = { voter: newAnonymousVoterId(), nickname: '', nicknameUpdatedAt: 0 };
+  try {
+    const saved = JSON.parse(localStorage.getItem(COMMENT_PROFILE_KEY) || 'null');
+    if (!saved || typeof saved !== 'object') return empty;
+    return {
+      voter: /^[A-Za-z0-9_-]{12,80}$/.test(String(saved.voter || '')) ? String(saved.voter) : empty.voter,
+      nickname: String(saved.nickname || '').slice(0, 40),
+      nicknameUpdatedAt: Math.max(0, Number(saved.nicknameUpdatedAt || 0)),
+    };
+  } catch { return empty; }
+}
+
+function saveCommentProfile() {
+  try { localStorage.setItem(COMMENT_PROFILE_KEY, JSON.stringify(state.commentProfile)); }
+  catch { /* 浏览器禁用本机存储时，本次访问内仍可评论 */ }
+}
+
+function normalizeNickname(value) {
+  return String(value || '').normalize('NFKC').trim().replace(/\s+/g, ' ');
+}
+
+function compactNickname(value) {
+  return normalizeNickname(value).toLocaleLowerCase('zh-CN').replace(/[^\p{Script=Han}a-z0-9]/gu, '');
+}
+
+function nicknameError(value) {
+  const nickname = normalizeNickname(value);
+  const length = [...nickname].length;
+  if (length < 2 || length > 10) return '昵称需要 2～10 个字';
+  const normalized = compactNickname(nickname);
+  if (!normalized || NICKNAME_BLOCKED_TERMS.some((term) => normalized.includes(compactNickname(term)))) {
+    return '昵称涉及政治人物、机构或冒充身份，请换一个';
+  }
+  if (!/^[\p{Script=Han}A-Za-z0-9·._-]+$/u.test(nickname)) return '昵称仅支持中文、字母、数字和 · _ -';
+  return '';
+}
+
+function commentBodyError(value) {
+  const body = String(value || '').normalize('NFKC').replace(/[\u0000-\u001f\u007f]/g, '').trim();
+  const length = [...body].length;
+  if (length < 2 || length > 120) return '评论需要 2～120 个字';
+  if (/(?:https?:\/\/|www\.|[a-z0-9-]+\.(?:com|cn|net|org|io|top|xyz)\b)/i.test(body)) return '评论暂不支持网址或广告链接';
+  return '';
 }
 
 function focusTargetName(target) {
@@ -1154,6 +1226,372 @@ function highlightInto(parent, text, kw) {
   }
 }
 
+// ---------------- 每条消息的游客短评 ----------------
+function itemCommentCount(id) {
+  return Math.max(0, Number(state.commentCounts[id] || 0));
+}
+
+function syncCommentButtons(id) {
+  const count = itemCommentCount(id);
+  document.querySelectorAll('.comment-action').forEach((button) => {
+    if (button.dataset.itemId !== id) return;
+    const countNode = button.querySelector('.comment-count');
+    if (countNode) {
+      countNode.hidden = count === 0;
+      countNode.textContent = count > 0 ? String(Math.min(999, count)) : '';
+    }
+    button.setAttribute('aria-label', count > 0 ? `查看这条消息的 ${count} 条评论` : '评论这条消息');
+    button.title = count > 0 ? `评论 ${count}` : '抢先评论';
+  });
+}
+
+function buildCommentButton(it, compact = false) {
+  const id = itemId(it);
+  const count = itemCommentCount(id);
+  const button = el('button', `comment-action${compact ? ' compact' : ''}`);
+  button.type = 'button';
+  button.dataset.itemId = id;
+  button.appendChild(el('span', 'comment-icon', '💬'));
+  button.appendChild(el('span', 'comment-label', '评论'));
+  const countNode = el('span', 'comment-count', count > 0 ? String(Math.min(999, count)) : '');
+  countNode.hidden = count === 0;
+  button.appendChild(countNode);
+  button.setAttribute('aria-label', count > 0 ? `查看这条消息的 ${count} 条评论` : '评论这条消息');
+  button.title = count > 0 ? `评论 ${count}` : '抢先评论';
+  button.onclick = () => openComments(it);
+  return button;
+}
+
+function queueCommentCounts(items) {
+  for (const it of items || []) {
+    const id = itemId(it);
+    if (!commentLiveLoaded.has(id)) commentReadQueue.add(id);
+  }
+  if (commentReadTimer || commentReadQueue.size === 0) return;
+  commentReadTimer = setTimeout(flushCommentCountQueue, 0);
+}
+
+async function flushCommentCountQueue() {
+  commentReadTimer = null;
+  const ids = [...commentReadQueue].slice(0, 48);
+  ids.forEach((id) => commentReadQueue.delete(id));
+  if (commentReadQueue.size) commentReadTimer = setTimeout(flushCommentCountQueue, 30);
+  if (ids.length === 0) return;
+
+  for (const endpoint of COMMENT_ENDPOINTS) {
+    try {
+      const res = await fetchReactionEndpoint(`${endpoint}?ids=${encodeURIComponent(ids.join(','))}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok !== true || !data.counts) continue;
+      state.commentEndpoint = endpoint;
+      for (const id of ids) {
+        state.commentCounts[id] = Math.max(0, Number(data.counts[id] || 0));
+        commentLiveLoaded.add(id);
+        syncCommentButtons(id);
+      }
+      return;
+    } catch { /* 尝试备用直连接口 */ }
+  }
+}
+
+function randomGuestNickname() {
+  return `蓝月球迷${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`;
+}
+
+function commentReasonText(reason, retryAt = 0) {
+  if (reason === 'nickname_length') return '昵称需要 2～10 个字';
+  if (reason === 'nickname_chars') return '昵称仅支持中文、字母、数字和 · _ -';
+  if (reason === 'nickname_blocked') return '昵称涉及政治人物、机构或冒充身份，请换一个';
+  if (reason === 'nickname_locked') {
+    const date = retryAt ? new Date(retryAt).toLocaleDateString('zh-CN') : '七天后';
+    return `昵称暂不能修改，可在 ${date} 后更换`;
+  }
+  if (reason === 'comment_length') return '评论需要 2～120 个字';
+  if (reason === 'comment_link') return '评论暂不支持网址或广告链接';
+  if (reason === 'slow_down') return '发送得有点快，请 30 秒后再试';
+  return '评论服务暂时不可用，请稍后再试';
+}
+
+function closeComments() {
+  document.querySelector('.comment-overlay')?.remove();
+  document.body.classList.remove('comments-open');
+  activeCommentItem = null;
+}
+
+function commentAvatarText(nickname) {
+  return [...String(nickname || '蓝')][0] || '蓝';
+}
+
+function renderCommentRows(comments) {
+  const list = document.querySelector('.comment-list');
+  if (!list) return;
+  list.textContent = '';
+  if (!comments.length) {
+    const empty = el('div', 'comment-empty');
+    empty.appendChild(el('strong', null, '还没有评论'));
+    empty.appendChild(el('span', null, '说说你对这条转会消息的看法吧。'));
+    list.appendChild(empty);
+    return;
+  }
+  for (const comment of comments) {
+    const row = el('article', 'comment-row');
+    row.dataset.commentId = comment.id;
+    const avatar = el('span', 'comment-avatar', commentAvatarText(comment.nickname));
+    avatar.style.background = `hsl(${hueOf(comment.nickname)}, 58%, 83%)`;
+    const body = el('div', 'comment-row-body');
+    const meta = el('div', 'comment-meta');
+    meta.appendChild(el('strong', null, comment.nickname));
+    meta.appendChild(el('span', 'comment-guest-badge', '游客'));
+    meta.appendChild(el('time', null, relTime(new Date(Number(comment.created_at)).toISOString())));
+    const report = el('button', 'comment-report', '举报');
+    report.type = 'button';
+    report.onclick = () => reportItemComment(comment.id, report);
+    meta.appendChild(report);
+    body.append(meta, el('p', 'comment-text', comment.body));
+    row.append(avatar, body);
+    list.appendChild(row);
+  }
+}
+
+function updateCommentProfileRow() {
+  const row = document.querySelector('.comment-profile-row');
+  if (!row) return;
+  const nickname = state.commentProfile.nickname;
+  const name = row.querySelector('.comment-profile-name');
+  const edit = row.querySelector('.comment-profile-edit');
+  if (name) name.textContent = nickname ? `游客 · ${nickname}` : '首次评论时设置昵称';
+  if (edit) edit.textContent = nickname ? '修改' : '设置';
+}
+
+function openNicknameDialog(pendingComment = '') {
+  const sheet = document.querySelector('.comment-sheet');
+  if (!sheet) return;
+  const current = state.commentProfile.nickname;
+  if (current && state.commentProfile.nicknameUpdatedAt
+      && Date.now() - state.commentProfile.nicknameUpdatedAt < NICKNAME_CHANGE_MS
+      && !pendingComment) {
+    toast(commentReasonText('nickname_locked', state.commentProfile.nicknameUpdatedAt + NICKNAME_CHANGE_MS));
+    return;
+  }
+  sheet.querySelector('.nickname-backdrop')?.remove();
+  const backdrop = el('div', 'nickname-backdrop');
+  const box = el('div', 'nickname-box');
+  box.setAttribute('role', 'dialog');
+  box.setAttribute('aria-modal', 'true');
+  box.setAttribute('aria-label', current ? '修改评论昵称' : '设置评论昵称');
+  box.appendChild(el('h3', null, current ? '修改游客昵称' : '给自己起个昵称'));
+  box.appendChild(el('p', null, '无需注册。政治人物、政治机构及“站长”“官方”等冒充类名称不可使用。'));
+  const input = document.createElement('input');
+  input.className = 'nickname-input';
+  input.maxLength = 10;
+  input.autocomplete = 'nickname';
+  input.placeholder = '2～10个字';
+  input.value = current || randomGuestNickname();
+  const error = el('div', 'nickname-error');
+  const actions = el('div', 'nickname-actions');
+  const cancel = el('button', 'nickname-cancel', '取消');
+  cancel.type = 'button';
+  cancel.onclick = () => backdrop.remove();
+  const save = el('button', 'nickname-save', pendingComment ? '保存并发送' : '保存昵称');
+  save.type = 'button';
+  save.onclick = async () => {
+    const nickname = normalizeNickname(input.value);
+    const message = nicknameError(nickname);
+    if (message) { error.textContent = message; input.focus(); return; }
+    if (pendingComment) {
+      const ok = await sendItemComment(pendingComment, nickname);
+      if (ok) backdrop.remove();
+      return;
+    }
+    if (current && current !== nickname) state.commentProfile.nicknameUpdatedAt = Date.now();
+    state.commentProfile.nickname = nickname;
+    saveCommentProfile();
+    updateCommentProfileRow();
+    backdrop.remove();
+    toast('昵称已保存在本机，将在下次评论时生效');
+  };
+  actions.append(cancel, save);
+  box.append(input, error, actions);
+  backdrop.appendChild(box);
+  backdrop.onclick = (event) => { if (event.target === backdrop) backdrop.remove(); };
+  sheet.appendChild(backdrop);
+  setTimeout(() => { input.focus(); input.select(); }, 30);
+}
+
+async function loadItemComments(it) {
+  const id = itemId(it);
+  const list = document.querySelector('.comment-list');
+  if (list) list.innerHTML = '<div class="comment-loading">正在加载评论…</div>';
+  for (const endpoint of COMMENT_ENDPOINTS) {
+    try {
+      const res = await fetchReactionEndpoint(`${endpoint}?item=${encodeURIComponent(id)}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok !== true || !Array.isArray(data.comments)) continue;
+      if (!activeCommentItem || itemId(activeCommentItem) !== id) return;
+      state.commentEndpoint = endpoint;
+      state.commentCounts[id] = Math.max(0, Number(data.count || 0));
+      commentLiveLoaded.add(id);
+      syncCommentButtons(id);
+      const titleCount = document.querySelector('.comment-sheet-count');
+      if (titleCount) titleCount.textContent = state.commentCounts[id] > 0 ? ` ${state.commentCounts[id]}` : '';
+      renderCommentRows(data.comments);
+      return;
+    } catch { /* 尝试备用接口 */ }
+  }
+  if (list) list.innerHTML = '<div class="comment-loading error">评论暂时加载失败，请稍后重试</div>';
+}
+
+async function sendItemComment(value, nicknameOverride = '') {
+  if (!activeCommentItem || commentRequestInFlight) return false;
+  const textarea = document.querySelector('.comment-input');
+  const body = String(value || textarea?.value || '').normalize('NFKC').trim();
+  const bodyMessage = commentBodyError(body);
+  if (bodyMessage) { toast(bodyMessage, 'err'); textarea?.focus(); return false; }
+  const nickname = normalizeNickname(nicknameOverride || state.commentProfile.nickname);
+  const nicknameMessage = nicknameError(nickname);
+  if (nicknameMessage) {
+    openNicknameDialog(body);
+    return false;
+  }
+
+  commentRequestInFlight = true;
+  const send = document.querySelector('.comment-send');
+  if (send) { send.disabled = true; send.textContent = '发送中'; }
+  let failure = 'network';
+  let retryAt = 0;
+  try {
+    const endpoints = state.commentEndpoint
+      ? [state.commentEndpoint, ...COMMENT_ENDPOINTS.filter((item) => item !== state.commentEndpoint)]
+      : COMMENT_ENDPOINTS;
+    for (const endpoint of endpoints) {
+      try {
+        const res = await fetchReactionEndpoint(endpoint, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            id: itemId(activeCommentItem),
+            voter: state.commentProfile.voter,
+            nickname,
+            comment: body,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok === true && data.comment) {
+          const changed = state.commentProfile.nickname !== nickname;
+          state.commentEndpoint = endpoint;
+          state.commentProfile.nickname = nickname;
+          if (changed || !state.commentProfile.nicknameUpdatedAt) state.commentProfile.nicknameUpdatedAt = Date.now();
+          saveCommentProfile();
+          updateCommentProfileRow();
+          if (textarea) textarea.value = '';
+          state.commentCounts[itemId(activeCommentItem)] = Math.max(0, Number(data.count || 0));
+          syncCommentButtons(itemId(activeCommentItem));
+          await loadItemComments(activeCommentItem);
+          toast('评论已发布 ✓');
+          return true;
+        }
+        failure = data.reason || 'network';
+        retryAt = Number(data.retry_at || 0);
+        if ([400, 409, 429].includes(res.status)) break;
+      } catch { /* 网络错误时尝试备用端点 */ }
+    }
+    toast(commentReasonText(failure, retryAt), 'err');
+    return false;
+  } finally {
+    commentRequestInFlight = false;
+    if (send) { send.disabled = false; send.textContent = '发送'; }
+  }
+}
+
+async function reportItemComment(commentId, button) {
+  if (!window.confirm('确认举报这条评论吗？同一设备只能举报一次。')) return;
+  button.disabled = true;
+  let result = null;
+  for (const endpoint of COMMENT_ENDPOINTS) {
+    try {
+      const res = await fetchReactionEndpoint(endpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: 'report', comment_id: commentId, voter: state.commentProfile.voter }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok === true) { state.commentEndpoint = endpoint; result = data; break; }
+    } catch { /* 尝试备用端点 */ }
+  }
+  if (!result) {
+    button.disabled = false;
+    toast('举报没有提交成功，请稍后再试', 'err');
+    return;
+  }
+  button.textContent = result.already_reported ? '已举报' : '举报成功';
+  if (result.hidden && activeCommentItem) {
+    const id = itemId(activeCommentItem);
+    document.querySelector(`.comment-row[data-comment-id="${commentId}"]`)?.remove();
+    state.commentCounts[id] = Math.max(0, itemCommentCount(id) - 1);
+    syncCommentButtons(id);
+  }
+  toast(result.already_reported ? '你已经举报过这条评论' : '举报已收到，感谢维护评论区');
+}
+
+function openComments(it) {
+  closeComments();
+  activeCommentItem = it;
+  const overlay = el('div', 'comment-overlay');
+  const sheet = el('section', 'comment-sheet');
+  sheet.setAttribute('role', 'dialog');
+  sheet.setAttribute('aria-modal', 'true');
+  sheet.setAttribute('aria-label', '消息评论');
+  sheet.appendChild(el('div', 'comment-sheet-handle'));
+  const head = el('div', 'comment-sheet-head');
+  const title = el('h2', null, '评论');
+  title.appendChild(el('span', 'comment-sheet-count', itemCommentCount(itemId(it)) ? ` ${itemCommentCount(itemId(it))}` : ''));
+  const close = el('button', 'comment-close', '×');
+  close.type = 'button';
+  close.setAttribute('aria-label', '关闭评论');
+  close.onclick = closeComments;
+  head.append(title, close);
+  const summary = el('div', 'comment-item-summary', String(it.text_zh || it.text || '').replace(/\s+/g, ' ').slice(0, 58));
+  const list = el('div', 'comment-list');
+  list.appendChild(el('div', 'comment-loading', '正在加载评论…'));
+
+  const composer = el('div', 'comment-composer');
+  const profileRow = el('div', 'comment-profile-row');
+  profileRow.appendChild(el('span', 'comment-profile-name'));
+  const edit = el('button', 'comment-profile-edit');
+  edit.type = 'button';
+  edit.onclick = () => openNicknameDialog();
+  profileRow.appendChild(edit);
+  profileRow.appendChild(el('span', 'comment-profile-note', '无需注册 · 昵称仅保存在本机'));
+  const inputRow = el('div', 'comment-input-row');
+  const input = document.createElement('textarea');
+  input.className = 'comment-input';
+  input.rows = 1;
+  input.maxLength = 120;
+  input.placeholder = '友善发言，最多120字';
+  input.setAttribute('aria-label', '评论内容');
+  const send = el('button', 'comment-send', '发送');
+  send.type = 'button';
+  send.onclick = () => {
+    const body = input.value.trim();
+    const message = commentBodyError(body);
+    if (message) { toast(message, 'err'); input.focus(); return; }
+    if (!state.commentProfile.nickname) openNicknameDialog(body);
+    else sendItemComment(body);
+  };
+  input.addEventListener('keydown', (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); send.click(); }
+  });
+  inputRow.append(input, send);
+  composer.append(profileRow, inputRow);
+  sheet.append(head, summary, list, composer);
+  overlay.appendChild(sheet);
+  overlay.onclick = (event) => { if (event.target === overlay) closeComments(); };
+  document.body.appendChild(overlay);
+  document.body.classList.add('comments-open');
+  updateCommentProfileRow();
+  loadItemComments(it);
+}
+
 // ---------------- 数据加载 ----------------
 async function fetchJSON(url) {
   const res = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
@@ -1318,6 +1756,7 @@ function appendNextFeedBatch() {
   feed.dataset.rendered = String(feedCursor);
   feed.appendChild(fragment);
   queueReactionCounts(batchItems);
+  queueCommentCounts(batchItems);
   feedAppending = false;
 
   if (feedCursor >= feedItems.length) {
@@ -1488,7 +1927,7 @@ function renderFocusZone() {
     link.rel = 'noopener noreferrer';
     link.onclick = () => { markRead(it); };
     const pinnedActions = el('div', 'pinned-actions');
-    pinnedActions.append(link, buildCopyLinkButton(it), buildSaveImageButton(it));
+    pinnedActions.append(link, buildCommentButton(it, true), buildCopyLinkButton(it), buildSaveImageButton(it));
     card.appendChild(pinnedActions);
     card.appendChild(buildReactionBar(it, true, 'pinned'));
     track.appendChild(card);
@@ -1507,6 +1946,7 @@ function renderFocusZone() {
 
   zone.appendChild(track);
   queueReactionCounts(displayed);
+  queueCommentCounts(displayed);
 }
 
 function renderCard(it) {
@@ -1588,6 +2028,7 @@ function renderCard(it) {
   link.href = it.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
   link.onclick = () => { markRead(it); };
   foot.appendChild(link);
+  foot.appendChild(buildCommentButton(it));
   if (it.dupes && it.dupes.length) {
     const btn = el('button', 'dupes-btn', `另有 ${it.dupes.length} 个来源 ▾`);
     const list = el('div', 'dupes-list');
@@ -1703,6 +2144,10 @@ const PRAYER_ENDPOINTS = [
 const REACTION_ENDPOINTS = [
   'https://city-transfer-hub.pages.dev/reactions',
   `${TRIGGER_ENDPOINT}reactions`,
+];
+const COMMENT_ENDPOINTS = [
+  'https://city-transfer-hub.pages.dev/comments',
+  `${TRIGGER_ENDPOINT}comments`,
 ];
 const TRIGGER_COOLDOWN_MS = 60 * 1000;      // 单设备触发冷却
 const FRESH_ENOUGH_MS = 3 * 60 * 1000;      // 数据足够新就不重复抓
@@ -1823,6 +2268,9 @@ function bind() {
   $('#src-btn').onclick = (e) => { e.stopPropagation(); $('#src-menu').hidden = !$('#src-menu').hidden; };
   document.addEventListener('click', (e) => {
     if (!$('#src-select').contains(e.target)) $('#src-menu').hidden = true;
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && document.querySelector('.comment-overlay')) closeComments();
   });
   document.querySelectorAll('#lang-seg button').forEach((button) => {
     button.classList.toggle('active', button.dataset.lang === state.filters.lang);

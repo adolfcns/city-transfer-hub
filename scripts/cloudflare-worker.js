@@ -27,6 +27,26 @@ const REACTION_KEYS = ['fire', 'heart', 'watch', 'wild', 'doubt'];
 const ITEM_ID_RE = /^[A-Za-z0-9_-]{1,128}$/;
 const VOTER_ID_RE = /^[A-Za-z0-9_-]{12,80}$/;
 const MAX_REACTION_IDS = 48;
+const COMMENT_RATE_SECONDS = 30;
+const COMMENT_IP_RATE_SECONDS = 3;
+const NICKNAME_CHANGE_MS = 7 * 24 * 60 * 60 * 1000;
+const MAX_COMMENT_IDS = 48;
+const NICKNAME_BLOCKED_TERMS = [
+  '站长', '管理员', '官方', '客服', '系统', '小编',
+  '总书记', '国家主席', '主席', '总理', '总统', '首相', '议员', '部长', '市长', '省长', '州长',
+  '国王', '女王', '皇帝', '天皇', '领袖', '政府', '政党', '共产党', '国民党', '民主党', '共和党',
+  '议会', '国务院', '中南海', '白宫', '克里姆林宫', '人大', '政协', '外交部',
+  '习近平', '毛泽东', '邓小平', '江泽民', '胡锦涛', '李强', '李克强', '孙中山', '蒋介石',
+  '特朗普', '川普', '拜登', '奥巴马', '克林顿', '布什', '普京', '泽连斯基', '马克龙',
+  '默克尔', '朔尔茨', '斯塔默', '苏纳克', '约翰逊', '莫迪', '石破茂', '岸田文雄',
+  '安倍晋三', '金正恩', '金正日', '尹锡悦', '李在明', '文在寅', '卢拉', '博索纳罗',
+  '马杜罗', '卡斯特罗', '列宁', '斯大林', '希特勒', '墨索里尼', '马克思', '恩格斯',
+  '切格瓦拉', '撒切尔', '丘吉尔', '里根', '戈尔巴乔夫', '叶利钦', '阿萨德',
+  '内塔尼亚胡', '哈梅内伊', '霍梅尼', '埃尔多安', '欧尔班',
+  'president', 'premier', 'primeminister', 'minister', 'senator', 'congress', 'government',
+  'communist', 'democrat', 'republican', 'putin', 'trump', 'biden', 'obama', 'xijinping',
+  'zelensky', 'macron', 'modi', 'hitler', 'stalin', 'lenin', 'maozedong',
+];
 let schemaReady = false;
 
 async function ensureSchema(env) {
@@ -54,6 +74,24 @@ async function ensureSchema(env) {
     ),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_reaction_votes_item ON reaction_votes(item_id)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_reaction_vote_history_item ON reaction_vote_history(item_id)'),
+    env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS comment_profiles (' +
+        'guest_id TEXT PRIMARY KEY, nickname TEXT NOT NULL, nickname_norm TEXT NOT NULL, ' +
+        'nickname_updated_at INTEGER NOT NULL, created_at INTEGER NOT NULL, last_comment_at INTEGER NOT NULL DEFAULT 0)',
+    ),
+    env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS comments (' +
+        'id TEXT PRIMARY KEY, item_id TEXT NOT NULL, guest_id TEXT NOT NULL, nickname TEXT NOT NULL, ' +
+        'body TEXT NOT NULL, created_at INTEGER NOT NULL, report_count INTEGER NOT NULL DEFAULT 0, ' +
+        'hidden INTEGER NOT NULL DEFAULT 0)',
+    ),
+    env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS comment_reports (' +
+        'comment_id TEXT NOT NULL, reporter_id TEXT NOT NULL, created_at INTEGER NOT NULL, ' +
+        'PRIMARY KEY (comment_id, reporter_id))',
+    ),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_comments_item_created ON comments(item_id, created_at DESC)'),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_comment_reports_comment ON comment_reports(comment_id)'),
   ]);
   const historySeeded = await env.DB.prepare('SELECT value FROM interaction_meta WHERE key = ?')
     .bind('reaction_history_v1').first();
@@ -148,6 +186,132 @@ function parseReactionIds(url) {
   return ids;
 }
 
+function normalizeNickname(value) {
+  return String(value || '').normalize('NFKC').trim().replace(/\s+/g, ' ');
+}
+
+function compactNickname(value) {
+  return normalizeNickname(value).toLocaleLowerCase('zh-CN').replace(/[^\p{Script=Han}a-z0-9]/gu, '');
+}
+
+function validateNickname(value) {
+  const nickname = normalizeNickname(value);
+  const length = [...nickname].length;
+  if (length < 2 || length > 10) return { ok: false, reason: 'nickname_length' };
+  const normalized = compactNickname(nickname);
+  if (!normalized || NICKNAME_BLOCKED_TERMS.some((term) => normalized.includes(compactNickname(term)))) {
+    return { ok: false, reason: 'nickname_blocked' };
+  }
+  if (!/^[\p{Script=Han}A-Za-z0-9·._-]+$/u.test(nickname)) return { ok: false, reason: 'nickname_chars' };
+  return { ok: true, nickname, normalized };
+}
+
+function validateCommentBody(value) {
+  const body = String(value || '').normalize('NFKC').replace(/[\u0000-\u001f\u007f]/g, '').trim();
+  const length = [...body].length;
+  if (length < 2 || length > 120) return { ok: false, reason: 'comment_length' };
+  if (/(?:https?:\/\/|www\.|[a-z0-9-]+\.(?:com|cn|net|org|io|top|xyz)\b)/i.test(body)) {
+    return { ok: false, reason: 'comment_link' };
+  }
+  return { ok: true, body };
+}
+
+function parseCommentIds(url) {
+  const raw = url.searchParams.get('ids');
+  if (!raw) return [];
+  const ids = [...new Set(raw.split(',').map((id) => id.trim()).filter(Boolean))];
+  if (ids.length > MAX_COMMENT_IDS || ids.some((id) => !ITEM_ID_RE.test(id))) return null;
+  return ids;
+}
+
+async function readCommentCounts(env, ids) {
+  await ensureSchema(env);
+  if (!ids.length) return {};
+  const result = await env.DB.prepare(
+    `SELECT item_id, COUNT(*) AS n FROM comments WHERE hidden = 0 AND item_id IN (${ids.map(() => '?').join(',')}) GROUP BY item_id`,
+  ).bind(...ids).all();
+  const counts = Object.fromEntries(ids.map((id) => [id, 0]));
+  for (const row of result.results || []) {
+    if (ITEM_ID_RE.test(row.item_id)) counts[row.item_id] = Math.max(0, Number(row.n || 0));
+  }
+  return counts;
+}
+
+async function readComments(env, itemId) {
+  await ensureSchema(env);
+  const result = await env.DB.prepare(
+    'SELECT id, nickname, body, created_at, report_count FROM comments ' +
+      'WHERE item_id = ? AND hidden = 0 ORDER BY created_at DESC LIMIT 50',
+  ).bind(itemId).all();
+  const comments = (result.results || []).map((row) => ({
+    id: String(row.id),
+    nickname: String(row.nickname),
+    body: String(row.body),
+    created_at: Number(row.created_at),
+    report_count: Math.max(0, Number(row.report_count || 0)),
+  }));
+  const count = await env.DB.prepare('SELECT COUNT(*) AS n FROM comments WHERE item_id = ? AND hidden = 0')
+    .bind(itemId).first();
+  return { comments, count: Math.max(0, Number(count?.n || 0)) };
+}
+
+async function createComment(env, itemId, guestId, nicknameValue, bodyValue) {
+  const nicknameResult = validateNickname(nicknameValue);
+  if (!nicknameResult.ok) return nicknameResult;
+  const bodyResult = validateCommentBody(bodyValue);
+  if (!bodyResult.ok) return bodyResult;
+  await ensureSchema(env);
+  const now = Date.now();
+  const profile = await env.DB.prepare(
+    'SELECT nickname_norm, nickname_updated_at, last_comment_at FROM comment_profiles WHERE guest_id = ?',
+  ).bind(guestId).first();
+  if (profile && now - Number(profile.last_comment_at || 0) < COMMENT_RATE_SECONDS * 1000) {
+    return { ok: false, reason: 'slow_down' };
+  }
+  if (profile && String(profile.nickname_norm) !== nicknameResult.normalized
+      && now - Number(profile.nickname_updated_at || 0) < NICKNAME_CHANGE_MS) {
+    return { ok: false, reason: 'nickname_locked', retry_at: Number(profile.nickname_updated_at) + NICKNAME_CHANGE_MS };
+  }
+
+  const commentId = `cm_${now.toString(36)}_${crypto.randomUUID().replace(/-/g, '').slice(0, 16)}`;
+  const nicknameChanged = !profile || String(profile.nickname_norm) !== nicknameResult.normalized;
+  const nicknameUpdatedAt = nicknameChanged ? now : Number(profile.nickname_updated_at || now);
+  await env.DB.batch([
+    env.DB.prepare(
+      'INSERT INTO comment_profiles ' +
+        '(guest_id, nickname, nickname_norm, nickname_updated_at, created_at, last_comment_at) VALUES (?, ?, ?, ?, ?, ?) ' +
+        'ON CONFLICT(guest_id) DO UPDATE SET nickname = excluded.nickname, nickname_norm = excluded.nickname_norm, ' +
+        'nickname_updated_at = excluded.nickname_updated_at, last_comment_at = excluded.last_comment_at',
+    ).bind(guestId, nicknameResult.nickname, nicknameResult.normalized, nicknameUpdatedAt, now, now),
+    env.DB.prepare(
+      'INSERT INTO comments (id, item_id, guest_id, nickname, body, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+    ).bind(commentId, itemId, guestId, nicknameResult.nickname, bodyResult.body, now),
+  ]);
+  return {
+    ok: true,
+    comment: { id: commentId, nickname: nicknameResult.nickname, body: bodyResult.body, created_at: now, report_count: 0 },
+    count: (await readComments(env, itemId)).count,
+  };
+}
+
+async function reportComment(env, commentId, reporterId) {
+  await ensureSchema(env);
+  if (!/^cm_[A-Za-z0-9_]{8,80}$/.test(commentId)) return { ok: false, reason: 'bad_request' };
+  const row = await env.DB.prepare('SELECT id, hidden FROM comments WHERE id = ?').bind(commentId).first();
+  if (!row || Number(row.hidden || 0) !== 0) return { ok: false, reason: 'not_found' };
+  const now = Date.now();
+  const inserted = await env.DB.prepare(
+    'INSERT OR IGNORE INTO comment_reports (comment_id, reporter_id, created_at) VALUES (?, ?, ?)',
+  ).bind(commentId, reporterId, now).run();
+  if (Number(inserted.meta?.changes || 0) === 0) return { ok: true, already_reported: true, hidden: false };
+  await env.DB.batch([
+    env.DB.prepare('UPDATE comments SET report_count = report_count + 1 WHERE id = ?').bind(commentId),
+    env.DB.prepare('UPDATE comments SET hidden = 1 WHERE id = ? AND report_count >= 3').bind(commentId),
+  ]);
+  const updated = await env.DB.prepare('SELECT report_count, hidden FROM comments WHERE id = ?').bind(commentId).first();
+  return { ok: true, hidden: Number(updated?.hidden || 0) === 1, report_count: Number(updated?.report_count || 0) };
+}
+
 // 用服务端令牌触发 GitHub 抓取任务
 async function triggerGitHub(env) {
   return fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
@@ -237,6 +401,71 @@ export default {
           }
           const counts = await recordReaction(env, itemId, voterId, reaction);
           return new Response(JSON.stringify({ ok: true, counts, selected: reaction }), { headers: cors });
+        }
+        return new Response(JSON.stringify({ ok: false, reason: 'method' }), { status: 405, headers: cors });
+      } catch {
+        return new Response(JSON.stringify({ ok: false, reason: 'db_error' }), { status: 503, headers: cors });
+      }
+    }
+
+    // —— 每条消息的游客短评：免注册昵称、限速、举报后自动隐藏 ——
+    if (path === '/comments') {
+      if (!originAllowed) {
+        return new Response(JSON.stringify({ ok: false, reason: 'origin' }), { status: 403, headers: cors });
+      }
+      if (!env.DB) {
+        return new Response(JSON.stringify({ ok: false, reason: 'no_db' }), { status: 503, headers: cors });
+      }
+      try {
+        const url = new URL(request.url);
+        if (request.method === 'GET') {
+          const itemId = String(url.searchParams.get('item') || '');
+          if (itemId) {
+            if (!ITEM_ID_RE.test(itemId)) {
+              return new Response(JSON.stringify({ ok: false, reason: 'bad_item' }), { status: 400, headers: cors });
+            }
+            return new Response(JSON.stringify({ ok: true, ...(await readComments(env, itemId)) }), { headers: cors });
+          }
+          const ids = parseCommentIds(url);
+          if (ids === null || ids.length === 0) {
+            return new Response(JSON.stringify({ ok: false, reason: 'bad_ids' }), { status: 400, headers: cors });
+          }
+          return new Response(JSON.stringify({ ok: true, counts: await readCommentCounts(env, ids) }), { headers: cors });
+        }
+        if (request.method === 'POST') {
+          const body = await request.json().catch(() => ({}));
+          const guestId = String(body.voter || '');
+          if (!VOTER_ID_RE.test(guestId)) {
+            return new Response(JSON.stringify({ ok: false, reason: 'bad_request' }), { status: 400, headers: cors });
+          }
+          if (body.action === 'report') {
+            const result = await reportComment(env, String(body.comment_id || ''), guestId);
+            const status = result.ok ? 200 : result.reason === 'not_found' ? 404 : 400;
+            return new Response(JSON.stringify(result), { status, headers: cors });
+          }
+          const itemId = String(body.id || '');
+          if (!ITEM_ID_RE.test(itemId)) {
+            return new Response(JSON.stringify({ ok: false, reason: 'bad_request' }), { status: 400, headers: cors });
+          }
+          const cache = caches.default;
+          const ip = request.headers.get('CF-Connecting-IP') || 'anonymous';
+          const ipGate = new Request(`https://comment-ip-limit.internal/${encodeURIComponent(ip)}`);
+          const guestGate = new Request(`https://comment-guest-limit.internal/${encodeURIComponent(guestId)}`);
+          if (await cache.match(ipGate) || await cache.match(guestGate)) {
+            return new Response(JSON.stringify({ ok: false, reason: 'slow_down' }), {
+              status: 429, headers: { ...cors, 'retry-after': String(COMMENT_RATE_SECONDS) },
+            });
+          }
+          const result = await createComment(env, itemId, guestId, body.nickname, body.comment);
+          if (!result.ok) {
+            const status = result.reason === 'slow_down' ? 429 : result.reason === 'nickname_locked' ? 409 : 400;
+            return new Response(JSON.stringify(result), { status, headers: cors });
+          }
+          await Promise.all([
+            cache.put(ipGate, new Response('1', { headers: { 'cache-control': `max-age=${COMMENT_IP_RATE_SECONDS}` } })),
+            cache.put(guestGate, new Response('1', { headers: { 'cache-control': `max-age=${COMMENT_RATE_SECONDS}` } })),
+          ]);
+          return new Response(JSON.stringify(result), { headers: cors });
         }
         return new Response(JSON.stringify({ ok: false, reason: 'method' }), { status: 405, headers: cors });
       } catch {
