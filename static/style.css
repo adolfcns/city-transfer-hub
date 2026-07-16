@@ -678,22 +678,22 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   .reaction-legend span:nth-child(n + 4) { grid-column: span 3; }
   .reaction-legend b { font-size: 15px; }
   .filterbar {
-    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 8px;
-    margin-bottom: 8px;
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 5px 6px;
+    margin-bottom: 6px;
   }
-  #search { grid-column: 1 / -1; width: 100%; min-width: 0; min-height: 44px; padding-block: 8px; font-size: 16px; }
+  #search { grid-column: 1 / -1; width: 100%; min-width: 0; min-height: 38px; padding-block: 6px; font-size: 16px; }
   .src-select { grid-column: 1; min-width: 0; }
-  .src-btn { width: 100%; min-height: 44px; padding-block: 7px; }
+  .src-btn { width: 100%; min-height: 36px; padding-block: 5px; }
   .filterbar .seg { grid-column: 2; grid-row: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; }
-  .filterbar .seg button { min-width: 43px; min-height: 44px; padding: 7px; font-size: 12px; }
+  .filterbar .seg button { min-width: 41px; min-height: 36px; padding: 5px 6px; font-size: 12px; }
   .card-body { font-size: 14px; }
   .badge-tier, .src-note, .ev-badge, .feed-end, .reaction-hint, .status-list .s-meta { font-size: 12px; }
   .card.is-new::after { font-size: 12px; }
   .time { width: auto; flex-basis: calc(100% - 38px); margin-left: 38px; order: 10; }
-  .librarybar { align-items: center; flex-direction: row; gap: 8px; margin: -3px 0 9px; }
+  .librarybar { align-items: center; flex-direction: row; gap: 7px; margin: -2px 0 6px; }
   .library-seg { display: flex; flex: 1 1 auto; min-width: 0; width: auto; gap: 12px; padding: 0; }
-  .library-seg button { min-width: 0; min-height: 40px; padding: 7px 1px; font-size: 12px; white-space: nowrap; }
-  .mark-all-read { flex: none; min-height: 40px; margin: 0; padding: 7px 8px; font-size: 12px; white-space: nowrap; }
+  .library-seg button { min-width: 0; min-height: 32px; padding: 4px 1px; font-size: 12px; white-space: nowrap; }
+  .mark-all-read { flex: none; min-height: 34px; margin: 0; padding: 5px 7px; font-size: 12px; white-space: nowrap; }
   .card-foot { gap: 6px; margin-top: 6px; flex-wrap: nowrap; }
   .card-foot > a, .dupes-btn { white-space: nowrap; }
   .card .library-actions { width: auto; margin-left: auto; gap: 4px; flex: none; }
@@ -715,27 +715,28 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   .reaction-count, .reaction-bar.compact .reaction-count { font-size: 12px; }
   .reaction-bar.compact .reaction-btn { min-height: 30px; }
   .city-prayer {
-    right: 10px; bottom: calc(11px + env(safe-area-inset-bottom));
-    width: auto; max-width: calc(100vw - 20px); min-height: 52px; padding: 8px 11px;
+    right: 8px; bottom: calc(9px + env(safe-area-inset-bottom));
+    width: auto; max-width: calc(100vw - 18px); min-height: 0; padding: 6px 9px;
+    border-radius: 12px;
   }
-  .prayer-copy strong { font-size: 13px; }
-  .prayer-cta { font-size: 12px; }
-  .prayer-copy small { display: block; font-size: 12px; }
+  .prayer-copy strong { font-size: 12px; }
+  .prayer-cta { font-size: 11px; }
+  .prayer-copy small { display: block; font-size: 10.5px; }
   .share-save-action { min-height: 44px; }
   .pat-row input { font-size: 16px; }
   .pinned-card, .card, .modal-box {
     -webkit-backdrop-filter: none; backdrop-filter: none;
     background: rgba(255, 255, 255, .92);
   }
-  .foot { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  .foot { padding-bottom: calc(78px + env(safe-area-inset-bottom)); }
 }
 
 @media (max-width: 380px) {
   .brand h1 { font-size: 15px; }
   .library-seg { gap: 9px; }
   .library-seg button { font-size: 12px; }
-  .filterbar { gap: 7px; }
-  .filterbar .seg button { min-width: 40px; padding-inline: 6px; }
+  .filterbar { gap: 5px 6px; }
+  .filterbar .seg button { min-width: 39px; padding-inline: 5px; }
   .reaction-legend { font-size: 12px; }
   .reaction-legend b { font-size: 14px; }
   .mark-all-read { padding-inline: 6px; font-size: 12px; }
