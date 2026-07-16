@@ -709,8 +709,8 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   .card .library-action.read.on::before { content: "✓"; }
   .library-actions.compact { width: auto; margin-left: auto; }
   .library-actions.compact .library-action { width: 40px; height: 40px; min-height: 40px; }
-  .reaction-bar { gap: 3px; margin-top: 4px; padding-top: 4px; }
-  .reaction-btn { min-height: 34px; padding: 2px 3px; gap: 2px; }
+  .reaction-bar { gap: 3px; margin-top: 3px; padding-top: 3px; }
+  .reaction-btn { min-height: 32px; padding: 1px 3px; gap: 2px; }
   .reaction-emoji { font-size: 16px; }
   .reaction-count, .reaction-bar.compact .reaction-count { font-size: 12px; }
   .reaction-bar.compact .reaction-btn { min-height: 30px; }
