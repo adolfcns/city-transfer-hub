@@ -24,7 +24,8 @@ const BADGE_ZH = {
 };
 const LIBRARY_KEY = 'cth_library_v1';
 const PRAYER_KEY = 'cth_city_prayer_v1';
-const PRAYER_GOAL = 1500;
+const PRAYER_GOAL_START = 1500;
+const PRAYER_GOAL_STEP = 500;
 const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
 const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
 const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
@@ -885,8 +886,14 @@ function compactCount(count) {
 function prayerMilestoneStep(count) {
   if (count < 100) return 50;
   if (count < 1000) return 100;
-  if (count < 10000) return 500;
-  return 1000;
+  return PRAYER_GOAL_STEP;
+}
+
+function nextPrayerGoal(count) {
+  return Math.max(
+    PRAYER_GOAL_START,
+    Math.ceil((count + 1) / PRAYER_GOAL_STEP) * PRAYER_GOAL_STEP,
+  );
 }
 
 function renderPrayerCount(localCount, globalCount = null, syncState = 'loading') {
@@ -895,17 +902,13 @@ function renderPrayerCount(localCount, globalCount = null, syncState = 'loading'
   const hasGlobal = syncState !== 'error' && Number.isSafeInteger(globalCount) && globalCount >= 0;
   let accessible;
   if (hasGlobal) {
-    const remaining = Math.max(0, PRAYER_GOAL - globalCount);
+    const goal = nextPrayerGoal(globalCount);
+    const remaining = goal - globalCount;
     const totalLine = el('span', 'prayer-total');
     totalLine.append('全站已汇集 ', el('b', 'prayer-count-number', `${compactCount(globalCount)} 次`), '蓝月好运');
     const goalLine = el('span', 'prayer-goal');
-    if (remaining > 0) {
-      goalLine.append('距 ', el('b', '', `${compactCount(PRAYER_GOAL)} 次`), '还差 ', el('b', '', `${compactCount(remaining)} 次`));
-      accessible = `点击为曼城添一次好运。全站已汇集 ${globalCount} 次蓝月好运。距离 ${PRAYER_GOAL} 次还差 ${remaining} 次。`;
-    } else {
-      goalLine.append('🎉 已达成 ', el('b', '', `${compactCount(PRAYER_GOAL)} 次`), '蓝月好运！');
-      accessible = `点击为曼城添一次好运。全站已汇集 ${globalCount} 次蓝月好运。已达成 ${PRAYER_GOAL} 次蓝月好运目标。`;
-    }
+    goalLine.append('距 ', el('b', '', `${compactCount(goal)} 次`), '还差 ', el('b', '', `${compactCount(remaining)} 次`));
+    accessible = `点击为曼城添一次好运。全站已汇集 ${globalCount} 次蓝月好运。距离 ${goal} 次还差 ${remaining} 次。`;
     countNode.replaceChildren(totalLine, goalLine);
   } else {
     const status = syncState === 'error' ? '全站同步暂不可用' : '全站次数加载中';
