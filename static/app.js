@@ -888,23 +888,16 @@ function prayerMilestoneStep(count) {
   return 1000;
 }
 
-function nextPrayerMilestone(count) {
-  const step = prayerMilestoneStep(count);
-  const target = Math.ceil((count + 1) / step) * step;
-  return { target, remaining: Math.max(0, target - count), step };
-}
-
 function renderPrayerCount(localCount, globalCount = null, syncState = 'loading') {
   const button = $('#city-prayer');
   const hasGlobal = syncState !== 'error' && Number.isSafeInteger(globalCount) && globalCount >= 0;
-  const milestone = hasGlobal ? nextPrayerMilestone(globalCount) : null;
   const status = hasGlobal
-    ? `全站 ${compactCount(globalCount)} 次 · 距 ${compactCount(milestone.target)} 还差 ${compactCount(milestone.remaining)}`
+    ? `全站已汇集 ${compactCount(globalCount)} 次蓝月好运`
     : syncState === 'error' ? '全站同步暂不可用' : '全站次数加载中';
   $('#prayer-count').textContent = status;
   const accessible = hasGlobal
-    ? `蓝月集合，冲击 ${milestone.target} 次好运里程碑。点击木鱼，为曼城增加一次好运。全站已送出 ${globalCount} 次，距离目标还差 ${milestone.remaining} 次。`
-    : `蓝月集合，点击木鱼为曼城增加一次好运。${syncState === 'error' ? '全站同步暂不可用。' : '全站次数加载中。'}`;
+    ? `点击为曼城添一次好运。全站已汇集 ${globalCount} 次蓝月好运。`
+    : `点击为曼城添一次好运。${syncState === 'error' ? '全站同步暂不可用。' : '全站次数加载中。'}`;
   button.title = accessible;
   button.setAttribute('aria-label', accessible);
 }
@@ -957,7 +950,7 @@ function bindPrayer() {
     requestAnimationFrame(() => button.classList.add('hit'));
     setTimeout(() => button.classList.remove('hit'), 360);
     try { navigator.vibrate?.(30); } catch { /* 部分浏览器不支持轻触震动 */ }
-    toast('咚！你的这份好运正在汇入蓝月 💙');
+    toast('咚！正在送出你的蓝月好运…');
     try {
       // 写入只请求已成功读取的同一个入口，网络超时时不跨入口重试，避免重复 +1。
       const res = await fetchPrayer(activeEndpoint, 'POST');
@@ -970,10 +963,9 @@ function bindPrayer() {
       if (res.ok && Number.isSafeInteger(globalCount)) {
         const step = prayerMilestoneStep(globalCount);
         const achieved = globalCount > 0 && globalCount % step === 0;
-        const { target, remaining } = nextPrayerMilestone(globalCount);
         toast(achieved
-          ? `咚！达成 ${globalCount.toLocaleString('zh-CN')} 次蓝月好运里程碑 💙`
-          : `咚！好运已汇入全站 💙 距 ${target.toLocaleString('zh-CN')} 次还差 ${remaining.toLocaleString('zh-CN')} 次`);
+          ? `蓝月好运突破 ${globalCount.toLocaleString('zh-CN')} 次！💙`
+          : `收到！你送出了全站第 ${globalCount.toLocaleString('zh-CN')} 次蓝月好运 💙`);
       } else if (res.status === 429) toast('好运收到啦，稍慢一点再敲 💙');
       else {
         syncState = 'error';
