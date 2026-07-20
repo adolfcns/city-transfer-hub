@@ -520,7 +520,10 @@ body.comments-open { overflow: hidden; }
 .prayer-copy { display: flex; flex: 0 1 auto; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.24; }
 .prayer-copy strong { font-size: 13px; color: #2f2225; white-space: nowrap; }
 .prayer-cta { margin-top: 2px; color: var(--burgundy); font-size: 11px; font-weight: 700; white-space: nowrap; }
-.prayer-copy small { margin-top: 2px; font-size: 9.5px; color: var(--text-dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.prayer-copy small { display: flex; flex-direction: column; gap: 1px; margin-top: 2px; font-size: 9.5px; color: var(--text-dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.prayer-count-number { color: #2f2225; }
+.prayer-goal { color: var(--sky); }
+.prayer-goal b { font-weight: 800; }
 .city-prayer.hit { animation: prayer-hit .32s ease-out; }
 @keyframes prayer-hit {
   40% { transform: scale(.90) rotate(-2deg); }
@@ -838,7 +841,7 @@ body.comments-open { overflow: hidden; }
   }
   .prayer-copy strong { font-size: 12px; }
   .prayer-cta { font-size: 11px; }
-  .prayer-copy small { display: block; font-size: 10.5px; }
+  .prayer-copy small { display: flex; font-size: 10.5px; }
   .share-save-action { min-height: 44px; }
   .pat-row input { font-size: 16px; }
   .pinned-card, .card, .modal-box {

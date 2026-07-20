@@ -24,6 +24,7 @@ const BADGE_ZH = {
 };
 const LIBRARY_KEY = 'cth_library_v1';
 const PRAYER_KEY = 'cth_city_prayer_v1';
+const PRAYER_GOAL = 1500;
 const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
 const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
 const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
@@ -890,14 +891,27 @@ function prayerMilestoneStep(count) {
 
 function renderPrayerCount(localCount, globalCount = null, syncState = 'loading') {
   const button = $('#city-prayer');
+  const countNode = $('#prayer-count');
   const hasGlobal = syncState !== 'error' && Number.isSafeInteger(globalCount) && globalCount >= 0;
-  const status = hasGlobal
-    ? `全站已汇集 ${compactCount(globalCount)} 次蓝月好运`
-    : syncState === 'error' ? '全站同步暂不可用' : '全站次数加载中';
-  $('#prayer-count').textContent = status;
-  const accessible = hasGlobal
-    ? `点击为曼城添一次好运。全站已汇集 ${globalCount} 次蓝月好运。`
-    : `点击为曼城添一次好运。${syncState === 'error' ? '全站同步暂不可用。' : '全站次数加载中。'}`;
+  let accessible;
+  if (hasGlobal) {
+    const remaining = Math.max(0, PRAYER_GOAL - globalCount);
+    const totalLine = el('span', 'prayer-total');
+    totalLine.append('全站已汇集 ', el('b', 'prayer-count-number', `${compactCount(globalCount)} 次`), '蓝月好运');
+    const goalLine = el('span', 'prayer-goal');
+    if (remaining > 0) {
+      goalLine.append('距 ', el('b', '', `${compactCount(PRAYER_GOAL)} 次`), '还差 ', el('b', '', `${compactCount(remaining)} 次`));
+      accessible = `点击为曼城添一次好运。全站已汇集 ${globalCount} 次蓝月好运。距离 ${PRAYER_GOAL} 次还差 ${remaining} 次。`;
+    } else {
+      goalLine.append('🎉 已达成 ', el('b', '', `${compactCount(PRAYER_GOAL)} 次`), '蓝月好运！');
+      accessible = `点击为曼城添一次好运。全站已汇集 ${globalCount} 次蓝月好运。已达成 ${PRAYER_GOAL} 次蓝月好运目标。`;
+    }
+    countNode.replaceChildren(totalLine, goalLine);
+  } else {
+    const status = syncState === 'error' ? '全站同步暂不可用' : '全站次数加载中';
+    countNode.textContent = status;
+    accessible = `点击为曼城添一次好运。${syncState === 'error' ? '全站同步暂不可用。' : '全站次数加载中。'}`;
+  }
   button.title = accessible;
   button.setAttribute('aria-label', accessible);
 }
