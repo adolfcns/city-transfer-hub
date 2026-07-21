@@ -362,6 +362,12 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 .library-action:hover { color: var(--sky); border-color: var(--sky); }
 .library-action.copy-link { color: var(--sky); }
 .library-action.save { color: var(--burgundy); }
+.library-action.dongqiudi {
+  width: 28px; height: 28px; min-width: 28px; padding: 0; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #050505; border-color: #333; color: #fff; font-weight: 900; line-height: 1;
+}
+.library-action.dongqiudi:hover { background: #1b1b1b; border-color: #1d9bf0; color: #fff; }
 .library-action.favorite.on { color: var(--gold); border-color: rgba(122,86,0,.35); background: rgba(122,86,0,.07); }
 .library-action.read.on { color: var(--green); border-color: rgba(47,138,77,.35); background: rgba(47,138,77,.07); }
 .library-actions.compact { gap: 4px; margin-left: auto; }
@@ -766,6 +772,11 @@ body.comments-open { overflow: hidden; }
   .pinned-time, .pinned-target, .pinned-text.secondary, .pinned-link { font-size: 12px; }
   .pinned-hide { min-height: 36px; padding-inline: 7px; font-size: 12px; }
   .pinned-actions .library-action { min-height: 36px; padding-inline: 8px; font-size: 12px; }
+  .pinned-actions .library-action.copy-link,
+  .pinned-actions .library-action.save { width: 36px; padding: 0; font-size: 0; }
+  .pinned-actions .library-action.copy-link::before { content: "🔗"; font-size: 14px; }
+  .pinned-actions .library-action.save::before { content: "↓"; font-size: 15px; }
+  .pinned-actions .library-action.dongqiudi { width: 36px; height: 36px; min-width: 36px; padding: 0; }
   .pinned-card { flex-basis: calc(100% - 34px); max-width: none; min-height: 154px; }
   .reaction-legend {
     grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: 3px; row-gap: 6px;
@@ -805,12 +816,15 @@ body.comments-open { overflow: hidden; }
   .card .library-action::before { font-size: 14px; line-height: 1; }
   .card .library-action.copy-link::before { content: "🔗"; }
   .card .library-action.save::before { content: "↓"; }
+  .card .library-action.dongqiudi::before { content: "懂"; color: #fff; font-weight: 900; }
   .card .library-action.favorite::before { content: "☆"; }
   .card .library-action.favorite.on::before { content: "★"; }
   .card .library-action.read::before { content: "○"; }
   .card .library-action.read.on::before { content: "✓"; }
   .library-actions.compact { width: auto; margin-left: auto; }
   .library-actions.compact .library-action { width: 40px; height: 40px; min-height: 40px; }
+  .card-foot.has-dupes { flex-wrap: wrap; }
+  .card-foot.has-dupes .library-actions { width: 100%; justify-content: flex-end; }
   .comment-overlay { padding: 0; }
   .comment-sheet {
     width: 100%; height: min(72vh, 650px); height: min(72dvh, 650px);

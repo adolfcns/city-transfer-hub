@@ -434,6 +434,8 @@ function revealRequestedMessage() {
 
 const SHARE_CARD_WIDTH = 1080;
 const SHARE_CARD_HEIGHT = 1440;
+const DONGQIUDI_CARD_WIDTH = 1175;
+const DONGQIUDI_CARD_HEIGHT = 1435;
 const SHARE_CARD_FONT = '"Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif';
 const shareCardImageCache = new Map();
 
@@ -656,9 +658,236 @@ async function buildSingleMessageShareCard(it) {
   });
 }
 
+function dongqiudiCleanText(value) {
+  return String(value || '')
+    .replace(/https?:\/\/\S+/gi, '')
+    .replace(/\bwww\.\S+/gi, '')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\s*\n\s*/g, ' ')
+    .trim();
+}
+
+function dongqiudiHandle(it) {
+  const match = String(it.url || '').match(/^https?:\/\/(?:www\.)?(?:x|twitter)\.com\/([^/?#]+)/i);
+  if (!match) return `${it.tier || 'T2'} 信源`;
+  try { return `@${decodeURIComponent(match[1])}`; } catch { return `@${match[1]}`; }
+}
+
+function dongqiudiPublishedAt(value, tier = 'T2') {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '发布时间未知';
+  try {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Shanghai', day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', hour12: false,
+    }).formatToParts(date);
+    const part = (type) => parts.find((item) => item.type === type)?.value || '';
+    return `${part('hour')}:${part('minute')} · ${part('day')}/${part('month')}/${part('year')} · ${tier}信源`;
+  } catch { return shareCardPublishedAt(value); }
+}
+
+function fitCanvasText(ctx, text, maxWidth) {
+  const chars = Array.from(String(text || ''));
+  if (ctx.measureText(chars.join('')).width <= maxWidth) return chars.join('');
+  while (chars.length && ctx.measureText(`${chars.join('')}…`).width > maxWidth) chars.pop();
+  return `${chars.join('')}…`;
+}
+
+function dongqiudiStyledGlyphs(text) {
+  const tokens = String(text || '').split(/([#@][\p{L}\p{N}_·-]+)/gu);
+  const glyphs = [];
+  for (const token of tokens) {
+    const color = /^[#@]/u.test(token) ? '#1d9bf0' : '#e7e9ea';
+    for (const char of Array.from(token)) glyphs.push({ char, color });
+  }
+  return glyphs;
+}
+
+function wrapDongqiudiText(ctx, text, maxWidth, maxLines) {
+  const lines = [[]];
+  let truncated = false;
+  for (const glyph of dongqiudiStyledGlyphs(text)) {
+    if (glyph.char === '\n') {
+      if (lines.length >= maxLines) {
+        truncated = true;
+        break;
+      }
+      lines.push([]);
+      continue;
+    }
+    const line = lines[lines.length - 1];
+    const lineWidth = line.reduce((sum, item) => sum + item.width, 0);
+    const width = ctx.measureText(glyph.char).width;
+    if (line.length && lineWidth + width > maxWidth) {
+      if (lines.length >= maxLines) {
+        truncated = true;
+        break;
+      }
+      lines.push([]);
+    }
+    const activeLine = lines[lines.length - 1];
+    if (activeLine.length === 0 && /^\s$/u.test(glyph.char)) continue;
+    activeLine.push({ ...glyph, width });
+  }
+  if (truncated && lines.length) {
+    const line = lines[lines.length - 1];
+    const ellipsisWidth = ctx.measureText('…').width;
+    while (line.length && line.reduce((sum, item) => sum + item.width, 0) + ellipsisWidth > maxWidth) line.pop();
+    line.push({ char: '…', color: '#e7e9ea', width: ellipsisWidth });
+  }
+  return lines.filter((line) => line.length);
+}
+
+function drawDongqiudiLines(ctx, lines, x, y, lineHeight) {
+  let lineY = y;
+  for (const line of lines) {
+    let lineX = x;
+    for (const glyph of line) {
+      ctx.fillStyle = glyph.color;
+      ctx.fillText(glyph.char, lineX, lineY);
+      lineX += glyph.width;
+    }
+    lineY += lineHeight;
+  }
+  return lineY;
+}
+
+function drawDongqiudiAvatar(ctx, it, x, y, radius) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fillStyle = `hsl(${hueOf(it.source_key || it.source_name)}, 46%, 36%)`;
+  ctx.fill();
+  ctx.strokeStyle = '#3d3d3d';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  cardFont(ctx, radius * .72, 800);
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(initialsOf(it.source_name || it.source_name_zh || 'MC'), x, y + 2);
+  ctx.restore();
+}
+
+function drawDongqiudiXMark(ctx) {
+  ctx.save();
+  ctx.strokeStyle = '#e7e9ea';
+  ctx.lineWidth = 6;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(1010, 55);
+  ctx.lineTo(1065, 123);
+  ctx.moveTo(1062, 55);
+  ctx.lineTo(1013, 123);
+  ctx.stroke();
+  ctx.restore();
+}
+
+async function buildDongqiudiShareCard(it) {
+  const chinese = dongqiudiCleanText(it.text_zh);
+  if (!chinese) throw new Error('NO_CHINESE_TEXT');
+  const [mainText, ...quoteParts] = chinese.split(/\s*↪\s*/u);
+  const inlineQuote = quoteParts.join(' ').trim();
+  const original = dongqiudiCleanText(it.text);
+  const quoteText = original && original !== mainText ? original : inlineQuote;
+  const canvas = document.createElement('canvas');
+  canvas.width = DONGQIUDI_CARD_WIDTH;
+  canvas.height = DONGQIUDI_CARD_HEIGHT;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('CANVAS_UNAVAILABLE');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, DONGQIUDI_CARD_WIDTH, DONGQIUDI_CARD_HEIGHT);
+
+  drawDongqiudiAvatar(ctx, it, 104, 102, 62);
+  const source = it.source_name || it.source_name_zh || '未知信源';
+  cardFont(ctx, 44, 800);
+  ctx.fillStyle = '#f2f2f2';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  const fittedSource = fitCanvasText(ctx, source, 690);
+  ctx.fillText(fittedSource, 184, 88);
+  const verifiedX = Math.min(910, 184 + ctx.measureText(fittedSource).width + 27);
+  ctx.beginPath();
+  ctx.arc(verifiedX, 73, 18, 0, Math.PI * 2);
+  ctx.fillStyle = '#1d9bf0';
+  ctx.fill();
+  cardFont(ctx, 23, 900);
+  ctx.fillStyle = '#000000';
+  ctx.textAlign = 'center';
+  ctx.fillText('✓', verifiedX, 81);
+  ctx.textAlign = 'left';
+  cardFont(ctx, 37, 400);
+  ctx.fillStyle = '#71767b';
+  ctx.fillText(dongqiudiHandle(it), 184, 140);
+  drawDongqiudiXMark(ctx);
+
+  const mainLength = Array.from(mainText).length;
+  const mainStyle = mainLength <= 90
+    ? { size: 51, lineHeight: 69, maxLines: quoteText ? 7 : 11 }
+    : mainLength <= 170
+      ? { size: 44, lineHeight: 61, maxLines: quoteText ? 8 : 12 }
+      : { size: 38, lineHeight: 54, maxLines: quoteText ? 9 : 14 };
+  cardFont(ctx, mainStyle.size, 400);
+  const mainLines = wrapDongqiudiText(ctx, mainText, 1115, mainStyle.maxLines);
+  const mainBottom = drawDongqiudiLines(ctx, mainLines, 28, 278, mainStyle.lineHeight);
+
+  if (quoteText) {
+    const quoteY = Math.min(920, Math.max(620, mainBottom + 46));
+    const quoteHeight = Math.max(260, 1240 - quoteY);
+    roundedCanvasPath(ctx, 28, quoteY, 1119, quoteHeight, 34);
+    ctx.strokeStyle = '#2f3336';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    drawDongqiudiAvatar(ctx, it, 88, quoteY + 70, 32);
+    cardFont(ctx, 35, 800);
+    ctx.fillStyle = '#e7e9ea';
+    const quoteSource = fitCanvasText(ctx, source, 590);
+    const quoteSourceWidth = ctx.measureText(quoteSource).width;
+    ctx.fillText(quoteSource, 136, quoteY + 82);
+    const quoteVerifiedX = Math.min(760, 136 + quoteSourceWidth + 21);
+    ctx.beginPath();
+    ctx.arc(quoteVerifiedX, quoteY + 69, 13, 0, Math.PI * 2);
+    ctx.fillStyle = '#1d9bf0';
+    ctx.fill();
+    cardFont(ctx, 17, 900);
+    ctx.fillStyle = '#000000';
+    ctx.textAlign = 'center';
+    ctx.fillText('✓', quoteVerifiedX, quoteY + 75);
+    ctx.textAlign = 'left';
+    cardFont(ctx, 29, 400);
+    ctx.fillStyle = '#71767b';
+    ctx.fillText(dongqiudiHandle(it), quoteVerifiedX + 25, quoteY + 82);
+    cardFont(ctx, 36, 400);
+    const quoteLines = wrapDongqiudiText(ctx, quoteText, 1038, 6);
+    drawDongqiudiLines(ctx, quoteLines, 66, quoteY + 154, 51);
+  }
+
+  cardFont(ctx, 38, 400);
+  ctx.fillStyle = '#71767b';
+  ctx.textAlign = 'left';
+  const published = dongqiudiPublishedAt(it.published_at, it.tier || 'T2');
+  ctx.fillText(published, 28, 1355);
+  cardFont(ctx, 19, 400);
+  ctx.fillStyle = '#536471';
+  ctx.textAlign = 'right';
+  ctx.fillText('adolfcns.github.io/city-transfer-hub/', 1147, 1400);
+  ctx.textAlign = 'left';
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('PNG_EXPORT_FAILED')), 'image/png', .96);
+  });
+}
+
 function shareCardFilename(it) {
   const source = String(it.source_name_zh || it.source_name || '消息').replace(/[\\/:*?"<>|]/g, '-').slice(0, 24);
   return `曼城转会情报-${source}-${Date.now()}.png`;
+}
+
+function dongqiudiCardFilename(it) {
+  const source = String(it.source_name_zh || it.source_name || '消息').replace(/[\\/:*?"<>|]/g, '-').slice(0, 24);
+  return `懂球帝专享图-${source}-${Date.now()}.png`;
 }
 
 function downloadShareCard(blob, filename) {
@@ -758,6 +987,36 @@ async function saveItemImage(it) {
   }
 }
 
+async function saveDongqiudiImage(it) {
+  if (shareCardInFlight) {
+    toast('图片正在生成，请稍候');
+    return;
+  }
+  if (!String(it.text_zh || '').trim()) {
+    toast('这条消息暂时没有中文，补译完成后即可生成懂球帝专享图');
+    return;
+  }
+  shareCardInFlight = true;
+  toast('正在生成无二维码的懂球帝专享图…');
+  try {
+    const blob = await buildDongqiudiShareCard(it);
+    const filename = dongqiudiCardFilename(it);
+    downloadShareCard(blob, filename);
+    const needsLongPressFallback = /iP(?:hone|ad|od)|MicroMessenger/i.test(navigator.userAgent)
+      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (needsLongPressFallback) {
+      showShareCardSavePreview(blob, filename);
+      toast('懂球帝专享图已生成，也可以长按图片保存到相册');
+    } else {
+      toast('懂球帝专享图已开始下载 ✓');
+    }
+  } catch {
+    toast('懂球帝专享图生成失败，请稍后再试');
+  } finally {
+    shareCardInFlight = false;
+  }
+}
+
 function buildCopyLinkButton(it, compact = false) {
   const share = el('button', 'library-action copy-link', compact ? '🔗' : '🔗 复制链接');
   share.type = 'button';
@@ -776,11 +1035,21 @@ function buildSaveImageButton(it, compact = false) {
   return save;
 }
 
+function buildDongqiudiImageButton(it) {
+  const save = el('button', 'library-action dongqiudi', '懂');
+  save.type = 'button';
+  save.title = '下载懂球帝专享图（无二维码）';
+  save.setAttribute('aria-label', '下载懂球帝专享图，无二维码');
+  save.onclick = () => { saveDongqiudiImage(it); };
+  return save;
+}
+
 function buildLibraryActions(it, compact = false) {
   const id = itemId(it);
   const actions = el('div', compact ? 'library-actions compact' : 'library-actions');
   const share = buildCopyLinkButton(it, compact);
   const save = buildSaveImageButton(it, compact);
+  const dongqiudi = buildDongqiudiImageButton(it);
   const favorite = el('button', `library-action favorite${state.library.favorites.has(id) ? ' on' : ''}`,
     compact ? (state.library.favorites.has(id) ? '★' : '☆') : (state.library.favorites.has(id) ? '★ 已收藏' : '☆ 收藏'));
   favorite.type = 'button';
@@ -796,7 +1065,7 @@ function buildLibraryActions(it, compact = false) {
   read.setAttribute('aria-label', read.title);
   read.setAttribute('aria-pressed', state.library.read.has(id) ? 'true' : 'false');
   read.onclick = () => toggleRead(it);
-  actions.append(share, save, favorite, read);
+  actions.append(share, save, dongqiudi, favorite, read);
   return actions;
 }
 function syncLibraryActions(root, id) {
@@ -1936,7 +2205,7 @@ function renderFocusZone() {
     link.rel = 'noopener noreferrer';
     link.onclick = () => { markRead(it); };
     const pinnedActions = el('div', 'pinned-actions');
-    pinnedActions.append(link, buildCommentButton(it, true), buildCopyLinkButton(it), buildSaveImageButton(it));
+    pinnedActions.append(link, buildCommentButton(it, true), buildCopyLinkButton(it), buildSaveImageButton(it), buildDongqiudiImageButton(it));
     card.appendChild(pinnedActions);
     card.appendChild(buildReactionBar(it, true, 'pinned'));
     track.appendChild(card);
@@ -2039,6 +2308,7 @@ function renderCard(it) {
   foot.appendChild(link);
   foot.appendChild(buildCommentButton(it));
   if (it.dupes && it.dupes.length) {
+    foot.classList.add('has-dupes');
     const btn = el('button', 'dupes-btn', `另有 ${it.dupes.length} 个来源 ▾`);
     const list = el('div', 'dupes-list');
     list.hidden = true;
