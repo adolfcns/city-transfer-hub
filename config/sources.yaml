@@ -16,6 +16,7 @@
 #   city           只要曼城相关（记者个人号，窗口期发言都值得看）
 #   transfer       只要转会相关（本身已是曼城专属频道）
 #   none           全收（曼城专属记者个人号）
+#   current+transfer 现役男足球员/教练或转会相关（City Xtra 等高频综合号）
 # ==============================================================
 
 settings:
@@ -23,6 +24,129 @@ settings:
   max_items: 2000 # 条目数量上限
   exclude_retweets: true # 过滤纯转推（RT）
   exclude_replies: true # 过滤回复推文
+  twitter_every_run: # 高频/重点 X 信源，每轮优先抓取
+    - city_xtra
+    - tolmie
+    - romano
+    - schira
+    - etihad_intel
+  twitter_rotation_groups: 3 # 其余 X 信源分三组，每轮抓一组
+
+# 页面内容策略：全局剔除历史回顾和女足；City Xtra 另限制为现役男足或转会内容。
+content_policy:
+  exclude_history:
+    - "#onthisday"
+    - "#on_this_day"
+    - "on this day"
+    - "#otd"
+  exclude_women:
+    - "#mcwfc"
+    - "manchester city women"
+    - "man city women"
+    - "city women"
+    - "women's super league"
+    - "womens super league"
+    - "barclays wsl"
+    - "wsl"
+    - "lionesses"
+    - "women's team"
+    - "women’s team"
+    - "women's football"
+    - "women’s football"
+    - "女足"
+  current_men:
+    - Erling Haaland
+    - Haaland
+    - Erling
+    - "@erling"
+    - Phil Foden
+    - Foden
+    - "@PhilFoden"
+    - Rodri
+    - Rayan Cherki
+    - Cherki
+    - Rayan
+    - Jeremy Doku
+    - Jérémy Doku
+    - Doku
+    - Jeremy
+    - Jérémy
+    - Omar Marmoush
+    - Marmoush
+    - Omar
+    - Antoine Semenyo
+    - Semenyo
+    - Antoine
+    - Savinho
+    - Oscar Bobb
+    - Bobb
+    - Oscar
+    - Claudio Echeverri
+    - Echeverri
+    - Claudio
+    - Ruben Dias
+    - Rúben Dias
+    - Dias
+    - Ruben
+    - Rúben
+    - Josko Gvardiol
+    - Joško Gvardiol
+    - Gvardiol
+    - Josko
+    - Joško
+    - Abdukodir Khusanov
+    - Khusanov
+    - Abdukodir
+    - Nathan Ake
+    - Nathan Aké
+    - Aké
+    - Ake
+    - Nathan
+    - Rayan Ait-Nouri
+    - Rayan Aït-Nouri
+    - Ait-Nouri
+    - Aït-Nouri
+    - Matheus Nunes
+    - Nunes
+    - Matheus
+    - Nico O'Reilly
+    - Nico O’Reilly
+    - O'Reilly
+    - O’Reilly
+    - Nico
+    - Rico Lewis
+    - Rico
+    - James Trafford
+    - Trafford
+    - Gianluigi Donnarumma
+    - Donnarumma
+    - Gianluigi
+    - Marcus Bettinelli
+    - Bettinelli
+    - Tijjani Reijnders
+    - Reijnders
+    - Tijjani
+    - Mateo Kovacic
+    - Mateo Kovačić
+    - Kovacic
+    - Kovačić
+    - Nico Gonzalez
+    - Nico González
+    - Marc Guehi
+    - Marc Guéhi
+    - Guehi
+    - Guéhi
+    - Vitor Reis
+    - Vítor Reis
+    - Vitor
+    - Vítor
+    - Max Alleyne
+    - Max
+    - Divine Mukasa
+    - Divine
+    - Enzo Maresca
+    - Maresca
+    - Enzo
 
 # 判定"与曼城相关"的关键词（不区分大小写，命中任意一个即可）
 city_keywords:
@@ -500,7 +624,7 @@ sources:
     tier: ITK
     type: twitter
     handle: City_Xtra
-    filter: none        # 全收：该号所有推文都进时间线
+    filter: current+transfer # 仅收现役男足/教练或转会内容；历史回顾、女足由全局策略剔除
 
   - key: city_report
     name: City Report

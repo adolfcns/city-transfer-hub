@@ -3,26 +3,56 @@ import { createHash } from 'node:crypto';
 
 // ---------- 关键词过滤 ----------
 export function makeMatchers(cfg) {
-  const cityWords = (cfg.city_keywords || []).map((w) => String(w).toLowerCase());
-  const hotPlayers = (cfg.hot_players || []).map((w) => String(w).toLowerCase());
-  const transferWords = (cfg.transfer_keywords || []).map((w) => String(w).toLowerCase());
+  const contentPolicy = cfg.content_policy || {};
+  const normalize = (text) => String(text || '')
+    .toLowerCase()
+    .replace(/[’‘]/g, "'")
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '');
+  const cityWords = (cfg.city_keywords || []).map(normalize);
+  const hotPlayers = (cfg.hot_players || []).map(normalize);
+  const transferWords = (cfg.transfer_keywords || []).map(normalize);
+  const currentMen = (contentPolicy.current_men || []).map(normalize);
+  const historyWords = (contentPolicy.exclude_history || []).map(normalize);
+  const womenWords = (contentPolicy.exclude_women || []).map(normalize);
+  const escapeRegExp = (text) => text.replace(/[.*+?^$()|[\]\\{}]/g, '\\$&');
+  const containsKeyword = (text, keyword) => {
+    const t = normalize(text);
+    const w = normalize(keyword).trim();
+    if (!w) return false;
+    // 短单词（如 WSL、Aké）必须整词命中，避免撞进其他英文单词。
+    if (!/\p{Script=Han}/u.test(w) && /^[\p{L}\p{N}_]+$/u.test(w)) {
+      return new RegExp(`(^|[^\\p{L}\\p{N}_])${escapeRegExp(w)}(?=$|[^\\p{L}\\p{N}_])`, 'u').test(t);
+    }
+    return t.includes(w);
+  };
   const isCity = (text) => {
-    const t = text.toLowerCase();
+    const t = normalize(text);
     return cityWords.some((w) => t.includes(w)) || hotPlayers.some((w) => t.includes(w));
   };
   const isTransfer = (text) => {
-    const t = text.toLowerCase();
+    const t = normalize(text);
     return transferWords.some((w) => t.includes(w));
   };
-  return { isCity, isTransfer };
+  const isCurrentMan = (text) => currentMen.some((w) => containsKeyword(text, w))
+    || hotPlayers.some((w) => containsKeyword(text, w));
+  const exclusionReason = (text) => {
+    if (historyWords.some((w) => containsKeyword(text, w))) return 'history';
+    if (womenWords.some((w) => containsKeyword(text, w))) return 'women';
+    return null;
+  };
+  return { isCity, isTransfer, isCurrentMan, exclusionReason, isExcluded: (text) => Boolean(exclusionReason(text)) };
 }
 
 export function passFilter(mode, text, m) {
+  // 明确不需要的内容优先拦截；即便某信源配置为 none，也不会绕过。
+  if (m.isExcluded?.(text)) return false;
   switch (mode) {
     case 'none': return true;
     case 'city': return m.isCity(text);
     case 'transfer': return m.isTransfer(text);
     case 'city+transfer': return m.isCity(text) && m.isTransfer(text);
+    case 'current+transfer': return m.isCurrentMan(text) || m.isTransfer(text);
     default: return m.isCity(text) && m.isTransfer(text);
   }
 }
