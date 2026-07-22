@@ -91,9 +91,27 @@ async function ensureSchema(env) {
         'comment_id TEXT NOT NULL, reporter_id TEXT NOT NULL, created_at INTEGER NOT NULL, ' +
         'PRIMARY KEY (comment_id, reporter_id))',
     ),
+    env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS comment_likes (' +
+        'comment_id TEXT NOT NULL, voter_id TEXT NOT NULL, created_at INTEGER NOT NULL, ' +
+        'PRIMARY KEY (comment_id, voter_id))',
+    ),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_comments_item_created ON comments(item_id, created_at DESC)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_comment_reports_comment ON comment_reports(comment_id)'),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_comment_likes_comment ON comment_likes(comment_id)'),
   ]);
+  // 兼容已经在线运行的旧评论表：保留全部评论，只补充一级回复关系。
+  let commentColumns = await env.DB.prepare('PRAGMA table_info(comments)').all();
+  if (!(commentColumns.results || []).some((column) => String(column.name) === 'parent_id')) {
+    try {
+      await env.DB.prepare('ALTER TABLE comments ADD COLUMN parent_id TEXT').run();
+    } catch {
+      // 多个 Worker 实例可能同时执行迁移；只有确认字段仍不存在时才抛错。
+      commentColumns = await env.DB.prepare('PRAGMA table_info(comments)').all();
+      if (!(commentColumns.results || []).some((column) => String(column.name) === 'parent_id')) throw new Error('comment_schema');
+    }
+  }
+  await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments(parent_id)').run();
   const historySeeded = await env.DB.prepare('SELECT value FROM interaction_meta WHERE key = ?')
     .bind('reaction_history_v1').first();
   if (!historySeeded) {
@@ -228,7 +246,9 @@ async function readCommentCounts(env, ids) {
   await ensureSchema(env);
   if (!ids.length) return {};
   const result = await env.DB.prepare(
-    `SELECT item_id, COUNT(*) AS n FROM comments WHERE hidden = 0 AND item_id IN (${ids.map(() => '?').join(',')}) GROUP BY item_id`,
+    `SELECT c.item_id, COUNT(*) AS n FROM comments c LEFT JOIN comments p ON p.id = c.parent_id ` +
+      `WHERE c.hidden = 0 AND (c.parent_id IS NULL OR p.hidden = 0) ` +
+      `AND c.item_id IN (${ids.map(() => '?').join(',')}) GROUP BY c.item_id`,
   ).bind(...ids).all();
   const counts = Object.fromEntries(ids.map((id) => [id, 0]));
   for (const row of result.results || []) {
@@ -237,30 +257,53 @@ async function readCommentCounts(env, ids) {
   return counts;
 }
 
-async function readComments(env, itemId) {
+async function readComments(env, itemId, voterId = '') {
   await ensureSchema(env);
   const result = await env.DB.prepare(
-    'SELECT id, nickname, body, created_at, report_count FROM comments ' +
-      'WHERE item_id = ? AND hidden = 0 ORDER BY created_at DESC LIMIT 50',
-  ).bind(itemId).all();
+    'SELECT c.id, c.parent_id, c.nickname, c.body, c.created_at, c.report_count, p.nickname AS parent_nickname, ' +
+      '(SELECT COUNT(*) FROM comment_likes l WHERE l.comment_id = c.id) AS like_count, ' +
+      'EXISTS(SELECT 1 FROM comment_likes mine WHERE mine.comment_id = c.id AND mine.voter_id = ?) AS liked_by_me ' +
+      'FROM comments c LEFT JOIN comments p ON p.id = c.parent_id ' +
+      'WHERE c.item_id = ? AND c.hidden = 0 AND (c.parent_id IS NULL OR p.hidden = 0) ' +
+      'ORDER BY c.created_at DESC LIMIT 100',
+  ).bind(voterId, itemId).all();
   const comments = (result.results || []).map((row) => ({
     id: String(row.id),
+    parent_id: row.parent_id ? String(row.parent_id) : null,
+    parent_nickname: row.parent_nickname ? String(row.parent_nickname) : '',
     nickname: String(row.nickname),
     body: String(row.body),
     created_at: Number(row.created_at),
     report_count: Math.max(0, Number(row.report_count || 0)),
+    like_count: Math.max(0, Number(row.like_count || 0)),
+    liked_by_me: Number(row.liked_by_me || 0) === 1,
   }));
-  const count = await env.DB.prepare('SELECT COUNT(*) AS n FROM comments WHERE item_id = ? AND hidden = 0')
+  const count = await env.DB.prepare(
+    'SELECT COUNT(*) AS n FROM comments c LEFT JOIN comments p ON p.id = c.parent_id ' +
+      'WHERE c.item_id = ? AND c.hidden = 0 AND (c.parent_id IS NULL OR p.hidden = 0)',
+  )
     .bind(itemId).first();
   return { comments, count: Math.max(0, Number(count?.n || 0)) };
 }
 
-async function createComment(env, itemId, guestId, nicknameValue, bodyValue) {
+async function createComment(env, itemId, guestId, nicknameValue, bodyValue, parentIdValue = '') {
   const nicknameResult = validateNickname(nicknameValue);
   if (!nicknameResult.ok) return nicknameResult;
   const bodyResult = validateCommentBody(bodyValue);
   if (!bodyResult.ok) return bodyResult;
   await ensureSchema(env);
+  let parentId = null;
+  if (parentIdValue) {
+    const requestedParentId = String(parentIdValue);
+    if (!/^cm_[A-Za-z0-9_]{8,80}$/.test(requestedParentId)) return { ok: false, reason: 'bad_parent' };
+    const parent = await env.DB.prepare(
+      'SELECT id, item_id, parent_id, hidden FROM comments WHERE id = ?',
+    ).bind(requestedParentId).first();
+    if (!parent || String(parent.item_id) !== itemId || Number(parent.hidden || 0) !== 0 || parent.parent_id) {
+      return { ok: false, reason: 'bad_parent' };
+    }
+    parentId = requestedParentId;
+  }
   const now = Date.now();
   const profile = await env.DB.prepare(
     'SELECT nickname_norm, nickname_updated_at, last_comment_at FROM comment_profiles WHERE guest_id = ?',
@@ -284,14 +327,42 @@ async function createComment(env, itemId, guestId, nicknameValue, bodyValue) {
         'nickname_updated_at = excluded.nickname_updated_at, last_comment_at = excluded.last_comment_at',
     ).bind(guestId, nicknameResult.nickname, nicknameResult.normalized, nicknameUpdatedAt, now, now),
     env.DB.prepare(
-      'INSERT INTO comments (id, item_id, guest_id, nickname, body, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-    ).bind(commentId, itemId, guestId, nicknameResult.nickname, bodyResult.body, now),
+      'INSERT INTO comments (id, item_id, guest_id, nickname, body, created_at, parent_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    ).bind(commentId, itemId, guestId, nicknameResult.nickname, bodyResult.body, now, parentId),
   ]);
   return {
     ok: true,
-    comment: { id: commentId, nickname: nicknameResult.nickname, body: bodyResult.body, created_at: now, report_count: 0 },
+    comment: {
+      id: commentId, parent_id: parentId, nickname: nicknameResult.nickname, body: bodyResult.body,
+      created_at: now, report_count: 0, like_count: 0, liked_by_me: false,
+    },
     count: (await readComments(env, itemId)).count,
   };
+}
+
+async function setCommentLike(env, commentId, voterId, liked) {
+  await ensureSchema(env);
+  if (!/^cm_[A-Za-z0-9_]{8,80}$/.test(commentId) || typeof liked !== 'boolean') {
+    return { ok: false, reason: 'bad_request' };
+  }
+  const row = await env.DB.prepare(
+    'SELECT c.id FROM comments c LEFT JOIN comments p ON p.id = c.parent_id ' +
+      'WHERE c.id = ? AND c.hidden = 0 AND (c.parent_id IS NULL OR p.hidden = 0)',
+  ).bind(commentId).first();
+  if (!row) return { ok: false, reason: 'not_found' };
+  if (liked) {
+    await env.DB.prepare(
+      'INSERT OR IGNORE INTO comment_likes (comment_id, voter_id, created_at) VALUES (?, ?, ?)',
+    ).bind(commentId, voterId, Date.now()).run();
+  } else {
+    await env.DB.prepare('DELETE FROM comment_likes WHERE comment_id = ? AND voter_id = ?')
+      .bind(commentId, voterId).run();
+  }
+  const count = await env.DB.prepare('SELECT COUNT(*) AS n FROM comment_likes WHERE comment_id = ?')
+    .bind(commentId).first();
+  const selected = await env.DB.prepare('SELECT 1 AS yes FROM comment_likes WHERE comment_id = ? AND voter_id = ?')
+    .bind(commentId, voterId).first();
+  return { ok: true, liked: Boolean(selected), like_count: Math.max(0, Number(count?.n || 0)) };
 }
 
 async function reportComment(env, commentId, reporterId) {
@@ -349,7 +420,11 @@ export default {
           const itemId = String(url.searchParams.get('item') || '');
           if (itemId) {
             if (!ITEM_ID_RE.test(itemId)) return json({ ok: false, reason: 'bad_item' }, headers, 400);
-            return json({ ok: true, ...(await readComments(env, itemId)) }, headers);
+            const voterId = String(url.searchParams.get('voter') || '');
+            return json({
+              ok: true,
+              ...(await readComments(env, itemId, VOTER_ID_RE.test(voterId) ? voterId : '')),
+            }, headers);
           }
           const ids = parseCommentIds(url);
           if (ids === null || ids.length === 0) return json({ ok: false, reason: 'bad_ids' }, headers, 400);
@@ -363,6 +438,10 @@ export default {
             const result = await reportComment(env, String(body.comment_id || ''), guestId);
             return json(result, headers, result.ok ? 200 : (result.reason === 'not_found' ? 404 : 400));
           }
+          if (body.action === 'like') {
+            const result = await setCommentLike(env, String(body.comment_id || ''), guestId, body.liked);
+            return json(result, headers, result.ok ? 200 : (result.reason === 'not_found' ? 404 : 400));
+          }
           const itemId = String(body.id || '');
           if (!ITEM_ID_RE.test(itemId)) return json({ ok: false, reason: 'bad_request' }, headers, 400);
           const cache = caches.default;
@@ -372,7 +451,7 @@ export default {
           if (await cache.match(ipGate) || await cache.match(guestGate)) {
             return json({ ok: false, reason: 'slow_down' }, { ...headers, 'retry-after': String(COMMENT_RATE_SECONDS) }, 429);
           }
-          const result = await createComment(env, itemId, guestId, body.nickname, body.comment);
+          const result = await createComment(env, itemId, guestId, body.nickname, body.comment, body.parent_id);
           if (!result.ok) {
             const status = result.reason === 'slow_down' ? 429 : result.reason === 'nickname_locked' ? 409 : 400;
             return json(result, headers, status);

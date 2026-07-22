@@ -4,3 +4,4 @@ data/*.json
 *.log
 scripts/local-trigger.vbs
 cloudflare/pages-deploy/
+.wrangler/

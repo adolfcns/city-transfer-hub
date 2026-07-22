@@ -99,6 +99,7 @@ const commentLiveLoaded = new Set();
 const commentReadQueue = new Set();
 let commentReadTimer = null;
 let activeCommentItem = null;
+let activeReplyTarget = null;
 let commentRequestInFlight = false;
 let shareCardInFlight = false;
 let sharedMessageRevealed = false;
@@ -1586,6 +1587,7 @@ function commentReasonText(reason, retryAt = 0) {
   }
   if (reason === 'comment_length') return '评论需要 2～120 个字';
   if (reason === 'comment_link') return '评论暂不支持网址或广告链接';
+  if (reason === 'bad_parent') return '原评论已不存在或暂时不能回复，请刷新后再试';
   if (reason === 'slow_down') return '发送得有点快，请 30 秒后再试';
   return '评论服务暂时不可用，请稍后再试';
 }
@@ -1594,10 +1596,72 @@ function closeComments() {
   document.querySelector('.comment-overlay')?.remove();
   document.body.classList.remove('comments-open');
   activeCommentItem = null;
+  activeReplyTarget = null;
 }
 
 function commentAvatarText(nickname) {
   return [...String(nickname || '蓝')][0] || '蓝';
+}
+
+function clearCommentReply() {
+  activeReplyTarget = null;
+  const replying = document.querySelector('.comment-replying');
+  if (replying) replying.hidden = true;
+  const input = document.querySelector('.comment-input');
+  if (input) input.placeholder = '友善发言，最多120字';
+}
+
+function startCommentReply(comment) {
+  if (!comment || comment.parent_id) return;
+  activeReplyTarget = { id: String(comment.id), nickname: String(comment.nickname) };
+  const replying = document.querySelector('.comment-replying');
+  const name = replying?.querySelector('.comment-replying-name');
+  if (name) name.textContent = `正在回复 @${activeReplyTarget.nickname}`;
+  if (replying) replying.hidden = false;
+  const input = document.querySelector('.comment-input');
+  if (input) {
+    input.placeholder = `回复 @${activeReplyTarget.nickname}，最多120字`;
+    input.focus();
+  }
+}
+
+async function likeItemComment(commentId, button) {
+  if (!button || button.disabled) return;
+  const desired = button.dataset.liked !== 'true';
+  button.disabled = true;
+  const endpoints = state.commentEndpoint
+    ? [state.commentEndpoint, ...COMMENT_ENDPOINTS.filter((item) => item !== state.commentEndpoint)]
+    : COMMENT_ENDPOINTS;
+  let result = null;
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetchReactionEndpoint(endpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          action: 'like', comment_id: commentId, voter: state.commentProfile.voter, liked: desired,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok === true) {
+        state.commentEndpoint = endpoint;
+        result = data;
+        break;
+      }
+    } catch { /* 网络错误时尝试备用端点 */ }
+  }
+  button.disabled = false;
+  if (!result) {
+    toast('点赞没有提交成功，请稍后再试', 'err');
+    return;
+  }
+  const count = Math.max(0, Number(result.like_count || 0));
+  button.dataset.liked = result.liked ? 'true' : 'false';
+  button.classList.toggle('liked', Boolean(result.liked));
+  button.setAttribute('aria-pressed', result.liked ? 'true' : 'false');
+  button.setAttribute('aria-label', `${result.liked ? '取消点赞' : '点赞'}，当前 ${count} 次`);
+  const countNode = button.querySelector('.comment-like-count');
+  if (countNode) countNode.textContent = String(count);
 }
 
 function renderCommentRows(comments) {
@@ -1611,8 +1675,20 @@ function renderCommentRows(comments) {
     list.appendChild(empty);
     return;
   }
+  const roots = comments
+    .filter((comment) => !comment.parent_id)
+    .sort((a, b) => Number(b.created_at) - Number(a.created_at));
+  const replies = new Map();
   for (const comment of comments) {
+    if (!comment.parent_id) continue;
+    const rows = replies.get(comment.parent_id) || [];
+    rows.push(comment);
+    replies.set(comment.parent_id, rows);
+  }
+
+  const buildRow = (comment, isReply = false) => {
     const row = el('article', 'comment-row');
+    if (isReply) row.classList.add('comment-reply-row');
     row.dataset.commentId = comment.id;
     const avatar = el('span', 'comment-avatar', commentAvatarText(comment.nickname));
     avatar.style.background = `hsl(${hueOf(comment.nickname)}, 58%, 83%)`;
@@ -1620,14 +1696,50 @@ function renderCommentRows(comments) {
     const meta = el('div', 'comment-meta');
     meta.appendChild(el('strong', null, comment.nickname));
     meta.appendChild(el('span', 'comment-guest-badge', '游客'));
+    if (isReply && comment.parent_nickname) {
+      meta.appendChild(el('span', 'comment-reply-target', `回复 @${comment.parent_nickname}`));
+    }
     meta.appendChild(el('time', null, relTime(new Date(Number(comment.created_at)).toISOString())));
+    const actions = el('div', 'comment-actions');
+    if (!isReply) {
+      const reply = el('button', 'comment-reply', '回复');
+      reply.type = 'button';
+      reply.setAttribute('aria-label', `回复 ${comment.nickname}`);
+      reply.onclick = () => startCommentReply(comment);
+      actions.appendChild(reply);
+    }
+    const likeCount = Math.max(0, Number(comment.like_count || 0));
+    const like = el('button', 'comment-like');
+    like.type = 'button';
+    like.dataset.liked = comment.liked_by_me ? 'true' : 'false';
+    like.classList.toggle('liked', Boolean(comment.liked_by_me));
+    like.setAttribute('aria-pressed', comment.liked_by_me ? 'true' : 'false');
+    like.setAttribute('aria-label', `${comment.liked_by_me ? '取消点赞' : '点赞'}，当前 ${likeCount} 次`);
+    like.appendChild(el('span', 'comment-like-icon', '👍'));
+    like.appendChild(el('span', 'comment-like-count', String(likeCount)));
+    like.onclick = () => likeItemComment(comment.id, like);
+    actions.appendChild(like);
     const report = el('button', 'comment-report', '举报');
     report.type = 'button';
+    report.setAttribute('aria-label', `举报 ${comment.nickname} 的评论`);
     report.onclick = () => reportItemComment(comment.id, report);
-    meta.appendChild(report);
-    body.append(meta, el('p', 'comment-text', comment.body));
+    actions.appendChild(report);
+    body.append(meta, el('p', 'comment-text', comment.body), actions);
     row.append(avatar, body);
-    list.appendChild(row);
+    return row;
+  };
+
+  for (const comment of roots) {
+    const thread = el('section', 'comment-thread');
+    thread.appendChild(buildRow(comment));
+    const children = (replies.get(comment.id) || [])
+      .sort((a, b) => Number(a.created_at) - Number(b.created_at));
+    if (children.length) {
+      const replyList = el('div', 'comment-replies');
+      children.forEach((reply) => replyList.appendChild(buildRow(reply, true)));
+      thread.appendChild(replyList);
+    }
+    list.appendChild(thread);
   }
 }
 
@@ -1702,7 +1814,9 @@ async function loadItemComments(it) {
   if (list) list.innerHTML = '<div class="comment-loading">正在加载评论…</div>';
   for (const endpoint of COMMENT_ENDPOINTS) {
     try {
-      const res = await fetchReactionEndpoint(`${endpoint}?item=${encodeURIComponent(id)}`);
+      const res = await fetchReactionEndpoint(
+        `${endpoint}?item=${encodeURIComponent(id)}&voter=${encodeURIComponent(state.commentProfile.voter)}`,
+      );
       const data = await res.json().catch(() => ({}));
       if (!res.ok || data.ok !== true || !Array.isArray(data.comments)) continue;
       if (!activeCommentItem || itemId(activeCommentItem) !== id) return;
@@ -1712,6 +1826,9 @@ async function loadItemComments(it) {
       syncCommentButtons(id);
       const titleCount = document.querySelector('.comment-sheet-count');
       if (titleCount) titleCount.textContent = state.commentCounts[id] > 0 ? ` ${state.commentCounts[id]}` : '';
+      if (activeReplyTarget && !data.comments.some((comment) => comment.id === activeReplyTarget.id && !comment.parent_id)) {
+        clearCommentReply();
+      }
       renderCommentRows(data.comments);
       return;
     } catch { /* 尝试备用接口 */ }
@@ -1733,6 +1850,7 @@ async function sendItemComment(value, nicknameOverride = '') {
   }
 
   commentRequestInFlight = true;
+  const wasReply = Boolean(activeReplyTarget);
   const send = document.querySelector('.comment-send');
   if (send) { send.disabled = true; send.textContent = '发送中'; }
   let failure = 'network';
@@ -1751,6 +1869,7 @@ async function sendItemComment(value, nicknameOverride = '') {
             voter: state.commentProfile.voter,
             nickname,
             comment: body,
+            parent_id: activeReplyTarget?.id || '',
           }),
         });
         const data = await res.json().catch(() => ({}));
@@ -1762,10 +1881,11 @@ async function sendItemComment(value, nicknameOverride = '') {
           saveCommentProfile();
           updateCommentProfileRow();
           if (textarea) textarea.value = '';
+          clearCommentReply();
           state.commentCounts[itemId(activeCommentItem)] = Math.max(0, Number(data.count || 0));
           syncCommentButtons(itemId(activeCommentItem));
           await loadItemComments(activeCommentItem);
-          toast('评论已发布 ✓');
+          toast(wasReply ? '回复已发布 ✓' : '评论已发布 ✓');
           return true;
         }
         failure = data.reason || 'network';
@@ -1803,10 +1923,7 @@ async function reportItemComment(commentId, button) {
   }
   button.textContent = result.already_reported ? '已举报' : '举报成功';
   if (result.hidden && activeCommentItem) {
-    const id = itemId(activeCommentItem);
-    document.querySelector(`.comment-row[data-comment-id="${commentId}"]`)?.remove();
-    state.commentCounts[id] = Math.max(0, itemCommentCount(id) - 1);
-    syncCommentButtons(id);
+    await loadItemComments(activeCommentItem);
   }
   toast(result.already_reported ? '你已经举报过这条评论' : '举报已收到，感谢维护评论区');
 }
@@ -1833,6 +1950,13 @@ function openComments(it) {
   list.appendChild(el('div', 'comment-loading', '正在加载评论…'));
 
   const composer = el('div', 'comment-composer');
+  const replying = el('div', 'comment-replying');
+  replying.hidden = true;
+  replying.appendChild(el('span', 'comment-replying-name'));
+  const cancelReply = el('button', 'comment-reply-cancel', '取消回复 ×');
+  cancelReply.type = 'button';
+  cancelReply.onclick = clearCommentReply;
+  replying.appendChild(cancelReply);
   const profileRow = el('div', 'comment-profile-row');
   profileRow.appendChild(el('span', 'comment-profile-name'));
   const edit = el('button', 'comment-profile-edit');
@@ -1860,7 +1984,7 @@ function openComments(it) {
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); send.click(); }
   });
   inputRow.append(input, send);
-  composer.append(profileRow, inputRow);
+  composer.append(replying, profileRow, inputRow);
   sheet.append(head, summary, list, composer);
   overlay.appendChild(sheet);
   overlay.onclick = (event) => { if (event.target === overlay) closeComments(); };

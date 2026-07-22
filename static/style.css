@@ -415,7 +415,8 @@ body.comments-open { overflow: hidden; }
 .comment-empty { min-height: 210px; display: grid; place-content: center; gap: 6px; text-align: center; color: var(--text-dim); }
 .comment-empty strong { color: var(--text); font-size: 14px; }
 .comment-empty span { font-size: 12px; }
-.comment-row { display: flex; gap: 10px; padding: 13px 0; border-bottom: 1px solid rgba(148,175,195,.35); }
+.comment-thread { border-bottom: 1px solid rgba(148,175,195,.35); }
+.comment-row { display: flex; gap: 10px; padding: 13px 0; }
 .comment-avatar {
   width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 50%;
   color: var(--navy); font-size: 12px; font-weight: 800;
@@ -427,10 +428,34 @@ body.comments-open { overflow: hidden; }
 .comment-guest-badge {
   padding: 1px 5px; border-radius: 999px; background: rgba(108,171,221,.14); color: var(--t1); font-size: 9px;
 }
-.comment-report { margin-left: auto; border: 0; background: transparent; color: #9aa8b2; font-size: 10px; padding: 3px 0 3px 8px; }
-.comment-report:disabled { opacity: .55; }
+.comment-reply-target { color: var(--text-dim); font-size: 10px; }
 .comment-text { margin: 4px 0 0; color: var(--text); font-size: 13px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+.comment-actions { min-height: 28px; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
+.comment-reply, .comment-like, .comment-report {
+  min-height: 28px; padding: 3px 7px; border: 0; border-radius: 7px; background: transparent;
+  color: var(--text-dim); font-size: 10px; line-height: 1; white-space: nowrap;
+}
+.comment-reply:hover, .comment-like:hover { background: rgba(108,171,221,.12); color: var(--t1); }
+.comment-like { display: inline-flex; align-items: center; gap: 3px; font-variant-numeric: tabular-nums; }
+.comment-like-icon { font-size: 13px; filter: grayscale(1); opacity: .72; }
+.comment-like.liked { background: rgba(108,171,221,.16); color: var(--t1); font-weight: 800; }
+.comment-like.liked .comment-like-icon { filter: none; opacity: 1; }
+.comment-report { color: #9aa8b2; }
+.comment-reply:focus-visible, .comment-like:focus-visible, .comment-report:focus-visible {
+  outline: 2px solid rgba(21,95,159,.22); outline-offset: 1px;
+}
+.comment-reply:disabled, .comment-like:disabled, .comment-report:disabled { opacity: .55; }
+.comment-replies { margin-left: 44px; padding-left: 10px; border-left: 2px solid rgba(108,171,221,.24); }
+.comment-reply-row { padding: 10px 0; border-top: 1px dashed rgba(148,175,195,.35); }
+.comment-reply-row .comment-avatar { width: 28px; height: 28px; font-size: 10px; }
 .comment-composer { flex: none; padding: 9px 14px calc(11px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: #f7fbfd; }
+.comment-replying {
+  min-height: 27px; margin: -2px 2px 6px; padding: 4px 7px; display: flex; align-items: center; gap: 8px;
+  border-left: 3px solid var(--sky); border-radius: 5px; background: rgba(108,171,221,.11);
+  color: var(--text); font-size: 11px; font-weight: 700;
+}
+.comment-replying[hidden] { display: none; }
+.comment-reply-cancel { margin-left: auto; padding: 2px 4px; border: 0; background: transparent; color: var(--text-dim); font-size: 10px; }
 .comment-profile-row { min-height: 22px; display: flex; align-items: center; gap: 7px; margin: 0 2px 6px; color: var(--text-dim); font-size: 10px; }
 .comment-profile-name { color: var(--text); font-weight: 700; }
 .comment-profile-edit { border: 0; background: transparent; color: var(--sky); font-size: 10px; padding: 2px; }
@@ -838,7 +863,14 @@ body.comments-open { overflow: hidden; }
   .comment-row { padding: 12px 0; }
   .comment-meta strong, .comment-text { font-size: 13px; }
   .comment-meta time { font-size: 11px; }
+  .comment-replies { margin-left: 30px; padding-left: 8px; }
+  .comment-reply-row { gap: 8px; padding: 10px 0; }
+  .comment-reply, .comment-like, .comment-report { min-height: 34px; padding: 5px 8px; font-size: 11px; }
+  .comment-like-icon { font-size: 14px; }
+  .comment-reply-target { font-size: 10px; }
   .comment-composer { padding: 8px 10px calc(9px + env(safe-area-inset-bottom)); }
+  .comment-replying { min-height: 30px; margin-bottom: 7px; font-size: 12px; }
+  .comment-reply-cancel { min-height: 26px; font-size: 11px; }
   .comment-profile-row, .comment-profile-edit { font-size: 11px; }
   .comment-input { min-height: 44px; font-size: 16px; resize: none; }
   .comment-send { min-width: 62px; min-height: 44px; font-size: 13px; }

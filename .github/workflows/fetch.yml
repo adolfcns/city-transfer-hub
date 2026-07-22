@@ -149,6 +149,7 @@ jobs:
           const url = 'https://city-transfer-hub.pages.dev/prayer';
           const reactionsUrl = 'https://city-transfer-hub.pages.dev/reactions?ids=api_smoke_read';
           const commentsUrl = 'https://city-transfer-hub.pages.dev/comments?ids=api_smoke_read';
+          const commentDetailUrl = 'https://city-transfer-hub.pages.dev/comments?item=api_smoke_read&voter=api_smoke_voter_2026';
           const origin = 'https://adolfcns.github.io';
           for (let attempt = 1; attempt <= 10; attempt += 1) {
             try {
@@ -163,12 +164,18 @@ jobs:
               const commentsResponse = await fetch(commentsUrl, { headers: { Origin: origin } });
               const commentsBody = await commentsResponse.json();
               const commentsCors = commentsResponse.headers.get('access-control-allow-origin');
+              const commentDetailResponse = await fetch(commentDetailUrl, { headers: { Origin: origin } });
+              const commentDetailBody = await commentDetailResponse.json();
+              const commentDetailCors = commentDetailResponse.headers.get('access-control-allow-origin');
               const reactionsReady = reactionsResponse.ok && reactionsBody.ok === true
                 && reactionsBody.counts && reactionsBody.counts.api_smoke_read
                 && reactionsCors === origin;
               const commentsReady = commentsResponse.ok && commentsBody.ok === true
                 && Number.isInteger(commentsBody.counts?.api_smoke_read)
-                && commentsCors === origin;
+                && commentsCors === origin
+                && commentDetailResponse.ok && commentDetailBody.ok === true
+                && Array.isArray(commentDetailBody.comments) && Number.isInteger(commentDetailBody.count)
+                && commentDetailCors === origin;
               if (response.ok && body.ok === true && Number.isInteger(body.count) && cors === origin && reactionsReady && commentsReady) {
                 console.log(`Direct interactions ready: prayer=${body.count}, reactions=ok, comments=ok`);
                 process.exit(0);
