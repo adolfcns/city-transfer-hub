@@ -510,6 +510,15 @@ sources:
     handle: cityreport_
     filter: transfer
 
+  - key: etihad_intel
+    name: Etihad Intel
+    name_zh: Etihad Intel
+    tier: ITK
+    type: twitter
+    handle: etihadintel
+    filter: none        # 曼城专属爆料号，避免关键词过滤漏掉简短内幕
+    note_zh: 曼城内幕与转会爆料号·自行甄别
+
   - key: tolmie
     name: The Real Tolmie's Hairdoo
     name_zh: Tolmie's Hairdoo
