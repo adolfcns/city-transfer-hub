@@ -24,13 +24,14 @@ settings:
   max_items: 2000 # 条目数量上限
   exclude_retweets: true # 过滤纯转推（RT）
   exclude_replies: true # 过滤回复推文
-  twitter_every_run: # 高频/重点 X 信源，每轮优先抓取
-    - city_xtra
-    - tolmie
-    - romano
+  twitter_every_run_tiers: # 这些等级的 X 信源每轮全部抓取，顺序即优先级
+    - ITK
+    - T0
+    - T1
+  twitter_every_run: # 等级之外仍需每轮抓取的重点账号
     - schira
-    - etihad_intel
-  twitter_rotation_groups: 3 # 其余 X 信源分三组，每轮抓一组
+  twitter_rotation_groups: 2 # 剩余 X·T2 分两组，按轮次交替优先
+  twitter_request_delay_ms: 2500 # 账号之间留出间隔，降低上游限流概率
 
 # 页面内容策略：全局剔除历史回顾和女足；City Xtra 另限制为现役男足或转会内容。
 content_policy:

@@ -14,7 +14,7 @@ import { initHttp, httpGet, mapLimit } from './lib/http.js';
 import { fetchSource, buildDomainMap, fetchFocusGnews } from './lib/sources.js';
 import { htmlToText } from './lib/rss.js';
 import { makeMatchers, passFilter, detectBadges, makeId, mergeItems } from './lib/pipeline.js';
-import { selectTwitterSources } from './lib/schedule.js';
+import { selectTwitterSources, runAdaptiveTwitterSchedule } from './lib/schedule.js';
 import { translateNew } from './lib/translate.js';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -103,7 +103,7 @@ async function main() {
     const enabled = src.type !== 'twitter' || Boolean(rsshubUrl);
     if (!enabled) {
       statusList.push({ key: src.key, name: src.name, name_zh: src.name_zh, tier: src.tier, type: src.type, enabled: false, ok: false, items: 0, last_success: prev?.last_success || null, error: null });
-      return;
+      return { ok: false, disabled: true };
     }
     try {
       const entries = (await fetchSource(src, ctx)) || [];
@@ -111,13 +111,17 @@ async function main() {
       if (src.type === 'twitter' && entries.length === 0) {
         statusList.push({ key: src.key, name: src.name, name_zh: src.name_zh, tier: src.tier, type: src.type, enabled: true, ok: false, items: 0, last_success: prev?.last_success || null, error: '上游返回空时间线，疑似限流；保留历史数据等待下轮', throttled: true });
         console.warn(`[empty] ${src.key}: 上游返回 0 条，按疑似限流处理`);
-        return;
+        return { ok: false, throttled: true };
       }
       statusList.push({ key: src.key, name: src.name, name_zh: src.name_zh, tier: src.tier, type: src.type, enabled: true, ok: true, items: entries.length, last_success: new Date().toISOString(), error: null });
       console.log(`[ok] ${src.key}: ${entries.length} 条`);
+      return { ok: true, items: entries.length };
     } catch (e) {
-      statusList.push({ key: src.key, name: src.name, name_zh: src.name_zh, tier: src.tier, type: src.type, enabled: true, ok: false, items: 0, last_success: prev?.last_success || null, error: String(e.message || e).slice(0, 200) });
-      console.warn(`[fail] ${src.key}: ${e.message}`);
+      const message = String(e.message || e).slice(0, 200);
+      const throttled = /(?:^|\D)429(?:\D|$)|rate.?limit|too many requests|限流/i.test(message);
+      statusList.push({ key: src.key, name: src.name, name_zh: src.name_zh, tier: src.tier, type: src.type, enabled: true, ok: false, items: 0, last_success: prev?.last_success || null, error: message, ...(throttled ? { throttled: true } : {}) });
+      console.warn(`[fail] ${src.key}: ${message}`);
+      return { ok: false, throttled, error: message };
     }
   };
 
@@ -130,12 +134,15 @@ async function main() {
       ? Number(process.env.TWITTER_ROTATION_SLOT)
       : Math.floor(Date.now() / (30 * 60 * 1000));
     const schedule = selectTwitterSources(twitterSources, settings, slot);
-    console.log(`[twitter] 每轮必抓 ${schedule.everyRun.map((s) => s.key).join(', ') || '无'} | 轮换组 ${schedule.groupIndex + 1}/${schedule.groupCount} | 本轮共 ${schedule.selected.length}/${twitterSources.length} 个`);
-    for (const src of schedule.selected) {
-      await runOne(src);
-      await new Promise((r) => setTimeout(r, 2000));
-    }
-    for (const src of schedule.skipped) {
+    const delayMs = Math.max(0, Number(settings.twitter_request_delay_ms) || 2500);
+    console.log(`[twitter] 每轮必抓 ${schedule.everyRun.length} 个（ITK/T0/T1 + 斯基拉） | T2 优先组 ${schedule.groupIndex + 1}/${schedule.groupCount}: ${schedule.due.map((s) => s.key).join(', ') || '无'} | 无冲突则补抓 ${schedule.overflow.length} 个`);
+    const result = await runAdaptiveTwitterSchedule(
+      schedule,
+      runOne,
+      () => new Promise((resolve) => setTimeout(resolve, delayMs)),
+    );
+    console.log(`[twitter] 实际请求 ${result.attempted.length}/${twitterSources.length} 个 | ${result.conflicted ? `检测到冲突，延后 ${result.deferred.length} 个 T2` : '未检测到冲突，本轮已全抓'}`);
+    for (const src of result.deferred) {
       const prev = prevStatusMap.get(src.key);
       statusList.push({
         key: src.key,
@@ -149,6 +156,7 @@ async function main() {
         last_success: prev?.last_success || null,
         error: null,
         deferred: true,
+        deferred_reason: '本轮检测到上游冲突，留待下一轮优先组继续',
         rotation_group: schedule.groupIndex + 1,
         rotation_groups: schedule.groupCount,
       });
