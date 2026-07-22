@@ -14,6 +14,7 @@ import { initHttp, httpGet, mapLimit } from './lib/http.js';
 import { fetchSource, buildDomainMap, fetchFocusGnews } from './lib/sources.js';
 import { htmlToText } from './lib/rss.js';
 import { makeMatchers, passFilter, detectBadges, makeId, mergeItems } from './lib/pipeline.js';
+import { selectTwitterSources } from './lib/schedule.js';
 import { translateNew } from './lib/translate.js';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -78,6 +79,7 @@ async function main() {
     // 对旧数据重新套用当前过滤规则：信源改了 filter（如记者号改为只收曼城相关）后，
     // 之前漏进来的无关内容（如世界杯闲聊）会被清出去。焦点对象的消息一律豁免。
     .filter((it) => {
+      if (matchers.isExcluded(it.text)) return false;
       tagFocus(it);
       if (it.focus?.length) return true;
       const src = srcByKey.get(it.source_key);
@@ -106,6 +108,11 @@ async function main() {
     try {
       const entries = (await fetchSource(src, ctx)) || [];
       rawBySource.set(src.key, entries);
+      if (src.type === 'twitter' && entries.length === 0) {
+        statusList.push({ key: src.key, name: src.name, name_zh: src.name_zh, tier: src.tier, type: src.type, enabled: true, ok: false, items: 0, last_success: prev?.last_success || null, error: '上游返回空时间线，疑似限流；保留历史数据等待下轮', throttled: true });
+        console.warn(`[empty] ${src.key}: 上游返回 0 条，按疑似限流处理`);
+        return;
+      }
       statusList.push({ key: src.key, name: src.name, name_zh: src.name_zh, tier: src.tier, type: src.type, enabled: true, ok: true, items: entries.length, last_success: new Date().toISOString(), error: null });
       console.log(`[ok] ${src.key}: ${entries.length} 条`);
     } catch (e) {
@@ -114,11 +121,38 @@ async function main() {
     }
   };
 
-  // RSS/GNews 并发抓；推特顺序抓 + 间隔，防限流
+  // RSS/GNews 并发抓；X 重点账号每轮优先抓，其余按半小时槽轮换。
   await mapLimit(otherSources, 5, runOne);
-  for (const src of twitterSources) {
-    await runOne(src);
-    if (rsshubUrl) await new Promise((r) => setTimeout(r, 2000));
+  if (!rsshubUrl) {
+    for (const src of twitterSources) await runOne(src);
+  } else {
+    const slot = Number.isFinite(Number(process.env.TWITTER_ROTATION_SLOT))
+      ? Number(process.env.TWITTER_ROTATION_SLOT)
+      : Math.floor(Date.now() / (30 * 60 * 1000));
+    const schedule = selectTwitterSources(twitterSources, settings, slot);
+    console.log(`[twitter] 每轮必抓 ${schedule.everyRun.map((s) => s.key).join(', ') || '无'} | 轮换组 ${schedule.groupIndex + 1}/${schedule.groupCount} | 本轮共 ${schedule.selected.length}/${twitterSources.length} 个`);
+    for (const src of schedule.selected) {
+      await runOne(src);
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+    for (const src of schedule.skipped) {
+      const prev = prevStatusMap.get(src.key);
+      statusList.push({
+        key: src.key,
+        name: src.name,
+        name_zh: src.name_zh,
+        tier: src.tier,
+        type: src.type,
+        enabled: true,
+        ok: true,
+        items: prev?.items || 0,
+        last_success: prev?.last_success || null,
+        error: null,
+        deferred: true,
+        rotation_group: schedule.groupIndex + 1,
+        rotation_groups: schedule.groupCount,
+      });
+    }
   }
 
   // 焦点对象专属检索（开放搜索 + 白名单判级，别队动态也能进来）
@@ -171,6 +205,7 @@ async function main() {
   // 焦点检索的条目：借用命中媒体的名称与分级入库（不做曼城过滤——别队动态正是目的）
   for (const e of focusEntries) {
     if (!e.url || !e.text) continue;
+    if (matchers.isExcluded(e.text)) continue;
     if (new Date(e.published_at).getTime() < cutoff) continue;
     const id = makeId(e.url);
     if (knownIds.has(id) || incoming.some((x) => x.id === id)) continue;

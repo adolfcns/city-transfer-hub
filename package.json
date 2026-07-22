@@ -9,6 +9,7 @@
   },
   "scripts": {
     "fetch": "node scripts/fetch.js",
+    "test": "node --test",
     "serve": "node scripts/serve.js"
   },
   "dependencies": {
