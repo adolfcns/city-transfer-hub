@@ -642,6 +642,7 @@ sources:
     type: twitter
     handle: etihadintel
     include_replies: true
+    route_params: "count=50&includeRts=false&forceWebApi=true"
     filter: none        # 曼城专属爆料号，避免关键词过滤漏掉简短内幕
     note_zh: 曼城内幕与转会爆料号·自行甄别
 

@@ -48,8 +48,15 @@ export function resolveTwitterFilters(src, { excludeRetweets = true, excludeRepl
   };
 }
 
+export function twitterFeedUrl(src, rsshubUrl) {
+  const base = rsshubUrl.replace(/\/$/, '');
+  const handle = encodeURIComponent(src.handle);
+  const routeParams = String(src.route_params || '').trim().replace(/^\/+/, '');
+  return `${base}/twitter/user/${handle}${routeParams ? `/${routeParams}` : ''}`;
+}
+
 export async function fetchTwitter(src, { rsshubUrl, excludeRetweets = true, excludeReplies = true }) {
-  const url = `${rsshubUrl.replace(/\/$/, '')}/twitter/user/${src.handle}`;
+  const url = twitterFeedUrl(src, rsshubUrl);
   const xml = await httpGet(url, { timeout: 30000 });
   const filters = resolveTwitterFilters(src, { excludeRetweets, excludeReplies });
   const out = [];
