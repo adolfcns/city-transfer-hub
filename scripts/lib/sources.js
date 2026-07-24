@@ -41,16 +41,24 @@ export async function fetchGnews(src) {
 }
 
 // ---------- X 时间线（经 RSSHub） ----------
+export function resolveTwitterFilters(src, { excludeRetweets = true, excludeReplies = true } = {}) {
+  return {
+    excludeRetweets: src.include_retweets === true ? false : excludeRetweets,
+    excludeReplies: src.include_replies === true ? false : excludeReplies,
+  };
+}
+
 export async function fetchTwitter(src, { rsshubUrl, excludeRetweets = true, excludeReplies = true }) {
   const url = `${rsshubUrl.replace(/\/$/, '')}/twitter/user/${src.handle}`;
   const xml = await httpGet(url, { timeout: 30000 });
+  const filters = resolveTwitterFilters(src, { excludeRetweets, excludeReplies });
   const out = [];
   for (const e of parseFeed(xml)) {
     const text = htmlToText(e.html) || htmlToText(e.title);
     const t = (htmlToText(e.title) || text).trim();
     // RSSHub 的转推标题有 "RT @user:" 和 "RT 昵称" 两种形态
-    if (excludeRetweets && (/^RT[ :@]/i.test(t) || /^RT[ :@]/i.test(text))) continue;
-    if (excludeReplies && /^Re[ :@]/i.test(t)) continue;
+    if (filters.excludeRetweets && (/^RT[ :@]/i.test(t) || /^RT[ :@]/i.test(text))) continue;
+    if (filters.excludeReplies && /^Re[ :@]/i.test(t)) continue;
     out.push({
       kind: 'tweet',
       text: text.slice(0, 1200),
