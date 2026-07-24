@@ -55,23 +55,44 @@ export function twitterFeedUrl(src, rsshubUrl) {
   return `${base}/twitter/user/${handle}${routeParams ? `/${routeParams}` : ''}`;
 }
 
+export function twitterKeywordFeedUrl(src, rsshubUrl) {
+  const keyword = String(src.keyword_fallback || '').trim();
+  if (!keyword) return '';
+  const base = rsshubUrl.replace(/\/$/, '');
+  return `${base}/twitter/keyword/${encodeURIComponent(keyword)}/forceWebApi=true`;
+}
+
 export async function fetchTwitter(src, { rsshubUrl, excludeRetweets = true, excludeReplies = true }) {
   const url = twitterFeedUrl(src, rsshubUrl);
-  const xml = await httpGet(url, { timeout: 30000 });
+  const feeds = [await httpGet(url, { timeout: 30000 })];
+  const keywordUrl = twitterKeywordFeedUrl(src, rsshubUrl);
+  if (keywordUrl) {
+    try {
+      feeds.push(await httpGet(keywordUrl, { timeout: 30000 }));
+    } catch (error) {
+      console.warn(`[twitter-fallback] ${src.key}: ${String(error.message || error).slice(0, 160)}`);
+    }
+  }
   const filters = resolveTwitterFilters(src, { excludeRetweets, excludeReplies });
   const out = [];
-  for (const e of parseFeed(xml)) {
-    const text = htmlToText(e.html) || htmlToText(e.title);
-    const t = (htmlToText(e.title) || text).trim();
-    // RSSHub 的转推标题有 "RT @user:" 和 "RT 昵称" 两种形态
-    if (filters.excludeRetweets && (/^RT[ :@]/i.test(t) || /^RT[ :@]/i.test(text))) continue;
-    if (filters.excludeReplies && /^Re[ :@]/i.test(t)) continue;
-    out.push({
-      kind: 'tweet',
-      text: text.slice(0, 1200),
-      url: e.link,
-      published_at: toISO(e.date),
-    });
+  const seen = new Set();
+  for (const xml of feeds) {
+    for (const e of parseFeed(xml)) {
+      const text = htmlToText(e.html) || htmlToText(e.title);
+      const t = (htmlToText(e.title) || text).trim();
+      // RSSHub 的转推标题有 "RT @user:" 和 "RT 昵称" 两种形态
+      if (filters.excludeRetweets && (/^RT[ :@]/i.test(t) || /^RT[ :@]/i.test(text))) continue;
+      if (filters.excludeReplies && /^Re[ :@]/i.test(t)) continue;
+      const key = e.link || `${e.date}\n${text}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({
+        kind: 'tweet',
+        text: text.slice(0, 1200),
+        url: e.link,
+        published_at: toISO(e.date),
+      });
+    }
   }
   return out;
 }

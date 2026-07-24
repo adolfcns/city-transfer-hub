@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveTwitterFilters, twitterFeedUrl } from '../scripts/lib/sources.js';
+import {
+  resolveTwitterFilters,
+  twitterFeedUrl,
+  twitterKeywordFeedUrl,
+} from '../scripts/lib/sources.js';
 
 test('ordinary X sources keep the global reply and retweet filters', () => {
   assert.deepEqual(
@@ -29,5 +33,19 @@ test('Etihad Intel requests a larger Web API timeline', () => {
       'http://127.0.0.1:1200/',
     ),
     'http://127.0.0.1:1200/twitter/user/etihadintel/count=50&includeRts=false&forceWebApi=true',
+  );
+});
+
+test('Etihad Intel also gets an independent author search fallback', () => {
+  assert.equal(
+    twitterKeywordFeedUrl(
+      { keyword_fallback: 'from:etihadintel' },
+      'http://127.0.0.1:1200/',
+    ),
+    'http://127.0.0.1:1200/twitter/keyword/from%3Aetihadintel/forceWebApi=true',
+  );
+  assert.equal(
+    twitterKeywordFeedUrl({}, 'http://127.0.0.1:1200/'),
+    '',
   );
 });

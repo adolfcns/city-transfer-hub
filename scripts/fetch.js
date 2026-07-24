@@ -246,9 +246,16 @@ async function main() {
   const merged = mergeItems(kept, incoming);
 
   // ---------- 翻译（只翻没有译文的） ----------
-  const nTranslated = await translateNew(merged, process.env.DEEPSEEK_API_KEY);
-  if (process.env.DEEPSEEK_API_KEY) console.log(`[translate] 本次翻译 ${nTranslated} 条`);
-  else console.log('[translate] 未配置 DEEPSEEK_API_KEY，跳过');
+  const translation = await translateNew(merged, process.env.DEEPSEEK_API_KEY);
+  console.log(
+    `[translate] 本次翻译 ${translation.translated} 条` +
+    `（备用通道 ${translation.fallbackTranslated} 条），剩余 ${translation.remaining} 条`,
+  );
+  if (translation.remaining > 0) {
+    throw new Error(
+      `翻译未完成：仍有 ${translation.remaining} 条消息缺少中文，停止发布以保留上一版`,
+    );
+  }
 
   // ---------- 输出 ----------
   // 焦点标记全量重算（翻译后的中文别名也能命中）
