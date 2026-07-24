@@ -23,16 +23,13 @@ test('Etihad Intel can keep replies while still excluding retweets', () => {
   );
 });
 
-test('Etihad Intel requests a larger Web API timeline', () => {
+test('ordinary user timeline URL remains compatible with the current RSSHub image', () => {
   assert.equal(
     twitterFeedUrl(
-      {
-        handle: 'etihadintel',
-        route_params: 'count=50&includeRts=false&forceWebApi=true',
-      },
+      { handle: 'etihadintel' },
       'http://127.0.0.1:1200/',
     ),
-    'http://127.0.0.1:1200/twitter/user/etihadintel/count=50&includeRts=false&forceWebApi=true',
+    'http://127.0.0.1:1200/twitter/user/etihadintel',
   );
 });
 
