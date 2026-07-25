@@ -129,21 +129,7 @@ jobs:
           cp data/*.json site/data/
           sed -i "s/__BUILD_VERSION__/${GITHUB_SHA}/g" site/index.html
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-      # 镜像发布到 Cloudflare Pages（未配置 CLOUDFLARE_* Secrets 时自动跳过）
+      # 先发布 Cloudflare 备用站，避免 GitHub Pages 排队时两站一起停止更新
       - name: Mirror to Cloudflare Pages
         if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
         env:
@@ -231,3 +217,17 @@ jobs:
           console.error('Prayer counter API did not become ready');
           process.exit(1);
           NODE
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

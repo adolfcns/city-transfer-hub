@@ -27,3 +27,10 @@ test('GitHub 小时任务先检查新鲜度，定时抓取不重复部署互动 
   assert.equal(deployWorker.if, pushOnly);
   assert.equal(verifyApis.if, pushOnly);
 });
+
+test('Cloudflare 备用站先发布，GitHub Pages 排队不会同时拖住两站', () => {
+  const steps = workflow.jobs['fetch-deploy'].steps.map((step) => step.name);
+  assert.ok(
+    steps.indexOf('Mirror to Cloudflare Pages') < steps.indexOf('Deploy to GitHub Pages'),
+  );
+});
