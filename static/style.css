@@ -122,13 +122,30 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 /* ============ 主体 ============ */
 .container { max-width: 860px; margin: 0 auto; padding: 14px 16px 60px; }
 
-/* ============ 重点绯闻置顶横滑栏 ============ */
+/* ============ 重点传闻置顶横滑栏 ============ */
 .focus-zone { margin-bottom: 11px; }
 .focus-strip-head {
   display: flex; align-items: center; gap: 8px; min-width: 0;
   margin: 0 2px 7px;
 }
 .focus-strip-title { margin: 0; font-size: 14px; color: var(--text); line-height: 1.35; }
+.focus-target-tabs {
+  display: inline-flex; align-items: center; gap: 3px; min-width: 0;
+  padding: 2px; border: 1px solid var(--line); border-radius: 8px;
+  background: rgba(255,255,255,.48);
+}
+.focus-target-tab {
+  min-height: 25px; padding: 2px 7px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--text-dim); font-size: 11px; line-height: 1.2;
+  display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+}
+.focus-target-tab:hover { color: var(--text); background: rgba(108,171,221,.10); }
+.focus-target-tab.active { color: var(--t1); background: rgba(108,171,221,.18); font-weight: 700; }
+.focus-target-tab:focus-visible { outline: 3px solid rgba(21,95,159,.18); outline-offset: 1px; }
+.focus-target-count {
+  min-width: 16px; padding: 0 4px; border-radius: 999px; background: rgba(94,113,132,.10);
+  color: inherit; font-size: 9px; line-height: 16px; text-align: center;
+}
 .focus-strip-total { color: var(--text-dim); font-size: 11px; }
 .focus-strip-restore {
   flex: none; padding: 2px 6px; border: 1px solid var(--line-strong); border-radius: 6px;
@@ -786,6 +803,9 @@ body.comments-open { overflow: hidden; }
   .focus-zone { margin-bottom: 9px; }
   .focus-strip-head { margin-bottom: 6px; flex-wrap: wrap; }
   .focus-strip-title { font-size: 13px; }
+  .focus-target-tabs { order: 2; max-width: 100%; }
+  .focus-target-tab { min-height: 30px; padding-inline: 7px; font-size: 12px; }
+  .focus-target-count { font-size: 10px; }
   .focus-strip-total, .focus-strip-progress { font-size: 12px; }
   .focus-strip-restore { min-height: 36px; padding-inline: 8px; font-size: 12px; }
   .focus-follow-buttons { gap: 4px; }

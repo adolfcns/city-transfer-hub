@@ -69,6 +69,7 @@ const state = {
   status: null,
   sourceCatalog: [],
   focusTargets: [],
+  focusTargetKey: '',
   seenIds: new Set(),
   newIds: new Set(),
   pendingNew: 0,
@@ -2197,7 +2198,7 @@ function scheduleSearchRender() {
   }, SEARCH_DEBOUNCE_MS);
 }
 
-// ---------------- 重点绯闻置顶横滑栏 ----------------
+// ---------------- 重点传闻置顶横滑栏 ----------------
 function pinnedStripItems() {
   const targetKeys = new Set((state.focusTargets || []).map((target) => target.key));
   if (targetKeys.size === 0) return [];
@@ -2239,44 +2240,72 @@ function renderFocusZone() {
   zone.hidden = !shouldShowPinnedStrip(allPinned);
   if (zone.hidden) return;
 
-  const visiblePinned = allPinned.filter((it) => !state.library.hiddenPinned.has(itemId(it)));
-  const hiddenCount = allPinned.length - visiblePinned.length;
   const targets = state.focusTargets || [];
-  const activeTargets = targets.filter((target) => allPinned.some((it) => (it.focus || []).includes(target.key)));
-  const targetNames = activeTargets.map((target) => target.name_zh || target.name).join(' · ');
+  const selectedTarget = targets.find((target) => String(target.key) === String(state.focusTargetKey))
+    || targets.find((target) => allPinned.some((it) => (it.focus || []).includes(target.key)))
+    || targets[0];
+  if (!selectedTarget) return;
+  state.focusTargetKey = String(selectedTarget.key);
+
+  const selectedPinned = allPinned.filter((it) => (it.focus || []).includes(selectedTarget.key));
+  const visiblePinned = selectedPinned.filter((it) => !state.library.hiddenPinned.has(itemId(it)));
+  const hiddenCount = selectedPinned.length - visiblePinned.length;
   const displayed = visiblePinned.slice(0, PINNED_RUMOR_LIMIT);
 
   const head = el('div', 'focus-strip-head');
-  head.appendChild(el('h2', 'focus-strip-title', `📌 重点绯闻${targetNames ? ` · ${targetNames}` : ''}`));
-  if (activeTargets.length > 0) {
+  head.appendChild(el('h2', 'focus-strip-title', '📌 重点传闻'));
+
+  const targetTabs = el('div', 'focus-target-tabs');
+  targetTabs.setAttribute('role', 'tablist');
+  targetTabs.setAttribute('aria-label', '选择重点传闻球员');
+  for (const target of targets) {
+    const key = String(target.key);
+    const selected = key === state.focusTargetKey;
+    const targetCount = allPinned.filter((it) => (it.focus || []).includes(target.key)).length;
+    const tab = el('button', `focus-target-tab${selected ? ' active' : ''}`);
+    tab.type = 'button';
+    tab.setAttribute('role', 'tab');
+    tab.setAttribute('aria-selected', String(selected));
+    tab.setAttribute('aria-label', `${focusTargetName(target)}，${targetCount} 条重点传闻`);
+    tab.append(
+      el('span', 'focus-target-name', focusTargetName(target)),
+      el('span', 'focus-target-count', String(targetCount)),
+    );
+    tab.onclick = () => {
+      state.focusTargetKey = key;
+      renderFocusZone();
+    };
+    targetTabs.appendChild(tab);
+  }
+  head.appendChild(targetTabs);
+
+  if (selectedTarget) {
     const followButtons = el('div', 'focus-follow-buttons');
-    for (const target of activeTargets) {
-      const name = focusTargetName(target);
-      const following = state.playerFollows.has(String(target.key));
-      const follow = el('button', `focus-follow${following ? ' on' : ''}`);
-      follow.type = 'button';
-      follow.appendChild(el('span', 'follow-label-full',
-        following ? `🔔 已关注 ${name}` : `＋ 关注 ${name}`));
-      follow.appendChild(el('span', 'follow-label-short', following ? '🔔 关注中' : '＋ 关注'));
-      follow.setAttribute('aria-pressed', String(following));
-      follow.setAttribute('aria-label', following ? `取消关注 ${name}` : `关注 ${name}`);
-      follow.title = following
-        ? `取消关注 ${name}`
-        : `关注 ${name}，出现 T0、报价或官宣时提醒`;
-      follow.onclick = () => { togglePlayerFollow(target); };
-      followButtons.appendChild(follow);
-    }
+    const name = focusTargetName(selectedTarget);
+    const following = state.playerFollows.has(String(selectedTarget.key));
+    const follow = el('button', `focus-follow${following ? ' on' : ''}`);
+    follow.type = 'button';
+    follow.appendChild(el('span', 'follow-label-full',
+      following ? `🔔 已关注 ${name}` : `＋ 关注 ${name}`));
+    follow.appendChild(el('span', 'follow-label-short', following ? '🔔 关注中' : '＋ 关注'));
+    follow.setAttribute('aria-pressed', String(following));
+    follow.setAttribute('aria-label', following ? `取消关注 ${name}` : `关注 ${name}`);
+    follow.title = following
+      ? `取消关注 ${name}`
+      : `关注 ${name}，出现 T0、报价或官宣时提醒`;
+    follow.onclick = () => { togglePlayerFollow(selectedTarget); };
+    followButtons.appendChild(follow);
     head.appendChild(followButtons);
   }
   head.appendChild(el('span', 'focus-strip-total', hiddenCount > 0
     ? `剩余 ${visiblePinned.length} · 隐藏 ${hiddenCount}`
-    : `共 ${allPinned.length} 条`));
+    : `共 ${selectedPinned.length} 条`));
   if (hiddenCount > 0) {
     const restore = el('button', 'focus-strip-restore', '恢复');
     restore.type = 'button';
     restore.title = `恢复已隐藏的 ${hiddenCount} 条专区消息`;
     restore.setAttribute('aria-label', restore.title);
-    restore.onclick = () => restoreHiddenPinned(allPinned);
+    restore.onclick = () => restoreHiddenPinned(selectedPinned);
     head.appendChild(restore);
   }
   const progress = el('span', 'focus-strip-progress', displayed.length ? `1 / ${displayed.length}` : '0 / 0');
@@ -2284,7 +2313,10 @@ function renderFocusZone() {
   zone.appendChild(head);
 
   if (displayed.length === 0) {
-    zone.appendChild(el('div', 'focus-strip-empty', '置顶消息已全部读完并隐藏，可点击上方“恢复”重新查看。'));
+    const message = selectedPinned.length > 0
+      ? '该球员的置顶消息已全部读完并隐藏，可点击上方“恢复”重新查看。'
+      : `${focusTargetName(selectedTarget)}暂时没有新的重点传闻。`;
+    zone.appendChild(el('div', 'focus-strip-empty', message));
     return;
   }
 
@@ -2305,14 +2337,6 @@ function renderFocusZone() {
     hide.onclick = () => hidePinnedItem(it, card);
     cardHead.appendChild(hide);
     card.appendChild(cardHead);
-
-    if (activeTargets.length > 1) {
-      const names = activeTargets
-        .filter((target) => (it.focus || []).includes(target.key))
-        .map((target) => target.name_zh || target.name)
-        .join(' · ');
-      if (names) card.appendChild(el('div', 'pinned-target', `🎯 ${names}`));
-    }
 
     appendPinnedText(card, it);
 

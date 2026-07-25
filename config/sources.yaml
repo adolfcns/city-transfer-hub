@@ -232,6 +232,17 @@ focus_targets:
     aliases:
       - Bouaddi
       - 布阿迪
+  - key: vinicius
+    name: Vinicius Junior
+    name_zh: 维尼修斯
+    desc_zh: 皇家马德里边锋 · 2000年生
+    query: Vinicius Junior transfer
+    aliases:
+      - Vinicius Junior
+      - Vinícius Júnior
+      - Vinicius Jr
+      - Vinícius Jr
+      - 维尼修斯
 
 sources:
   # ---------------- T0 树上等 ----------------
