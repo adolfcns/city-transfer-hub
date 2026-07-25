@@ -16,6 +16,7 @@ test('重点传闻配置同时包含布阿迪和维尼修斯', () => {
 
 test('重点传闻使用球员切换且顶部文案已更新', () => {
   assert.match(app, /focus-target-tabs/);
+  assert.match(app, /featured/);
   assert.match(app, /📌 重点传闻/);
   assert.match(index, /好戏才刚开始，一起关注曼城的转会动态 💙/);
   assert.doesNotMatch(index, /重点绯闻/);

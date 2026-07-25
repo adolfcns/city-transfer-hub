@@ -2262,8 +2262,10 @@ function renderFocusZone() {
     const key = String(target.key);
     const selected = key === state.focusTargetKey;
     const targetCount = allPinned.filter((it) => (it.focus || []).includes(target.key)).length;
-    const tab = el('button', `focus-target-tab${selected ? ' active' : ''}`);
+    const featured = key === 'vinicius';
+    const tab = el('button', `focus-target-tab${selected ? ' active' : ''}${featured ? ' featured' : ''}`);
     tab.type = 'button';
+    tab.dataset.targetKey = key;
     tab.setAttribute('role', 'tab');
     tab.setAttribute('aria-selected', String(selected));
     tab.setAttribute('aria-label', `${focusTargetName(target)}，${targetCount} 条重点传闻`);
