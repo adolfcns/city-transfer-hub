@@ -10,7 +10,7 @@ const workerConfig = fs.readFileSync('cloudflare/wrangler.toml', 'utf8');
 test('Cloudflare 主定时每 15 分钟运行，GitHub 只做每小时兜底', () => {
   assert.match(workerConfig, /crons\s*=\s*\["\*\/15 \* \* \* \*"\]/);
   assert.deepEqual(workflow.on.schedule, [{ cron: '9 * * * *' }]);
-  assert.equal(workflow.concurrency['cancel-in-progress'], true);
+  assert.equal(workflow.concurrency['cancel-in-progress'], false);
 });
 
 test('GitHub 小时任务先检查新鲜度，定时抓取不重复部署互动 Worker', () => {

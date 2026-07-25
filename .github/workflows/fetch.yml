@@ -15,7 +15,7 @@ permissions:
 # 防止重叠运行
 concurrency:
   group: fetch-deploy
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   freshness-check:
