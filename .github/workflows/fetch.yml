@@ -2,7 +2,7 @@ name: fetch-and-deploy
 
 on:
   schedule:
-    - cron: '7,37 * * * *'   # 每 30 分钟（错峰档期）。转会截止日想调密：改成 '3,13,23,33,43,53 * * * *' 即每10分钟
+    - cron: '9 * * * *'       # 每小时检查一次，仅在 Cloudflare 主定时失联时兜底
   workflow_dispatch: {}       # 手动触发按钮
   push:
     branches: [main]
@@ -15,10 +15,52 @@ permissions:
 # 防止重叠运行
 concurrency:
   group: fetch-deploy
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
+  freshness-check:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.decide.outputs.should_run }}
+    steps:
+      - name: Decide whether the hourly backup is needed
+        id: decide
+        env:
+          LIVE_DATA_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data/items.json
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != "schedule" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "Push/manual/Cloudflare dispatch: run normally"
+            exit 0
+          fi
+
+          DECISION="$(node --input-type=module <<'NODE'
+          try {
+            const response = await fetch(`${process.env.LIVE_DATA_URL}?t=${Date.now()}`, {
+              cache: 'no-store',
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            const age = Date.now() - new Date(data.generated_at).getTime();
+            const fresh = Number.isFinite(age) && age >= 0 && age < 25 * 60 * 1000;
+            console.log(fresh ? 'false' : 'true');
+            console.error(`Live data age: ${Number.isFinite(age) ? Math.round(age / 60000) : 'unknown'} minutes`);
+          } catch (error) {
+            console.error(`Freshness check failed: ${error.message}; run the backup`);
+            console.log('true');
+          }
+          NODE
+          )"
+          echo "should_run=$DECISION" >> "$GITHUB_OUTPUT"
+          if [ "$DECISION" = "true" ]; then
+            echo "Cloudflare main schedule looks stale; run the hourly backup"
+          else
+            echo "Cloudflare main schedule is healthy; skip the redundant hourly fetch"
+          fi
+
   fetch-deploy:
+    needs: freshness-check
+    if: ${{ needs.freshness-check.outputs.should_run == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
@@ -125,9 +167,9 @@ jobs:
           printf 'name = "city-transfer-hub"\ncompatibility_date = "2026-07-13"\npages_build_output_dir = "../../site"\n\n[[d1_databases]]\nbinding = "DB"\ndatabase_name = "city-reactions"\ndatabase_id = "%s"\n' "$DB_ID" > "$PAGES_CONFIG_DIR/wrangler.toml"
           (cd "$PAGES_CONFIG_DIR" && npx --yes wrangler@4 pages deploy --branch=main)
 
-      # 仅在代码推送/手动运行时更新 Worker；定时抓取不重复部署
+      # 仅在代码推送时更新 Worker；定时/手动抓取不重复部署
       - name: Deploy Cloudflare Worker
-        if: ${{ github.event_name != 'schedule' && env.CLOUDFLARE_API_TOKEN != '' }}
+        if: ${{ github.event_name == 'push' && env.CLOUDFLARE_API_TOKEN != '' }}
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
@@ -143,7 +185,7 @@ jobs:
           npx --yes wrangler@4 deploy --config "$DEPLOY_CONFIG"
 
       - name: Verify interaction APIs
-        if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
+        if: ${{ github.event_name == 'push' && env.CLOUDFLARE_API_TOKEN != '' }}
         run: |
           node --input-type=module <<'NODE'
           const url = 'https://city-transfer-hub.pages.dev/prayer';
