@@ -2685,7 +2685,9 @@ function renderCountdown() {
   if (!w) { n.textContent = '转会窗已关闭'; return; }
   const days = Math.floor((w.ts - now) / 86400e3);
   const hours = Math.floor(((w.ts - now) % 86400e3) / 3600e3);
-  n.textContent = days > 0 ? `距${w.label}还有 ${days} 天` : `距${w.label}仅剩 ${hours} 小时！`;
+  n.textContent = days > 0
+    ? `留给维亚纳的时间仅剩 ${days} 天`
+    : `留给维亚纳的时间仅剩 ${hours} 小时！`;
 }
 
 // ---------------- 事件绑定 ----------------
