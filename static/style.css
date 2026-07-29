@@ -76,7 +76,27 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   margin: 2px 0 0 54px;
 }
-#window-countdown { color: var(--sky); }
+#window-countdown {
+  color: var(--sky); display: inline-flex; align-items: center; gap: 3px;
+  vertical-align: middle; font-variant-numeric: tabular-nums;
+}
+.countdown-label { margin-right: 2px; white-space: nowrap; }
+.countdown-unit {
+  display: inline-flex; align-items: center; gap: 2px; white-space: nowrap;
+}
+.countdown-value {
+  position: relative; overflow: hidden; min-width: 25px; padding: 0 4px;
+  border: 1px solid rgba(21,95,159,.24); border-radius: 5px;
+  background: linear-gradient(180deg, #6cabdd 0%, #5598d6 49%, #4b8ac8 50%, #6cabdd 100%);
+  box-shadow: 0 2px 6px rgba(21,95,159,.15);
+  color: #fff; font-size: 12px; font-weight: 800; line-height: 19px; text-align: center;
+}
+.countdown-value::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 50%;
+  border-top: 1px solid rgba(10,48,85,.18);
+}
+.countdown-unit small { color: var(--text-dim); font-size: 10px; }
+.brand-sub-separator { margin-inline: 2px; }
 .site-url { color: var(--text-dim); }
 .site-url:hover { color: var(--sky); }
 /* 报头标语：独占一行，永不遮挡 */
@@ -802,6 +822,10 @@ body.comments-open { overflow: hidden; }
   .topbar-right .icon-btn { width: 44px; height: 44px; }
   .updated-at { display: none; }
   .brand-sub { margin-left: 0; white-space: normal; line-height: 1.5; }   /* 手机：副标题整行铺开，可折行完整显示 */
+  #window-countdown { max-width: 100%; gap: 2px; }
+  .countdown-label { font-size: 11px; }
+  .countdown-value { min-width: 23px; padding-inline: 3px; font-size: 11px; line-height: 18px; }
+  .countdown-unit small { font-size: 10px; }
   .brand-slogan { font-size: 12px; }
   .fav-btn { min-height: 40px; padding-inline: 12px; font-size: 12px; }
   .container { width: 100%; overflow: hidden; }

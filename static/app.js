@@ -2683,11 +2683,18 @@ function renderCountdown() {
   const w = WINDOWS.find((x) => x.ts > now);
   const n = $('#window-countdown');
   if (!w) { n.textContent = '转会窗已关闭'; return; }
-  const days = Math.floor((w.ts - now) / 86400e3);
-  const hours = Math.floor(((w.ts - now) % 86400e3) / 3600e3);
-  n.textContent = days > 0
-    ? `留给维亚纳的时间仅剩 ${days} 天`
-    : `留给维亚纳的时间仅剩 ${hours} 小时！`;
+  const totalMs = Math.max(0, w.ts - now);
+  const days = Math.floor(totalMs / 86400e3);
+  const hours = Math.floor((totalMs % 86400e3) / 3600e3);
+  const minutes = Math.floor((totalMs % 3600e3) / 60e3);
+  const seconds = Math.floor((totalMs % 60e3) / 1000);
+  const values = { days: String(days), hours, minutes, seconds };
+  for (const [part, value] of Object.entries(values)) {
+    const node = n.querySelector(`[data-countdown="${part}"]`);
+    if (node) node.textContent = part === 'days' ? value : String(value).padStart(2, '0');
+  }
+  n.setAttribute('aria-label',
+    `留给维亚纳的时间还有 ${days} 天 ${hours} 时 ${minutes} 分 ${seconds} 秒`);
 }
 
 // ---------------- 事件绑定 ----------------
@@ -2781,6 +2788,6 @@ function mockItems() {
 bind();
 loadReactionSnapshot();
 renderCountdown();
-setInterval(renderCountdown, 60e3);
+setInterval(renderCountdown, 1000);
 loadData(false);
 setInterval(() => loadData(true), REFRESH_MS);
