@@ -30,6 +30,9 @@ const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
 const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
 const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
 const SURVEY_PROFILE_KEY = 'cth_survey_profile_v1';
+const SURVEY_INVITE_KEY = 'cth_survey_invite_summer_2026_v1';
+const DESKTOP_SURVEY_MEDIA = '(min-width: 769px)';
+const SURVEY_INVITE_DELAY_MS = 2200;
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
 const REACTION_SNAPSHOT_URL = './data/reactions.json';
 const REACTION_DEFS = Object.freeze([
@@ -2332,6 +2335,35 @@ function appendPinnedText(card, it) {
 }
 
 let activeSurveyId = '';
+let surveyInviteTimer = null;
+let surveyInviteHandled = false;
+
+function acknowledgeSurveyInvite() {
+  surveyInviteHandled = true;
+  clearTimeout(surveyInviteTimer);
+  try { localStorage.setItem(SURVEY_INVITE_KEY, 'seen'); }
+  catch { /* 禁用本机存储时，本次访问内不再重复弹出 */ }
+}
+
+function scheduleDesktopSurveyInvite(delay = SURVEY_INVITE_DELAY_MS) {
+  if (surveyInviteHandled || Date.now() >= SURVEY_DEFINITIONS.summer_2026.closesAt) return;
+  if (!window.matchMedia(DESKTOP_SURVEY_MEDIA).matches) return;
+  try {
+    if (localStorage.getItem(SURVEY_INVITE_KEY) === 'seen') {
+      surveyInviteHandled = true;
+      return;
+    }
+  } catch { /* 本机存储不可用时仍可展示一次 */ }
+  clearTimeout(surveyInviteTimer);
+  surveyInviteTimer = setTimeout(() => {
+    if (document.hidden || document.querySelector('.modal:not([hidden]), .comment-overlay, .survey-overlay')) {
+      scheduleDesktopSurveyInvite(1200);
+      return;
+    }
+    acknowledgeSurveyInvite();
+    openSurvey('summer_2026');
+  }, delay);
+}
 
 function closeSurvey() {
   document.querySelector('.survey-overlay')?.remove();
@@ -2582,6 +2614,7 @@ function renderSurveyResults(context) {
 async function openSurvey(pollId) {
   const definition = SURVEY_DEFINITIONS[pollId];
   if (!definition) return;
+  acknowledgeSurveyInvite();
   closeSurvey();
   activeSurveyId = pollId;
   document.body.classList.add('survey-open');
@@ -3217,4 +3250,5 @@ loadReactionSnapshot();
 renderCountdown();
 setInterval(renderCountdown, 1000);
 loadData(false);
+scheduleDesktopSurveyInvite();
 setInterval(() => loadData(true), REFRESH_MS);

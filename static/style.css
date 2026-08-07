@@ -170,7 +170,7 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 .focus-survey-entries { display: inline-flex; align-items: center; gap: 4px; }
 .survey-entry {
   min-height: 25px; padding: 3px 8px; border: 1px solid var(--line-strong); border-radius: 7px;
-  background: var(--cream); color: var(--burgundy); font-size: 11px; font-weight: 700; line-height: 1.2;
+  background: var(--cream); color: var(--text); font-size: 14px; font-weight: 800; line-height: 1.2;
   white-space: nowrap; touch-action: manipulation;
 }
 .survey-entry:hover { border-color: var(--burgundy); background: var(--cream-deep); }
@@ -949,7 +949,7 @@ body.comments-open { overflow: hidden; }
   .focus-target-tab { min-height: 30px; padding-inline: 7px; font-size: 12px; }
   .focus-target-count { font-size: 10px; }
   .focus-survey-entries { flex: none; }
-  .survey-entry { min-height: 30px; padding-inline: 8px; font-size: 12px; }
+  .survey-entry { min-height: 30px; padding-inline: 8px; font-size: 13px; font-weight: 800; }
   .focus-strip-total, .focus-strip-progress { font-size: 12px; }
   .focus-strip-restore { min-height: 36px; padding-inline: 8px; font-size: 12px; }
   .focus-follow-buttons { gap: 4px; }
