@@ -38,6 +38,7 @@ content_policy:
   exclude_players:
     - Vinicius
     - Vinícius
+    - Vini
     - 维尼修斯
   exclude_history:
     - "#onthisday"

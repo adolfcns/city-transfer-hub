@@ -7,7 +7,7 @@ const matchers = makeMatchers({
   transfer_keywords: ['transfer', 'sign', 'deal', 'bid', 'talks'],
   hot_players: ['Bouaddi'],
   content_policy: {
-    exclude_players: ['Vinicius', 'Vinícius', '维尼修斯'],
+    exclude_players: ['Vinicius', 'Vinícius', 'Vini', '维尼修斯'],
     exclude_history: ['#onthisday', 'on this day', '#otd'],
     exclude_women: ['#mcwfc', 'man city women', "women's super league", 'wsl', '女足'],
     current_men: ['Rodri', 'Erling Haaland', 'Nathan Aké', 'Enzo Maresca'],
@@ -23,6 +23,7 @@ test('全局过滤历史上的今天和女足消息', () => {
 test('全局过滤维尼修斯相关消息', () => {
   assert.equal(passFilter('none', 'Vinicius Junior transfer latest', matchers), false);
   assert.equal(passFilter('none', 'Vinícius Júnior could leave Real Madrid', matchers), false);
+  assert.equal(passFilter('none', 'Roc Nation also represent Viní JR', matchers), false);
   assert.equal(passFilter('none', '维尼修斯转会消息', matchers), false);
   assert.equal(passFilter('none', 'Bouaddi transfer latest', matchers), true);
 });
