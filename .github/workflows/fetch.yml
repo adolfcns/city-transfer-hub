@@ -12,10 +12,10 @@ permissions:
   pages: write
   id-token: write
 
-# 防止重叠运行
+# 防止重叠运行；新任务会清理超过正常时长仍未结束的旧任务，避免整条队列永久堵塞
 concurrency:
   group: fetch-deploy
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   freshness-check:
