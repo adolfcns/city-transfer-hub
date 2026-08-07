@@ -30,8 +30,7 @@ const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
 const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
 const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
 const SURVEY_PROFILE_KEY = 'cth_survey_profile_v1';
-const SURVEY_INVITE_KEY = 'cth_survey_invite_summer_2026_v1';
-const DESKTOP_SURVEY_MEDIA = '(min-width: 769px)';
+const SURVEY_INVITE_KEY = 'cth_survey_invite_summer_2026_daily_v1';
 const SURVEY_INVITE_DELAY_MS = 2200;
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
 const REACTION_SNAPSHOT_URL = './data/reactions.json';
@@ -2104,6 +2103,17 @@ async function fetchJSON(url) {
 }
 
 async function loadData(isRefresh = false) {
+  let freshStatus = null;
+  // 后台数据约 15 分钟才生成一版。普通刷新先读取小状态文件，版本未变就不再下载、解析和重建整份消息。
+  if (isRefresh && state.items.length > 0 && state.status?.updated_at) {
+    try {
+      freshStatus = await fetchJSON(STATUS_URL);
+      if (freshStatus.updated_at && freshStatus.updated_at === state.status.updated_at) {
+        $('#updated-at').textContent = `更新于 ${relTime(state.generatedAt)}`;
+        return;
+      }
+    } catch { /* 状态检查失败时继续读取完整数据，避免漏掉真实更新 */ }
+  }
   let data;
   try {
     data = await fetchJSON(DATA_URL);
@@ -2143,12 +2153,14 @@ async function loadData(isRefresh = false) {
   buildSourceMenu();
   render();
 
-  fetchJSON(STATUS_URL).then((s) => {
+  const applyStatus = (s) => {
     state.status = s;
     buildSourceMenu();
     updateSrcBtn();
     renderStatusDot();
-  }).catch(() => {});
+  };
+  if (freshStatus) applyStatus(freshStatus);
+  else fetchJSON(STATUS_URL).then(applyStatus).catch(() => {});
 }
 
 // ---------------- 筛选 ----------------
@@ -2338,18 +2350,22 @@ let activeSurveyId = '';
 let surveyInviteTimer = null;
 let surveyInviteHandled = false;
 
+function surveyInviteDay() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
 function acknowledgeSurveyInvite() {
   surveyInviteHandled = true;
   clearTimeout(surveyInviteTimer);
-  try { localStorage.setItem(SURVEY_INVITE_KEY, 'seen'); }
+  try { localStorage.setItem(SURVEY_INVITE_KEY, surveyInviteDay()); }
   catch { /* 禁用本机存储时，本次访问内不再重复弹出 */ }
 }
 
-function scheduleDesktopSurveyInvite(delay = SURVEY_INVITE_DELAY_MS) {
+function scheduleDailySurveyInvite(delay = SURVEY_INVITE_DELAY_MS) {
   if (surveyInviteHandled || Date.now() >= SURVEY_DEFINITIONS.summer_2026.closesAt) return;
-  if (!window.matchMedia(DESKTOP_SURVEY_MEDIA).matches) return;
   try {
-    if (localStorage.getItem(SURVEY_INVITE_KEY) === 'seen') {
+    if (localStorage.getItem(SURVEY_INVITE_KEY) === surveyInviteDay()) {
       surveyInviteHandled = true;
       return;
     }
@@ -2357,7 +2373,7 @@ function scheduleDesktopSurveyInvite(delay = SURVEY_INVITE_DELAY_MS) {
   clearTimeout(surveyInviteTimer);
   surveyInviteTimer = setTimeout(() => {
     if (document.hidden || document.querySelector('.modal:not([hidden]), .comment-overlay, .survey-overlay')) {
-      scheduleDesktopSurveyInvite(1200);
+      scheduleDailySurveyInvite(1200);
       return;
     }
     acknowledgeSurveyInvite();
@@ -3250,5 +3266,5 @@ loadReactionSnapshot();
 renderCountdown();
 setInterval(renderCountdown, 1000);
 loadData(false);
-scheduleDesktopSurveyInvite();
+scheduleDailySurveyInvite();
 setInterval(() => loadData(true), REFRESH_MS);

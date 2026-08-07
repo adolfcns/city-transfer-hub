@@ -20,7 +20,7 @@
 # ==============================================================
 
 settings:
-  days_keep: 14 # 页面保留最近 N 天的内容
+  days_keep: 10 # 页面只保留最近 10 天，减少首次加载和刷新体积
   max_items: 2000 # 条目数量上限
   exclude_retweets: true # 过滤纯转推（RT）
   exclude_replies: true # 过滤回复推文

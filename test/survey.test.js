@@ -30,13 +30,15 @@ test('重点传闻旁提供两个紧凑调查入口', () => {
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.survey-entry \{[^}]*font-size: 13px; font-weight: 800/);
 });
 
-test('电脑版首次访问会主动弹出夏窗调查且每台设备只邀请一次', () => {
-  assert.match(app, /cth_survey_invite_summer_2026_v1/);
-  assert.match(app, /DESKTOP_SURVEY_MEDIA = '\(min-width: 769px\)'/);
-  assert.match(app, /localStorage\.setItem\(SURVEY_INVITE_KEY, 'seen'\)/);
+test('手机和电脑每天都会主动邀请一次夏窗调查', () => {
+  assert.match(app, /cth_survey_invite_summer_2026_daily_v1/);
+  assert.doesNotMatch(app, /DESKTOP_SURVEY_MEDIA|matchMedia\(DESKTOP_SURVEY_MEDIA\)/);
+  assert.match(app, /function surveyInviteDay\(\)/);
+  assert.match(app, /localStorage\.setItem\(SURVEY_INVITE_KEY, surveyInviteDay\(\)\)/);
+  assert.match(app, /localStorage\.getItem\(SURVEY_INVITE_KEY\) === surveyInviteDay\(\)/);
   assert.match(app, /document\.querySelector\('\.modal:not\(\[hidden\]\), \.comment-overlay, \.survey-overlay'\)/);
   assert.match(app, /openSurvey\('summer_2026'\)/);
-  assert.match(app, /scheduleDesktopSurveyInvite\(\);/);
+  assert.match(app, /scheduleDailySurveyInvite\(\);/);
 });
 
 test('调查支持匿名修改、公开结果和云端持久化', () => {
