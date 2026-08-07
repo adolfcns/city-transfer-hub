@@ -661,6 +661,24 @@ body.comments-open { overflow: hidden; }
 .modal-steps { font-size: 13px; color: var(--text-dim); margin: 8px 0; }
 .modal-steps summary { cursor: pointer; color: var(--sky); }
 .modal-steps ol { padding-left: 20px; margin: 8px 0; display: flex; flex-direction: column; gap: 4px; }
+.recovery-notice-box { width: min(440px, 100%); }
+.recovery-notice-box .status-head { margin-bottom: 10px; }
+.recovery-notice-box .status-head h2 { font-size: 20px; }
+.recovery-notice-message {
+  margin: 0; color: var(--text); font-size: 15px; line-height: 1.75;
+}
+.recovery-notice-contact {
+  margin: 12px 0 0; padding: 10px 12px; border-radius: 10px;
+  background: rgba(108, 171, 221, .12); color: var(--text-dim); font-size: 13px; line-height: 1.6;
+}
+.recovery-notice-contact a { color: var(--sky); font-weight: 700; overflow-wrap: anywhere; }
+.recovery-notice-actions { display: flex; justify-content: flex-end; margin-top: 16px; }
+.recovery-notice-ok {
+  min-width: 104px; min-height: 44px; padding: 9px 20px;
+  border: 1px solid var(--sky); border-radius: 10px; background: var(--navy); color: #fff;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.recovery-notice-ok:hover { background: var(--sky); color: var(--navy); }
 .pat-row { display: flex; gap: 8px; margin-top: 8px; }
 .pat-row input {
   flex: 1; background: var(--card); border: 1px solid var(--line); color: var(--text);
@@ -945,6 +963,12 @@ body.comments-open { overflow: hidden; }
   .prayer-copy small { display: flex; font-size: 10.5px; }
   .share-save-action { min-height: 44px; }
   .pat-row input { font-size: 16px; }
+  .recovery-notice { padding: 14px; }
+  .recovery-notice-box { padding: 16px; border-radius: 14px; }
+  .recovery-notice-box .status-head h2 { font-size: 18px; }
+  .recovery-notice-message { font-size: 14px; line-height: 1.7; }
+  .recovery-notice-contact { font-size: 12px; }
+  .recovery-notice-ok { width: 100%; }
   .pinned-card, .card, .modal-box {
     -webkit-backdrop-filter: none; backdrop-filter: none;
     background: rgba(255, 255, 255, .92);

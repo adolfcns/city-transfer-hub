@@ -112,6 +112,21 @@
     </span>
   </button>
 
+  <!-- 故障恢复公告：每台设备仅展示一次 -->
+  <div class="modal recovery-notice" id="recovery-notice" role="dialog" aria-modal="true" aria-labelledby="recovery-notice-title" hidden>
+    <div class="modal-box recovery-notice-box">
+      <div class="status-head">
+        <h2 id="recovery-notice-title">💙 网站已恢复更新</h2>
+        <button class="icon-btn" id="recovery-notice-close" type="button" aria-label="关闭公告">✕</button>
+      </div>
+      <p class="recovery-notice-message">昨天网站因网络原因出现短暂更新异常，目前已经修复并恢复正常。请大家及时关注最新消息。</p>
+      <p class="recovery-notice-contact">如有问题，欢迎联系站长：<a href="mailto:shiqie7272@163.com">shiqie7272@163.com</a></p>
+      <div class="recovery-notice-actions">
+        <button class="recovery-notice-ok" id="recovery-notice-ok" type="button">知道了</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 一键抓取设置面板 -->
   <div class="modal" id="trigger-panel" hidden>
     <div class="modal-box">

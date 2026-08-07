@@ -29,6 +29,7 @@ const PRAYER_GOAL_STEP = 500;
 const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
 const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
 const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
+const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
 const REACTION_SNAPSHOT_URL = './data/reactions.json';
 const REACTION_DEFS = Object.freeze([
   // 保留 fire 键以延续已有全站计数，仅更新前台展示语义。
@@ -2590,6 +2591,24 @@ function toast(msg, type = '') {
   toastTimer = setTimeout(() => { t.hidden = true; }, 6000);
 }
 
+function dismissRecoveryNotice() {
+  const notice = $('#recovery-notice');
+  if (!notice) return;
+  notice.hidden = true;
+  try { localStorage.setItem(RECOVERY_NOTICE_KEY, 'dismissed'); }
+  catch { /* 禁用本机存储时，本次访问内仍可关闭 */ }
+}
+
+function showRecoveryNotice() {
+  const notice = $('#recovery-notice');
+  if (!notice) return;
+  try {
+    if (localStorage.getItem(RECOVERY_NOTICE_KEY) === 'dismissed') return;
+  } catch { /* 禁用本机存储时仍展示公告 */ }
+  notice.hidden = false;
+  setTimeout(() => $('#recovery-notice-ok')?.focus(), 0);
+}
+
 async function triggerCloudFetch() {
   const pat = localStorage.getItem('cth_pat');
   if (!pat && !TRIGGER_ENDPOINT) { $('#trigger-panel').hidden = false; return; }
@@ -2709,6 +2728,7 @@ function bind() {
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && document.querySelector('.comment-overlay')) closeComments();
+    if (event.key === 'Escape' && !$('#recovery-notice')?.hidden) dismissRecoveryNotice();
   });
   document.querySelectorAll('#lang-seg button').forEach((button) => {
     button.classList.toggle('active', button.dataset.lang === state.filters.lang);
@@ -2746,6 +2766,11 @@ function bind() {
   };
   $('#btn-trigger-close').onclick = () => { $('#trigger-panel').hidden = true; };
   $('#trigger-panel').addEventListener('click', (e) => { if (e.target === $('#trigger-panel')) $('#trigger-panel').hidden = true; });
+  $('#recovery-notice-close').onclick = dismissRecoveryNotice;
+  $('#recovery-notice-ok').onclick = dismissRecoveryNotice;
+  $('#recovery-notice').addEventListener('click', (event) => {
+    if (event.target === $('#recovery-notice')) dismissRecoveryNotice();
+  });
   $('#pat-save').onclick = savePat;
   $('#btn-status').onclick = openStatus;
   $('#btn-status-close').onclick = closeStatus;
@@ -2765,6 +2790,7 @@ function bind() {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) loadData(true); });
   bindPrayer();
   updateSrcBtn();
+  showRecoveryNotice();
 }
 
 // ---------------- 演示数据（真实数据缺失时兜底） ----------------
