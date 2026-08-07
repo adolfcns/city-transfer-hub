@@ -29,6 +29,7 @@ const PRAYER_GOAL_STEP = 500;
 const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
 const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
 const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
+const SURVEY_PROFILE_KEY = 'cth_survey_profile_v1';
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
 const REACTION_SNAPSHOT_URL = './data/reactions.json';
 const REACTION_DEFS = Object.freeze([
@@ -40,6 +41,89 @@ const REACTION_DEFS = Object.freeze([
   { key: 'doubt', emoji: '🤨', label: '不可能！绝对不可能！' },
 ]);
 const REACTION_KEYS = new Set(REACTION_DEFS.map((item) => item.key));
+const SURVEY_DEFINITIONS = Object.freeze({
+  summer_2026: {
+    entry: '📊 夏窗调查',
+    title: '蓝月夏窗体检',
+    intro: '耽误您 1 分钟，可怜可怜站长吧。您的每一票都会汇总成蓝月球迷夏窗报告，也能帮助本站以后维护得更好 💙',
+    closesAt: WINDOWS[0].ts,
+    questions: [
+      {
+        id: 'score',
+        title: '1. 给曼城目前的夏窗打几分？',
+        hint: '0～2 维亚纳睡着了 · 3～4 赶紧买人 · 5～6 勉强及格 · 7～8 有点东西 · 9～10 维圣封神',
+        type: 'number',
+        options: Array.from({ length: 11 }, (_, value) => ({ value: String(value), label: `${value} 分` })),
+      },
+      { id: 'positions', title: '2. 窗口还剩 XX 天，最亟需补强哪个位置？', hint: '最多选择两个', type: 'multi', max: 2, exclusive: 'none', options: [
+        { value: 'cb', label: '中后卫' }, { value: 'fb', label: '边后卫' }, { value: 'dm', label: '防守型中场' },
+        { value: 'cm', label: '组织型中场' }, { value: 'winger', label: '边锋' }, { value: 'striker', label: '中锋' },
+        { value: 'none', label: '不需要再买' },
+      ] },
+      { id: 'arrivals', title: '3. 你认为关窗前还会来几名新援？', type: 'single', options: [
+        { value: '0', label: '0 人，别等了' }, { value: '1', label: '1 人，至少来一个' },
+        { value: '2', label: '2 人，正常发挥' }, { value: '3plus', label: '3 人以上，买买买' },
+      ] },
+      { id: 'strategy', title: '4. 接下来最应该采用哪种引援策略？', type: 'single', options: [
+        { value: 'ready', label: '直接购买即战力' }, { value: 'youth', label: '押注年轻潜力股' },
+        { value: 'loan', label: '租借过渡' }, { value: 'sell_first', label: '先卖人再买人' },
+        { value: 'no_panic', label: '宁缺毋滥，别恐慌购物' },
+      ] },
+      { id: 'satisfaction', title: '5. 这个夏窗最让你满意的是什么？', type: 'single', options: [
+        { value: 'quality', label: '新援质量' }, { value: 'speed', label: '下手速度' },
+        { value: 'youth', label: '年轻化方向' }, { value: 'sales', label: '清理冗员' },
+        { value: 'spend', label: '控制转会费' }, { value: 'none', label: '暂时没有满意的' },
+      ] },
+      { id: 'unacceptable', title: '6. 你最不能接受哪种关窗结局？', type: 'single', options: [
+        { value: 'gap', label: '关键位置一个没补' }, { value: 'panic', label: '最后一天恐慌购物' },
+        { value: 'overpay', label: '为普通球员严重溢价' }, { value: 'core_exit', label: '核心球员突然离队' },
+        { value: 'empty_rumors', label: '绯闻看了一个月，最后一个没来' }, { value: 'next_window', label: '又开始“下个窗口再说”' },
+      ] },
+      { id: 'confidence', title: '7. 你对维亚纳完成剩余任务有多大信心？', type: 'single', options: [
+        { value: 'none', label: '完全不信' }, { value: 'low', label: '有点悬' }, { value: 'half', label: '五五开' },
+        { value: 'high', label: '比较有信心' }, { value: 'saint', label: '我信维圣' },
+      ] },
+      { id: 'era', title: '8. 你是哪一代蓝月球迷？', hint: '选填，用于比较不同阶段球迷的看法', optional: true, type: 'single', options: [
+        { value: 'sun_jihai', label: '孙继海时期' }, { value: 'takeover', label: '阿布扎比入主后' },
+        { value: 'aguero', label: '93:20 时期' }, { value: 'pep', label: '瓜迪奥拉时期' },
+        { value: 'haaland', label: '哈兰德时期' }, { value: 'new', label: '刚入坑的新蓝月' },
+      ] },
+    ],
+  },
+  site_experience_2026: {
+    entry: '💬 本站体验',
+    title: '站长想听点真话',
+    intro: '再耽误您 1 分钟，告诉我哪里好用、哪里难用。每一票都会影响本站下一步优先改什么，别让站长继续凭感觉瞎改了。',
+    closesAt: null,
+    questions: [
+      { id: 'rating', title: '1. 你给本站整体体验打几分？', type: 'number', options: [1, 2, 3, 4, 5].map((value) => ({ value: String(value), label: `${value} 颗蓝心` })) },
+      { id: 'favorites', title: '2. 你最喜欢哪两个功能？', hint: '最多选择两个', type: 'multi', max: 2, options: [
+        { value: 'chinese', label: '中文聚合' }, { value: 'bilingual', label: '双语对照' }, { value: 'tiers', label: '信源分级' },
+        { value: 'focus', label: '重点传闻' }, { value: 'follow', label: '球员关注' }, { value: 'comments', label: '评论与点赞' },
+        { value: 'reactions', label: '表情投票' }, { value: 'share', label: '分享图片' }, { value: 'filters', label: '搜索和信源筛选' },
+      ] },
+      { id: 'improvements', title: '3. 本站目前最需要改进什么？', hint: '最多选择两个', type: 'multi', max: 2, options: [
+        { value: 'freshness', label: '更新速度' }, { value: 'translation', label: '翻译准确度' }, { value: 'sources', label: '信源丰富度' },
+        { value: 'duplicates', label: '重复消息太多' }, { value: 'mobile_space', label: '手机页面占用空间大' },
+        { value: 'readability', label: '字号与阅读体验' }, { value: 'filters', label: '搜索和筛选' },
+        { value: 'comments', label: '评论互动' }, { value: 'performance', label: '页面加载速度' },
+      ] },
+      { id: 'density', title: '4. 你觉得目前的信息密度怎么样？', type: 'single', options: [
+        { value: 'too_dense', label: '太密了，看着累' }, { value: 'right', label: '刚刚好' },
+        { value: 'more_compact', label: '还可以更紧凑' }, { value: 'too_little', label: '信息太少，希望多一些' },
+      ] },
+      { id: 'next_feature', title: '5. 你最希望下一个增加什么功能？', type: 'single', options: [
+        { value: 'follow_alerts', label: '关注球员并接收提醒' }, { value: 'timeline', label: '转会传闻进度时间线' },
+        { value: 'daily_digest', label: '每日曼城转会摘要' }, { value: 'custom_sources', label: '自定义关注信源' },
+        { value: 'breaking_push', label: '重大消息通知' }, { value: 'more_polls', label: '更多投票和球迷调查' },
+      ] },
+      { id: 'sharing', title: '6. 你愿意把本站分享给其他曼城球迷吗？', type: 'single', options: [
+        { value: 'already', label: '已经分享过' }, { value: 'breaking_only', label: '有重大消息时会分享' },
+        { value: 'better_first', label: '体验再好一点会分享' }, { value: 'not_now', label: '暂时不会' },
+      ] },
+    ],
+  },
+});
 const FEED_BATCH_SIZE = 24;
 const PINNED_RUMOR_LIMIT = 30;
 const SEARCH_DEBOUNCE_MS = 140;
@@ -82,6 +166,8 @@ const state = {
   commentCounts: {},
   commentProfile: loadCommentProfile(),
   commentEndpoint: null,
+  surveyProfile: loadSurveyProfile(),
+  surveyEndpoint: null,
   filters: loadFilters(),
 };
 let feedItems = [];
@@ -173,6 +259,17 @@ function loadCommentProfile() {
 function saveCommentProfile() {
   try { localStorage.setItem(COMMENT_PROFILE_KEY, JSON.stringify(state.commentProfile)); }
   catch { /* 浏览器禁用本机存储时，本次访问内仍可评论 */ }
+}
+
+function loadSurveyProfile() {
+  const empty = { voter: newAnonymousVoterId() };
+  try {
+    const saved = JSON.parse(localStorage.getItem(SURVEY_PROFILE_KEY) || 'null');
+    const voter = /^[A-Za-z0-9_-]{12,80}$/.test(String(saved?.voter || '')) ? String(saved.voter) : empty.voter;
+    const profile = { voter };
+    localStorage.setItem(SURVEY_PROFILE_KEY, JSON.stringify(profile));
+    return profile;
+  } catch { return empty; }
 }
 
 function normalizeNickname(value) {
@@ -2234,6 +2331,294 @@ function appendPinnedText(card, it) {
   }
 }
 
+let activeSurveyId = '';
+
+function closeSurvey() {
+  document.querySelector('.survey-overlay')?.remove();
+  document.body.classList.remove('survey-open');
+  activeSurveyId = '';
+}
+
+function surveyQuestionTitle(definition, question) {
+  if (!question.title.includes('XX') || !definition.closesAt) return question.title;
+  const days = Math.max(0, Math.ceil((definition.closesAt - Date.now()) / 86400e3));
+  return question.title.replace('XX', String(days));
+}
+
+function surveyErrorText(reason) {
+  if (reason === 'missing_answer') return '还有必答题没有选择，请检查后再提交';
+  if (reason === 'bad_answer' || reason === 'bad_answers') return '有一项答案不符合要求，请重新选择';
+  if (reason === 'slow_down') return '操作有点快，请两秒后再试';
+  if (reason === 'ip_limit') return '当前网络已经产生多张选票，暂时不能继续新增；原设备仍可修改自己的选票';
+  if (reason === 'closed') return '夏窗已经关闭，本次调查只保留结果查看';
+  return '调查服务暂时不可用，请稍后再试';
+}
+
+async function surveyApi(pollId, method = 'GET', answers = null) {
+  const endpoints = [...new Set([state.surveyEndpoint, ...SURVEY_ENDPOINTS].filter(Boolean))];
+  let lastError = null;
+  for (const endpoint of endpoints) {
+    try {
+      const url = `${endpoint}?poll=${encodeURIComponent(pollId)}&voter=${encodeURIComponent(state.surveyProfile.voter)}`;
+      const response = await fetch(url, {
+        method,
+        cache: 'no-store',
+        headers: method === 'POST' ? { 'content-type': 'application/json' } : undefined,
+        body: method === 'POST' ? JSON.stringify({ poll: pollId, voter: state.surveyProfile.voter, answers }) : undefined,
+      });
+      const data = await response.json().catch(() => ({}));
+      if (response.ok && data.ok === true) {
+        state.surveyEndpoint = endpoint;
+        return data;
+      }
+      if (response.status < 500 && data.reason) return data;
+      lastError = new Error(data.reason || `HTTP ${response.status}`);
+    } catch (error) { lastError = error; }
+  }
+  throw lastError || new Error('survey_unavailable');
+}
+
+function surveyChoiceName(pollId, questionId) {
+  return `survey_${pollId}_${questionId}`;
+}
+
+function surveyScoreBand(score) {
+  if (score >= 9) return '维圣封神';
+  if (score >= 7) return '有点东西';
+  if (score >= 5) return '勉强及格';
+  if (score >= 3) return '赶紧买人';
+  return '维亚纳睡着了';
+}
+
+function renderSurveyIntro(context) {
+  const { body, definition, data } = context;
+  body.textContent = '';
+  const intro = el('div', 'survey-intro');
+  intro.appendChild(el('div', 'survey-intro-icon', context.pollId === 'summer_2026' ? '📊' : '💬'));
+  intro.appendChild(el('p', 'survey-intro-copy', definition.intro));
+  const meta = el('div', 'survey-meta');
+  const total = Math.max(0, Number(data.results?.total || 0));
+  meta.appendChild(el('span', null, `已有 ${total} 位蓝月球迷参与`));
+  if (data.ballot) {
+    meta.appendChild(el('span', 'survey-voted', `✓ 你已提交${data.ballot.revision_count ? `并修改 ${data.ballot.revision_count} 次` : ''}`));
+  }
+  if (data.closed) meta.appendChild(el('span', 'survey-closed', '调查已截止'));
+  else if (definition.closesAt) meta.appendChild(el('span', null, `可修改至 ${new Date(definition.closesAt).toLocaleString('zh-CN', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`));
+  else meta.appendChild(el('span', null, '提交后仍可随时修改'));
+  intro.appendChild(meta);
+  const actions = el('div', 'survey-intro-actions');
+  const start = el('button', 'survey-primary', data.ballot ? '修改我的答案' : (context.pollId === 'summer_2026' ? '开始给夏窗打分' : '给本站把把脉'));
+  start.type = 'button';
+  start.disabled = Boolean(data.closed);
+  start.onclick = () => renderSurveyForm(context);
+  const results = el('button', 'survey-secondary', '查看实时结果');
+  results.type = 'button';
+  results.onclick = () => renderSurveyResults(context);
+  actions.append(start, results);
+  intro.appendChild(actions);
+  body.appendChild(intro);
+}
+
+function renderSurveyForm(context) {
+  const { body, definition, data, pollId } = context;
+  if (data.closed) { renderSurveyResults(context); return; }
+  body.textContent = '';
+  const toolbar = el('div', 'survey-toolbar');
+  const back = el('button', 'survey-back', '← 返回');
+  back.type = 'button';
+  back.onclick = () => renderSurveyIntro(context);
+  toolbar.appendChild(back);
+  toolbar.appendChild(el('span', 'survey-form-state', data.ballot ? '正在修改原选票，不会重复计票' : '匿名填写 · 无需注册'));
+  body.appendChild(toolbar);
+
+  const form = el('form', 'survey-form');
+  for (const question of definition.questions) {
+    const fieldset = document.createElement('fieldset');
+    fieldset.className = 'survey-question';
+    fieldset.dataset.questionId = question.id;
+    const legend = document.createElement('legend');
+    legend.textContent = surveyQuestionTitle(definition, question);
+    fieldset.appendChild(legend);
+    if (question.hint) fieldset.appendChild(el('p', 'survey-question-hint', question.hint));
+    const options = el('div', `survey-options${question.type === 'number' ? ' score' : ''}`);
+    const saved = data.ballot?.answers?.[question.id];
+    for (const option of question.options) {
+      const label = el('label', 'survey-option');
+      const input = document.createElement('input');
+      input.type = question.type === 'multi' ? 'checkbox' : 'radio';
+      input.name = surveyChoiceName(pollId, question.id);
+      input.value = option.value;
+      input.checked = question.type === 'multi'
+        ? Array.isArray(saved) && saved.map(String).includes(option.value)
+        : saved != null && String(saved) === option.value;
+      const visible = el('span', null, option.label);
+      label.append(input, visible);
+      options.appendChild(label);
+      if (question.type === 'multi') {
+        input.addEventListener('change', () => {
+          const inputs = [...options.querySelectorAll('input')];
+          if (question.exclusive && input.checked && input.value === question.exclusive) {
+            inputs.forEach((candidate) => { if (candidate !== input) candidate.checked = false; });
+          } else if (question.exclusive && input.checked) {
+            const exclusive = inputs.find((candidate) => candidate.value === question.exclusive);
+            if (exclusive) exclusive.checked = false;
+          }
+          const selected = inputs.filter((candidate) => candidate.checked);
+          if (selected.length > question.max) {
+            input.checked = false;
+            toast(`这题最多选择 ${question.max} 项`);
+          }
+        });
+      }
+    }
+    fieldset.appendChild(options);
+    form.appendChild(fieldset);
+  }
+  const status = el('p', 'survey-submit-status');
+  const submit = el('button', 'survey-submit', data.ballot ? '保存修改' : '提交我的选票');
+  submit.type = 'submit';
+  form.append(status, submit);
+  form.onsubmit = async (event) => {
+    event.preventDefault();
+    form.querySelectorAll('.survey-question.error').forEach((node) => node.classList.remove('error'));
+    const answers = {};
+    let firstMissing = null;
+    for (const question of definition.questions) {
+      const selector = `input[name="${surveyChoiceName(pollId, question.id)}"]`;
+      const inputs = [...form.querySelectorAll(selector)];
+      const selected = inputs.filter((input) => input.checked).map((input) => input.value);
+      if (selected.length === 0) {
+        if (!question.optional && !firstMissing) firstMissing = form.querySelector(`[data-question-id="${question.id}"]`);
+        continue;
+      }
+      answers[question.id] = question.type === 'multi'
+        ? selected
+        : question.type === 'number' ? Number(selected[0]) : selected[0];
+    }
+    if (firstMissing) {
+      firstMissing.classList.add('error');
+      firstMissing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      status.textContent = '还有必答题没有选择';
+      return;
+    }
+    submit.disabled = true;
+    status.textContent = data.ballot ? '正在保存修改…' : '正在提交选票…';
+    try {
+      const result = await surveyApi(pollId, 'POST', answers);
+      if (result.ok !== true) {
+        status.textContent = surveyErrorText(result.reason);
+        submit.disabled = false;
+        return;
+      }
+      context.data = result;
+      toast(data.ballot ? '选票已经更新，统计结果同步刷新' : '投票成功，感谢救济站长 💙');
+      renderSurveyResults(context);
+    } catch {
+      status.textContent = surveyErrorText('unavailable');
+      submit.disabled = false;
+    }
+  };
+  body.appendChild(form);
+}
+
+function renderSurveyResults(context) {
+  const { body, definition, data } = context;
+  body.textContent = '';
+  const toolbar = el('div', 'survey-toolbar');
+  const back = el('button', 'survey-back', '← 返回');
+  back.type = 'button';
+  back.onclick = () => renderSurveyIntro(context);
+  toolbar.appendChild(back);
+  if (!data.closed) {
+    const edit = el('button', 'survey-edit', data.ballot ? '修改我的答案' : '我也要投票');
+    edit.type = 'button';
+    edit.onclick = () => renderSurveyForm(context);
+    toolbar.appendChild(edit);
+  }
+  body.appendChild(toolbar);
+  const total = Math.max(0, Number(data.results?.total || 0));
+  const summary = el('div', 'survey-result-summary');
+  summary.appendChild(el('strong', null, `${total} 份有效选票`));
+  summary.appendChild(el('span', null, total ? '实时统计 · 修改答案后会自动重新计算' : '还没有人投票，等你来开第一票'));
+  body.appendChild(summary);
+  if (!total) return;
+
+  for (const question of definition.questions) {
+    const result = data.results?.questions?.[question.id];
+    if (!result) continue;
+    const card = el('section', 'survey-result-card');
+    card.appendChild(el('h3', null, surveyQuestionTitle(definition, question).replace(/^\d+\.\s*/, '')));
+    if (question.type === 'number') {
+      const average = Number(result.average || 0);
+      const max = Math.max(...question.options.map((option) => Number(option.value)));
+      const averageLine = el('div', 'survey-average');
+      averageLine.appendChild(el('strong', null, `${average.toFixed(1)} / ${max}`));
+      if (context.pollId === 'summer_2026') averageLine.appendChild(el('span', null, surveyScoreBand(average)));
+      card.appendChild(averageLine);
+    }
+    const rows = el('div', 'survey-result-rows');
+    const populated = question.options
+      .map((option, order) => ({ ...option, order, count: Math.max(0, Number(result.counts?.[option.value] || 0)) }))
+      .filter((option) => option.count > 0)
+      .sort((a, b) => b.count - a.count || a.order - b.order);
+    for (const option of populated) {
+      const percent = Math.round((option.count / total) * 100);
+      const row = el('div', 'survey-result-row');
+      const label = el('div', 'survey-result-label');
+      label.append(el('span', null, option.label), el('b', null, `${percent}% · ${option.count}票`));
+      const bar = el('div', 'survey-result-bar');
+      const fill = el('span');
+      fill.style.width = `${Math.min(100, percent)}%`;
+      bar.appendChild(fill);
+      row.append(label, bar);
+      rows.appendChild(row);
+    }
+    card.appendChild(rows);
+    if (question.type === 'multi') card.appendChild(el('p', 'survey-result-note', '本题可多选，因此各项比例相加可能超过 100%'));
+    body.appendChild(card);
+  }
+}
+
+async function openSurvey(pollId) {
+  const definition = SURVEY_DEFINITIONS[pollId];
+  if (!definition) return;
+  closeSurvey();
+  activeSurveyId = pollId;
+  document.body.classList.add('survey-open');
+  const overlay = el('div', 'survey-overlay');
+  const sheet = el('section', 'survey-sheet');
+  sheet.setAttribute('role', 'dialog');
+  sheet.setAttribute('aria-modal', 'true');
+  sheet.setAttribute('aria-label', definition.title);
+  const head = el('div', 'survey-head');
+  head.appendChild(el('h2', null, definition.title));
+  const close = el('button', 'survey-close', '×');
+  close.type = 'button';
+  close.setAttribute('aria-label', '关闭调查');
+  close.onclick = closeSurvey;
+  head.appendChild(close);
+  const body = el('div', 'survey-body');
+  body.appendChild(el('div', 'survey-loading', '正在读取你的选票和实时结果…'));
+  sheet.append(head, body);
+  overlay.appendChild(sheet);
+  overlay.onclick = (event) => { if (event.target === overlay) closeSurvey(); };
+  document.body.appendChild(overlay);
+  close.focus();
+  const context = { pollId, definition, body, data: null };
+  try {
+    context.data = await surveyApi(pollId);
+    if (activeSurveyId === pollId) renderSurveyIntro(context);
+  } catch {
+    if (activeSurveyId !== pollId) return;
+    body.textContent = '';
+    body.appendChild(el('p', 'survey-loading error', surveyErrorText('unavailable')));
+    const retry = el('button', 'survey-primary', '重新加载');
+    retry.type = 'button';
+    retry.onclick = () => openSurvey(pollId);
+    body.appendChild(retry);
+  }
+}
+
 function renderFocusZone() {
   const zone = $('#focus-zone');
   const allPinned = pinnedStripItems();
@@ -2256,6 +2641,7 @@ function renderFocusZone() {
   const head = el('div', 'focus-strip-head');
   head.appendChild(el('h2', 'focus-strip-title', '📌 重点传闻'));
 
+  const switchers = el('div', 'focus-switchers');
   const targetTabs = el('div', 'focus-target-tabs');
   targetTabs.setAttribute('role', 'tablist');
   targetTabs.setAttribute('aria-label', '选择重点传闻球员');
@@ -2279,7 +2665,18 @@ function renderFocusZone() {
     };
     targetTabs.appendChild(tab);
   }
-  head.appendChild(targetTabs);
+  switchers.appendChild(targetTabs);
+  const surveyEntries = el('div', 'focus-survey-entries');
+  for (const [pollId, definition] of Object.entries(SURVEY_DEFINITIONS)) {
+    const entry = el('button', 'survey-entry', definition.entry);
+    entry.type = 'button';
+    entry.dataset.pollId = pollId;
+    entry.setAttribute('aria-label', `打开${definition.title}`);
+    entry.onclick = () => openSurvey(pollId);
+    surveyEntries.appendChild(entry);
+  }
+  switchers.appendChild(surveyEntries);
+  head.appendChild(switchers);
 
   if (selectedTarget) {
     const followButtons = el('div', 'focus-follow-buttons');
@@ -2578,6 +2975,10 @@ const COMMENT_ENDPOINTS = [
   'https://city-transfer-hub.pages.dev/comments',
   `${TRIGGER_ENDPOINT}comments`,
 ];
+const SURVEY_ENDPOINTS = [
+  'https://city-transfer-hub.pages.dev/surveys',
+  `${TRIGGER_ENDPOINT}surveys`,
+];
 const TRIGGER_COOLDOWN_MS = 60 * 1000;      // 单设备触发冷却
 const FRESH_ENOUGH_MS = 3 * 60 * 1000;      // 数据足够新就不重复抓
 let toastTimer = null;
@@ -2727,6 +3128,7 @@ function bind() {
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && document.querySelector('.comment-overlay')) closeComments();
+    if (event.key === 'Escape' && document.querySelector('.survey-overlay')) closeSurvey();
     if (event.key === 'Escape' && !$('#recovery-notice')?.hidden) dismissRecoveryNotice();
   });
   document.querySelectorAll('#lang-seg button').forEach((button) => {

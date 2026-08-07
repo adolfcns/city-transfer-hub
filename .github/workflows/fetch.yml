@@ -178,6 +178,7 @@ jobs:
           const reactionsUrl = 'https://city-transfer-hub.pages.dev/reactions?ids=api_smoke_read';
           const commentsUrl = 'https://city-transfer-hub.pages.dev/comments?ids=api_smoke_read';
           const commentDetailUrl = 'https://city-transfer-hub.pages.dev/comments?item=api_smoke_read&voter=api_smoke_voter_2026';
+          const surveyUrl = 'https://city-transfer-hub.pages.dev/surveys?poll=summer_2026&voter=api_smoke_voter_2026';
           const origin = 'https://adolfcns.github.io';
           for (let attempt = 1; attempt <= 10; attempt += 1) {
             try {
@@ -195,6 +196,9 @@ jobs:
               const commentDetailResponse = await fetch(commentDetailUrl, { headers: { Origin: origin } });
               const commentDetailBody = await commentDetailResponse.json();
               const commentDetailCors = commentDetailResponse.headers.get('access-control-allow-origin');
+              const surveyResponse = await fetch(surveyUrl, { headers: { Origin: origin } });
+              const surveyBody = await surveyResponse.json();
+              const surveyCors = surveyResponse.headers.get('access-control-allow-origin');
               const reactionsReady = reactionsResponse.ok && reactionsBody.ok === true
                 && reactionsBody.counts && reactionsBody.counts.api_smoke_read
                 && reactionsCors === origin;
@@ -204,8 +208,11 @@ jobs:
                 && commentDetailResponse.ok && commentDetailBody.ok === true
                 && Array.isArray(commentDetailBody.comments) && Number.isInteger(commentDetailBody.count)
                 && commentDetailCors === origin;
-              if (response.ok && body.ok === true && Number.isInteger(body.count) && cors === origin && reactionsReady && commentsReady) {
-                console.log(`Direct interactions ready: prayer=${body.count}, reactions=ok, comments=ok`);
+              const surveyReady = surveyResponse.ok && surveyBody.ok === true
+                && surveyBody.poll === 'summer_2026' && Number.isInteger(surveyBody.results?.total)
+                && surveyBody.results?.questions?.score?.counts && surveyCors === origin;
+              if (response.ok && body.ok === true && Number.isInteger(body.count) && cors === origin && reactionsReady && commentsReady && surveyReady) {
+                console.log(`Direct interactions ready: prayer=${body.count}, reactions=ok, comments=ok, surveys=ok`);
                 process.exit(0);
               }
               console.log(`Attempt ${attempt}: HTTP ${response.status}, CORS ${cors}`, body);

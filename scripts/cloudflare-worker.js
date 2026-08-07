@@ -31,6 +31,34 @@ const COMMENT_RATE_SECONDS = 30;
 const COMMENT_IP_RATE_SECONDS = 3;
 const NICKNAME_CHANGE_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_COMMENT_IDS = 48;
+const SURVEY_RATE_SECONDS = 2;
+const SURVEY_IP_DEVICE_LIMIT = 3;
+const SURVEY_RULES = Object.freeze({
+  summer_2026: {
+    closes_at: Date.parse('2026-09-01T17:00:00Z'),
+    questions: {
+      score: { type: 'number', min: 0, max: 10 },
+      positions: { type: 'multi', max: 2, options: ['cb', 'fb', 'dm', 'cm', 'winger', 'striker', 'none'], exclusive: 'none' },
+      arrivals: { type: 'single', options: ['0', '1', '2', '3plus'] },
+      strategy: { type: 'single', options: ['ready', 'youth', 'loan', 'sell_first', 'no_panic'] },
+      satisfaction: { type: 'single', options: ['quality', 'speed', 'youth', 'sales', 'spend', 'none'] },
+      unacceptable: { type: 'single', options: ['gap', 'panic', 'overpay', 'core_exit', 'empty_rumors', 'next_window'] },
+      confidence: { type: 'single', options: ['none', 'low', 'half', 'high', 'saint'] },
+      era: { type: 'single', optional: true, options: ['sun_jihai', 'takeover', 'aguero', 'pep', 'haaland', 'new'] },
+    },
+  },
+  site_experience_2026: {
+    closes_at: null,
+    questions: {
+      rating: { type: 'number', min: 1, max: 5 },
+      favorites: { type: 'multi', max: 2, options: ['chinese', 'bilingual', 'tiers', 'focus', 'follow', 'comments', 'reactions', 'share', 'filters'] },
+      improvements: { type: 'multi', max: 2, options: ['freshness', 'translation', 'sources', 'duplicates', 'mobile_space', 'readability', 'filters', 'comments', 'performance'] },
+      density: { type: 'single', options: ['too_dense', 'right', 'more_compact', 'too_little'] },
+      next_feature: { type: 'single', options: ['follow_alerts', 'timeline', 'daily_digest', 'custom_sources', 'breaking_push', 'more_polls'] },
+      sharing: { type: 'single', options: ['already', 'breaking_only', 'better_first', 'not_now'] },
+    },
+  },
+});
 const NICKNAME_BLOCKED_TERMS = [
   '站长', '管理员', '官方', '客服', '系统', '小编',
   '总书记', '国家主席', '主席', '总理', '总统', '首相', '议员', '部长', '市长', '省长', '州长',
@@ -98,6 +126,19 @@ async function ensureSchema(env) {
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_comments_item_created ON comments(item_id, created_at DESC)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_comment_reports_comment ON comment_reports(comment_id)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_comment_likes_comment ON comment_likes(comment_id)'),
+    env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS survey_ballots (' +
+        'poll_id TEXT NOT NULL, voter_id TEXT NOT NULL, answers TEXT NOT NULL, ' +
+        'created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL, revision_count INTEGER NOT NULL DEFAULT 0, ' +
+        'PRIMARY KEY (poll_id, voter_id))',
+    ),
+    env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS survey_ip_claims (' +
+        'poll_id TEXT NOT NULL, ip_hash TEXT NOT NULL, voter_id TEXT NOT NULL, created_at INTEGER NOT NULL, ' +
+        'PRIMARY KEY (poll_id, ip_hash, voter_id))',
+    ),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_survey_ballots_poll ON survey_ballots(poll_id)'),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_survey_ip_claims_poll_ip ON survey_ip_claims(poll_id, ip_hash)'),
   ]);
   // 兼容已经在线运行的旧评论表：保留全部评论，只补充一级回复关系。
   let commentColumns = await env.DB.prepare('PRAGMA table_info(comments)').all();
@@ -383,6 +424,163 @@ async function reportComment(env, commentId, reporterId) {
   return { ok: true, hidden: Number(updated?.hidden || 0) === 1, report_count: Number(updated?.report_count || 0) };
 }
 
+function surveyRule(pollId) {
+  return Object.prototype.hasOwnProperty.call(SURVEY_RULES, pollId) ? SURVEY_RULES[pollId] : null;
+}
+
+function validateSurveyAnswers(pollId, value) {
+  const poll = surveyRule(pollId);
+  if (!poll || !value || typeof value !== 'object' || Array.isArray(value)) {
+    return { ok: false, reason: 'bad_answers' };
+  }
+  const answers = {};
+  for (const [questionId, rule] of Object.entries(poll.questions)) {
+    const raw = value[questionId];
+    if (raw == null || raw === '') {
+      if (rule.optional) continue;
+      return { ok: false, reason: 'missing_answer', question: questionId };
+    }
+    if (rule.type === 'number') {
+      const number = Number(raw);
+      if (!Number.isInteger(number) || number < rule.min || number > rule.max) {
+        return { ok: false, reason: 'bad_answer', question: questionId };
+      }
+      answers[questionId] = number;
+      continue;
+    }
+    if (rule.type === 'single') {
+      const option = String(raw);
+      if (!rule.options.includes(option)) return { ok: false, reason: 'bad_answer', question: questionId };
+      answers[questionId] = option;
+      continue;
+    }
+    if (rule.type === 'multi') {
+      const options = [...new Set(Array.isArray(raw) ? raw.map(String) : [])];
+      if (options.length === 0 || options.length > rule.max || options.some((option) => !rule.options.includes(option))) {
+        return { ok: false, reason: 'bad_answer', question: questionId };
+      }
+      if (rule.exclusive && options.includes(rule.exclusive) && options.length > 1) {
+        return { ok: false, reason: 'bad_answer', question: questionId };
+      }
+      answers[questionId] = options;
+    }
+  }
+  return { ok: true, answers };
+}
+
+async function surveyIpHash(env, request, pollId) {
+  const key = 'survey_ip_salt_v1';
+  let row = await env.DB.prepare('SELECT value FROM interaction_meta WHERE key = ?').bind(key).first();
+  if (!row) {
+    const salt = crypto.randomUUID().replace(/-/g, '');
+    await env.DB.prepare('INSERT OR IGNORE INTO interaction_meta (key, value) VALUES (?, ?)').bind(key, salt).run();
+    row = await env.DB.prepare('SELECT value FROM interaction_meta WHERE key = ?').bind(key).first();
+  }
+  const ip = request.headers.get('CF-Connecting-IP') || 'anonymous';
+  const bytes = new TextEncoder().encode(`${String(row?.value || '')}|${pollId}|${ip}`);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function readSurveyBallot(env, pollId, voterId) {
+  await ensureSchema(env);
+  if (!VOTER_ID_RE.test(voterId)) return null;
+  const row = await env.DB.prepare(
+    'SELECT answers, created_at, updated_at, revision_count FROM survey_ballots WHERE poll_id = ? AND voter_id = ?',
+  ).bind(pollId, voterId).first();
+  if (!row) return null;
+  try {
+    return {
+      answers: JSON.parse(String(row.answers || '{}')),
+      created_at: Number(row.created_at || 0),
+      updated_at: Number(row.updated_at || 0),
+      revision_count: Math.max(0, Number(row.revision_count || 0)),
+    };
+  } catch { return null; }
+}
+
+async function readSurveyResults(env, pollId) {
+  await ensureSchema(env);
+  const poll = surveyRule(pollId);
+  const rows = await env.DB.prepare(
+    'SELECT answers, updated_at FROM survey_ballots WHERE poll_id = ? ORDER BY updated_at DESC',
+  ).bind(pollId).all();
+  const questions = {};
+  for (const [questionId, rule] of Object.entries(poll.questions)) {
+    const optionKeys = rule.type === 'number'
+      ? Array.from({ length: rule.max - rule.min + 1 }, (_, index) => String(rule.min + index))
+      : rule.options;
+    questions[questionId] = { counts: Object.fromEntries(optionKeys.map((key) => [key, 0])) };
+    if (rule.type === 'number') questions[questionId].average = 0;
+  }
+  let total = 0;
+  let updatedAt = 0;
+  const sums = {};
+  for (const row of rows.results || []) {
+    let answers;
+    try { answers = JSON.parse(String(row.answers || '{}')); } catch { continue; }
+    total += 1;
+    updatedAt = Math.max(updatedAt, Number(row.updated_at || 0));
+    for (const [questionId, rule] of Object.entries(poll.questions)) {
+      const value = answers[questionId];
+      if (value == null) continue;
+      if (rule.type === 'multi') {
+        for (const option of Array.isArray(value) ? value : []) {
+          if (Object.prototype.hasOwnProperty.call(questions[questionId].counts, option)) {
+            questions[questionId].counts[option] += 1;
+          }
+        }
+      } else {
+        const key = String(value);
+        if (Object.prototype.hasOwnProperty.call(questions[questionId].counts, key)) {
+          questions[questionId].counts[key] += 1;
+          if (rule.type === 'number') sums[questionId] = Number(sums[questionId] || 0) + Number(value);
+        }
+      }
+    }
+  }
+  for (const [questionId, rule] of Object.entries(poll.questions)) {
+    if (rule.type === 'number') {
+      questions[questionId].average = total > 0 ? Math.round((Number(sums[questionId] || 0) / total) * 100) / 100 : 0;
+    }
+  }
+  return { total, updated_at: updatedAt, questions };
+}
+
+async function saveSurveyBallot(env, request, pollId, voterId, answers) {
+  await ensureSchema(env);
+  const existing = await env.DB.prepare(
+    'SELECT 1 AS yes FROM survey_ballots WHERE poll_id = ? AND voter_id = ?',
+  ).bind(pollId, voterId).first();
+  if (!existing) {
+    const ipHash = await surveyIpHash(env, request, pollId);
+    const claim = await env.DB.prepare(
+      'SELECT 1 AS yes FROM survey_ip_claims WHERE poll_id = ? AND ip_hash = ? AND voter_id = ?',
+    ).bind(pollId, ipHash, voterId).first();
+    if (!claim) {
+      await env.DB.prepare(
+        'INSERT OR IGNORE INTO survey_ip_claims (poll_id, ip_hash, voter_id, created_at) VALUES (?, ?, ?, ?)',
+      ).bind(pollId, ipHash, voterId, Date.now()).run();
+      const count = await env.DB.prepare(
+        'SELECT COUNT(*) AS n FROM survey_ip_claims WHERE poll_id = ? AND ip_hash = ?',
+      ).bind(pollId, ipHash).first();
+      if (Number(count?.n || 0) > SURVEY_IP_DEVICE_LIMIT) {
+        await env.DB.prepare(
+          'DELETE FROM survey_ip_claims WHERE poll_id = ? AND ip_hash = ? AND voter_id = ?',
+        ).bind(pollId, ipHash, voterId).run();
+        return { ok: false, reason: 'ip_limit' };
+      }
+    }
+  }
+  const now = Date.now();
+  await env.DB.prepare(
+    'INSERT INTO survey_ballots (poll_id, voter_id, answers, created_at, updated_at, revision_count) ' +
+      'VALUES (?, ?, ?, ?, ?, 0) ON CONFLICT(poll_id, voter_id) DO UPDATE SET ' +
+      'answers = excluded.answers, updated_at = excluded.updated_at, revision_count = survey_ballots.revision_count + 1',
+  ).bind(pollId, voterId, JSON.stringify(answers), now, now).run();
+  return { ok: true };
+}
+
 // 用服务端令牌触发 GitHub 抓取任务
 async function triggerGitHub(env) {
   return fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
@@ -412,6 +610,71 @@ export default {
     };
     if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
     const path = new URL(request.url).pathname;
+
+    if (path === '/surveys') {
+      if (!originAllowed) {
+        return new Response(JSON.stringify({ ok: false, reason: 'origin' }), { status: 403, headers: cors });
+      }
+      if (!env.DB) {
+        return new Response(JSON.stringify({ ok: false, reason: 'no_db' }), { status: 503, headers: cors });
+      }
+      try {
+        const url = new URL(request.url);
+        const pollId = String(url.searchParams.get('poll') || '');
+        const poll = surveyRule(pollId);
+        if (!poll) return new Response(JSON.stringify({ ok: false, reason: 'bad_poll' }), { status: 400, headers: cors });
+        const closed = Number.isFinite(poll.closes_at) && Date.now() >= poll.closes_at;
+        if (request.method === 'GET') {
+          const voterId = String(url.searchParams.get('voter') || '');
+          return new Response(JSON.stringify({
+            ok: true,
+            poll: pollId,
+            closes_at: poll.closes_at,
+            closed,
+            ballot: await readSurveyBallot(env, pollId, voterId),
+            results: await readSurveyResults(env, pollId),
+          }), { headers: cors });
+        }
+        if (request.method === 'POST') {
+          if (closed) return new Response(JSON.stringify({ ok: false, reason: 'closed', closed: true }), { status: 409, headers: cors });
+          const body = await request.json().catch(() => ({}));
+          const voterId = String(body.voter || '');
+          if (!VOTER_ID_RE.test(voterId) || String(body.poll || '') !== pollId) {
+            return new Response(JSON.stringify({ ok: false, reason: 'bad_request' }), { status: 400, headers: cors });
+          }
+          const checked = validateSurveyAnswers(pollId, body.answers);
+          if (!checked.ok) return new Response(JSON.stringify(checked), { status: 400, headers: cors });
+          const cache = caches.default;
+          const ipHash = await surveyIpHash(env, request, pollId);
+          const ipGate = new Request(`https://survey-ip-limit.internal/${pollId}/${ipHash}`);
+          const voterGate = new Request(`https://survey-voter-limit.internal/${pollId}/${voterId}`);
+          if (await cache.match(ipGate) || await cache.match(voterGate)) {
+            return new Response(JSON.stringify({ ok: false, reason: 'slow_down' }), {
+              status: 429, headers: { ...cors, 'retry-after': String(SURVEY_RATE_SECONDS) },
+            });
+          }
+          const saved = await saveSurveyBallot(env, request, pollId, voterId, checked.answers);
+          if (!saved.ok) {
+            return new Response(JSON.stringify(saved), { status: saved.reason === 'ip_limit' ? 429 : 400, headers: cors });
+          }
+          await Promise.all([
+            cache.put(ipGate, new Response('1', { headers: { 'cache-control': `max-age=${SURVEY_RATE_SECONDS}` } })),
+            cache.put(voterGate, new Response('1', { headers: { 'cache-control': `max-age=${SURVEY_RATE_SECONDS}` } })),
+          ]);
+          return new Response(JSON.stringify({
+            ok: true,
+            poll: pollId,
+            closes_at: poll.closes_at,
+            closed: false,
+            ballot: await readSurveyBallot(env, pollId, voterId),
+            results: await readSurveyResults(env, pollId),
+          }), { headers: cors });
+        }
+        return new Response(JSON.stringify({ ok: false, reason: 'method' }), { status: 405, headers: cors });
+      } catch {
+        return new Response(JSON.stringify({ ok: false, reason: 'db_error' }), { status: 503, headers: cors });
+      }
+    }
 
     // —— 全站木鱼：GET 读取总数，POST 原子 +1 ——
     if (path === '/prayer') {
