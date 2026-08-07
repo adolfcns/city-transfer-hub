@@ -7,6 +7,7 @@ const matchers = makeMatchers({
   transfer_keywords: ['transfer', 'sign', 'deal', 'bid', 'talks'],
   hot_players: ['Bouaddi'],
   content_policy: {
+    exclude_players: ['Vinicius', 'Vinícius', '维尼修斯'],
     exclude_history: ['#onthisday', 'on this day', '#otd'],
     exclude_women: ['#mcwfc', 'man city women', "women's super league", 'wsl', '女足'],
     current_men: ['Rodri', 'Erling Haaland', 'Nathan Aké', 'Enzo Maresca'],
@@ -17,6 +18,13 @@ test('全局过滤历史上的今天和女足消息', () => {
   assert.equal(passFilter('none', '#OnThisDay: Kolarov left #ManCity in 2017', matchers), false);
   assert.equal(passFilter('none', 'Man City Women announce a new WSL signing', matchers), false);
   assert.equal(passFilter('none', '曼城女足公布新赛季赛程', matchers), false);
+});
+
+test('全局过滤维尼修斯相关消息', () => {
+  assert.equal(passFilter('none', 'Vinicius Junior transfer latest', matchers), false);
+  assert.equal(passFilter('none', 'Vinícius Júnior could leave Real Madrid', matchers), false);
+  assert.equal(passFilter('none', '维尼修斯转会消息', matchers), false);
+  assert.equal(passFilter('none', 'Bouaddi transfer latest', matchers), true);
 });
 
 test('City Xtra 模式保留现役男足和转会消息', () => {

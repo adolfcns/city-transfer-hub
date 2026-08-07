@@ -35,6 +35,10 @@ settings:
 
 # 页面内容策略：全局剔除历史回顾和女足；City Xtra 另限制为现役男足或转会内容。
 content_policy:
+  exclude_players:
+    - Vinicius
+    - Vinícius
+    - 维尼修斯
   exclude_history:
     - "#onthisday"
     - "#on_this_day"
@@ -232,17 +236,6 @@ focus_targets:
     aliases:
       - Bouaddi
       - 布阿迪
-  - key: vinicius
-    name: Vinicius Junior
-    name_zh: 维尼修斯
-    desc_zh: 皇家马德里边锋 · 2000年生
-    query: Vinicius Junior transfer
-    aliases:
-      - Vinicius Junior
-      - Vinícius Júnior
-      - Vinicius Jr
-      - Vinícius Jr
-      - 维尼修斯
 
 sources:
   # ---------------- T0 树上等 ----------------

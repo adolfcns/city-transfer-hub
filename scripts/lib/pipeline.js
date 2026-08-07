@@ -13,6 +13,7 @@ export function makeMatchers(cfg) {
   const hotPlayers = (cfg.hot_players || []).map(normalize);
   const transferWords = (cfg.transfer_keywords || []).map(normalize);
   const currentMen = (contentPolicy.current_men || []).map(normalize);
+  const excludedPlayers = (contentPolicy.exclude_players || []).map(normalize);
   const historyWords = (contentPolicy.exclude_history || []).map(normalize);
   const womenWords = (contentPolicy.exclude_women || []).map(normalize);
   const escapeRegExp = (text) => text.replace(/[.*+?^$()|[\]\\{}]/g, '\\$&');
@@ -37,6 +38,7 @@ export function makeMatchers(cfg) {
   const isCurrentMan = (text) => currentMen.some((w) => containsKeyword(text, w))
     || hotPlayers.some((w) => containsKeyword(text, w));
   const exclusionReason = (text) => {
+    if (excludedPlayers.some((w) => containsKeyword(text, w))) return 'player';
     if (historyWords.some((w) => containsKeyword(text, w))) return 'history';
     if (womenWords.some((w) => containsKeyword(text, w))) return 'women';
     return null;
