@@ -22,6 +22,9 @@
 settings:
   days_keep: 10 # 页面只保留最近 10 天，减少首次加载和刷新体积
   max_items: 2000 # 条目数量上限
+  initial_items: 100 # 首次只下发最新 100 条
+  initial_focus_items: 30 # 重点传闻最多预载 30 条，保证专区完整
+  archive_chunk_size: 100 # 更早消息按 100 条拆包，滚动或搜索时再加载
   exclude_retweets: true # 过滤纯转推（RT）
   exclude_replies: true # 过滤回复推文
   twitter_every_run_tiers: # 这些等级的 X 信源每轮全部抓取，顺序即优先级

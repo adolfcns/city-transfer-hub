@@ -2,7 +2,8 @@
 'use strict';
 
 // ---------------- 配置 ----------------
-const DATA_URL = './data/items.json';
+const DATA_URL = './data/items-latest.json';
+const DATA_FALLBACK_URL = './data/items.json';
 const STATUS_URL = './data/status.json';
 const REFRESH_MS = 90 * 1000;
 // 转会窗关闭时间（到点自动切到下一个）
@@ -128,6 +129,8 @@ const SURVEY_DEFINITIONS = Object.freeze({
 });
 const FEED_BATCH_SIZE = 24;
 const PINNED_RUMOR_LIMIT = 30;
+const PINNED_INITIAL_SIZE = 6;
+const PINNED_BATCH_SIZE = 6;
 const SEARCH_DEBOUNCE_MS = 140;
 const NICKNAME_CHANGE_MS = 7 * 24 * 60 * 60 * 1000;
 const NICKNAME_BLOCKED_TERMS = [
@@ -150,6 +153,10 @@ const NICKNAME_BLOCKED_TERMS = [
 // ---------------- 状态 ----------------
 const state = {
   items: [],
+  totalItems: 0,
+  archiveFiles: [],
+  loadedArchiveFiles: new Set(),
+  archiveLoading: false,
   generatedAt: null,
   twitterEnabled: null,
   isDemo: false,
@@ -179,6 +186,8 @@ let feedObserver = null;
 let feedAppending = false;
 let feedGeneration = 0;
 let searchRenderTimer = null;
+let engagementObserver = null;
+const engagementItems = new WeakMap();
 const reactionLiveLoaded = new Set();
 const reactionReadQueue = new Set();
 const reactionInFlight = new Set();
@@ -1220,8 +1229,9 @@ function refreshLibraryUi(it, changedState) {
 function updateLibraryBar() {
   const currentIds = new Set(state.items.map(itemId));
   const favoriteCount = [...state.library.favorites].filter((id) => currentIds.has(id)).length;
-  const unreadCount = state.items.reduce((n, it) => n + (state.library.read.has(itemId(it)) ? 0 : 1), 0);
-  $('#count-all').textContent = String(state.items.length);
+  const unloadedCount = Math.max(0, state.totalItems - state.items.length);
+  const unreadCount = state.items.reduce((n, it) => n + (state.library.read.has(itemId(it)) ? 0 : 1), unloadedCount);
+  $('#count-all').textContent = String(Math.max(state.totalItems, state.items.length));
   $('#count-unread').textContent = String(unreadCount);
   $('#count-favorites').textContent = String(favoriteCount);
   document.querySelectorAll('[data-library-view]').forEach((button) => {
@@ -1464,6 +1474,12 @@ async function loadReactionSnapshot() {
   } catch { /* 同站快照失败时仍显示本地 0，不阻塞页面 */ }
 }
 
+function scheduleDeferredReactionSnapshot() {
+  const run = () => loadReactionSnapshot();
+  if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 4000 });
+  else setTimeout(run, 1800);
+}
+
 function queueReactionCounts(items) {
   for (const it of items || []) {
     const id = itemId(it);
@@ -1649,6 +1665,44 @@ function queueCommentCounts(items) {
   }
   if (commentReadTimer || commentReadQueue.size === 0) return;
   commentReadTimer = setTimeout(flushCommentCountQueue, 0);
+}
+
+function ensureEngagementObserver() {
+  if (engagementObserver || !('IntersectionObserver' in window)) return engagementObserver;
+  engagementObserver = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      const item = engagementItems.get(entry.target);
+      engagementObserver.unobserve(entry.target);
+      entry.target.removeAttribute('data-engagement-pending');
+      if (!item) continue;
+      queueReactionCounts([item]);
+      queueCommentCounts([item]);
+    }
+  }, { rootMargin: '320px 0px' });
+  return engagementObserver;
+}
+
+function observeEngagement(card, item) {
+  const observer = ensureEngagementObserver();
+  if (!observer) {
+    setTimeout(() => {
+      queueReactionCounts([item]);
+      queueCommentCounts([item]);
+    }, 300);
+    return;
+  }
+  engagementItems.set(card, item);
+  card.dataset.engagementPending = '1';
+  observer.observe(card);
+}
+
+function clearEngagementWatchers(container) {
+  if (!engagementObserver || !container) return;
+  container.querySelectorAll('[data-engagement-pending]').forEach((node) => {
+    engagementObserver.unobserve(node);
+    node.removeAttribute('data-engagement-pending');
+  });
 }
 
 async function flushCommentCountQueue() {
@@ -2102,6 +2156,57 @@ async function fetchJSON(url) {
   return res.json();
 }
 
+async function fetchInitialData() {
+  try { return await fetchJSON(DATA_URL); }
+  catch { return fetchJSON(DATA_FALLBACK_URL); }
+}
+
+function archiveUrl(file) {
+  return `./data/${encodeURIComponent(String(file || ''))}`;
+}
+
+function hasMoreArchives() {
+  return state.archiveFiles.some((file) => !state.loadedArchiveFiles.has(file));
+}
+
+function mergeArchiveItems(items) {
+  const byId = new Map(state.items.map((item) => [itemId(item), item]));
+  for (const item of items || []) {
+    if (!item?.id || byId.has(itemId(item))) continue;
+    byId.set(itemId(item), item);
+    state.seenIds.add(itemId(item));
+  }
+  state.items = [...byId.values()].sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at));
+  updateLibraryBar();
+}
+
+async function loadNextArchive({ render = true } = {}) {
+  if (state.archiveLoading) return false;
+  const file = state.archiveFiles.find((candidate) => !state.loadedArchiveFiles.has(candidate));
+  if (!file) return false;
+  state.archiveLoading = true;
+  try {
+    const payload = await fetchJSON(archiveUrl(file));
+    state.loadedArchiveFiles.add(file);
+    mergeArchiveItems(payload.items || []);
+    if (render) extendFeedAfterArchive();
+    return true;
+  } catch {
+    toast('更早消息暂时加载失败，请稍后再试', 'err');
+    return false;
+  } finally { state.archiveLoading = false; }
+}
+
+async function loadAllArchives() {
+  let loaded = false;
+  while (hasMoreArchives()) {
+    const ok = await loadNextArchive({ render: false });
+    if (!ok) break;
+    loaded = true;
+  }
+  return loaded;
+}
+
 async function loadData(isRefresh = false) {
   let freshStatus = null;
   // 后台数据约 15 分钟才生成一版。普通刷新先读取小状态文件，版本未变就不再下载、解析和重建整份消息。
@@ -2116,7 +2221,7 @@ async function loadData(isRefresh = false) {
   }
   let data;
   try {
-    data = await fetchJSON(DATA_URL);
+    data = await fetchInitialData();
     state.isDemo = false;
   } catch {
     // 拉取失败：已有真实数据就保持现状、静默等下一轮。
@@ -2141,6 +2246,12 @@ async function loadData(isRefresh = false) {
   for (const it of incomingItems) state.seenIds.add(it.id);
 
   state.items = incomingItems;
+  state.totalItems = Math.max(incomingItems.length, Number(data.total_items || incomingItems.length));
+  state.archiveFiles = Array.isArray(data.archive_files)
+    ? data.archive_files.filter((file) => /^items-archive-\d+\.json$/.test(String(file)))
+    : [];
+  state.loadedArchiveFiles = new Set();
+  state.archiveLoading = false;
   if (isRefresh) reactionLiveLoaded.clear();
   state.generatedAt = data.generated_at;
   state.twitterEnabled = data.twitter_enabled;
@@ -2152,6 +2263,15 @@ async function loadData(isRefresh = false) {
 
   buildSourceMenu();
   render();
+
+  const sharedId = requestedMessageId();
+  if (sharedId && !state.items.some((item) => itemId(item) === sharedId) && hasMoreArchives()) {
+    loadAllArchives().then((loaded) => {
+      if (!loaded || !state.items.some((item) => itemId(item) === sharedId)) return;
+      prepareRequestedMessageView();
+      render();
+    });
+  }
 
   const applyStatus = (s) => {
     state.status = s;
@@ -2220,12 +2340,9 @@ function renderFeed() {
   stopFeedObserver();
   feedGeneration++;
   const feed = $('#feed');
+  clearEngagementWatchers(feed);
   feed.textContent = '';
-  const pinned = pinnedStripItems();
-  const pinnedIds = shouldShowPinnedStrip(pinned)
-    ? new Set(pinned.slice(0, PINNED_RUMOR_LIMIT).map(itemId))
-    : null;
-  feedItems = state.items.filter(passFilter).filter((it) => !pinnedIds?.has(itemId(it)));
+  feedItems = currentFilteredFeedItems();
   const sharedId = requestedMessageId();
   const sharedIndex = sharedId ? feedItems.findIndex((it) => itemId(it) === sharedId) : -1;
   if (sharedIndex > 0) feedItems.unshift(...feedItems.splice(sharedIndex, 1));
@@ -2243,9 +2360,62 @@ function renderFeed() {
         ? '当前没有未读消息'
         : '没有符合筛选条件的消息';
     feed.appendChild(el('div', 'empty', emptyText));
+    if (hasMoreArchives()) appendArchiveControl();
     return;
   }
   appendNextFeedBatch();
+}
+
+function currentFilteredFeedItems() {
+  const pinned = pinnedStripItems();
+  const pinnedIds = shouldShowPinnedStrip(pinned)
+    ? new Set(pinned.slice(0, PINNED_RUMOR_LIMIT).map(itemId))
+    : null;
+  return state.items.filter(passFilter).filter((it) => !pinnedIds?.has(itemId(it)));
+}
+
+function appendArchiveControl() {
+  const feed = $('#feed');
+  $('#feed-more')?.remove();
+  $('#feed-end')?.remove();
+  const more = el('button', 'feed-more', `继续加载更早消息 · 已载入 ${state.items.length}/${state.totalItems}`);
+  more.id = 'feed-more';
+  more.type = 'button';
+  more.onclick = async () => {
+    if (state.archiveLoading) return;
+    more.disabled = true;
+    more.textContent = '正在加载更早消息…';
+    const loaded = await loadNextArchive();
+    if (!loaded && more.isConnected) {
+      more.disabled = false;
+      more.textContent = '重新加载更早消息';
+    }
+  };
+  feed.appendChild(more);
+  if ('IntersectionObserver' in window) {
+    const generation = feedGeneration;
+    feedObserver = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      stopFeedObserver();
+      if (generation === feedGeneration) more.click();
+    }, { rootMargin: '500px 0px' });
+    feedObserver.observe(more);
+  }
+}
+
+function extendFeedAfterArchive() {
+  const previousCursor = feedCursor;
+  const previousLength = feedItems.length;
+  feedItems = currentFilteredFeedItems();
+  $('#feed').dataset.total = String(feedItems.length);
+  if (feedItems.length > 0) $('#feed .empty')?.remove();
+  if (previousCursor <= previousLength && feedItems.length >= previousCursor) {
+    feedCursor = previousCursor;
+    appendNextFeedBatch();
+    if (feedCursor >= feedItems.length && hasMoreArchives()) appendArchiveControl();
+    return;
+  }
+  renderFeed();
 }
 
 function appendNextFeedBatch() {
@@ -2258,7 +2428,6 @@ function appendNextFeedBatch() {
   const feed = $('#feed');
   const fragment = document.createDocumentFragment();
   const end = Math.min(feedCursor + FEED_BATCH_SIZE, feedItems.length);
-  const batchItems = feedItems.slice(feedCursor, end);
   for (let i = feedCursor; i < end; i++) {
     const it = feedItems[i];
     const dk = dayKey(it.published_at);
@@ -2271,11 +2440,13 @@ function appendNextFeedBatch() {
   feedCursor = end;
   feed.dataset.rendered = String(feedCursor);
   feed.appendChild(fragment);
-  queueReactionCounts(batchItems);
-  queueCommentCounts(batchItems);
   feedAppending = false;
 
   if (feedCursor >= feedItems.length) {
+    if (hasMoreArchives()) {
+      appendArchiveControl();
+      return;
+    }
     if (feedItems.length > FEED_BATCH_SIZE) {
       const endNote = el('div', 'feed-end', `已加载全部 ${feedItems.length} 条`);
       endNote.id = 'feed-end';
@@ -2304,8 +2475,14 @@ function appendNextFeedBatch() {
 
 function scheduleSearchRender() {
   clearTimeout(searchRenderTimer);
-  searchRenderTimer = setTimeout(() => {
+  searchRenderTimer = setTimeout(async () => {
     searchRenderTimer = null;
+    const query = state.filters.search;
+    if (query && hasMoreArchives()) await loadAllArchives();
+    if (query !== state.filters.search) {
+      scheduleSearchRender();
+      return;
+    }
     renderFocusZone();
     renderFeed();
   }, SEARCH_DEBOUNCE_MS);
@@ -2441,12 +2618,15 @@ function surveyScoreBand(score) {
 function renderSurveyIntro(context) {
   const { body, definition, data } = context;
   body.textContent = '';
+  body.dataset.surveyView = 'intro';
   const intro = el('div', 'survey-intro');
   intro.appendChild(el('div', 'survey-intro-icon', context.pollId === 'summer_2026' ? '📊' : '💬'));
   intro.appendChild(el('p', 'survey-intro-copy', definition.intro));
   const meta = el('div', 'survey-meta');
   const total = Math.max(0, Number(data.results?.total || 0));
-  meta.appendChild(el('span', null, `已有 ${total} 位蓝月球迷参与`));
+  meta.appendChild(el('span', null, data.loading
+    ? '正在后台同步实时票数…'
+    : data.loadError ? '实时票数暂时无法同步' : `已有 ${total} 位蓝月球迷参与`));
   if (data.ballot) {
     meta.appendChild(el('span', 'survey-voted', `✓ 你已提交${data.ballot.revision_count ? `并修改 ${data.ballot.revision_count} 次` : ''}`));
   }
@@ -2455,9 +2635,11 @@ function renderSurveyIntro(context) {
   else meta.appendChild(el('span', null, '提交后仍可随时修改'));
   intro.appendChild(meta);
   const actions = el('div', 'survey-intro-actions');
-  const start = el('button', 'survey-primary', data.ballot ? '修改我的答案' : (context.pollId === 'summer_2026' ? '开始给夏窗打分' : '给本站把把脉'));
+  const start = el('button', 'survey-primary', data.loading
+    ? '正在准备问卷…'
+    : data.ballot ? '修改我的答案' : (context.pollId === 'summer_2026' ? '开始给夏窗打分' : '给本站把把脉'));
   start.type = 'button';
-  start.disabled = Boolean(data.closed);
+  start.disabled = Boolean(data.closed || data.loading);
   start.onclick = () => renderSurveyForm(context);
   const results = el('button', 'survey-secondary', '查看实时结果');
   results.type = 'button';
@@ -2471,6 +2653,7 @@ function renderSurveyForm(context) {
   const { body, definition, data, pollId } = context;
   if (data.closed) { renderSurveyResults(context); return; }
   body.textContent = '';
+  body.dataset.surveyView = 'form';
   const toolbar = el('div', 'survey-toolbar');
   const back = el('button', 'survey-back', '← 返回');
   back.type = 'button';
@@ -2572,6 +2755,7 @@ function renderSurveyForm(context) {
 function renderSurveyResults(context) {
   const { body, definition, data } = context;
   body.textContent = '';
+  body.dataset.surveyView = 'results';
   const toolbar = el('div', 'survey-toolbar');
   const back = el('button', 'survey-back', '← 返回');
   back.type = 'button';
@@ -2584,6 +2768,14 @@ function renderSurveyResults(context) {
     toolbar.appendChild(edit);
   }
   body.appendChild(toolbar);
+  if (data.loading) {
+    body.appendChild(el('p', 'survey-loading', '正在后台同步实时结果…'));
+    return;
+  }
+  if (data.loadError) {
+    body.appendChild(el('p', 'survey-loading error', surveyErrorText('unavailable')));
+    return;
+  }
   const total = Math.max(0, Number(data.results?.total || 0));
   const summary = el('div', 'survey-result-summary');
   summary.appendChild(el('strong', null, `${total} 份有效选票`));
@@ -2647,30 +2839,80 @@ async function openSurvey(pollId) {
   close.onclick = closeSurvey;
   head.appendChild(close);
   const body = el('div', 'survey-body');
-  body.appendChild(el('div', 'survey-loading', '正在读取你的选票和实时结果…'));
   sheet.append(head, body);
   overlay.appendChild(sheet);
   overlay.onclick = (event) => { if (event.target === overlay) closeSurvey(); };
   document.body.appendChild(overlay);
   close.focus();
-  const context = { pollId, definition, body, data: null };
+  const context = {
+    pollId,
+    definition,
+    body,
+    data: {
+      ok: true,
+      closed: Boolean(definition.closesAt && Date.now() >= definition.closesAt),
+      ballot: null,
+      results: { total: 0, questions: {} },
+      loading: true,
+    },
+  };
+  renderSurveyIntro(context);
   try {
     context.data = await surveyApi(pollId);
-    if (activeSurveyId === pollId) renderSurveyIntro(context);
+    if (activeSurveyId !== pollId) return;
+    if (body.dataset.surveyView === 'results') renderSurveyResults(context);
+    else if (body.dataset.surveyView === 'intro') renderSurveyIntro(context);
   } catch {
     if (activeSurveyId !== pollId) return;
-    body.textContent = '';
-    body.appendChild(el('p', 'survey-loading error', surveyErrorText('unavailable')));
-    const retry = el('button', 'survey-primary', '重新加载');
-    retry.type = 'button';
-    retry.onclick = () => openSurvey(pollId);
-    body.appendChild(retry);
+    context.data = { ...context.data, loading: false, loadError: true };
+    if (body.dataset.surveyView === 'results') renderSurveyResults(context);
+    else if (body.dataset.surveyView === 'intro') renderSurveyIntro(context);
   }
+}
+
+function renderPinnedCard(it) {
+  const card = el('article', `pinned-card ${TIER_CLASS[it.tier] || 't2'}`);
+  card.dataset.itemId = itemId(it);
+  if (state.library.read.has(itemId(it))) card.classList.add('is-read');
+
+  const cardHead = el('div', 'pinned-head');
+  cardHead.appendChild(el('span', `badge-tier ${TIER_CLASS[it.tier] || 't2'}`, it.tier));
+  cardHead.appendChild(el('span', 'pinned-source', it.source_name_zh || it.source_name));
+  cardHead.appendChild(el('span', 'pinned-time', relTime(it.published_at)));
+  const hide = el('button', 'pinned-hide', '✓ 隐藏');
+  hide.type = 'button';
+  hide.title = '标记已读并从置顶专区隐藏';
+  hide.setAttribute('aria-label', hide.title);
+  hide.onclick = () => hidePinnedItem(it, card);
+  cardHead.appendChild(hide);
+  card.appendChild(cardHead);
+
+  appendPinnedText(card, it);
+
+  const badges = (it.badges || []).filter((badge) => BADGE_ZH[badge]).slice(0, 2);
+  if (badges.length) {
+    const badgeRow = el('div', 'pinned-badges');
+    badges.forEach((badge) => badgeRow.appendChild(el('span', `ev-badge${badge === 'HERE_WE_GO' ? ' gold' : ''}`, BADGE_ZH[badge])));
+    card.appendChild(badgeRow);
+  }
+
+  const link = el('a', 'pinned-link', it.kind === 'tweet' ? '查看原推 ↗' : '阅读原文 ↗');
+  link.href = it.url;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.onclick = () => { markRead(it); };
+  const pinnedActions = el('div', 'pinned-actions');
+  pinnedActions.append(link, buildCommentButton(it, true), buildCopyLinkButton(it), buildSaveImageButton(it), buildDongqiudiImageButton(it));
+  card.appendChild(pinnedActions);
+  card.appendChild(buildReactionBar(it, true, 'pinned'));
+  observeEngagement(card, it);
+  return card;
 }
 
 function renderFocusZone() {
   const zone = $('#focus-zone');
   const allPinned = pinnedStripItems();
+  clearEngagementWatchers(zone);
   zone.textContent = '';
   zone.hidden = !shouldShowPinnedStrip(allPinned);
   if (zone.hidden) return;
@@ -2685,7 +2927,7 @@ function renderFocusZone() {
   const selectedPinned = allPinned.filter((it) => (it.focus || []).includes(selectedTarget.key));
   const visiblePinned = selectedPinned.filter((it) => !state.library.hiddenPinned.has(itemId(it)));
   const hiddenCount = selectedPinned.length - visiblePinned.length;
-  const displayed = visiblePinned.slice(0, PINNED_RUMOR_LIMIT);
+  const available = visiblePinned.slice(0, PINNED_RUMOR_LIMIT);
 
   const head = el('div', 'focus-strip-head');
   head.appendChild(el('h2', 'focus-strip-title', '📌 重点传闻'));
@@ -2756,11 +2998,11 @@ function renderFocusZone() {
     restore.onclick = () => restoreHiddenPinned(selectedPinned);
     head.appendChild(restore);
   }
-  const progress = el('span', 'focus-strip-progress', displayed.length ? `1 / ${displayed.length}` : '0 / 0');
+  const progress = el('span', 'focus-strip-progress', available.length ? `1 / ${available.length}` : '0 / 0');
   head.appendChild(progress);
   zone.appendChild(head);
 
-  if (displayed.length === 0) {
+  if (available.length === 0) {
     const message = selectedPinned.length > 0
       ? '该球员的置顶消息已全部读完并隐藏，可点击上方“恢复”重新查看。'
       : `${focusTargetName(selectedTarget)}暂时没有新的重点传闻。`;
@@ -2769,43 +3011,16 @@ function renderFocusZone() {
   }
 
   const track = el('div', 'focus-track');
-  for (const it of displayed) {
-    const card = el('article', `pinned-card ${TIER_CLASS[it.tier] || 't2'}`);
-    card.dataset.itemId = itemId(it);
-    if (state.library.read.has(itemId(it))) card.classList.add('is-read');
-
-    const cardHead = el('div', 'pinned-head');
-    cardHead.appendChild(el('span', `badge-tier ${TIER_CLASS[it.tier] || 't2'}`, it.tier));
-    cardHead.appendChild(el('span', 'pinned-source', it.source_name_zh || it.source_name));
-    cardHead.appendChild(el('span', 'pinned-time', relTime(it.published_at)));
-    const hide = el('button', 'pinned-hide', '✓ 隐藏');
-    hide.type = 'button';
-    hide.title = '标记已读并从置顶专区隐藏';
-    hide.setAttribute('aria-label', hide.title);
-    hide.onclick = () => hidePinnedItem(it, card);
-    cardHead.appendChild(hide);
-    card.appendChild(cardHead);
-
-    appendPinnedText(card, it);
-
-    const badges = (it.badges || []).filter((badge) => BADGE_ZH[badge]).slice(0, 2);
-    if (badges.length) {
-      const badgeRow = el('div', 'pinned-badges');
-      badges.forEach((badge) => badgeRow.appendChild(el('span', `ev-badge${badge === 'HERE_WE_GO' ? ' gold' : ''}`, BADGE_ZH[badge])));
-      card.appendChild(badgeRow);
-    }
-
-    const link = el('a', 'pinned-link', it.kind === 'tweet' ? '查看原推 ↗' : '阅读原文 ↗');
-    link.href = it.url;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.onclick = () => { markRead(it); };
-    const pinnedActions = el('div', 'pinned-actions');
-    pinnedActions.append(link, buildCommentButton(it, true), buildCopyLinkButton(it), buildSaveImageButton(it), buildDongqiudiImageButton(it));
-    card.appendChild(pinnedActions);
-    card.appendChild(buildReactionBar(it, true, 'pinned'));
-    track.appendChild(card);
-  }
+  let renderedCount = 0;
+  const appendPinnedBatch = () => {
+    const end = Math.min(renderedCount + PINNED_BATCH_SIZE, available.length);
+    const fragment = document.createDocumentFragment();
+    for (let i = renderedCount; i < end; i++) fragment.appendChild(renderPinnedCard(available[i]));
+    renderedCount = end;
+    track.appendChild(fragment);
+  };
+  const initialCount = Math.min(PINNED_INITIAL_SIZE, available.length);
+  while (renderedCount < initialCount) appendPinnedBatch();
 
   let frame = 0;
   track.addEventListener('scroll', () => {
@@ -2813,14 +3028,14 @@ function renderFocusZone() {
     frame = requestAnimationFrame(() => {
       const first = track.querySelector('.pinned-card');
       const step = first ? first.getBoundingClientRect().width + 9 : track.clientWidth;
-      const current = Math.min(displayed.length, Math.max(1, Math.round(track.scrollLeft / step) + 1));
-      progress.textContent = `${current} / ${displayed.length}`;
+      const current = Math.min(available.length, Math.max(1, Math.round(track.scrollLeft / step) + 1));
+      progress.textContent = `${current} / ${available.length}`;
+      const nearEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - Math.max(track.clientWidth, step * 2);
+      if (nearEnd && renderedCount < available.length) appendPinnedBatch();
     });
   }, { passive: true });
 
   zone.appendChild(track);
-  queueReactionCounts(displayed);
-  queueCommentCounts(displayed);
 }
 
 function renderCard(it) {
@@ -2923,6 +3138,7 @@ function renderCard(it) {
     card.appendChild(foot);
   }
   card.appendChild(buildReactionBar(it));
+  observeEngagement(card, it);
   return card;
 }
 
@@ -3195,7 +3411,15 @@ function bind() {
       render();
     };
   });
-  $('#mark-all-read').onclick = () => {
+  $('#mark-all-read').onclick = async () => {
+    const button = $('#mark-all-read');
+    button.disabled = true;
+    if (hasMoreArchives()) await loadAllArchives();
+    if (hasMoreArchives()) {
+      button.disabled = false;
+      toast('更早消息尚未加载完成，请稍后再试', 'err');
+      return;
+    }
     for (const it of state.items) state.library.read.add(itemId(it));
     saveLibrary();
     updateLibraryBar();
@@ -3262,9 +3486,10 @@ function mockItems() {
 
 // ---------------- 启动 ----------------
 bind();
-loadReactionSnapshot();
 renderCountdown();
 setInterval(renderCountdown, 1000);
-loadData(false);
-scheduleDailySurveyInvite();
+loadData(false).finally(() => {
+  scheduleDeferredReactionSnapshot();
+  scheduleDailySurveyInvite();
+});
 setInterval(() => loadData(true), REFRESH_MS);

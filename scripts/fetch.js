@@ -16,6 +16,7 @@ import { htmlToText } from './lib/rss.js';
 import { makeMatchers, passFilter, detectBadges, makeId, mergeItems } from './lib/pipeline.js';
 import { selectTwitterSources, runAdaptiveTwitterSchedule } from './lib/schedule.js';
 import { translateNew } from './lib/translate.js';
+import { buildPagedData } from './lib/paged-data.js';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const DATA_DIR = resolve(ROOT, 'data');
@@ -265,16 +266,22 @@ async function main() {
   statusList.sort((a, b) => (a.tier > b.tier ? 1 : a.tier < b.tier ? -1 : a.key.localeCompare(b.key)));
 
   await mkdir(DATA_DIR, { recursive: true });
-  await writeFile(
-    resolve(DATA_DIR, 'items.json'),
-    JSON.stringify({
-      generated_at: new Date().toISOString(),
-      twitter_enabled: Boolean(rsshubUrl),
-      focus_targets: focusTargets.map(({ key, name, name_zh, desc_zh }) => ({ key, name, name_zh, desc_zh })),
-      sources: sources.map(({ key, name, name_zh, tier, type }) => ({ key, name, name_zh, tier, type })),
-      items: finalItems,
-    }),
-  );
+  const metadata = {
+    generated_at: new Date().toISOString(),
+    twitter_enabled: Boolean(rsshubUrl),
+    focus_targets: focusTargets.map(({ key, name, name_zh, desc_zh }) => ({ key, name, name_zh, desc_zh })),
+    sources: sources.map(({ key, name, name_zh, tier, type }) => ({ key, name, name_zh, tier, type })),
+  };
+  const paged = buildPagedData(finalItems, metadata, {
+    latestCount: settings.initial_items,
+    focusCount: settings.initial_focus_items,
+    archiveSize: settings.archive_chunk_size,
+  });
+  await writeFile(resolve(DATA_DIR, 'items.json'), JSON.stringify({ ...metadata, items: finalItems }));
+  await writeFile(resolve(DATA_DIR, 'items-latest.json'), JSON.stringify(paged.latest));
+  for (const archive of paged.archives) {
+    await writeFile(resolve(DATA_DIR, archive.file), JSON.stringify(archive.payload));
+  }
   await writeFile(
     resolve(DATA_DIR, 'status.json'),
     JSON.stringify({ updated_at: new Date().toISOString(), sources: statusList }),
