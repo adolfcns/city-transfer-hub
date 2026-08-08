@@ -12,8 +12,13 @@ const workflow = fs.readFileSync('.github/workflows/fetch.yml', 'utf8');
 test('夏窗调查使用确认后的问题和文案', () => {
   assert.match(app, /维圣封神/);
   assert.match(app, /我信维圣/);
+  assert.match(app, /花 30 秒投一票，看看你的引援观点是不是蓝月主流/);
+  assert.match(app, /primaryLabel: '投票并看结果'/);
+  assert.match(app, /已有 \$\{total\} 位蓝月球迷参与，看看你是不是少数派/);
+  assert.match(app, /投票结果有变化，回来看看风向/);
   assert.match(app, /窗口还剩 XX 天，最亟需补强哪个位置/);
   assert.doesNotMatch(app, /维亚纳封神/);
+  assert.doesNotMatch(app, /耽误您 1 分钟|再耽误您 1 分钟/);
   assert.doesNotMatch(app, /只能再签一个人/);
   assert.doesNotMatch(app, /精神状态/);
   const positionsBlock = app.match(/id: 'positions'[\s\S]*?id: 'arrivals'/)?.[0] || '';
@@ -42,7 +47,11 @@ test('手机和电脑每天都会主动邀请一次夏窗调查', () => {
 });
 
 test('调查支持匿名修改、公开结果和云端持久化', () => {
-  assert.match(app, /查看实时结果/);
+  assert.match(app, /这网站下一步先改什么？你说了算/);
+  assert.match(app, /加载速度、翻译、排版还是新功能？花 30 秒给站长指条路，票数最高的问题优先优化/);
+  assert.match(app, /primaryLabel: '我要提意见'/);
+  assert.match(app, /resultsLabel: '查看大家的选择'/);
+  assert.match(app, /查看最新结果/);
   assert.match(app, /修改我的答案/);
   assert.match(app, /cth_survey_profile_v1/);
   for (const worker of [pagesWorker, triggerWorker]) {

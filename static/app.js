@@ -48,7 +48,10 @@ const SURVEY_DEFINITIONS = Object.freeze({
   summer_2026: {
     entry: '📊 夏窗调查',
     title: '蓝月夏窗体检',
-    intro: '耽误您 1 分钟，可怜可怜站长吧。您的每一票都会汇总成蓝月球迷夏窗报告，也能帮助本站以后维护得更好 💙',
+    intro: '花 30 秒投一票，看看你的引援观点是不是蓝月主流。',
+    returningIntro: '投票结果有变化，回来看看风向？',
+    primaryLabel: '投票并看结果',
+    resultsLabel: '看看大家怎么选',
     closesAt: WINDOWS[0].ts,
     questions: [
       {
@@ -95,8 +98,11 @@ const SURVEY_DEFINITIONS = Object.freeze({
   },
   site_experience_2026: {
     entry: '💬 本站体验',
-    title: '站长想听点真话',
-    intro: '再耽误您 1 分钟，告诉我哪里好用、哪里难用。每一票都会影响本站下一步优先改什么，别让站长继续凭感觉瞎改了。',
+    title: '这网站下一步先改什么？你说了算',
+    intro: '加载速度、翻译、排版还是新功能？花 30 秒给站长指条路，票数最高的问题优先优化。',
+    returningIntro: '投票结果有变化，回来看看风向？',
+    primaryLabel: '我要提意见',
+    resultsLabel: '查看大家的选择',
     closesAt: null,
     questions: [
       { id: 'rating', title: '1. 你给本站整体体验打几分？', type: 'number', options: [1, 2, 3, 4, 5].map((value) => ({ value: String(value), label: `${value} 颗蓝心` })) },
@@ -2621,12 +2627,20 @@ function renderSurveyIntro(context) {
   body.dataset.surveyView = 'intro';
   const intro = el('div', 'survey-intro');
   intro.appendChild(el('div', 'survey-intro-icon', context.pollId === 'summer_2026' ? '📊' : '💬'));
-  intro.appendChild(el('p', 'survey-intro-copy', definition.intro));
+  intro.appendChild(el('p', 'survey-intro-copy', data.ballot && definition.returningIntro
+    ? definition.returningIntro
+    : definition.intro));
   const meta = el('div', 'survey-meta');
   const total = Math.max(0, Number(data.results?.total || 0));
   meta.appendChild(el('span', null, data.loading
     ? '正在后台同步实时票数…'
-    : data.loadError ? '实时票数暂时无法同步' : `已有 ${total} 位蓝月球迷参与`));
+    : data.loadError
+      ? '实时票数暂时无法同步'
+      : data.ballot
+        ? `${total} 位蓝月球迷的最新选择已汇总`
+        : total > 0
+          ? `已有 ${total} 位蓝月球迷参与，看看你是不是少数派？`
+          : '等你投下第一票，看看之后谁和你站一边？'));
   if (data.ballot) {
     meta.appendChild(el('span', 'survey-voted', `✓ 你已提交${data.ballot.revision_count ? `并修改 ${data.ballot.revision_count} 次` : ''}`));
   }
@@ -2637,14 +2651,15 @@ function renderSurveyIntro(context) {
   const actions = el('div', 'survey-intro-actions');
   const start = el('button', 'survey-primary', data.loading
     ? '正在准备问卷…'
-    : data.ballot ? '修改我的答案' : (context.pollId === 'summer_2026' ? '开始给夏窗打分' : '给本站把把脉'));
+    : data.ballot ? '查看最新结果' : definition.primaryLabel);
   start.type = 'button';
-  start.disabled = Boolean(data.closed || data.loading);
-  start.onclick = () => renderSurveyForm(context);
-  const results = el('button', 'survey-secondary', '查看实时结果');
+  start.disabled = Boolean(data.loading || (!data.ballot && data.closed));
+  start.onclick = () => data.ballot ? renderSurveyResults(context) : renderSurveyForm(context);
+  const results = el('button', 'survey-secondary', data.ballot ? '修改我的投票' : definition.resultsLabel);
   results.type = 'button';
-  results.onclick = () => renderSurveyResults(context);
-  actions.append(start, results);
+  results.onclick = () => data.ballot ? renderSurveyForm(context) : renderSurveyResults(context);
+  actions.appendChild(start);
+  if (!data.ballot || !data.closed) actions.appendChild(results);
   intro.appendChild(actions);
   body.appendChild(intro);
 }
