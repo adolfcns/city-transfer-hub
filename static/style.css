@@ -275,6 +275,68 @@ body.survey-open { overflow: hidden; }
 .survey-result-bar { height: 7px; overflow: hidden; border-radius: 999px; background: rgba(148,175,195,.22); }
 .survey-result-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--sky), var(--t1)); }
 .survey-result-note { margin: 9px 0 0; color: var(--text-dim); font-size: 10px; }
+.survey-share {
+  min-height: 34px; padding: 5px 11px; border: 1px solid var(--t1); border-radius: 8px;
+  background: linear-gradient(135deg, var(--t1), #287fb4); color: #fff; font-size: 11px; font-weight: 800;
+  box-shadow: 0 5px 14px rgba(21,95,159,.16);
+}
+.survey-share:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.summer-survey-results { background: linear-gradient(180deg, rgba(232,247,255,.46), rgba(255,255,255,0) 340px); }
+.summer-survey-results .survey-result-summary {
+  border-color: rgba(108,171,221,.48); background: linear-gradient(110deg, rgba(108,171,221,.18), rgba(255,250,240,.74));
+}
+.summer-survey-overview {
+  margin-bottom: 10px; display: grid; grid-template-columns: minmax(0,.88fr) minmax(0,1.12fr); gap: 10px;
+}
+.summer-score-panel, .summer-position-panel {
+  min-width: 0; padding: 16px; border: 1px solid rgba(108,171,221,.38); border-radius: 14px;
+  box-shadow: 0 9px 24px rgba(11,47,80,.08);
+}
+.summer-score-panel {
+  display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto 1fr; align-items: center; gap: 6px 12px;
+  background: linear-gradient(145deg, #092843, #10517a); color: #fff;
+}
+.summer-position-panel { background: linear-gradient(145deg, #fafdff, #e9f6fd); }
+.summer-overview-kicker { color: #88d2f6; font-size: 11px; font-weight: 800; letter-spacing: .04em; }
+.summer-position-panel .summer-overview-kicker { color: var(--t1); }
+.summer-score-dial {
+  --score-angle: 0deg; position: relative; grid-row: 1 / span 2; grid-column: 2; width: 112px; height: 112px;
+  display: grid; place-items: center; border-radius: 50%; background: conic-gradient(#70c4ee var(--score-angle), rgba(255,255,255,.14) 0);
+}
+.summer-score-dial::before { content: ""; position: absolute; inset: 10px; border-radius: 50%; background: #0b3557; }
+.summer-score-dial-value { position: relative; z-index: 1; display: grid; justify-items: center; line-height: 1; }
+.summer-score-dial-value strong { color: #fff; font-size: 30px; font-variant-numeric: tabular-nums; }
+.summer-score-dial-value span { margin-top: 5px; color: #a9dff7; font-size: 11px; font-weight: 800; }
+.summer-score-band { align-self: end; color: #ffd755; font-size: 18px; line-height: 1.2; }
+.summer-position-list { margin-top: 12px; display: grid; gap: 10px; }
+.summer-position-label { margin-bottom: 4px; display: flex; justify-content: space-between; gap: 8px; color: var(--text); font-size: 12px; }
+.summer-position-label b:last-child { color: var(--burgundy); font-variant-numeric: tabular-nums; }
+.summer-position-bar { height: 9px; overflow: hidden; border-radius: 999px; background: rgba(148,175,195,.25); }
+.summer-position-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--sky), var(--t1)); }
+.summer-position-row:first-child .summer-position-bar span { background: linear-gradient(90deg, var(--burgundy), #b13a57); }
+.survey-chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: start; }
+.survey-chart-grid .survey-result-card { margin: 0; min-width: 0; }
+.survey-chart-grid .summer-chart-card.featured { grid-column: 1 / -1; }
+.summer-chart-card { box-shadow: 0 6px 18px rgba(11,47,80,.05); }
+.summer-chart-card h3 { font-size: 13px; line-height: 1.35; }
+.summer-chart-card .survey-result-rows { gap: 10px; }
+.summer-chart-card .survey-result-label { font-size: 11px; }
+.summer-chart-card .survey-result-row:first-child .survey-result-bar span { background: linear-gradient(90deg, var(--burgundy), #b13a57); }
+.survey-score-distribution {
+  height: 154px; display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); align-items: stretch; gap: 4px;
+}
+.survey-score-column { min-width: 0; height: 100%; display: grid; grid-template-rows: 1fr auto; gap: 5px; align-items: end; text-align: center; }
+.survey-score-column-track { position: relative; width: 100%; height: 100%; min-height: 110px; overflow: visible; border-radius: 6px; background: rgba(148,175,195,.18); }
+.survey-score-column-value {
+  position: absolute; left: 0; right: 0; bottom: 0; min-height: 0; border-radius: 6px;
+  background: linear-gradient(180deg, #78c7ed, var(--t1));
+}
+.survey-score-column:nth-child(-n+7) .survey-score-column-value { background: linear-gradient(180deg, #b9def0, #75acd0); }
+.survey-score-column-value[data-count]::before {
+  content: attr(data-count); position: absolute; left: 50%; bottom: calc(100% + 4px); transform: translateX(-50%);
+  color: var(--text-dim); font-size: 9px; font-weight: 800; font-variant-numeric: tabular-nums;
+}
+.survey-score-column > b { color: var(--text-dim); font-size: 9px; font-variant-numeric: tabular-nums; }
 .focus-strip-empty {
   padding: 11px 12px; border: 1px dashed var(--line-strong); border-radius: 10px;
   background: rgba(255,255,255,.55); color: var(--text-dim); font-size: 12px; text-align: center;
@@ -1079,8 +1141,18 @@ body.comments-open { overflow: hidden; }
   .survey-options { gap: 5px; }
   .survey-options.score { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .survey-option span { min-height: 42px; padding: 6px 7px; font-size: 12px; }
+  .survey-toolbar { flex-wrap: wrap; gap: 7px; }
+  .survey-share { min-height: 36px; padding-inline: 10px; }
   .survey-result-summary { align-items: flex-start; flex-direction: column; }
   .survey-result-summary span { text-align: left; }
+  .summer-survey-overview, .survey-chart-grid { grid-template-columns: 1fr; }
+  .summer-score-panel, .summer-position-panel { padding: 13px; }
+  .summer-score-dial { width: 98px; height: 98px; }
+  .summer-score-dial-value strong { font-size: 27px; }
+  .summer-score-band { font-size: 17px; }
+  .survey-chart-grid .summer-chart-card.featured { grid-column: auto; }
+  .survey-score-distribution { height: 140px; gap: 3px; }
+  .survey-score-column-track { min-height: 98px; }
   .pinned-card, .card, .modal-box {
     -webkit-backdrop-filter: none; backdrop-filter: none;
     background: rgba(255, 255, 255, .92);

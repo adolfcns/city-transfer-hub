@@ -66,3 +66,17 @@ test('调查支持匿名修改、公开结果和云端持久化', () => {
   assert.match(workflow, /surveys\?poll=summer_2026/);
   assert.match(workflow, /surveys=ok/);
 });
+
+test('夏窗结果使用统计图并可分享截止当前日期的实时图片', () => {
+  assert.match(app, /function buildSummerSurveyShareCard\(context\)/);
+  assert.match(app, /await surveyApi\(context\.pollId\)/);
+  assert.match(app, /统计截止 \$\{surveyShareDate\(new Date\(\)\)\}/);
+  assert.match(app, /↗ 分享统计图/);
+  assert.match(app, /summer-survey-overview/);
+  assert.match(app, /survey-score-distribution/);
+  assert.match(app, /navigator\.canShare\(\{ files: \[file\] \}\)/);
+  assert.match(app, /downloadShareCard\(blob, filename\)/);
+  assert.match(style, /\.summer-survey-overview/);
+  assert.match(style, /\.survey-chart-grid/);
+  assert.match(style, /@media \(max-width: 560px\)[\s\S]*\.summer-survey-overview, \.survey-chart-grid/);
+});

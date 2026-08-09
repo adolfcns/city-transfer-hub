@@ -551,6 +551,8 @@ function revealRequestedMessage() {
 
 const SHARE_CARD_WIDTH = 1080;
 const SHARE_CARD_HEIGHT = 1440;
+const SURVEY_SHARE_WIDTH = 1080;
+const SURVEY_SHARE_HEIGHT = 1920;
 const DONGQIUDI_CARD_WIDTH = 1175;
 const DONGQIUDI_CARD_HEIGHT = 1435;
 const SHARE_CARD_FONT = '"Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif';
@@ -1018,18 +1020,18 @@ function downloadShareCard(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
-function showShareCardSavePreview(blob, filename) {
+function showShareCardSavePreview(blob, filename, options = {}) {
   const url = URL.createObjectURL(blob);
   const overlay = el('div', 'share-save-overlay');
   overlay.setAttribute('role', 'dialog');
   overlay.setAttribute('aria-modal', 'true');
   overlay.setAttribute('aria-label', '保存分享图片');
   const panel = el('div', 'share-save-panel');
-  const title = el('strong', 'share-save-title', '保存到手机');
-  const hint = el('p', 'share-save-hint', '若浏览器没有自动保存，请长按下方图片，选择“保存图片”或“存储到相册”。');
+  const title = el('strong', 'share-save-title', options.title || '保存到手机');
+  const hint = el('p', 'share-save-hint', options.hint || '若浏览器没有自动保存，请长按下方图片，选择“保存图片”或“存储到相册”。');
   const image = el('img', 'share-save-image');
   image.src = url;
-  image.alt = '当前消息的曼城转会分享图片';
+  image.alt = options.alt || '当前消息的曼城转会分享图片';
   const controls = el('div', 'share-save-controls');
   const download = el('a', 'share-save-download', '↓ 再次下载');
   download.href = url;
@@ -2621,6 +2623,257 @@ function surveyScoreBand(score) {
   return '维亚纳睡着了';
 }
 
+function surveyResultOptions(context, question, includeZero = false) {
+  const total = Math.max(0, Number(context.data.results?.total || 0));
+  const result = context.data.results?.questions?.[question.id];
+  if (!result) return [];
+  return question.options
+    .map((option, order) => {
+      const count = Math.max(0, Number(result.counts?.[option.value] || 0));
+      return { ...option, order, count, percent: total ? Math.round((count / total) * 100) : 0 };
+    })
+    .filter((option) => includeZero || option.count > 0)
+    .sort(includeZero ? (a, b) => a.order - b.order : (a, b) => b.count - a.count || a.order - b.order);
+}
+
+function surveyShareDate(date = new Date(), withTime = true) {
+  try {
+    return new Intl.DateTimeFormat('zh-CN', {
+      timeZone: 'Asia/Shanghai', year: 'numeric', month: 'long', day: 'numeric',
+      ...(withTime ? { hour: '2-digit', minute: '2-digit', hour12: false } : {}),
+    }).format(date);
+  } catch { return date.toLocaleString('zh-CN', { hour12: false }); }
+}
+
+function drawSurveyShareBar(ctx, x, y, width, percent, color = '#6cabdd') {
+  fillRoundedCanvasRect(ctx, x, y, width, 18, 9, '#dbe9f2');
+  fillRoundedCanvasRect(ctx, x, y, Math.max(percent > 0 ? 12 : 0, width * Math.min(100, percent) / 100), 18, 9, color);
+}
+
+async function buildSummerSurveyShareCard(context) {
+  const total = Math.max(0, Number(context.data.results?.total || 0));
+  if (!total) throw new Error('NO_SURVEY_RESULTS');
+  const definition = context.definition;
+  const scoreQuestion = definition.questions.find((question) => question.id === 'score');
+  const positionsQuestion = definition.questions.find((question) => question.id === 'positions');
+  const scoreResult = context.data.results?.questions?.score || {};
+  const scoreAverage = Math.max(0, Number(scoreResult.average || 0));
+  const scoreOptions = scoreQuestion ? surveyResultOptions(context, scoreQuestion, true) : [];
+  const positionOptions = positionsQuestion ? surveyResultOptions(context, positionsQuestion).slice(0, 5) : [];
+
+  const canvas = document.createElement('canvas');
+  canvas.width = SURVEY_SHARE_WIDTH;
+  canvas.height = SURVEY_SHARE_HEIGHT;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('CANVAS_UNAVAILABLE');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  const background = ctx.createLinearGradient(0, 0, SURVEY_SHARE_WIDTH, SURVEY_SHARE_HEIGHT);
+  background.addColorStop(0, '#061c33');
+  background.addColorStop(.55, '#0b3658');
+  background.addColorStop(1, '#16658d');
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, SURVEY_SHARE_WIDTH, SURVEY_SHARE_HEIGHT);
+
+  ctx.save();
+  ctx.globalAlpha = .22;
+  ctx.strokeStyle = '#78c9f0';
+  ctx.lineWidth = 70;
+  ctx.beginPath();
+  ctx.arc(1010, 80, 270, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  const assetBase = new URL('./assets/', document.baseURI).href;
+  const [crest, qr] = await Promise.all([
+    loadShareCardImage(`${assetBase}man-city-crest.svg`),
+    loadShareCardImage(`${assetBase}site-qr.png`),
+  ]);
+  ctx.drawImage(crest, 62, 50, 142, 142);
+  cardFont(ctx, 28, 800);
+  ctx.fillStyle = '#8dd2f2';
+  ctx.fillText('曼城转会情报站', 238, 91);
+  cardFont(ctx, 58, 900);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText('蓝月夏窗球迷调查', 238, 158);
+  cardFont(ctx, 24, 600);
+  ctx.fillStyle = '#c8e7f8';
+  ctx.fillText(`统计截止 ${surveyShareDate(new Date())}`, 238, 207);
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.25)';
+  ctx.shadowBlur = 30;
+  ctx.shadowOffsetY = 12;
+  fillRoundedCanvasRect(ctx, 50, 270, 980, 1450, 34, '#f7fbfe');
+  ctx.restore();
+
+  fillRoundedCanvasRect(ctx, 86, 312, 590, 220, 26, '#0b2f50');
+  cardFont(ctx, 24, 700);
+  ctx.fillStyle = '#9edcf6';
+  ctx.fillText('球迷夏窗平均分', 122, 360);
+  cardFont(ctx, 84, 900);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(scoreAverage.toFixed(1), 120, 456);
+  cardFont(ctx, 34, 800);
+  ctx.fillStyle = '#8dd2f2';
+  ctx.fillText('/ 10', 285, 456);
+  cardFont(ctx, 29, 800);
+  ctx.fillStyle = '#f2c94c';
+  ctx.fillText(surveyScoreBand(scoreAverage), 420, 456);
+
+  fillRoundedCanvasRect(ctx, 704, 312, 286, 220, 26, '#dff3ff');
+  cardFont(ctx, 24, 700);
+  ctx.fillStyle = '#41647c';
+  ctx.fillText('有效选票', 742, 360);
+  cardFont(ctx, 76, 900);
+  ctx.fillStyle = '#0b2f50';
+  ctx.fillText(String(total), 740, 456);
+  cardFont(ctx, 24, 800);
+  ctx.fillStyle = '#41647c';
+  ctx.fillText('位蓝月球迷', 740, 496);
+
+  cardFont(ctx, 30, 900);
+  ctx.fillStyle = '#0b2f50';
+  ctx.fillText('评分分布', 90, 590);
+  const maxScoreCount = Math.max(1, ...scoreOptions.map((option) => option.count));
+  const chartTop = 628;
+  const chartHeight = 170;
+  const columnStep = 80;
+  for (let index = 0; index < scoreOptions.length; index++) {
+    const option = scoreOptions[index];
+    const x = 92 + index * columnStep;
+    const height = Math.max(option.count > 0 ? 8 : 0, chartHeight * option.count / maxScoreCount);
+    fillRoundedCanvasRect(ctx, x, chartTop, 46, chartHeight, 12, '#e2edf4');
+    if (height > 0) fillRoundedCanvasRect(ctx, x, chartTop + chartHeight - height, 46, height, 12, index >= 7 ? '#6cabdd' : '#9fcbe4');
+    cardFont(ctx, 19, 800);
+    ctx.fillStyle = '#61798b';
+    ctx.textAlign = 'center';
+    ctx.fillText(String(option.value), x + 23, 829);
+    if (option.count > 0) {
+      cardFont(ctx, 17, 800);
+      ctx.fillStyle = '#0b2f50';
+      ctx.fillText(String(option.count), x + 23, chartTop + chartHeight - height - 9);
+    }
+  }
+  ctx.textAlign = 'left';
+
+  cardFont(ctx, 30, 900);
+  ctx.fillStyle = '#0b2f50';
+  ctx.fillText('最亟需补强的位置', 90, 900);
+  let positionY = 940;
+  for (const option of positionOptions) {
+    cardFont(ctx, 23, 700);
+    ctx.fillStyle = '#35566d';
+    ctx.fillText(fitCanvasText(ctx, option.label, 255), 92, positionY + 24);
+    drawSurveyShareBar(ctx, 350, positionY + 5, 510, option.percent, option === positionOptions[0] ? '#7a1830' : '#6cabdd');
+    cardFont(ctx, 22, 900);
+    ctx.fillStyle = '#0b2f50';
+    ctx.textAlign = 'right';
+    ctx.fillText(`${option.percent}%`, 958, positionY + 24);
+    ctx.textAlign = 'left';
+    positionY += 58;
+  }
+
+  cardFont(ctx, 30, 900);
+  ctx.fillStyle = '#0b2f50';
+  ctx.fillText('每道题的第一选择', 90, 1260);
+  const insightQuestions = definition.questions.filter((question) => !['score', 'positions'].includes(question.id)).slice(0, 6);
+  for (let index = 0; index < insightQuestions.length; index++) {
+    const question = insightQuestions[index];
+    const top = surveyResultOptions(context, question)[0];
+    const col = index % 2;
+    const row = Math.floor(index / 2);
+    const x = 88 + col * 458;
+    const y = 1292 + row * 126;
+    fillRoundedCanvasRect(ctx, x, y, 436, 108, 19, col === 0 ? '#eaf6fc' : '#fff5e7');
+    cardFont(ctx, 19, 700);
+    ctx.fillStyle = '#647d90';
+    const shortTitle = surveyQuestionTitle(definition, question).replace(/^\d+\.\s*/, '');
+    ctx.fillText(fitCanvasText(ctx, shortTitle, 380), x + 22, y + 33);
+    cardFont(ctx, 25, 900);
+    ctx.fillStyle = '#0b2f50';
+    ctx.fillText(fitCanvasText(ctx, top?.label || '暂无结果', 300), x + 22, y + 76);
+    if (top) {
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#7a1830';
+      ctx.fillText(`${top.percent}%`, x + 414, y + 76);
+      ctx.textAlign = 'left';
+    }
+  }
+
+  const footer = ctx.createLinearGradient(0, 1760, SURVEY_SHARE_WIDTH, SURVEY_SHARE_HEIGHT);
+  footer.addColorStop(0, '#8dd2f2');
+  footer.addColorStop(1, '#6cabdd');
+  ctx.fillStyle = footer;
+  ctx.fillRect(0, 1760, SURVEY_SHARE_WIDTH, 160);
+  cardFont(ctx, 30, 900);
+  ctx.fillStyle = '#071d34';
+  ctx.fillText('看看你的观点是不是蓝月主流', 60, 1814);
+  cardFont(ctx, 22, 800);
+  ctx.fillText('adolfcns.github.io/city-transfer-hub/', 60, 1862);
+  fillRoundedCanvasRect(ctx, 890, 1777, 126, 126, 14, '#ffffff');
+  ctx.drawImage(qr, 899, 1786, 108, 108);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('PNG_EXPORT_FAILED')), 'image/png', .96);
+  });
+}
+
+async function shareSummerSurveyResults(context) {
+  if (shareCardInFlight) {
+    toast('统计图正在生成，请稍候');
+    return;
+  }
+  shareCardInFlight = true;
+  toast('正在同步最新票数并生成统计图…');
+  try {
+    const fresh = await surveyApi(context.pollId);
+    if (!fresh?.results?.total) throw new Error('NO_SURVEY_RESULTS');
+    context.data = fresh;
+    const blob = await buildSummerSurveyShareCard(context);
+    const filename = `曼城夏窗调查-${surveyShareDate(new Date(), false).replace(/[\s年月日]/g, '-')}.png`;
+    let shared = false;
+    if (typeof File === 'function' && navigator.share && navigator.canShare) {
+      const file = new File([blob], filename, { type: 'image/png' });
+      if (navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: '曼城夏窗球迷调查',
+            text: `截至${surveyShareDate(new Date(), false)}的蓝月球迷夏窗调查结果`,
+          });
+          shared = true;
+          toast('统计图已分享 ✓');
+        } catch (error) {
+          if (error?.name === 'AbortError') {
+            toast('已取消分享');
+            return;
+          }
+        }
+      }
+    }
+    if (!shared) {
+      downloadShareCard(blob, filename);
+      const needsPreview = /iP(?:hone|ad|od)|MicroMessenger/i.test(navigator.userAgent)
+        || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (needsPreview) {
+        showShareCardSavePreview(blob, filename, {
+          title: '保存夏窗统计图',
+          hint: '若浏览器没有自动保存，请长按下方图片，选择“保存图片”或“存储到相册”。',
+          alt: '截至当前日期的曼城夏窗调查统计图',
+        });
+      }
+      toast('统计图已生成并开始下载 ✓');
+    }
+  } catch {
+    toast('实时结果暂时无法同步，请稍后再试', 'err');
+  } finally {
+    shareCardInFlight = false;
+    if (activeSurveyId === context.pollId) renderSurveyResults(context);
+  }
+}
+
 function renderSurveyIntro(context) {
   const { body, definition, data } = context;
   body.textContent = '';
@@ -2771,6 +3024,8 @@ function renderSurveyResults(context) {
   const { body, definition, data } = context;
   body.textContent = '';
   body.dataset.surveyView = 'results';
+  const isSummer = context.pollId === 'summer_2026';
+  body.classList.toggle('summer-survey-results', isSummer);
   const toolbar = el('div', 'survey-toolbar');
   const back = el('button', 'survey-back', '← 返回');
   back.type = 'button';
@@ -2792,46 +3047,107 @@ function renderSurveyResults(context) {
     return;
   }
   const total = Math.max(0, Number(data.results?.total || 0));
+  if (isSummer && total) {
+    const share = el('button', 'survey-share', '↗ 分享统计图');
+    share.type = 'button';
+    share.onclick = () => shareSummerSurveyResults(context);
+    toolbar.appendChild(share);
+  }
   const summary = el('div', 'survey-result-summary');
-  summary.appendChild(el('strong', null, `${total} 份有效选票`));
-  summary.appendChild(el('span', null, total ? '实时统计 · 修改答案后会自动重新计算' : '还没有人投票，等你来开第一票'));
+  summary.appendChild(el('strong', null, isSummer && total ? '实时蓝月风向' : `${total} 份有效选票`));
+  summary.appendChild(el('span', null, total
+    ? (isSummer ? `${total} 份有效选票 · 截至 ${surveyShareDate(new Date())}` : '实时统计 · 修改答案后会自动重新计算')
+    : '还没有人投票，等你来开第一票'));
   body.appendChild(summary);
   if (!total) return;
 
+  if (isSummer) {
+    const scoreQuestion = definition.questions.find((question) => question.id === 'score');
+    const positionQuestion = definition.questions.find((question) => question.id === 'positions');
+    const scoreResult = data.results?.questions?.score || {};
+    const average = Math.max(0, Number(scoreResult.average || 0));
+    const maximum = Math.max(1, ...(scoreQuestion?.options || []).map((option) => Number(option.value)));
+    const overview = el('section', 'summer-survey-overview');
+
+    const scorePanel = el('div', 'summer-score-panel');
+    scorePanel.appendChild(el('span', 'summer-overview-kicker', '球迷夏窗平均分'));
+    const dial = el('div', 'summer-score-dial');
+    dial.style.setProperty('--score-angle', `${Math.min(360, Math.max(0, average / maximum * 360))}deg`);
+    const dialValue = el('div', 'summer-score-dial-value');
+    dialValue.append(el('strong', null, average.toFixed(1)), el('span', null, `/ ${maximum}`));
+    dial.appendChild(dialValue);
+    scorePanel.append(dial, el('b', 'summer-score-band', surveyScoreBand(average)));
+
+    const positionPanel = el('div', 'summer-position-panel');
+    positionPanel.appendChild(el('span', 'summer-overview-kicker', '最亟需补强的位置'));
+    const positionList = el('div', 'summer-position-list');
+    for (const option of positionQuestion ? surveyResultOptions(context, positionQuestion).slice(0, 3) : []) {
+      const row = el('div', 'summer-position-row');
+      const label = el('div', 'summer-position-label');
+      label.append(el('strong', null, option.label), el('b', null, `${option.percent}%`));
+      const bar = el('div', 'summer-position-bar');
+      const fill = el('span');
+      fill.style.width = `${Math.min(100, option.percent)}%`;
+      bar.appendChild(fill);
+      row.append(label, bar);
+      positionList.appendChild(row);
+    }
+    positionPanel.appendChild(positionList);
+    overview.append(scorePanel, positionPanel);
+    body.appendChild(overview);
+  }
+
+  const resultGrid = el('div', isSummer ? 'survey-chart-grid' : '');
   for (const question of definition.questions) {
     const result = data.results?.questions?.[question.id];
     if (!result) continue;
-    const card = el('section', 'survey-result-card');
+    const card = el('section', `survey-result-card${isSummer ? ' summer-chart-card' : ''}${isSummer && question.id === 'positions' ? ' featured' : ''}`);
     card.appendChild(el('h3', null, surveyQuestionTitle(definition, question).replace(/^\d+\.\s*/, '')));
+    if (isSummer && question.type === 'number') {
+      const options = surveyResultOptions(context, question, true);
+      const maxCount = Math.max(1, ...options.map((option) => option.count));
+      const chart = el('div', 'survey-score-distribution');
+      chart.setAttribute('aria-label', '夏窗评分分布');
+      for (const option of options) {
+        const column = el('div', 'survey-score-column');
+        const track = el('div', 'survey-score-column-track');
+        const value = el('span', 'survey-score-column-value');
+        value.style.height = `${Math.max(option.count ? 6 : 0, option.count / maxCount * 100)}%`;
+        if (option.count) value.dataset.count = String(option.count);
+        track.appendChild(value);
+        column.append(track, el('b', null, String(option.value)));
+        chart.appendChild(column);
+      }
+      card.appendChild(chart);
+      card.appendChild(el('p', 'survey-result-note', '柱顶数字为票数 · 0—10 分完整分布'));
+      resultGrid.appendChild(card);
+      continue;
+    }
     if (question.type === 'number') {
       const average = Number(result.average || 0);
       const max = Math.max(...question.options.map((option) => Number(option.value)));
       const averageLine = el('div', 'survey-average');
       averageLine.appendChild(el('strong', null, `${average.toFixed(1)} / ${max}`));
-      if (context.pollId === 'summer_2026') averageLine.appendChild(el('span', null, surveyScoreBand(average)));
       card.appendChild(averageLine);
     }
     const rows = el('div', 'survey-result-rows');
-    const populated = question.options
-      .map((option, order) => ({ ...option, order, count: Math.max(0, Number(result.counts?.[option.value] || 0)) }))
-      .filter((option) => option.count > 0)
-      .sort((a, b) => b.count - a.count || a.order - b.order);
+    const populated = surveyResultOptions(context, question);
     for (const option of populated) {
-      const percent = Math.round((option.count / total) * 100);
       const row = el('div', 'survey-result-row');
       const label = el('div', 'survey-result-label');
-      label.append(el('span', null, option.label), el('b', null, `${percent}% · ${option.count}票`));
+      label.append(el('span', null, option.label), el('b', null, `${option.percent}% · ${option.count}票`));
       const bar = el('div', 'survey-result-bar');
       const fill = el('span');
-      fill.style.width = `${Math.min(100, percent)}%`;
+      fill.style.width = `${Math.min(100, option.percent)}%`;
       bar.appendChild(fill);
       row.append(label, bar);
       rows.appendChild(row);
     }
     card.appendChild(rows);
     if (question.type === 'multi') card.appendChild(el('p', 'survey-result-note', '本题可多选，因此各项比例相加可能超过 100%'));
-    body.appendChild(card);
+    resultGrid.appendChild(card);
   }
+  body.appendChild(resultGrid);
 }
 
 async function openSurvey(pollId) {
