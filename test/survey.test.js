@@ -74,10 +74,13 @@ test('夏窗结果使用统计图并可分享截止当前日期的实时图片',
   assert.match(app, /↗ 分享统计图/);
   assert.match(app, /summer-survey-overview/);
   assert.match(app, /survey-score-distribution/);
-  assert.match(app, /navigator\.canShare\(\{ files: \[file\] \}\)/);
   assert.match(app, /title: '夏窗调查统计长图'/);
   assert.match(app, /downloadLabel: '↓ 保存长图'/);
-  assert.match(app, /shareLabel: '↗ 分享长图'/);
+  assert.match(app, /shareLabel: '↗ 分享链接'/);
+  assert.match(app, /把这份蓝月风向分享给球迷朋友，喊他们也来投一票，看看你们是不是同一派/);
+  assert.match(app, /url\.searchParams\.set\('survey', pollId\)/);
+  assert.match(app, /const surveyId = requestedSurveyId\(\)/);
+  assert.match(app, /openSurvey\(surveyId\)/);
   assert.match(app, /showShareCardSavePreview\(blob, filename/);
   assert.match(style, /\.summer-survey-overview/);
   assert.match(style, /\.survey-chart-grid/);

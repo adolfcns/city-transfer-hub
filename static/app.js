@@ -1051,7 +1051,7 @@ function showShareCardSavePreview(blob, filename, options = {}) {
     share.onclick = async () => {
       share.disabled = true;
       try {
-        if (await options.onShare()) dismiss();
+        if (await options.onShare() && options.closeAfterShare) dismiss();
       } finally { share.disabled = false; }
     };
     controls.append(share, download, close);
@@ -2658,6 +2658,21 @@ function surveyShareDate(date = new Date(), withTime = true) {
   } catch { return date.toLocaleString('zh-CN', { hour12: false }); }
 }
 
+function surveyShareUrl(pollId) {
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.hash = '';
+  url.searchParams.set('survey', pollId);
+  return url.href;
+}
+
+function requestedSurveyId() {
+  try {
+    const pollId = new URLSearchParams(window.location.search).get('survey') || '';
+    return SURVEY_DEFINITIONS[pollId] ? pollId : '';
+  } catch { return ''; }
+}
+
 function drawSurveyShareBar(ctx, x, y, width, percent, color = '#6cabdd') {
   fillRoundedCanvasRect(ctx, x, y, width, 18, 9, '#dbe9f2');
   fillRoundedCanvasRect(ctx, x, y, Math.max(percent > 0 ? 12 : 0, width * Math.min(100, percent) / 100), 18, 9, color);
@@ -2846,36 +2861,38 @@ async function shareSummerSurveyResults(context) {
     context.data = fresh;
     const blob = await buildSummerSurveyShareCard(context);
     const filename = `曼城夏窗调查-${surveyShareDate(new Date(), false).replace(/[\s年月日]/g, '-')}.png`;
-    let nativeShare = null;
-    if (typeof File === 'function' && navigator.share && navigator.canShare) {
-      const file = new File([blob], filename, { type: 'image/png' });
-      if (navigator.canShare({ files: [file] })) {
-        nativeShare = async () => {
-          try {
-            await navigator.share({
-              files: [file],
-              title: '曼城夏窗球迷调查',
-              text: `截至${surveyShareDate(new Date(), false)}的蓝月球迷夏窗调查结果`,
-            });
-            toast('统计长图已分享 ✓');
-            return true;
-          } catch (error) {
-            if (error?.name === 'AbortError') toast('已取消分享');
-            else toast('当前应用未接收图片，请改用“保存长图”', 'err');
+    const link = surveyShareUrl(context.pollId);
+    const shareLink = async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: '曼城夏窗球迷调查',
+            text: '把这份蓝月风向分享给球迷朋友，喊他们也来投一票，看看你们是不是同一派 💙',
+            url: link,
+          });
+          toast('调查链接已分享 ✓');
+          return true;
+        } catch (error) {
+          if (error?.name === 'AbortError') {
+            toast('已取消分享');
             return false;
           }
-        };
+        }
       }
-    }
+      if (await copyText(link)) {
+        toast('调查链接已复制 ✓');
+        return true;
+      }
+      toast('链接复制失败，请稍后再试', 'err');
+      return false;
+    };
     showShareCardSavePreview(blob, filename, {
       title: '夏窗调查统计长图',
-      hint: nativeShare
-        ? '图片已生成。可直接分享长图，也可以保存到相册后再发送。'
-        : '图片已生成。当前浏览器不支持直接分享图片，请保存到相册后再发送；也可长按图片保存。',
+      hint: '把这份蓝月风向分享给球迷朋友，喊他们也来投一票，看看你们是不是同一派 💙',
       alt: '截至当前日期的曼城夏窗调查统计长图',
       downloadLabel: '↓ 保存长图',
-      shareLabel: '↗ 分享长图',
-      onShare: nativeShare,
+      shareLabel: '↗ 分享链接',
+      onShare: shareLink,
     });
     toast('统计长图已生成 ✓');
   } catch {
@@ -3833,6 +3850,12 @@ renderCountdown();
 setInterval(renderCountdown, 1000);
 loadData(false).finally(() => {
   scheduleDeferredReactionSnapshot();
-  scheduleDailySurveyInvite();
+  const surveyId = requestedSurveyId();
+  if (surveyId) {
+    acknowledgeSurveyInvite();
+    openSurvey(surveyId);
+  } else {
+    scheduleDailySurveyInvite();
+  }
 });
 setInterval(() => loadData(true), REFRESH_MS);
