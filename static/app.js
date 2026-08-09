@@ -1033,7 +1033,7 @@ function showShareCardSavePreview(blob, filename, options = {}) {
   image.src = url;
   image.alt = options.alt || '当前消息的曼城转会分享图片';
   const controls = el('div', 'share-save-controls');
-  const download = el('a', 'share-save-download', '↓ 再次下载');
+  const download = el('a', 'share-save-download', options.downloadLabel || '↓ 再次下载');
   download.href = url;
   download.download = filename;
   const close = el('button', 'share-save-close', '完成');
@@ -1044,7 +1044,20 @@ function showShareCardSavePreview(blob, filename, options = {}) {
   };
   close.onclick = dismiss;
   overlay.onclick = (event) => { if (event.target === overlay) dismiss(); };
-  controls.append(download, close);
+  if (typeof options.onShare === 'function') {
+    controls.classList.add('with-share');
+    const share = el('button', 'share-save-share', options.shareLabel || '↗ 分享长图');
+    share.type = 'button';
+    share.onclick = async () => {
+      share.disabled = true;
+      try {
+        if (await options.onShare()) dismiss();
+      } finally { share.disabled = false; }
+    };
+    controls.append(share, download, close);
+  } else {
+    controls.append(download, close);
+  }
   panel.append(title, hint, image, controls);
   overlay.appendChild(panel);
   document.body.appendChild(overlay);
@@ -2833,39 +2846,38 @@ async function shareSummerSurveyResults(context) {
     context.data = fresh;
     const blob = await buildSummerSurveyShareCard(context);
     const filename = `曼城夏窗调查-${surveyShareDate(new Date(), false).replace(/[\s年月日]/g, '-')}.png`;
-    let shared = false;
+    let nativeShare = null;
     if (typeof File === 'function' && navigator.share && navigator.canShare) {
       const file = new File([blob], filename, { type: 'image/png' });
       if (navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({
-            files: [file],
-            title: '曼城夏窗球迷调查',
-            text: `截至${surveyShareDate(new Date(), false)}的蓝月球迷夏窗调查结果`,
-          });
-          shared = true;
-          toast('统计图已分享 ✓');
-        } catch (error) {
-          if (error?.name === 'AbortError') {
-            toast('已取消分享');
-            return;
+        nativeShare = async () => {
+          try {
+            await navigator.share({
+              files: [file],
+              title: '曼城夏窗球迷调查',
+              text: `截至${surveyShareDate(new Date(), false)}的蓝月球迷夏窗调查结果`,
+            });
+            toast('统计长图已分享 ✓');
+            return true;
+          } catch (error) {
+            if (error?.name === 'AbortError') toast('已取消分享');
+            else toast('当前应用未接收图片，请改用“保存长图”', 'err');
+            return false;
           }
-        }
+        };
       }
     }
-    if (!shared) {
-      downloadShareCard(blob, filename);
-      const needsPreview = /iP(?:hone|ad|od)|MicroMessenger/i.test(navigator.userAgent)
-        || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-      if (needsPreview) {
-        showShareCardSavePreview(blob, filename, {
-          title: '保存夏窗统计图',
-          hint: '若浏览器没有自动保存，请长按下方图片，选择“保存图片”或“存储到相册”。',
-          alt: '截至当前日期的曼城夏窗调查统计图',
-        });
-      }
-      toast('统计图已生成并开始下载 ✓');
-    }
+    showShareCardSavePreview(blob, filename, {
+      title: '夏窗调查统计长图',
+      hint: nativeShare
+        ? '图片已生成。可直接分享长图，也可以保存到相册后再发送。'
+        : '图片已生成。当前浏览器不支持直接分享图片，请保存到相册后再发送；也可长按图片保存。',
+      alt: '截至当前日期的曼城夏窗调查统计长图',
+      downloadLabel: '↓ 保存长图',
+      shareLabel: '↗ 分享长图',
+      onShare: nativeShare,
+    });
+    toast('统计长图已生成 ✓');
   } catch {
     toast('实时结果暂时无法同步，请稍后再试', 'err');
   } finally {

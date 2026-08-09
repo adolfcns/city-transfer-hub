@@ -75,8 +75,13 @@ test('夏窗结果使用统计图并可分享截止当前日期的实时图片',
   assert.match(app, /summer-survey-overview/);
   assert.match(app, /survey-score-distribution/);
   assert.match(app, /navigator\.canShare\(\{ files: \[file\] \}\)/);
-  assert.match(app, /downloadShareCard\(blob, filename\)/);
+  assert.match(app, /title: '夏窗调查统计长图'/);
+  assert.match(app, /downloadLabel: '↓ 保存长图'/);
+  assert.match(app, /shareLabel: '↗ 分享长图'/);
+  assert.match(app, /showShareCardSavePreview\(blob, filename/);
   assert.match(style, /\.summer-survey-overview/);
   assert.match(style, /\.survey-chart-grid/);
+  assert.match(style, /\.share-save-share/);
+  assert.match(style, /\.share-save-overlay \{[\s\S]*?z-index: 150/);
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*\.summer-survey-overview, \.survey-chart-grid/);
 });

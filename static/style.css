@@ -852,7 +852,7 @@ body.comments-open { overflow: hidden; }
 
 /* ============ 单条消息图片保存兜底 ============ */
 .share-save-overlay {
-  position: fixed; inset: 0; z-index: 110;
+  position: fixed; inset: 0; z-index: 150;
   display: grid; place-items: center; padding: 16px;
   background: rgba(7, 29, 52, .78);
   -webkit-backdrop-filter: blur(8px);
@@ -871,14 +871,19 @@ body.comments-open { overflow: hidden; }
   -webkit-touch-callout: default; user-select: auto;
 }
 .share-save-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 11px; }
+.share-save-controls.with-share { grid-template-columns: 1fr 1fr; }
 .share-save-download,
+.share-save-share,
 .share-save-close {
   min-height: 42px; display: inline-flex; align-items: center; justify-content: center;
   border: 1px solid var(--line-strong); border-radius: 7px; font-size: 13px; font-weight: 700;
 }
 .share-save-download { background: var(--burgundy); color: #fff; text-decoration: none; }
 .share-save-download:hover { color: #fff; text-decoration: none; }
+.share-save-share { background: linear-gradient(135deg, var(--t1), #287fb4); border-color: var(--t1); color: #fff; }
+.share-save-share:disabled { opacity: .58; }
 .share-save-close { background: var(--cream); color: var(--text); }
+.share-save-controls.with-share .share-save-close { grid-column: 1 / -1; min-height: 36px; }
 
 .shared-message-target {
   outline: 3px solid var(--sky); outline-offset: 3px;
