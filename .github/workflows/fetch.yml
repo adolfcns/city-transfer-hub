@@ -129,7 +129,22 @@ jobs:
           cp data/*.json site/data/
           sed -i "s/__BUILD_VERSION__/${GITHUB_SHA}/g" site/index.html
 
-      # 先发布 Cloudflare 备用站，避免 GitHub Pages 排队时两站一起停止更新
+      # 主站优先发布：任何备用站故障都不能再阻断 GitHub Pages 更新
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      # 备用站遇到 Cloudflare 临时内部错误时自动重试三次
       - name: Mirror to Cloudflare Pages
         if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
         env:
@@ -151,7 +166,19 @@ jobs:
           PAGES_CONFIG_DIR="cloudflare/pages-deploy"
           mkdir -p "$PAGES_CONFIG_DIR"
           printf 'name = "city-transfer-hub"\ncompatibility_date = "2026-07-13"\npages_build_output_dir = "../../site"\n\n[[d1_databases]]\nbinding = "DB"\ndatabase_name = "city-reactions"\ndatabase_id = "%s"\n' "$DB_ID" > "$PAGES_CONFIG_DIR/wrangler.toml"
-          (cd "$PAGES_CONFIG_DIR" && npx --yes wrangler@4 pages deploy --branch=main)
+          deployed=""
+          for attempt in 1 2 3; do
+            if (cd "$PAGES_CONFIG_DIR" && npx --yes wrangler@4 pages deploy --branch=main --commit-dirty=true); then
+              deployed=1
+              break
+            fi
+            echo "::warning::Cloudflare Pages 第 ${attempt} 次发布失败，稍后重试"
+            sleep $((attempt * 10))
+          done
+          if [ -z "$deployed" ]; then
+            echo "::error::Cloudflare Pages 连续三次发布失败；GitHub 主站已先完成更新"
+            exit 1
+          fi
 
       # 仅在代码推送时更新 Worker；定时/手动抓取不重复部署
       - name: Deploy Cloudflare Worker
@@ -224,17 +251,3 @@ jobs:
           console.error('Prayer counter API did not become ready');
           process.exit(1);
           NODE
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
