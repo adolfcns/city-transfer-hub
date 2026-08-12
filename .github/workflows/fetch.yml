@@ -65,7 +65,7 @@ jobs:
     timeout-minutes: 15
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url }}
     env:
       TWITTER_AUTH_TOKEN: ${{ secrets.TWITTER_AUTH_TOKEN }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -123,6 +123,7 @@ jobs:
           node scripts/snapshot-reactions.js
 
       - name: Assemble site
+        id: assemble
         run: |
           mkdir -p site/data
           cp -r static/. site/
@@ -142,11 +143,27 @@ jobs:
 
       - name: Deploy to GitHub Pages
         id: deployment
+        continue-on-error: true
+        env:
+          NODE_OPTIONS: --use-system-ca
+        uses: actions/deploy-pages@v4
+
+      - name: Wait before retrying GitHub Pages
+        if: ${{ steps.deployment.outcome == 'failure' }}
+        run: sleep 10
+
+      - name: Retry GitHub Pages deployment
+        id: deployment_retry
+        if: ${{ steps.deployment.outcome == 'failure' }}
+        continue-on-error: true
+        env:
+          NODE_OPTIONS: --use-system-ca
         uses: actions/deploy-pages@v4
 
       # 备用站遇到 Cloudflare 临时内部错误时自动重试三次
       - name: Mirror to Cloudflare Pages
-        if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
+        id: mirror
+        if: ${{ always() && steps.assemble.outcome == 'success' && env.CLOUDFLARE_API_TOKEN != '' }}
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
@@ -182,7 +199,7 @@ jobs:
 
       # 仅在代码推送时更新 Worker；定时/手动抓取不重复部署
       - name: Deploy Cloudflare Worker
-        if: ${{ github.event_name == 'push' && env.CLOUDFLARE_API_TOKEN != '' }}
+        if: ${{ github.event_name == 'push' && env.CLOUDFLARE_API_TOKEN != '' && steps.mirror.outcome == 'success' }}
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
@@ -198,7 +215,7 @@ jobs:
           npx --yes wrangler@4 deploy --config "$DEPLOY_CONFIG"
 
       - name: Verify interaction APIs
-        if: ${{ github.event_name == 'push' && env.CLOUDFLARE_API_TOKEN != '' }}
+        if: ${{ github.event_name == 'push' && env.CLOUDFLARE_API_TOKEN != '' && steps.mirror.outcome == 'success' }}
         run: |
           node --input-type=module <<'NODE'
           const url = 'https://city-transfer-hub.pages.dev/prayer';
@@ -251,3 +268,9 @@ jobs:
           console.error('Prayer counter API did not become ready');
           process.exit(1);
           NODE
+
+      - name: Require GitHub Pages deployment
+        if: ${{ always() && steps.assemble.outcome == 'success' && steps.deployment.outcome != 'success' && steps.deployment_retry.outcome != 'success' }}
+        run: |
+          echo "::error::GitHub Pages 首次发布和自动重试均失败；Cloudflare 备用站已独立尝试更新"
+          exit 1

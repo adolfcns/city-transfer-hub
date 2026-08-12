@@ -23,16 +23,27 @@ test('GitHub 小时任务先检查新鲜度，定时抓取不重复部署互动 
     .find((step) => step.name === 'Deploy Cloudflare Worker');
   const verifyApis = workflow.jobs['fetch-deploy'].steps
     .find((step) => step.name === 'Verify interaction APIs');
-  const pushOnly = "${{ github.event_name == 'push' && env.CLOUDFLARE_API_TOKEN != '' }}";
-  assert.equal(deployWorker.if, pushOnly);
-  assert.equal(verifyApis.if, pushOnly);
+  const pushOnlyAfterMirror = "${{ github.event_name == 'push' && env.CLOUDFLARE_API_TOKEN != '' && steps.mirror.outcome == 'success' }}";
+  assert.equal(deployWorker.if, pushOnlyAfterMirror);
+  assert.equal(verifyApis.if, pushOnlyAfterMirror);
 });
 
-test('GitHub 主站优先发布，Cloudflare 故障不会再阻断主站', () => {
+test('两条发布路径互相独立并各自重试临时故障', () => {
   const steps = workflow.jobs['fetch-deploy'].steps.map((step) => step.name);
   assert.ok(
     steps.indexOf('Deploy to GitHub Pages') < steps.indexOf('Mirror to Cloudflare Pages'),
   );
+  const deployPages = workflow.jobs['fetch-deploy'].steps
+    .find((step) => step.name === 'Deploy to GitHub Pages');
+  const retryPages = workflow.jobs['fetch-deploy'].steps
+    .find((step) => step.name === 'Retry GitHub Pages deployment');
+  const mirror = workflow.jobs['fetch-deploy'].steps
+    .find((step) => step.name === 'Mirror to Cloudflare Pages');
+  assert.equal(deployPages['continue-on-error'], true);
+  assert.equal(deployPages.env.NODE_OPTIONS, '--use-system-ca');
+  assert.equal(retryPages.if, "${{ steps.deployment.outcome == 'failure' }}");
+  assert.equal(retryPages['continue-on-error'], true);
+  assert.equal(mirror.if, "${{ always() && steps.assemble.outcome == 'success' && env.CLOUDFLARE_API_TOKEN != '' }}");
   assert.match(workflowText, /for attempt in 1 2 3/);
-  assert.match(workflowText, /Cloudflare Pages 连续三次发布失败；GitHub 主站已先完成更新/);
+  assert.match(workflowText, /GitHub Pages 首次发布和自动重试均失败；Cloudflare 备用站已独立尝试更新/);
 });
