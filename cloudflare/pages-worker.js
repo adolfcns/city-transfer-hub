@@ -20,6 +20,15 @@ const MAX_COMMENT_IDS = 48;
 const SURVEY_RATE_SECONDS = 2;
 const SURVEY_IP_DEVICE_LIMIT = 3;
 const SURVEY_RULES = Object.freeze({
+  midfield_final_2026: {
+    closes_at: Date.parse('2026-08-14T16:00:00Z'),
+    combination_questions: ['enzo', 'rodri', 'bouaddi'],
+    questions: {
+      enzo: { type: 'single', options: ['join', 'stay'] },
+      rodri: { type: 'single', options: ['stay', 'leave'] },
+      bouaddi: { type: 'single', options: ['join', 'later'] },
+    },
+  },
   summer_2026: {
     closes_at: Date.parse('2026-09-01T17:00:00Z'),
     questions: {
@@ -516,11 +525,28 @@ async function readSurveyResults(env, pollId) {
   let total = 0;
   let updatedAt = 0;
   const sums = {};
+  const combinationCounts = {};
+  if (Array.isArray(poll.combination_questions)) {
+    const buildCombinationKeys = (index, values) => {
+      if (index >= poll.combination_questions.length) {
+        combinationCounts[values.join('|')] = 0;
+        return;
+      }
+      const question = poll.questions[poll.combination_questions[index]];
+      for (const option of question?.options || []) buildCombinationKeys(index + 1, [...values, option]);
+    };
+    buildCombinationKeys(0, []);
+  }
   for (const row of rows.results || []) {
     let answers;
     try { answers = JSON.parse(String(row.answers || '{}')); } catch { continue; }
     total += 1;
     updatedAt = Math.max(updatedAt, Number(row.updated_at || 0));
+    if (Array.isArray(poll.combination_questions)) {
+      const values = poll.combination_questions.map((questionId) => String(answers[questionId] || ''));
+      const key = values.join('|');
+      if (values.every(Boolean) && Object.prototype.hasOwnProperty.call(combinationCounts, key)) combinationCounts[key] += 1;
+    }
     for (const [questionId, rule] of Object.entries(poll.questions)) {
       const value = answers[questionId];
       if (value == null) continue;
@@ -544,7 +570,12 @@ async function readSurveyResults(env, pollId) {
       questions[questionId].average = total > 0 ? Math.round((Number(sums[questionId] || 0) / total) * 100) / 100 : 0;
     }
   }
-  return { total, updated_at: updatedAt, questions };
+  return {
+    total,
+    updated_at: updatedAt,
+    questions,
+    ...(Array.isArray(poll.combination_questions) ? { combinations: { counts: combinationCounts } } : {}),
+  };
 }
 
 async function saveSurveyBallot(env, request, pollId, voterId, answers) {

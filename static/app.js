@@ -31,8 +31,9 @@ const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
 const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
 const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
 const SURVEY_PROFILE_KEY = 'cth_survey_profile_v1';
-const SURVEY_INVITE_KEY = 'cth_survey_invite_summer_2026_daily_v1';
-const SURVEY_INVITE_DELAY_MS = 2200;
+const SURVEY_POPUP_ID = 'midfield_final_2026';
+const SURVEY_INVITE_KEY = 'cth_survey_invite_midfield_final_2026_daily_v1';
+const SURVEY_INVITE_DELAY_MS = 1500;
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
 const REACTION_SNAPSHOT_URL = './data/reactions.json';
 const REACTION_DEFS = Object.freeze([
@@ -45,6 +46,29 @@ const REACTION_DEFS = Object.freeze([
 ]);
 const REACTION_KEYS = new Set(REACTION_DEFS.map((item) => item.key));
 const SURVEY_DEFINITIONS = Object.freeze({
+  midfield_final_2026: {
+    entry: '⚽ 中场投票',
+    icon: '⚽',
+    title: '刺激了！今晚大结局！',
+    introHeadline: '蓝月中场终局，你来排！',
+    intro: '恩佐来不来？罗德里留不留？布阿迪今夏能不能到？选出你最希望看到的曼城中场结局。',
+    returningIntro: '中场风向有变化，回来看看蓝月球迷的最新答案。',
+    primaryLabel: '投票并看实时结果',
+    submitLabel: '投票并看实时结果',
+    resultsLabel: '先看看实时风向',
+    closesAt: Date.parse('2026-08-14T16:00:00Z'),
+    questions: [
+      { id: 'enzo', title: '恩佐', type: 'single', options: [
+        { value: 'join', label: '加盟曼城' }, { value: 'stay', label: '留在切尔西' },
+      ] },
+      { id: 'rodri', title: '罗德里', type: 'single', options: [
+        { value: 'stay', label: '继续留队' }, { value: 'leave', label: '今夏离队' },
+      ] },
+      { id: 'bouaddi', title: '布阿迪', type: 'single', options: [
+        { value: 'join', label: '今夏加盟' }, { value: 'later', label: '今夏不来' },
+      ] },
+    ],
+  },
   summer_2026: {
     entry: '📊 夏窗调查',
     title: '蓝月夏窗体检',
@@ -2553,7 +2577,8 @@ function surveyInviteDay() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
-function acknowledgeSurveyInvite() {
+function acknowledgeSurveyInvite(pollId = SURVEY_POPUP_ID) {
+  if (pollId !== SURVEY_POPUP_ID) return;
   surveyInviteHandled = true;
   clearTimeout(surveyInviteTimer);
   try { localStorage.setItem(SURVEY_INVITE_KEY, surveyInviteDay()); }
@@ -2561,7 +2586,8 @@ function acknowledgeSurveyInvite() {
 }
 
 function scheduleDailySurveyInvite(delay = SURVEY_INVITE_DELAY_MS) {
-  if (surveyInviteHandled || Date.now() >= SURVEY_DEFINITIONS.summer_2026.closesAt) return;
+  const inviteDefinition = SURVEY_DEFINITIONS[SURVEY_POPUP_ID];
+  if (surveyInviteHandled || !inviteDefinition || (inviteDefinition.closesAt && Date.now() >= inviteDefinition.closesAt)) return;
   try {
     if (localStorage.getItem(SURVEY_INVITE_KEY) === surveyInviteDay()) {
       surveyInviteHandled = true;
@@ -2574,8 +2600,8 @@ function scheduleDailySurveyInvite(delay = SURVEY_INVITE_DELAY_MS) {
       scheduleDailySurveyInvite(1200);
       return;
     }
-    acknowledgeSurveyInvite();
-    openSurvey('summer_2026');
+    acknowledgeSurveyInvite(SURVEY_POPUP_ID);
+    openSurvey(SURVEY_POPUP_ID);
   }, delay);
 }
 
@@ -2626,6 +2652,38 @@ async function surveyApi(pollId, method = 'GET', answers = null) {
 
 function surveyChoiceName(pollId, questionId) {
   return `survey_${pollId}_${questionId}`;
+}
+
+function midfieldCombinationLabel(answers = {}) {
+  const labels = {
+    enzo: { join: '恩佐来', stay: '恩佐不来' },
+    rodri: { stay: '罗德里留', leave: '罗德里走' },
+    bouaddi: { join: '布阿迪今夏来', later: '布阿迪今夏不来' },
+  };
+  const values = [
+    labels.rodri[String(answers.rodri || '')],
+    labels.enzo[String(answers.enzo || '')],
+    labels.bouaddi[String(answers.bouaddi || '')],
+  ];
+  return values.every(Boolean) ? values.join(' · ') : '';
+}
+
+function midfieldCombinationEntries(context) {
+  const counts = context.data.results?.combinations?.counts || {};
+  const total = Math.max(0, Number(context.data.results?.total || 0));
+  const questions = Object.fromEntries(context.definition.questions.map((question) => [question.id, question]));
+  const entries = [];
+  for (const enzo of questions.enzo.options) {
+    for (const rodri of questions.rodri.options) {
+      for (const bouaddi of questions.bouaddi.options) {
+        const answers = { enzo: enzo.value, rodri: rodri.value, bouaddi: bouaddi.value };
+        const key = `${answers.enzo}|${answers.rodri}|${answers.bouaddi}`;
+        const count = Math.max(0, Number(counts[key] || 0));
+        entries.push({ key, answers, label: midfieldCombinationLabel(answers), count, percent: total ? Math.round(count / total * 100) : 0 });
+      }
+    }
+  }
+  return entries.sort((a, b) => b.count - a.count || b.percent - a.percent || a.key.localeCompare(b.key));
 }
 
 function surveyScoreBand(score) {
@@ -2908,7 +2966,8 @@ function renderSurveyIntro(context) {
   body.textContent = '';
   body.dataset.surveyView = 'intro';
   const intro = el('div', 'survey-intro');
-  intro.appendChild(el('div', 'survey-intro-icon', context.pollId === 'summer_2026' ? '📊' : '💬'));
+  intro.appendChild(el('div', 'survey-intro-icon', definition.icon || (context.pollId === 'summer_2026' ? '📊' : '💬')));
+  if (definition.introHeadline) intro.appendChild(el('strong', 'survey-intro-headline', definition.introHeadline));
   intro.appendChild(el('p', 'survey-intro-copy', data.ballot && definition.returningIntro
     ? definition.returningIntro
     : definition.intro));
@@ -2960,6 +3019,8 @@ function renderSurveyForm(context) {
   body.appendChild(toolbar);
 
   const form = el('form', 'survey-form');
+  const isMidfield = pollId === 'midfield_final_2026';
+  if (isMidfield) form.classList.add('midfield-survey-form');
   for (const question of definition.questions) {
     const fieldset = document.createElement('fieldset');
     fieldset.className = 'survey-question';
@@ -3002,8 +3063,23 @@ function renderSurveyForm(context) {
     fieldset.appendChild(options);
     form.appendChild(fieldset);
   }
+  if (isMidfield) {
+    const preview = el('div', 'midfield-choice-preview');
+    preview.append(el('span', null, '你的中场答案'), el('strong', null, '每条线各选一项，即可生成组合'));
+    const updatePreview = () => {
+      const answers = {};
+      for (const question of definition.questions) {
+        const checked = form.querySelector(`input[name="${surveyChoiceName(pollId, question.id)}"]:checked`);
+        if (checked) answers[question.id] = checked.value;
+      }
+      preview.querySelector('strong').textContent = midfieldCombinationLabel(answers) || '每条线各选一项，即可生成组合';
+    };
+    form.addEventListener('change', updatePreview);
+    form.appendChild(preview);
+    updatePreview();
+  }
   const status = el('p', 'survey-submit-status');
-  const submit = el('button', 'survey-submit', data.ballot ? '保存修改' : '提交我的选票');
+  const submit = el('button', 'survey-submit', data.ballot ? '保存修改' : (definition.submitLabel || '提交我的选票'));
   submit.type = 'submit';
   form.append(status, submit);
   form.onsubmit = async (event) => {
@@ -3054,7 +3130,9 @@ function renderSurveyResults(context) {
   body.textContent = '';
   body.dataset.surveyView = 'results';
   const isSummer = context.pollId === 'summer_2026';
+  const isMidfield = context.pollId === 'midfield_final_2026';
   body.classList.toggle('summer-survey-results', isSummer);
+  body.classList.toggle('midfield-survey-results', isMidfield);
   const toolbar = el('div', 'survey-toolbar');
   const back = el('button', 'survey-back', '← 返回');
   back.type = 'button';
@@ -3083,12 +3161,17 @@ function renderSurveyResults(context) {
     toolbar.appendChild(share);
   }
   const summary = el('div', 'survey-result-summary');
-  summary.appendChild(el('strong', null, isSummer && total ? '实时蓝月风向' : `${total} 份有效选票`));
+  summary.appendChild(el('strong', null, isMidfield && total ? '实时蓝月中场风向' : (isSummer && total ? '实时蓝月风向' : `${total} 份有效选票`)));
   summary.appendChild(el('span', null, total
     ? (isSummer ? `${total} 份有效选票 · 截至 ${surveyShareDate(new Date())}` : '实时统计 · 修改答案后会自动重新计算')
     : '还没有人投票，等你来开第一票'));
   body.appendChild(summary);
   if (!total) return;
+
+  if (isMidfield) {
+    renderMidfieldSurveyResults(context);
+    return;
+  }
 
   if (isSummer) {
     const scoreQuestion = definition.questions.find((question) => question.id === 'score');
@@ -3179,10 +3262,63 @@ function renderSurveyResults(context) {
   body.appendChild(resultGrid);
 }
 
+function renderMidfieldSurveyResults(context) {
+  const { body, definition, data } = context;
+  const total = Math.max(1, Number(data.results?.total || 0));
+  const combinations = midfieldCombinationEntries(context);
+  const winner = combinations[0];
+
+  const winnerCard = el('section', 'midfield-winner-card');
+  winnerCard.appendChild(el('span', 'midfield-winner-kicker', '🏆 当前蓝月球迷最想看到的中场结局'));
+  winnerCard.appendChild(el('strong', 'midfield-winner-combo', winner?.label || '等待第一份完整选择'));
+  const winnerStats = el('div', 'midfield-winner-stats');
+  winnerStats.append(el('b', null, `${winner?.percent || 0}%`), el('span', null, `${winner?.count || 0} 票支持`));
+  winnerCard.appendChild(winnerStats);
+  body.appendChild(winnerCard);
+
+  const tendencyGrid = el('section', 'midfield-tendency-grid');
+  for (const question of definition.questions) {
+    const options = surveyResultOptions(context, question, true);
+    const lead = options[0] || { percent: 0, label: '' };
+    const card = el('div', 'midfield-tendency-card');
+    card.appendChild(el('h3', null, question.title));
+    const dial = el('div', 'midfield-tendency-dial');
+    dial.style.setProperty('--tendency-angle', `${Math.max(0, Math.min(360, lead.percent * 3.6))}deg`);
+    dial.append(el('strong', null, `${lead.percent}%`), el('span', null, lead.label));
+    card.appendChild(dial);
+    const legend = el('div', 'midfield-tendency-legend');
+    for (const option of options) {
+      const row = el('div');
+      row.append(el('span', null, option.label), el('b', null, `${option.percent}%`));
+      legend.appendChild(row);
+    }
+    card.appendChild(legend);
+    tendencyGrid.appendChild(card);
+  }
+  body.appendChild(tendencyGrid);
+
+  const ranking = el('section', 'midfield-ranking-card');
+  ranking.appendChild(el('h3', null, '8 种中场结局完整排名'));
+  const rows = el('div', 'midfield-ranking-rows');
+  combinations.forEach((combination, index) => {
+    const row = el('div', `midfield-ranking-row${index === 0 ? ' leader' : ''}`);
+    const label = el('div', 'midfield-ranking-label');
+    label.append(el('i', null, String(index + 1)), el('span', null, combination.label), el('b', null, `${combination.percent}% · ${combination.count}票`));
+    const bar = el('div', 'midfield-ranking-bar');
+    const fill = el('span');
+    fill.style.width = `${Math.max(combination.count ? 3 : 0, combination.percent)}%`;
+    bar.appendChild(fill);
+    row.append(label, bar);
+    rows.appendChild(row);
+  });
+  ranking.appendChild(rows);
+  body.appendChild(ranking);
+}
+
 async function openSurvey(pollId) {
   const definition = SURVEY_DEFINITIONS[pollId];
   if (!definition) return;
-  acknowledgeSurveyInvite();
+  acknowledgeSurveyInvite(pollId);
   closeSurvey();
   activeSurveyId = pollId;
   document.body.classList.add('survey-open');
@@ -3852,7 +3988,7 @@ loadData(false).finally(() => {
   scheduleDeferredReactionSnapshot();
   const surveyId = requestedSurveyId();
   if (surveyId) {
-    acknowledgeSurveyInvite();
+    acknowledgeSurveyInvite(surveyId);
     openSurvey(surveyId);
   } else {
     scheduleDailySurveyInvite();

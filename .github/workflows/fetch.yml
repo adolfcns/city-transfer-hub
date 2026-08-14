@@ -223,6 +223,7 @@ jobs:
           const commentsUrl = 'https://city-transfer-hub.pages.dev/comments?ids=api_smoke_read';
           const commentDetailUrl = 'https://city-transfer-hub.pages.dev/comments?item=api_smoke_read&voter=api_smoke_voter_2026';
           const surveyUrl = 'https://city-transfer-hub.pages.dev/surveys?poll=summer_2026&voter=api_smoke_voter_2026';
+          const midfieldSurveyUrl = 'https://city-transfer-hub.pages.dev/surveys?poll=midfield_final_2026&voter=api_smoke_voter_2026';
           const origin = 'https://adolfcns.github.io';
           for (let attempt = 1; attempt <= 10; attempt += 1) {
             try {
@@ -243,6 +244,9 @@ jobs:
               const surveyResponse = await fetch(surveyUrl, { headers: { Origin: origin } });
               const surveyBody = await surveyResponse.json();
               const surveyCors = surveyResponse.headers.get('access-control-allow-origin');
+              const midfieldSurveyResponse = await fetch(midfieldSurveyUrl, { headers: { Origin: origin } });
+              const midfieldSurveyBody = await midfieldSurveyResponse.json();
+              const midfieldSurveyCors = midfieldSurveyResponse.headers.get('access-control-allow-origin');
               const reactionsReady = reactionsResponse.ok && reactionsBody.ok === true
                 && reactionsBody.counts && reactionsBody.counts.api_smoke_read
                 && reactionsCors === origin;
@@ -255,7 +259,12 @@ jobs:
               const surveyReady = surveyResponse.ok && surveyBody.ok === true
                 && surveyBody.poll === 'summer_2026' && Number.isInteger(surveyBody.results?.total)
                 && surveyBody.results?.questions?.score?.counts && surveyCors === origin;
-              if (response.ok && body.ok === true && Number.isInteger(body.count) && cors === origin && reactionsReady && commentsReady && surveyReady) {
+              const midfieldSurveyReady = midfieldSurveyResponse.ok && midfieldSurveyBody.ok === true
+                && midfieldSurveyBody.poll === 'midfield_final_2026' && Number.isInteger(midfieldSurveyBody.results?.total)
+                && midfieldSurveyBody.results?.questions?.enzo?.counts
+                && Object.keys(midfieldSurveyBody.results?.combinations?.counts || {}).length === 8
+                && midfieldSurveyCors === origin;
+              if (response.ok && body.ok === true && Number.isInteger(body.count) && cors === origin && reactionsReady && commentsReady && surveyReady && midfieldSurveyReady) {
                 console.log(`Direct interactions ready: prayer=${body.count}, reactions=ok, comments=ok, surveys=ok`);
                 process.exit(0);
               }
