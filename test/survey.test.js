@@ -26,9 +26,10 @@ test('夏窗调查使用确认后的问题和文案', () => {
 });
 
 test('重点传闻旁提供两个紧凑调查入口', () => {
-  assert.match(app, /⚽ 中场投票/);
+  assert.match(app, /⚖️ 首秀评分/);
   assert.match(app, /📊 夏窗调查/);
   assert.match(app, /💬 本站体验/);
+  assert.doesNotMatch(app, /entry: '⚽ 中场投票'/);
   assert.match(app, /focus-switchers/);
   assert.match(style, /\.focus-survey-entries/);
   assert.match(style, /\.survey-entry[\s\S]*?color: var\(--text\); font-size: 14px; font-weight: 800/);
@@ -36,9 +37,9 @@ test('重点传闻旁提供两个紧凑调查入口', () => {
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.survey-entry \{[^}]*font-size: 13px; font-weight: 800/);
 });
 
-test('手机和电脑都会主动弹出中场终局调查', () => {
-  assert.match(app, /cth_survey_invite_midfield_final_2026_daily_v1/);
-  assert.match(app, /SURVEY_POPUP_ID = 'midfield_final_2026'/);
+test('手机和电脑都会主动弹出马嗨正赛首秀调查', () => {
+  assert.match(app, /cth_survey_invite_coach_debut_2026_daily_v1/);
+  assert.match(app, /SURVEY_POPUP_ID = 'coach_debut_2026'/);
   assert.doesNotMatch(app, /DESKTOP_SURVEY_MEDIA|matchMedia\(DESKTOP_SURVEY_MEDIA\)/);
   assert.match(app, /function surveyInviteDay\(\)/);
   assert.match(app, /localStorage\.setItem\(SURVEY_INVITE_KEY, surveyInviteDay\(\)\)/);
@@ -48,21 +49,25 @@ test('手机和电脑都会主动弹出中场终局调查', () => {
   assert.match(app, /scheduleDailySurveyInvite\(\);/);
 });
 
-test('中场终局调查包含三条转会线、联合统计和漂亮结果图', () => {
-  assert.match(app, /title: '刺激了！今晚大结局！'/);
-  assert.match(app, /introHeadline: '蓝月中场终局，你来排！'/);
-  assert.doesNotMatch(app, /切尔西将在英国时间今日17:00后停止接受/);
-  assert.match(app, /id: 'enzo'[\s\S]*?id: 'rodri'[\s\S]*?id: 'bouaddi'/);
-  assert.match(app, /function midfieldCombinationEntries\(context\)/);
-  assert.match(app, /function renderMidfieldSurveyResults\(context\)/);
-  assert.match(app, /8 种中场结局完整排名/);
-  assert.match(app, /当前蓝月球迷最想看到的中场结局/);
-  assert.match(style, /\.midfield-winner-card/);
-  assert.match(style, /\.midfield-tendency-grid/);
-  assert.match(style, /\.midfield-ranking-card/);
+test('马嗨正赛首秀调查包含三题、投降式换人和漂亮统计图', () => {
+  assert.match(app, /title: '社区盾赛后开庭'/);
+  assert.match(app, /正赛首秀就投降，马嗨这份答卷配拿几分/);
+  assert.match(app, /争议焦点：投降式换人 · 0 到 10 分，直接宣判/);
+  assert.match(app, /id: 'score'[\s\S]*?id: 'attitude'[\s\S]*?id: 'blame'/);
+  assert.match(app, /看完正赛首秀，你现在是什么态度/);
+  assert.match(app, /这场最大的锅应该扣给谁/);
+  assert.match(app, /function renderCoachSurveyResults\(context\)/);
+  assert.match(app, /马嗨正赛首秀判决书/);
+  assert.match(app, /0—10 分完整分布/);
+  assert.match(app, /'去给夏窗打分'/);
+  assert.doesNotMatch(app, /维亚纳的夏窗也该交卷/);
+  assert.match(app, /openSurvey\('summer_2026'\)/);
+  assert.match(style, /\.coach-verdict-card/);
+  assert.match(style, /\.coach-result-grid/);
+  assert.match(style, /\.coach-next-poll/);
   for (const worker of [pagesWorker, triggerWorker]) {
-    assert.match(worker, /midfield_final_2026:[\s\S]*?combination_questions: \['enzo', 'rodri', 'bouaddi'\]/);
-    assert.match(worker, /combinations: \{ counts: combinationCounts \}/);
+    assert.match(worker, /coach_debut_2026:[\s\S]*?score: \{ type: 'number', min: 0, max: 10 \}/);
+    assert.match(worker, /attitude: \{ type: 'single'[\s\S]*?blame: \{ type: 'single'/);
   }
 });
 
@@ -84,8 +89,9 @@ test('调查支持匿名修改、公开结果和云端持久化', () => {
   }
   assert.ok(routes.include.includes('/surveys'));
   assert.match(workflow, /surveys\?poll=summer_2026/);
-  assert.match(workflow, /surveys\?poll=midfield_final_2026/);
-  assert.match(workflow, /Object\.keys\(midfieldSurveyBody\.results\?\.combinations\?\.counts \|\| \{\}\)\.length === 8/);
+  assert.match(workflow, /surveys\?poll=coach_debut_2026/);
+  assert.match(workflow, /coachSurveyBody\.results\?\.questions\?\.attitude\?\.counts/);
+  assert.match(workflow, /coachSurveyBody\.results\?\.questions\?\.blame\?\.counts/);
   assert.match(workflow, /surveys=ok/);
 });
 

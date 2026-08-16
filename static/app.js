@@ -31,8 +31,8 @@ const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
 const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
 const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
 const SURVEY_PROFILE_KEY = 'cth_survey_profile_v1';
-const SURVEY_POPUP_ID = 'midfield_final_2026';
-const SURVEY_INVITE_KEY = 'cth_survey_invite_midfield_final_2026_daily_v1';
+const SURVEY_POPUP_ID = 'coach_debut_2026';
+const SURVEY_INVITE_KEY = 'cth_survey_invite_coach_debut_2026_daily_v1';
 const SURVEY_INVITE_DELAY_MS = 1500;
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
 const REACTION_SNAPSHOT_URL = './data/reactions.json';
@@ -46,26 +46,39 @@ const REACTION_DEFS = Object.freeze([
 ]);
 const REACTION_KEYS = new Set(REACTION_DEFS.map((item) => item.key));
 const SURVEY_DEFINITIONS = Object.freeze({
-  midfield_final_2026: {
-    entry: '⚽ 中场投票',
-    icon: '⚽',
-    title: '刺激了！今晚大结局！',
-    introHeadline: '蓝月中场终局，你来排！',
-    intro: '恩佐来不来？罗德里留不留？布阿迪今夏能不能到？选出你最希望看到的曼城中场结局。',
-    returningIntro: '中场风向有变化，回来看看蓝月球迷的最新答案。',
-    primaryLabel: '投票并看实时结果',
-    submitLabel: '投票并看实时结果',
-    resultsLabel: '先看看实时风向',
-    closesAt: Date.parse('2026-08-14T16:00:00Z'),
+  coach_debut_2026: {
+    entry: '⚖️ 首秀评分',
+    icon: '⚖️',
+    title: '社区盾赛后开庭',
+    introHeadline: '投降马嗨正赛首秀',
+    intro: '正赛首秀就投降，马嗨这份答卷配拿几分？花 15 秒打分、表态、分锅。',
+    returningIntro: '最新判决有变化，回来看看蓝月球迷现在怎么判。',
+    primaryLabel: '开始判分',
+    submitLabel: '提交判决，看看全网怎么判',
+    resultsLabel: '先看实时判决',
+    openOnForm: true,
+    closesAt: null,
     questions: [
-      { id: 'enzo', title: '恩佐', type: 'single', options: [
-        { value: 'join', label: '加盟曼城' }, { value: 'stay', label: '留在切尔西' },
+      {
+        id: 'score',
+        title: '1. 正赛首秀就投降，马嗨这份答卷配拿几分？',
+        hint: '争议焦点：投降式换人 · 0 到 10 分，直接宣判。',
+        type: 'number',
+        options: Array.from({ length: 11 }, (_, value) => ({ value: String(value), label: String(value) })),
+      },
+      { id: 'attitude', title: '2. 看完正赛首秀，你现在是什么态度？', type: 'single', options: [
+        { value: 'believe', label: '马圣初显，继续相信' },
+        { value: 'three_games', label: '再给三场，暂缓开庭' },
+        { value: 'next_meeting', label: '下场再这样，会议室见' },
+        { value: 'miss_previous', label: '已经开始怀念上一任' },
+        { value: 'surrender', label: '别问，问就是投降马嗨' },
       ] },
-      { id: 'rodri', title: '罗德里', type: 'single', options: [
-        { value: 'stay', label: '继续留队' }, { value: 'leave', label: '今夏离队' },
-      ] },
-      { id: 'bouaddi', title: '布阿迪', type: 'single', options: [
-        { value: 'join', label: '今夏加盟' }, { value: 'later', label: '今夏不来' },
+      { id: 'blame', title: '3. 这场最大的锅应该扣给谁？', type: 'single', options: [
+        { value: 'coach_all', label: '马嗨全责，别找借口' },
+        { value: 'coach_main', label: '马嗨主责，球员次责' },
+        { value: 'players', label: '球员自己踢得抽象' },
+        { value: 'recruitment', label: '维亚纳引援还没配齐' },
+        { value: 'shield_only', label: '社区盾而已，暂时别急' },
       ] },
     ],
   },
@@ -2694,6 +2707,14 @@ function surveyScoreBand(score) {
   return '维亚纳睡着了';
 }
 
+function coachScoreVerdict(score) {
+  if (score >= 9) return '对不起，马圣请上座';
+  if (score >= 7) return '有点东西，今天先不骂';
+  if (score >= 5) return '缓刑观察';
+  if (score >= 3) return '嘴比战术硬';
+  return '战术板建议直接回收';
+}
+
 function surveyResultOptions(context, question, includeZero = false) {
   const total = Math.max(0, Number(context.data.results?.total || 0));
   const result = context.data.results?.questions?.[question.id];
@@ -3020,7 +3041,9 @@ function renderSurveyForm(context) {
 
   const form = el('form', 'survey-form');
   const isMidfield = pollId === 'midfield_final_2026';
+  const isCoach = pollId === 'coach_debut_2026';
   if (isMidfield) form.classList.add('midfield-survey-form');
+  if (isCoach) form.classList.add('coach-survey-form');
   for (const question of definition.questions) {
     const fieldset = document.createElement('fieldset');
     fieldset.className = 'survey-question';
@@ -3131,8 +3154,10 @@ function renderSurveyResults(context) {
   body.dataset.surveyView = 'results';
   const isSummer = context.pollId === 'summer_2026';
   const isMidfield = context.pollId === 'midfield_final_2026';
+  const isCoach = context.pollId === 'coach_debut_2026';
   body.classList.toggle('summer-survey-results', isSummer);
   body.classList.toggle('midfield-survey-results', isMidfield);
+  body.classList.toggle('coach-survey-results', isCoach);
   const toolbar = el('div', 'survey-toolbar');
   const back = el('button', 'survey-back', '← 返回');
   back.type = 'button';
@@ -3161,12 +3186,19 @@ function renderSurveyResults(context) {
     toolbar.appendChild(share);
   }
   const summary = el('div', 'survey-result-summary');
-  summary.appendChild(el('strong', null, isMidfield && total ? '实时蓝月中场风向' : (isSummer && total ? '实时蓝月风向' : `${total} 份有效选票`)));
+  summary.appendChild(el('strong', null, isCoach && total
+    ? '马嗨正赛首秀判决书'
+    : isMidfield && total ? '实时蓝月中场风向' : (isSummer && total ? '实时蓝月风向' : `${total} 份有效选票`)));
   summary.appendChild(el('span', null, total
     ? (isSummer ? `${total} 份有效选票 · 截至 ${surveyShareDate(new Date())}` : '实时统计 · 修改答案后会自动重新计算')
     : '还没有人投票，等你来开第一票'));
   body.appendChild(summary);
   if (!total) return;
+
+  if (isCoach) {
+    renderCoachSurveyResults(context);
+    return;
+  }
 
   if (isMidfield) {
     renderMidfieldSurveyResults(context);
@@ -3260,6 +3292,76 @@ function renderSurveyResults(context) {
     resultGrid.appendChild(card);
   }
   body.appendChild(resultGrid);
+}
+
+function renderCoachSurveyResults(context) {
+  const { body, definition, data } = context;
+  const scoreQuestion = definition.questions.find((question) => question.id === 'score');
+  const scoreResult = data.results?.questions?.score || {};
+  const average = Math.max(0, Math.min(10, Number(scoreResult.average || 0)));
+  const overview = el('section', 'coach-verdict-card');
+  const dial = el('div', 'coach-score-dial');
+  dial.style.setProperty('--coach-score-angle', `${average / 10 * 360}deg`);
+  const value = el('div', 'coach-score-value');
+  value.append(el('strong', null, average.toFixed(1)), el('span', null, '/ 10 分'));
+  dial.appendChild(value);
+  const verdict = el('div', 'coach-verdict-copy');
+  verdict.append(
+    el('span', null, '当前判决'),
+    el('strong', null, coachScoreVerdict(average)),
+    el('p', null, '投降式换人，蓝月球迷已经开庭。'),
+  );
+  overview.append(dial, verdict);
+  body.appendChild(overview);
+
+  const scoreCard = el('section', 'survey-result-card coach-score-card');
+  scoreCard.appendChild(el('h3', null, '0—10 分完整分布'));
+  const scoreOptions = surveyResultOptions(context, scoreQuestion, true);
+  const maxCount = Math.max(1, ...scoreOptions.map((option) => option.count));
+  const chart = el('div', 'survey-score-distribution');
+  chart.setAttribute('aria-label', '马嗨正赛首秀评分分布');
+  for (const option of scoreOptions) {
+    const column = el('div', 'survey-score-column');
+    const track = el('div', 'survey-score-column-track');
+    const bar = el('span', 'survey-score-column-value');
+    bar.style.height = `${Math.max(option.count ? 6 : 0, option.count / maxCount * 100)}%`;
+    if (option.count) bar.dataset.count = String(option.count);
+    track.appendChild(bar);
+    column.append(track, el('b', null, String(option.value)));
+    chart.appendChild(column);
+  }
+  scoreCard.append(chart, el('p', 'survey-result-note', '柱顶数字为票数 · 平均分会随新选票实时变化'));
+  body.appendChild(scoreCard);
+
+  const grid = el('div', 'coach-result-grid');
+  for (const questionId of ['attitude', 'blame']) {
+    const question = definition.questions.find((item) => item.id === questionId);
+    if (!question) continue;
+    const card = el('section', 'survey-result-card coach-result-card');
+    card.appendChild(el('h3', null, surveyQuestionTitle(definition, question).replace(/^\d+\.\s*/, '')));
+    const rows = el('div', 'survey-result-rows');
+    for (const option of surveyResultOptions(context, question)) {
+      const row = el('div', 'survey-result-row');
+      const label = el('div', 'survey-result-label');
+      label.append(el('span', null, option.label), el('b', null, `${option.percent}% · ${option.count}票`));
+      const track = el('div', 'survey-result-bar');
+      const fill = el('span');
+      fill.style.width = `${Math.min(100, option.percent)}%`;
+      track.appendChild(fill);
+      row.append(label, track);
+      rows.appendChild(row);
+    }
+    card.appendChild(rows);
+    grid.appendChild(card);
+  }
+  body.appendChild(grid);
+
+  const nextPoll = el('section', 'coach-next-poll');
+  const nextButton = el('button', 'coach-next-poll-button', '去给夏窗打分');
+  nextButton.type = 'button';
+  nextButton.onclick = () => openSurvey('summer_2026');
+  nextPoll.appendChild(nextButton);
+  body.appendChild(nextPoll);
 }
 
 function renderMidfieldSurveyResults(context) {
@@ -3357,7 +3459,10 @@ async function openSurvey(pollId) {
     context.data = await surveyApi(pollId);
     if (activeSurveyId !== pollId) return;
     if (body.dataset.surveyView === 'results') renderSurveyResults(context);
-    else if (body.dataset.surveyView === 'intro') renderSurveyIntro(context);
+    else if (body.dataset.surveyView === 'intro') {
+      if (definition.openOnForm && !context.data.ballot && !context.data.closed) renderSurveyForm(context);
+      else renderSurveyIntro(context);
+    }
   } catch {
     if (activeSurveyId !== pollId) return;
     context.data = { ...context.data, loading: false, loadError: true };

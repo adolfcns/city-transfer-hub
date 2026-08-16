@@ -260,6 +260,12 @@ body.survey-open { overflow: hidden; }
 .survey-option:hover span { border-color: var(--sky); }
 .survey-option input:checked + span { border-color: var(--burgundy); background: var(--cream-deep); color: var(--burgundy); font-weight: 800; box-shadow: inset 0 0 0 1px rgba(122,24,48,.08); }
 .survey-option input:focus-visible + span { outline: 3px solid rgba(21,95,159,.18); outline-offset: 2px; }
+.coach-survey-form .survey-question:first-child {
+  border-color: rgba(122,24,48,.32); background: linear-gradient(120deg, rgba(255,250,240,.96), rgba(108,171,221,.10));
+}
+.coach-survey-form .survey-question:first-child legend { color: var(--burgundy); font-size: 16px; }
+.coach-survey-form .survey-question:first-child .survey-question-hint { color: var(--burgundy); font-weight: 700; }
+.coach-survey-form .survey-options.score .survey-option span { min-height: 42px; font-size: 14px; font-weight: 800; }
 .midfield-survey-form { gap: 9px; }
 .midfield-survey-form .survey-question {
   display: grid; grid-template-columns: 92px minmax(0,1fr); align-items: center; gap: 8px; padding: 11px 13px;
@@ -353,6 +359,43 @@ body.survey-open { overflow: hidden; }
   color: var(--text-dim); font-size: 9px; font-weight: 800; font-variant-numeric: tabular-nums;
 }
 .survey-score-column > b { color: var(--text-dim); font-size: 9px; font-variant-numeric: tabular-nums; }
+.coach-survey-results {
+  background: linear-gradient(180deg, rgba(223,244,255,.72), rgba(255,255,255,0) 520px);
+}
+.coach-survey-results .survey-result-summary {
+  border-color: rgba(108,171,221,.55); background: linear-gradient(110deg, rgba(108,171,221,.22), rgba(255,250,240,.78));
+}
+.coach-verdict-card {
+  margin-bottom: 10px; padding: 18px 20px; display: grid; grid-template-columns: 124px minmax(0,1fr); align-items: center; gap: 20px;
+  border: 1px solid rgba(108,171,221,.55); border-radius: 16px; background: linear-gradient(135deg, #071f37, #0d527f 66%, #167eb1);
+  color: #fff; box-shadow: 0 12px 28px rgba(11,47,80,.18);
+}
+.coach-score-dial {
+  --coach-score-angle: 0deg; position: relative; width: 120px; height: 120px; display: grid; place-items: center;
+  border-radius: 50%; background: conic-gradient(#ffd755 var(--coach-score-angle), rgba(255,255,255,.15) 0);
+}
+.coach-score-dial::before { content: ""; position: absolute; inset: 11px; border-radius: 50%; background: #0b3557; }
+.coach-score-value { position: relative; z-index: 1; display: grid; justify-items: center; line-height: 1; }
+.coach-score-value strong { color: #fff; font-size: 36px; font-variant-numeric: tabular-nums; }
+.coach-score-value span { margin-top: 6px; color: #a9dff7; font-size: 11px; font-weight: 800; }
+.coach-verdict-copy { min-width: 0; display: grid; gap: 7px; }
+.coach-verdict-copy > span { color: #ffd755; font-size: 11px; font-weight: 900; letter-spacing: .08em; }
+.coach-verdict-copy > strong { color: #fff; font-size: 25px; line-height: 1.25; }
+.coach-verdict-copy > p { margin: 0; color: #bce6f8; font-size: 12px; line-height: 1.6; }
+.coach-score-card { border-color: rgba(108,171,221,.48); box-shadow: 0 7px 20px rgba(11,47,80,.07); }
+.coach-score-card .survey-score-column-value { background: linear-gradient(180deg, #b94a66, var(--burgundy)); }
+.coach-score-card .survey-score-column:nth-child(n+6) .survey-score-column-value { background: linear-gradient(180deg, #78c7ed, var(--t1)); }
+.coach-result-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; align-items: start; }
+.coach-result-grid .survey-result-card { min-width: 0; margin: 0; box-shadow: 0 6px 18px rgba(11,47,80,.05); }
+.coach-result-card .survey-result-row:first-child .survey-result-bar span { background: linear-gradient(90deg, var(--burgundy), #b13a57); }
+.coach-next-poll {
+  margin-top: 10px; display: flex; justify-content: flex-end;
+}
+.coach-next-poll-button {
+  min-height: 40px; padding: 7px 12px; border: 1px solid var(--burgundy); border-radius: 8px;
+  background: var(--burgundy); color: #fff; font-size: 12px; font-weight: 800; white-space: nowrap;
+}
+.coach-next-poll-button:hover { background: #661329; }
 .midfield-survey-results {
   background: linear-gradient(180deg, rgba(223,244,255,.74), rgba(255,255,255,0) 520px);
 }
@@ -1217,6 +1260,8 @@ body.comments-open { overflow: hidden; }
   .survey-options { gap: 5px; }
   .survey-options.score { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .survey-option span { min-height: 42px; padding: 6px 7px; font-size: 12px; }
+  .coach-survey-form .survey-question:first-child legend { font-size: 14px; }
+  .coach-survey-form .survey-options.score .survey-option span { min-height: 40px; font-size: 13px; }
   .midfield-survey-form .survey-question { grid-template-columns: 66px minmax(0,1fr); padding: 9px 10px; }
   .midfield-survey-form .survey-question legend { width: 62px; font-size: 14px; }
   .midfield-choice-preview { padding: 11px 9px; }
@@ -1233,6 +1278,14 @@ body.comments-open { overflow: hidden; }
   .survey-chart-grid .summer-chart-card.featured { grid-column: auto; }
   .survey-score-distribution { height: 140px; gap: 3px; }
   .survey-score-column-track { min-height: 98px; }
+  .coach-verdict-card { padding: 14px; grid-template-columns: 96px minmax(0,1fr); gap: 13px; }
+  .coach-score-dial { width: 94px; height: 94px; }
+  .coach-score-dial::before { inset: 8px; }
+  .coach-score-value strong { font-size: 29px; }
+  .coach-verdict-copy > strong { font-size: 19px; }
+  .coach-verdict-copy > p { font-size: 11px; }
+  .coach-result-grid { grid-template-columns: 1fr; }
+  .coach-next-poll-button { width: 100%; min-height: 44px; }
   .midfield-winner-card { padding: 15px; grid-template-columns: minmax(0,1fr) auto; }
   .midfield-winner-combo { font-size: 16px; }
   .midfield-winner-stats b { font-size: 26px; }

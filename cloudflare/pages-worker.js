@@ -20,6 +20,14 @@ const MAX_COMMENT_IDS = 48;
 const SURVEY_RATE_SECONDS = 2;
 const SURVEY_IP_DEVICE_LIMIT = 3;
 const SURVEY_RULES = Object.freeze({
+  coach_debut_2026: {
+    closes_at: null,
+    questions: {
+      score: { type: 'number', min: 0, max: 10 },
+      attitude: { type: 'single', options: ['believe', 'three_games', 'next_meeting', 'miss_previous', 'surrender'] },
+      blame: { type: 'single', options: ['coach_all', 'coach_main', 'players', 'recruitment', 'shield_only'] },
+    },
+  },
   midfield_final_2026: {
     closes_at: Date.parse('2026-08-14T16:00:00Z'),
     combination_questions: ['enzo', 'rodri', 'bouaddi'],
