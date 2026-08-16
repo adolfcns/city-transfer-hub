@@ -58,6 +58,8 @@ test('马嗨正赛首秀调查包含三题、投降式换人和漂亮统计图',
   assert.match(app, /这场最大的锅应该扣给谁/);
   assert.match(app, /id: 'blame'[\s\S]*?hint: '最多选择两个'[\s\S]*?type: 'multi', max: 2/);
   assert.match(app, /function renderCoachSurveyResults\(context\)/);
+  assert.match(app, /function buildCoachSurveyShareCard\(context\)/);
+  assert.match(app, /function downloadCoachSurveyResults\(context\)/);
   assert.match(app, /马嗨正赛首秀判决书/);
   assert.match(app, /首秀不及格/);
   assert.doesNotMatch(app, /战术板建议直接回收/);
@@ -65,6 +67,11 @@ test('马嗨正赛首秀调查包含三题、投降式换人和漂亮统计图',
   assert.match(app, /'去给夏窗打分'/);
   assert.doesNotMatch(app, /维亚纳的夏窗也该交卷/);
   assert.match(app, /openSurvey\('summer_2026'\)/);
+  assert.match(app, /↓ 下载统计图/);
+  assert.match(app, /三个问题的实时统计已经汇总/);
+  assert.match(app, /问题一：0—10 分完整分布/);
+  assert.match(app, /问题二：看完首秀，现在是什么态度/);
+  assert.match(app, /问题三：这场最大的锅扣给谁/);
   assert.match(style, /\.coach-verdict-card/);
   assert.match(style, /\.coach-result-grid/);
   assert.match(style, /\.coach-next-poll/);

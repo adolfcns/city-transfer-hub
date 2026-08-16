@@ -2924,6 +2924,188 @@ async function buildSummerSurveyShareCard(context) {
   });
 }
 
+async function buildCoachSurveyShareCard(context) {
+  const total = Math.max(0, Number(context.data.results?.total || 0));
+  if (!total) throw new Error('NO_SURVEY_RESULTS');
+  const definition = context.definition;
+  const scoreQuestion = definition.questions.find((question) => question.id === 'score');
+  const attitudeQuestion = definition.questions.find((question) => question.id === 'attitude');
+  const blameQuestion = definition.questions.find((question) => question.id === 'blame');
+  const average = Math.max(0, Math.min(10, Number(context.data.results?.questions?.score?.average || 0)));
+  const scoreOptions = surveyResultOptions(context, scoreQuestion, true);
+  const attitudeOptions = surveyResultOptions(context, attitudeQuestion, true);
+  const blameOptions = surveyResultOptions(context, blameQuestion, true);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = SURVEY_SHARE_WIDTH;
+  canvas.height = SURVEY_SHARE_HEIGHT;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('CANVAS_UNAVAILABLE');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  const background = ctx.createLinearGradient(0, 0, SURVEY_SHARE_WIDTH, SURVEY_SHARE_HEIGHT);
+  background.addColorStop(0, '#061c33');
+  background.addColorStop(.55, '#0b3658');
+  background.addColorStop(1, '#16658d');
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, SURVEY_SHARE_WIDTH, SURVEY_SHARE_HEIGHT);
+
+  ctx.save();
+  ctx.globalAlpha = .22;
+  ctx.strokeStyle = '#78c9f0';
+  ctx.lineWidth = 70;
+  ctx.beginPath();
+  ctx.arc(1010, 80, 270, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  const assetBase = new URL('./assets/', document.baseURI).href;
+  const [crest, qr] = await Promise.all([
+    loadShareCardImage(`${assetBase}man-city-crest.svg`),
+    loadShareCardImage(`${assetBase}site-qr.png`),
+  ]);
+  ctx.drawImage(crest, 62, 50, 142, 142);
+  cardFont(ctx, 28, 800);
+  ctx.fillStyle = '#8dd2f2';
+  ctx.fillText('曼城转会情报站', 238, 91);
+  cardFont(ctx, 56, 900);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText('马嗨正赛首秀判决书', 238, 158);
+  cardFont(ctx, 24, 600);
+  ctx.fillStyle = '#c8e7f8';
+  ctx.fillText(`统计截止 ${surveyShareDate(new Date())}`, 238, 207);
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.25)';
+  ctx.shadowBlur = 30;
+  ctx.shadowOffsetY = 12;
+  fillRoundedCanvasRect(ctx, 50, 270, 980, 1450, 34, '#f7fbfe');
+  ctx.restore();
+
+  fillRoundedCanvasRect(ctx, 86, 312, 590, 220, 26, '#0b2f50');
+  cardFont(ctx, 24, 700);
+  ctx.fillStyle = '#9edcf6';
+  ctx.fillText('正赛首秀平均分', 122, 360);
+  cardFont(ctx, 84, 900);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(average.toFixed(1), 120, 456);
+  cardFont(ctx, 34, 800);
+  ctx.fillStyle = '#8dd2f2';
+  ctx.fillText('/ 10', 285, 456);
+  cardFont(ctx, 29, 800);
+  ctx.fillStyle = '#f2c94c';
+  ctx.fillText(fitCanvasText(ctx, coachScoreVerdict(average), 245), 420, 456);
+
+  fillRoundedCanvasRect(ctx, 704, 312, 286, 220, 26, '#dff3ff');
+  cardFont(ctx, 24, 700);
+  ctx.fillStyle = '#41647c';
+  ctx.fillText('有效选票', 742, 360);
+  cardFont(ctx, 76, 900);
+  ctx.fillStyle = '#0b2f50';
+  ctx.fillText(String(total), 740, 456);
+  cardFont(ctx, 24, 800);
+  ctx.fillStyle = '#41647c';
+  ctx.fillText('位蓝月球迷', 740, 496);
+
+  cardFont(ctx, 30, 900);
+  ctx.fillStyle = '#0b2f50';
+  ctx.fillText('问题一：0—10 分完整分布', 90, 590);
+  const maxScoreCount = Math.max(1, ...scoreOptions.map((option) => option.count));
+  const chartTop = 628;
+  const chartHeight = 170;
+  const columnStep = 80;
+  for (let index = 0; index < scoreOptions.length; index++) {
+    const option = scoreOptions[index];
+    const x = 92 + index * columnStep;
+    const height = Math.max(option.count > 0 ? 8 : 0, chartHeight * option.count / maxScoreCount);
+    fillRoundedCanvasRect(ctx, x, chartTop, 46, chartHeight, 12, '#e2edf4');
+    if (height > 0) fillRoundedCanvasRect(ctx, x, chartTop + chartHeight - height, 46, height, 12, index >= 5 ? '#6cabdd' : '#a83a57');
+    cardFont(ctx, 19, 800);
+    ctx.fillStyle = '#61798b';
+    ctx.textAlign = 'center';
+    ctx.fillText(String(option.value), x + 23, 829);
+    if (option.count > 0) {
+      cardFont(ctx, 17, 800);
+      ctx.fillStyle = '#0b2f50';
+      ctx.fillText(String(option.count), x + 23, chartTop + chartHeight - height - 9);
+    }
+  }
+  ctx.textAlign = 'left';
+
+  const drawRanking = (title, options, startY, multi = false) => {
+    cardFont(ctx, 30, 900);
+    ctx.fillStyle = '#0b2f50';
+    ctx.fillText(title, 90, startY);
+    if (multi) {
+      cardFont(ctx, 18, 700);
+      ctx.fillStyle = '#6b8191';
+      ctx.textAlign = 'right';
+      ctx.fillText('最多选两项', 960, startY);
+      ctx.textAlign = 'left';
+    }
+    options.forEach((option, index) => {
+      const y = startY + 39 + index * 66;
+      cardFont(ctx, 21, 700);
+      ctx.fillStyle = '#35566d';
+      ctx.fillText(fitCanvasText(ctx, option.label, 315), 92, y + 23);
+      drawSurveyShareBar(ctx, 420, y + 5, 420, option.percent, index === 0 ? '#7a1830' : '#6cabdd');
+      cardFont(ctx, 20, 900);
+      ctx.fillStyle = '#0b2f50';
+      ctx.textAlign = 'right';
+      ctx.fillText(`${option.percent}% · ${option.count}票`, 960, y + 23);
+      ctx.textAlign = 'left';
+    });
+  };
+  drawRanking('问题二：看完首秀，现在是什么态度？', attitudeOptions, 900);
+  drawRanking('问题三：这场最大的锅扣给谁？', blameOptions, 1290, true);
+
+  const footer = ctx.createLinearGradient(0, 1760, SURVEY_SHARE_WIDTH, SURVEY_SHARE_HEIGHT);
+  footer.addColorStop(0, '#8dd2f2');
+  footer.addColorStop(1, '#6cabdd');
+  ctx.fillStyle = footer;
+  ctx.fillRect(0, 1760, SURVEY_SHARE_WIDTH, 160);
+  cardFont(ctx, 30, 900);
+  ctx.fillStyle = '#071d34';
+  ctx.fillText('来给马嗨的正赛首秀判个分', 60, 1814);
+  cardFont(ctx, 22, 800);
+  ctx.fillText('adolfcns.github.io/city-transfer-hub/', 60, 1862);
+  fillRoundedCanvasRect(ctx, 890, 1777, 126, 126, 14, '#ffffff');
+  ctx.drawImage(qr, 899, 1786, 108, 108);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('PNG_EXPORT_FAILED')), 'image/png', .96);
+  });
+}
+
+async function downloadCoachSurveyResults(context) {
+  if (shareCardInFlight) {
+    toast('统计图正在生成，请稍候');
+    return;
+  }
+  shareCardInFlight = true;
+  toast('正在同步最新票数并生成统计图…');
+  try {
+    const fresh = await surveyApi(context.pollId);
+    if (!fresh?.results?.total) throw new Error('NO_SURVEY_RESULTS');
+    context.data = fresh;
+    const blob = await buildCoachSurveyShareCard(context);
+    const filename = `马嗨正赛首秀统计-${surveyShareDate(new Date(), false).replace(/[\s年月日]/g, '-')}.png`;
+    showShareCardSavePreview(blob, filename, {
+      title: '马嗨正赛首秀统计长图',
+      hint: '三个问题的实时统计已经汇总。点击保存；手机浏览器不支持直接保存时，也可以长按图片存入相册。',
+      alt: '马嗨正赛首秀三题投票实时统计图',
+      downloadLabel: '↓ 保存统计图',
+    });
+    toast('三题统计图已生成 ✓');
+  } catch {
+    toast('实时结果暂时无法同步，请稍后再试', 'err');
+  } finally {
+    shareCardInFlight = false;
+    if (activeSurveyId === context.pollId) renderSurveyResults(context);
+  }
+}
+
 async function shareSummerSurveyResults(context) {
   if (shareCardInFlight) {
     toast('统计图正在生成，请稍候');
@@ -3176,6 +3358,12 @@ function renderSurveyResults(context) {
     return;
   }
   const total = Math.max(0, Number(data.results?.total || 0));
+  if (isCoach && total) {
+    const download = el('button', 'survey-share', '↓ 下载统计图');
+    download.type = 'button';
+    download.onclick = () => downloadCoachSurveyResults(context);
+    toolbar.appendChild(download);
+  }
   if (isSummer && total) {
     const share = el('button', 'survey-share', '↗ 分享统计图');
     share.type = 'button';
