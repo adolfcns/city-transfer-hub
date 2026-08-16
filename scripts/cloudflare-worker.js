@@ -39,7 +39,7 @@ const SURVEY_RULES = Object.freeze({
     questions: {
       score: { type: 'number', min: 0, max: 10 },
       attitude: { type: 'single', options: ['believe', 'three_games', 'next_meeting', 'miss_previous', 'surrender'] },
-      blame: { type: 'single', options: ['coach_all', 'coach_main', 'players', 'recruitment', 'shield_only'] },
+      blame: { type: 'multi', max: 2, options: ['coach_all', 'coach_main', 'players', 'recruitment', 'shield_only'] },
     },
   },
   midfield_final_2026: {
@@ -559,7 +559,7 @@ async function readSurveyResults(env, pollId) {
       const value = answers[questionId];
       if (value == null) continue;
       if (rule.type === 'multi') {
-        for (const option of Array.isArray(value) ? value : []) {
+        for (const option of Array.isArray(value) ? value : [value]) {
           if (Object.prototype.hasOwnProperty.call(questions[questionId].counts, option)) {
             questions[questionId].counts[option] += 1;
           }

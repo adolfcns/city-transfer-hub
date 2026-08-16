@@ -56,6 +56,7 @@ test('马嗨正赛首秀调查包含三题、投降式换人和漂亮统计图',
   assert.match(app, /id: 'score'[\s\S]*?id: 'attitude'[\s\S]*?id: 'blame'/);
   assert.match(app, /看完正赛首秀，你现在是什么态度/);
   assert.match(app, /这场最大的锅应该扣给谁/);
+  assert.match(app, /id: 'blame'[\s\S]*?hint: '最多选择两个'[\s\S]*?type: 'multi', max: 2/);
   assert.match(app, /function renderCoachSurveyResults\(context\)/);
   assert.match(app, /马嗨正赛首秀判决书/);
   assert.match(app, /首秀不及格/);
@@ -69,7 +70,8 @@ test('马嗨正赛首秀调查包含三题、投降式换人和漂亮统计图',
   assert.match(style, /\.coach-next-poll/);
   for (const worker of [pagesWorker, triggerWorker]) {
     assert.match(worker, /coach_debut_2026:[\s\S]*?score: \{ type: 'number', min: 0, max: 10 \}/);
-    assert.match(worker, /attitude: \{ type: 'single'[\s\S]*?blame: \{ type: 'single'/);
+    assert.match(worker, /attitude: \{ type: 'single'[\s\S]*?blame: \{ type: 'multi', max: 2/);
+    assert.match(worker, /Array\.isArray\(value\) \? value : \[value\]/);
   }
 });
 

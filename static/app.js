@@ -74,7 +74,7 @@ const SURVEY_DEFINITIONS = Object.freeze({
         { value: 'miss_previous', label: '已经开始怀念上一任' },
         { value: 'surrender', label: '别问，问就是投降马嗨' },
       ] },
-      { id: 'blame', title: '3. 这场最大的锅应该扣给谁？', type: 'single', options: [
+      { id: 'blame', title: '3. 这场最大的锅应该扣给谁？', hint: '最多选择两个', type: 'multi', max: 2, options: [
         { value: 'coach_all', label: '马嗨全责，别找借口' },
         { value: 'coach_main', label: '马嗨主责，球员次责' },
         { value: 'players', label: '球员自己踢得抽象' },
@@ -3058,7 +3058,7 @@ function renderSurveyForm(context) {
       input.name = surveyChoiceName(pollId, question.id);
       input.value = option.value;
       input.checked = question.type === 'multi'
-        ? Array.isArray(saved) && saved.map(String).includes(option.value)
+        ? (Array.isArray(saved) ? saved : saved == null ? [] : [saved]).map(String).includes(option.value)
         : saved != null && String(saved) === option.value;
       const visible = el('span', null, option.label);
       label.append(input, visible);
