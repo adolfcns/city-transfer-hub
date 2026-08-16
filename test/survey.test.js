@@ -38,15 +38,15 @@ test('重点传闻旁提供两个紧凑调查入口', () => {
 });
 
 test('手机和电脑都会主动弹出马嗨正赛首秀调查', () => {
-  assert.match(app, /cth_survey_invite_coach_debut_2026_daily_v1/);
+  assert.match(app, /cth_survey_invite_coach_debut_2026_12h_v1/);
   assert.match(app, /SURVEY_POPUP_ID = 'coach_debut_2026'/);
+  assert.match(app, /SURVEY_INVITE_INTERVAL_MS = 12 \* 60 \* 60 \* 1000/);
   assert.doesNotMatch(app, /DESKTOP_SURVEY_MEDIA|matchMedia\(DESKTOP_SURVEY_MEDIA\)/);
-  assert.match(app, /function surveyInviteDay\(\)/);
-  assert.match(app, /localStorage\.setItem\(SURVEY_INVITE_KEY, surveyInviteDay\(\)\)/);
-  assert.match(app, /localStorage\.getItem\(SURVEY_INVITE_KEY\) === surveyInviteDay\(\)/);
+  assert.match(app, /localStorage\.setItem\(SURVEY_INVITE_KEY, String\(Date\.now\(\)\)\)/);
+  assert.match(app, /Date\.now\(\) - lastShownAt < SURVEY_INVITE_INTERVAL_MS/);
   assert.match(app, /document\.querySelector\('\.modal:not\(\[hidden\]\), \.comment-overlay, \.survey-overlay'\)/);
   assert.match(app, /openSurvey\(SURVEY_POPUP_ID\)/);
-  assert.match(app, /scheduleDailySurveyInvite\(\);/);
+  assert.match(app, /scheduleSurveyInvite\(\);/);
 });
 
 test('马嗨正赛首秀调查包含三题、投降式换人和漂亮统计图', () => {
@@ -58,6 +58,8 @@ test('马嗨正赛首秀调查包含三题、投降式换人和漂亮统计图',
   assert.match(app, /这场最大的锅应该扣给谁/);
   assert.match(app, /function renderCoachSurveyResults\(context\)/);
   assert.match(app, /马嗨正赛首秀判决书/);
+  assert.match(app, /首秀不及格/);
+  assert.doesNotMatch(app, /战术板建议直接回收/);
   assert.match(app, /0—10 分完整分布/);
   assert.match(app, /'去给夏窗打分'/);
   assert.doesNotMatch(app, /维亚纳的夏窗也该交卷/);

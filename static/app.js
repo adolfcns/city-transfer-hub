@@ -32,7 +32,8 @@ const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
 const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
 const SURVEY_PROFILE_KEY = 'cth_survey_profile_v1';
 const SURVEY_POPUP_ID = 'coach_debut_2026';
-const SURVEY_INVITE_KEY = 'cth_survey_invite_coach_debut_2026_daily_v1';
+const SURVEY_INVITE_KEY = 'cth_survey_invite_coach_debut_2026_12h_v1';
+const SURVEY_INVITE_INTERVAL_MS = 12 * 60 * 60 * 1000;
 const SURVEY_INVITE_DELAY_MS = 1500;
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
 const REACTION_SNAPSHOT_URL = './data/reactions.json';
@@ -2585,24 +2586,20 @@ let activeSurveyId = '';
 let surveyInviteTimer = null;
 let surveyInviteHandled = false;
 
-function surveyInviteDay() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-}
-
 function acknowledgeSurveyInvite(pollId = SURVEY_POPUP_ID) {
   if (pollId !== SURVEY_POPUP_ID) return;
   surveyInviteHandled = true;
   clearTimeout(surveyInviteTimer);
-  try { localStorage.setItem(SURVEY_INVITE_KEY, surveyInviteDay()); }
+  try { localStorage.setItem(SURVEY_INVITE_KEY, String(Date.now())); }
   catch { /* 禁用本机存储时，本次访问内不再重复弹出 */ }
 }
 
-function scheduleDailySurveyInvite(delay = SURVEY_INVITE_DELAY_MS) {
+function scheduleSurveyInvite(delay = SURVEY_INVITE_DELAY_MS) {
   const inviteDefinition = SURVEY_DEFINITIONS[SURVEY_POPUP_ID];
   if (surveyInviteHandled || !inviteDefinition || (inviteDefinition.closesAt && Date.now() >= inviteDefinition.closesAt)) return;
   try {
-    if (localStorage.getItem(SURVEY_INVITE_KEY) === surveyInviteDay()) {
+    const lastShownAt = Number(localStorage.getItem(SURVEY_INVITE_KEY) || 0);
+    if (Number.isFinite(lastShownAt) && lastShownAt > 0 && Date.now() - lastShownAt < SURVEY_INVITE_INTERVAL_MS) {
       surveyInviteHandled = true;
       return;
     }
@@ -2610,7 +2607,7 @@ function scheduleDailySurveyInvite(delay = SURVEY_INVITE_DELAY_MS) {
   clearTimeout(surveyInviteTimer);
   surveyInviteTimer = setTimeout(() => {
     if (document.hidden || document.querySelector('.modal:not([hidden]), .comment-overlay, .survey-overlay')) {
-      scheduleDailySurveyInvite(1200);
+      scheduleSurveyInvite(1200);
       return;
     }
     acknowledgeSurveyInvite(SURVEY_POPUP_ID);
@@ -2712,7 +2709,7 @@ function coachScoreVerdict(score) {
   if (score >= 7) return '有点东西，今天先不骂';
   if (score >= 5) return '缓刑观察';
   if (score >= 3) return '嘴比战术硬';
-  return '战术板建议直接回收';
+  return '首秀不及格';
 }
 
 function surveyResultOptions(context, question, includeZero = false) {
@@ -4096,7 +4093,7 @@ loadData(false).finally(() => {
     acknowledgeSurveyInvite(surveyId);
     openSurvey(surveyId);
   } else {
-    scheduleDailySurveyInvite();
+    scheduleSurveyInvite();
   }
 });
 setInterval(() => loadData(true), REFRESH_MS);

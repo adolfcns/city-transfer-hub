@@ -39,5 +39,5 @@ test('重点传闻分六张追加，互动计数进入视口后再请求', () =>
 test('调查先显示静态内容，实时票数在后台同步', () => {
   assert.match(app, /renderSurveyIntro\(context\);\s*try \{\s*context\.data = await surveyApi\(pollId\)/);
   assert.match(app, /正在后台同步实时票数/);
-  assert.match(app, /loadData\(false\)\.finally\(\(\) => \{[\s\S]*scheduleDailySurveyInvite\(\)/);
+  assert.match(app, /loadData\(false\)\.finally\(\(\) => \{[\s\S]*scheduleSurveyInvite\(\)/);
 });
