@@ -60,7 +60,7 @@ test('马嗨正赛首秀调查包含三题、投降式换人和漂亮统计图',
   assert.match(app, /function renderCoachSurveyResults\(context\)/);
   assert.match(app, /function buildCoachSurveyShareCard\(context\)/);
   assert.match(app, /function downloadCoachSurveyResults\(context\)/);
-  assert.match(app, /马嗨正赛首秀判决书/);
+  assert.match(app, /投降马嗨正赛首秀打分/);
   assert.match(app, /首秀不及格/);
   assert.doesNotMatch(app, /战术板建议直接回收/);
   assert.match(app, /0—10 分完整分布/);

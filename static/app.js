@@ -2971,7 +2971,7 @@ async function buildCoachSurveyShareCard(context) {
   ctx.fillText('曼城转会情报站', 238, 91);
   cardFont(ctx, 56, 900);
   ctx.fillStyle = '#ffffff';
-  ctx.fillText('马嗨正赛首秀判决书', 238, 158);
+  ctx.fillText('投降马嗨正赛首秀打分', 238, 158);
   cardFont(ctx, 24, 600);
   ctx.fillStyle = '#c8e7f8';
   ctx.fillText(`统计截止 ${surveyShareDate(new Date())}`, 238, 207);
