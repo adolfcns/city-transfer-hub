@@ -221,7 +221,7 @@ body.survey-open { overflow: hidden; }
 .survey-intro-icon { font-size: 42px; line-height: 1; }
 .survey-intro-headline {
   margin-top: 14px; color: var(--t1); font-size: 24px; font-weight: 900; line-height: 1.2;
-  letter-spacing: -.02em;
+  letter-spacing: -.02em; white-space: pre-line;
 }
 .survey-intro-copy { max-width: 500px; margin: 18px 0 14px; color: var(--text); font-size: 16px; line-height: 1.85; }
 .survey-quote-wall {

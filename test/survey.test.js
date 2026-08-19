@@ -12,7 +12,8 @@ const workflow = fs.readFileSync('.github/workflows/fetch.yml', 'utf8');
 test('夏窗调查使用确认后的问题和文案', () => {
   assert.match(app, /维圣封神/);
   assert.match(app, /我信维圣/);
-  assert.match(app, /维亚纳老师，卖人真积极，一个一个，买人只在传闻里。/);
+  assert.match(app, /维亚纳老师，\\n卖人真积极，\\n一个一个，\\n买人只在传闻里。/);
+  assert.match(style, /\.survey-intro-headline \{[^}]*white-space: pre-line/);
   assert.match(app, /花 30 秒给曼城夏窗打个分，看看你的判断是不是蓝月主流。/);
   assert.match(app, /primaryLabel: '花30秒给夏窗打分'/);
   assert.match(app, /已有 \$\{total\} 位蓝月球迷参与，看看你是不是少数派/);

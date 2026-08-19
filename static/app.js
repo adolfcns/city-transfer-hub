@@ -87,7 +87,7 @@ const SURVEY_DEFINITIONS = Object.freeze({
     entry: '📊 夏窗调查',
     icon: '🔥',
     title: '夏窗调查',
-    introHeadline: '维亚纳老师，卖人真积极，一个一个，买人只在传闻里。',
+    introHeadline: '维亚纳老师，\n卖人真积极，\n一个一个，\n买人只在传闻里。',
     intro: '花 30 秒给曼城夏窗打个分，看看你的判断是不是蓝月主流。',
     returningIntro: '投票结果有变化，回来看看风向？',
     primaryLabel: '花30秒给夏窗打分',
