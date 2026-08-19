@@ -33,7 +33,7 @@ const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
 const SURVEY_PROFILE_KEY = 'cth_survey_profile_v1';
 const SURVEY_POPUP_ID = 'summer_2026';
 const SURVEY_INVITE_KEY = 'cth_survey_invite_viana_backlash_20260819_12h_v1';
-const SURVEY_INVITE_INTERVAL_MS = 8 * 60 * 60 * 1000;
+const SURVEY_INVITE_INTERVAL_MS = 4 * 60 * 60 * 1000;
 const SURVEY_INVITE_DELAY_MS = 1500;
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
 const REACTION_SNAPSHOT_URL = './data/reactions.json';
@@ -87,16 +87,11 @@ const SURVEY_DEFINITIONS = Object.freeze({
     entry: '📊 夏窗调查',
     icon: '🔥',
     title: '夏窗调查',
-    introHeadline: '维亚纳神操作引众怒！',
-    intro: 'City Xtra 评论区差评如潮。看完外面的声音，花 30 秒给曼城夏窗打个分。',
+    introHeadline: '维亚纳老师，卖人真积极，一个一个，买人只在传闻里。',
+    intro: '花 30 秒给曼城夏窗打个分，看看你的判断是不是蓝月主流。',
     returningIntro: '投票结果有变化，回来看看风向？',
     primaryLabel: '花30秒给夏窗打分',
     resultsLabel: '看看大家怎么选',
-    popupQuotes: [
-      { zh: '维亚纳正在毁掉这支球队。', en: 'Viana is sabotaging this club.' },
-      { zh: '卖掉队里最好的防守型中场，就为了签恩佐？', en: 'Selling your best CDMs to sign Enzo?' },
-      { zh: '我倒更想把维亚纳和马雷斯卡一起送走。', en: 'I’m keen to offload Viana AND Maresca at this point.' },
-    ],
     closesAt: WINDOWS[0].ts,
     questions: [
       {

@@ -12,12 +12,9 @@ const workflow = fs.readFileSync('.github/workflows/fetch.yml', 'utf8');
 test('夏窗调查使用确认后的问题和文案', () => {
   assert.match(app, /维圣封神/);
   assert.match(app, /我信维圣/);
-  assert.match(app, /维亚纳神操作引众怒/);
-  assert.match(app, /City Xtra 评论区差评如潮/);
+  assert.match(app, /维亚纳老师，卖人真积极，一个一个，买人只在传闻里。/);
+  assert.match(app, /花 30 秒给曼城夏窗打个分，看看你的判断是不是蓝月主流。/);
   assert.match(app, /primaryLabel: '花30秒给夏窗打分'/);
-  assert.match(app, /Viana is sabotaging this club/);
-  assert.match(app, /Selling your best CDMs to sign Enzo/);
-  assert.match(app, /I’m keen to offload Viana AND Maresca at this point/);
   assert.match(app, /已有 \$\{total\} 位蓝月球迷参与，看看你是不是少数派/);
   assert.match(app, /投票结果有变化，回来看看风向/);
   assert.match(app, /窗口还剩 XX 天，最亟需补强哪个位置/);
@@ -41,18 +38,16 @@ test('重点传闻旁提供两个紧凑调查入口', () => {
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.survey-entry \{[^}]*font-size: 13px; font-weight: 800/);
 });
 
-test('手机和电脑都会主动弹出维亚纳争议引流的夏窗调查', () => {
+test('手机和电脑都会每四小时弹出讽刺文案引流的夏窗调查', () => {
   assert.match(app, /cth_survey_invite_viana_backlash_20260819_12h_v1/);
   assert.match(app, /SURVEY_POPUP_ID = 'summer_2026'/);
-  assert.match(app, /SURVEY_INVITE_INTERVAL_MS = 8 \* 60 \* 60 \* 1000/);
+  assert.match(app, /SURVEY_INVITE_INTERVAL_MS = 4 \* 60 \* 60 \* 1000/);
   assert.doesNotMatch(app, /DESKTOP_SURVEY_MEDIA|matchMedia\(DESKTOP_SURVEY_MEDIA\)/);
   assert.match(app, /localStorage\.setItem\(SURVEY_INVITE_KEY, String\(Date\.now\(\)\)\)/);
   assert.match(app, /Date\.now\(\) - lastShownAt < SURVEY_INVITE_INTERVAL_MS/);
   assert.match(app, /document\.querySelector\('\.modal:not\(\[hidden\]\), \.comment-overlay, \.survey-overlay'\)/);
   assert.match(app, /openSurvey\(SURVEY_POPUP_ID\)/);
   assert.match(app, /scheduleSurveyInvite\(\);/);
-  assert.match(style, /\.survey-quote-wall/);
-  assert.match(style, /\.survey-quote-card/);
 });
 
 test('马嗨正赛首秀调查包含三题、投降式换人和漂亮统计图', () => {
