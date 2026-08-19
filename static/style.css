@@ -224,6 +224,23 @@ body.survey-open { overflow: hidden; }
   letter-spacing: -.02em;
 }
 .survey-intro-copy { max-width: 500px; margin: 18px 0 14px; color: var(--text); font-size: 16px; line-height: 1.85; }
+.survey-quote-wall {
+  width: min(540px, 100%); margin: 0 0 14px; display: grid; gap: 7px; text-align: left;
+}
+.survey-quote-wall-title {
+  display: block; color: var(--burgundy); font-size: 13px; font-weight: 900; letter-spacing: .01em;
+}
+.survey-quote-card {
+  position: relative; margin: 0; padding: 10px 12px 9px 16px;
+  border: 1px solid rgba(122,24,48,.20); border-radius: 10px;
+  background: linear-gradient(110deg, rgba(255,250,240,.96), rgba(108,171,221,.09));
+  box-shadow: 0 3px 10px rgba(9,35,56,.05);
+}
+.survey-quote-card::before {
+  content: '“'; position: absolute; left: 6px; top: 3px; color: rgba(122,24,48,.36); font-size: 22px; font-weight: 900;
+}
+.survey-quote-zh { display: block; color: var(--text); font-size: 14px; line-height: 1.45; }
+.survey-quote-en { display: block; margin-top: 3px; color: var(--text-dim); font-size: 11px; line-height: 1.35; }
 .survey-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 12px; color: var(--text-dim); font-size: 12px; }
 .survey-voted { color: var(--green); font-weight: 700; }
 .survey-closed { color: var(--burgundy); font-weight: 700; }
@@ -1253,7 +1270,12 @@ body.comments-open { overflow: hidden; }
   .survey-body { padding: 13px 12px calc(18px + env(safe-area-inset-bottom)); }
   .survey-intro-copy { margin-top: 14px; font-size: 14px; line-height: 1.75; }
   .survey-intro-headline { margin-top: 11px; font-size: 21px; }
-  .survey-intro-actions { margin-top: 20px; }
+  .survey-quote-wall { gap: 6px; margin-bottom: 10px; }
+  .survey-quote-wall-title { font-size: 12px; }
+  .survey-quote-card { padding: 8px 9px 7px 14px; }
+  .survey-quote-zh { font-size: 13px; }
+  .survey-quote-en { font-size: 10.5px; }
+  .survey-intro-actions { margin-top: 14px; }
   .survey-primary, .survey-secondary, .survey-submit { min-height: 44px; font-size: 13px; }
   .survey-question { padding: 11px 10px; }
   .survey-question legend { font-size: 13px; }
