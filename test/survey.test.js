@@ -44,7 +44,7 @@ test('重点传闻旁提供两个紧凑调查入口', () => {
 test('手机和电脑都会主动弹出维亚纳争议引流的夏窗调查', () => {
   assert.match(app, /cth_survey_invite_viana_backlash_20260819_12h_v1/);
   assert.match(app, /SURVEY_POPUP_ID = 'summer_2026'/);
-  assert.match(app, /SURVEY_INVITE_INTERVAL_MS = 12 \* 60 \* 60 \* 1000/);
+  assert.match(app, /SURVEY_INVITE_INTERVAL_MS = 8 \* 60 \* 60 \* 1000/);
   assert.doesNotMatch(app, /DESKTOP_SURVEY_MEDIA|matchMedia\(DESKTOP_SURVEY_MEDIA\)/);
   assert.match(app, /localStorage\.setItem\(SURVEY_INVITE_KEY, String\(Date\.now\(\)\)\)/);
   assert.match(app, /Date\.now\(\) - lastShownAt < SURVEY_INVITE_INTERVAL_MS/);
