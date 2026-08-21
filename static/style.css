@@ -1599,17 +1599,26 @@ code { background: rgba(57, 189, 248, .12); color: #dff4ff; }
   }
   .brand-slogan { margin-top: 3px; font-size: 11px; line-height: 1.35; }
   .stadium-hero {
-    min-height: 118px;
-    background-position: 69% 52%;
+    min-height: 0; background: none; box-shadow: 0 8px 22px rgba(0, 7, 15, .20);
+  }
+  .stadium-hero::before {
+    content: ""; display: block; height: 112px;
+    background:
+      linear-gradient(90deg, rgba(2, 14, 27, .54), rgba(2, 14, 27, .08) 72%, rgba(2, 14, 27, .20)),
+      url("assets/etihad-night-hero.webp") 69% 52% / cover no-repeat;
   }
   .stadium-hero-inner {
-    width: calc(100% - 20px); min-height: 118px; align-items: flex-end; padding-bottom: 10px;
+    width: 100%; min-height: 0; display: block;
   }
   .stadium-countdown-card {
-    gap: 4px; max-width: calc(100% - 8px); padding: 7px 9px; border-radius: 9px;
-    background: rgba(3, 18, 33, .76);
+    width: 100%; max-width: none; box-sizing: border-box;
+    flex-direction: row; align-items: center; justify-content: center; gap: 0;
+    padding: 7px 10px; border: 0; border-radius: 0;
+    border-top: 1px solid rgba(91, 199, 247, .24);
+    background: rgba(3, 18, 33, .96); box-shadow: none;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
   }
-  .stadium-kicker { font-size: 10px; }
+  .stadium-kicker { display: none; }
   .stadium-hero #window-countdown { max-width: 100%; gap: 2px; }
   .stadium-hero .countdown-label { margin-right: 2px; font-size: 10px; }
   .stadium-hero .countdown-value {
