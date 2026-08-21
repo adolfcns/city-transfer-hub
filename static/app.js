@@ -50,12 +50,12 @@ const SURVEY_DEFINITIONS = Object.freeze({
   loan_watch_preview_2026: {
     icon: '🌍',
     title: '蓝月在外 · 新功能预告',
-    introHeadline: '离开曼城，不等于离开视线',
+    introHeadline: '他们离开曼城，不等于离开视线',
     intro: '新赛季开始后，本站将追踪所有曼城外租球员（含 U21），以及今夏转会、离队球员的每场表现。',
     announcementOnly: true,
-    previewItems: ['专业评分', '出场时间', '进球', '助攻'],
-    previewNote: '每场赛后更新 · 数据来源可追溯 · 国内无需代理',
-    primaryLabel: '开赛后来看战报',
+    previewItems: ['⭐ 专业评分 7.4', '⏱ 出场 82 分钟', '⚽ 进球 1', '🅰️ 助攻 1'],
+    previewNote: '以上为展示示例 · 实际数据将在每场赛后更新',
+    primaryLabel: '敬请关注',
   },
   coach_debut_2026: {
     entry: '⚖️ 首秀评分',

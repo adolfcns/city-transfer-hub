@@ -44,10 +44,11 @@ test('手机和电脑都会每四小时弹出蓝月在外新功能预告', () =>
   assert.match(app, /SURVEY_POPUP_ID = 'loan_watch_preview_2026'/);
   assert.match(app, /SURVEY_INVITE_INTERVAL_MS = 4 \* 60 \* 60 \* 1000/);
   assert.match(app, /title: '蓝月在外 · 新功能预告'/);
-  assert.match(app, /离开曼城，不等于离开视线/);
+  assert.match(app, /他们离开曼城，不等于离开视线/);
   assert.match(app, /所有曼城外租球员（含 U21）/);
-  assert.match(app, /previewItems: \['专业评分', '出场时间', '进球', '助攻'\]/);
-  assert.match(app, /每场赛后更新 · 数据来源可追溯 · 国内无需代理/);
+  assert.match(app, /previewItems: \['⭐ 专业评分 7\.4', '⏱ 出场 82 分钟', '⚽ 进球 1', '🅰️ 助攻 1'\]/);
+  assert.match(app, /primaryLabel: '敬请关注'/);
+  assert.match(app, /以上为展示示例 · 实际数据将在每场赛后更新/);
   assert.match(app, /announcementOnly: true/);
   assert.doesNotMatch(app, /DESKTOP_SURVEY_MEDIA|matchMedia\(DESKTOP_SURVEY_MEDIA\)/);
   assert.match(app, /localStorage\.setItem\(SURVEY_INVITE_KEY, String\(Date\.now\(\)\)\)/);
