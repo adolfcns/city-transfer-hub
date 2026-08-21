@@ -1384,7 +1384,10 @@ code { background: rgba(57, 189, 248, .12); color: #dff4ff; }
   background: rgba(243, 249, 253, .96);
   box-shadow: 0 0 0 3px rgba(91, 199, 247, .20), 0 8px 20px rgba(0, 8, 18, .32);
 }
-.brand-sub { display: flex; align-items: center; gap: 5px; color: var(--text-dim); }
+.brand-sub {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 3px 5px;
+  color: var(--text-dim); white-space: normal; overflow: visible; text-overflow: clip;
+}
 #window-countdown {
   gap: 4px; padding: 4px 7px; border: 1px solid rgba(245, 200, 91, .25); border-radius: 8px;
   background: linear-gradient(135deg, rgba(245, 200, 91, .08), rgba(57, 189, 248, .05));
@@ -1401,6 +1404,34 @@ code { background: rgba(57, 189, 248, .12); color: #dff4ff; }
 .site-url { color: #91abbe; }
 .site-url:hover { color: var(--sky); }
 .brand-slogan { color: #a9d9ef; }
+.stadium-hero {
+  position: relative; min-height: 188px; overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(2, 14, 27, .92) 0%, rgba(2, 14, 27, .62) 42%, rgba(2, 14, 27, .18) 76%, rgba(2, 14, 27, .42) 100%),
+    url("assets/etihad-night-hero.webp") 66% 52% / cover no-repeat;
+  border-bottom: 1px solid rgba(91, 199, 247, .36);
+  box-shadow: inset 0 -38px 60px rgba(2, 14, 27, .30), 0 12px 30px rgba(0, 7, 15, .24);
+}
+.stadium-hero-inner {
+  width: min(1080px, calc(100% - 32px)); min-height: 188px; margin: 0 auto;
+  display: flex; align-items: center;
+}
+.stadium-countdown-card {
+  display: inline-flex; flex-direction: column; align-items: flex-start; gap: 7px;
+  max-width: calc(100% - 24px); padding: 13px 16px;
+  border: 1px solid rgba(91, 199, 247, .34); border-radius: 12px;
+  background: rgba(3, 18, 33, .82); box-shadow: 0 14px 34px rgba(0, 5, 12, .34);
+  -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
+}
+.stadium-kicker {
+  color: #e8f5fc; font-size: 13px; font-weight: 800; letter-spacing: .08em;
+}
+.stadium-hero #window-countdown { padding: 0; border: 0; background: none; box-shadow: none; }
+.stadium-hero .countdown-label { margin-right: 5px; }
+.stadium-hero .countdown-value {
+  min-width: 40px; padding-inline: 7px; font-size: 21px; line-height: 32px;
+}
+.stadium-hero .countdown-unit small { font-size: 11px; }
 .fav-btn {
   border-color: rgba(245, 200, 91, .62); background: rgba(245, 200, 91, .09);
   color: var(--gold); box-shadow: none;
@@ -1548,10 +1579,43 @@ code { background: rgba(57, 189, 248, .12); color: #dff4ff; }
 
 @media (max-width: 560px) {
   .topbar { background: linear-gradient(145deg, #04182a, #072b47); }
-  .topbar-inner { padding: 8px 10px 9px; }
-  .brand-sub { display: flex; align-items: center; gap: 4px; }
-  #window-countdown { flex: 0 0 auto; padding: 3px 5px; }
-  .brand-sub-separator, .site-url { color: #7995a9; }
+  .topbar-inner { padding: 7px 10px 8px; column-gap: 6px; }
+  .brand { gap: 7px; }
+  .brand-logo { width: 32px; height: 32px; }
+  .brand h1 { font-size: 15px; }
+  .topbar-right { gap: 4px; }
+  .topbar-right .icon-btn {
+    width: 32px; height: 32px; min-width: 32px; padding: 0;
+    border-radius: 8px; font-size: 14px;
+  }
+  .brand-sub {
+    display: grid; grid-template-columns: minmax(0, 1fr); gap: 0;
+    margin-top: 3px; line-height: 1.35;
+  }
+  .brand-sub-separator { display: none; }
+  .site-url {
+    display: block; min-width: 0; color: #87a5ba; font-size: 10px;
+    overflow-wrap: anywhere;
+  }
+  .brand-slogan { margin-top: 3px; font-size: 11px; line-height: 1.35; }
+  .stadium-hero {
+    min-height: 118px;
+    background-position: 69% 52%;
+  }
+  .stadium-hero-inner {
+    width: calc(100% - 20px); min-height: 118px; align-items: flex-end; padding-bottom: 10px;
+  }
+  .stadium-countdown-card {
+    gap: 4px; max-width: calc(100% - 8px); padding: 7px 9px; border-radius: 9px;
+    background: rgba(3, 18, 33, .76);
+  }
+  .stadium-kicker { font-size: 10px; }
+  .stadium-hero #window-countdown { max-width: 100%; gap: 2px; }
+  .stadium-hero .countdown-label { margin-right: 2px; font-size: 10px; }
+  .stadium-hero .countdown-value {
+    min-width: 25px; padding-inline: 3px; font-size: 13px; line-height: 20px;
+  }
+  .stadium-hero .countdown-unit small { font-size: 9px; }
   .container { padding: 12px 10px 56px; }
   .pinned-card, .card, .modal-box {
     background: linear-gradient(145deg, rgba(12,43,70,.98), rgba(7,31,53,.98));
