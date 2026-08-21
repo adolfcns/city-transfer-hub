@@ -1633,3 +1633,234 @@ code { background: rgba(57, 189, 248, .12); color: #dff4ff; }
   .city-prayer { background: rgba(6,28,47,.98); }
   .survey-sheet, .comment-sheet { background: #071f35; }
 }
+
+/* ============ 雾蓝日间版 · 长时间阅读舒适配色 ============ */
+:root {
+  color-scheme: light;
+  --page: #eaf3f8;
+  --surface: #f9fcfe;
+  --ink: #18364d;
+  --muted-ink: #637d8f;
+  --accent: #2b88b8;
+  --sky: #2b88b8;
+  --sky-dim: #6cabdd;
+  --navy: #eaf3f8;
+  --navy-2: rgba(249, 252, 254, .98);
+  --card: rgba(255, 255, 255, .96);
+  --card-hover: #f4f9fc;
+  --line: #cbdde7;
+  --line-strong: #a8c8da;
+  --text: #18364d;
+  --text-dim: #637d8f;
+  --cream: #f9fcfe;
+  --cream-deep: #e6f2f8;
+  --burgundy: #1d709b;
+  --gold: #b7790d;
+  --purple: #7258ad;
+  --green: #2b8965;
+  --red: #c8525d;
+  --t0: #9a6500;
+  --t1: #1678a8;
+  --t2: #6d8190;
+  --itk: #6d56aa;
+}
+html { background: var(--page); }
+body {
+  background:
+    radial-gradient(900px 420px at 12% -80px, rgba(108, 171, 221, .24), transparent 68%),
+    radial-gradient(760px 520px at 102% 24%, rgba(189, 220, 236, .30), transparent 70%),
+    linear-gradient(160deg, #f2f8fb 0%, var(--page) 52%, #edf5f8 100%);
+  color: var(--ink);
+}
+a { color: var(--accent); }
+code { background: #e6f1f7; color: #294f68; }
+
+.topbar {
+  background: rgba(248, 252, 254, .94);
+  border-bottom-color: rgba(89, 151, 185, .34);
+  box-shadow: 0 8px 24px rgba(32, 79, 106, .10);
+}
+.brand h1 { color: var(--ink); }
+.brand-logo {
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(81, 166, 209, .18), 0 7px 18px rgba(38, 91, 122, .14);
+}
+.brand-sub, .updated-at { color: var(--muted-ink); }
+.site-url { color: #607b8e; }
+.site-url:hover { color: var(--accent); }
+.brand-slogan { color: #357aa0; }
+.fav-btn {
+  border-color: rgba(183, 121, 13, .48); background: #fffaf0; color: #94610b;
+}
+.fav-btn:hover { border-color: var(--gold); background: #fff4d9; color: #7c5108; }
+.topbar .icon-btn, .icon-btn {
+  background: rgba(255, 255, 255, .88); color: var(--ink); border-color: var(--line-strong);
+  box-shadow: 0 3px 10px rgba(35, 82, 108, .08);
+}
+.topbar .icon-btn:hover, .icon-btn:hover {
+  border-color: var(--accent); color: var(--accent); background: #edf7fb;
+}
+
+.demo-banner { background: #fff8e7; border-color: #e7c97b; color: #865b0e; }
+.demo-banner.warn { background: #eaf6fb; border-color: #a9d2e5; color: #276b8e; }
+.focus-strip-title { color: var(--ink); }
+.focus-target-tabs { background: rgba(255,255,255,.78); border-color: var(--line); }
+.focus-target-tab:hover { background: #edf7fb; }
+.focus-target-tab.active { background: #dff1f9; color: #176b95; }
+.focus-target-count { background: rgba(61, 137, 178, .10); }
+.survey-entry, .focus-strip-restore, .focus-follow {
+  background: rgba(255,255,255,.90); border-color: var(--line-strong); color: var(--ink);
+  box-shadow: 0 3px 10px rgba(35, 82, 108, .06);
+}
+.survey-entry:hover, .focus-strip-restore:hover, .focus-follow:hover {
+  background: #eaf6fb; border-color: var(--accent); color: var(--accent);
+}
+.focus-follow.on { background: #dff1f9; border-color: var(--accent); color: #176b95; }
+.focus-strip-empty { background: rgba(255,255,255,.66); }
+
+.pinned-card, .card {
+  background: rgba(255,255,255,.95); color: var(--ink);
+  border-color: rgba(118, 164, 190, .34);
+  box-shadow: 0 8px 24px rgba(42, 83, 106, .08);
+}
+.pinned-card:hover, .card:hover {
+  background: #fff;
+  box-shadow: 0 11px 28px rgba(42, 83, 106, .12), 0 0 0 1px rgba(43,136,184,.05);
+}
+.pinned-hide { background: rgba(247,251,253,.92); border-color: var(--line); }
+.pinned-hide:hover { background: #eaf6fb; color: var(--accent); border-color: var(--accent); }
+.reaction-legend { color: #718999; }
+.badge-tier.t0 { background: #fff8e6; color: var(--t0); border-color: #e8c66e; }
+.badge-tier.t1 { background: #e8f6fc; color: var(--t1); border-color: #9bcfe6; }
+.badge-tier.t2 { background: #f0f4f6; color: var(--t2); border-color: #c5d2d9; }
+.badge-tier.itk { background: #f2effc; color: var(--itk); border-color: #c8bce9; }
+
+#search, .src-btn, .seg button, .mark-all-read, .library-action,
+.src-menu .src-tools button, .pat-save, .comment-action, .reaction-btn {
+  background: rgba(255,255,255,.92); border-color: var(--line-strong); color: #294c63;
+  box-shadow: none;
+}
+#search::placeholder, .comment-input::placeholder, .nickname-input::placeholder { color: #8195a2; }
+#search:focus, .pat-row input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(43,136,184,.10); }
+.src-btn:hover, .library-action:hover, .comment-action:hover, .reaction-btn:hover {
+  background: #eaf6fb; border-color: var(--accent); color: var(--accent);
+}
+.src-menu {
+  background: rgba(251,253,254,.99); border-color: var(--line-strong);
+  box-shadow: 0 18px 42px rgba(35, 75, 98, .18);
+}
+.src-menu label:hover { background: #eaf6fb; }
+.seg button.active {
+  background: linear-gradient(135deg, #78c6e8, #54add6); border-color: #4a9ec7;
+  color: #10364d; font-weight: 800;
+}
+.library-seg button.active { background: transparent; color: #176b95; border-bottom-color: var(--accent); }
+.mark-all-read { border-color: #9bc7dc; color: #276b8e; }
+.mark-all-read:hover:not(:disabled) { background: #eaf6fb; color: var(--accent); }
+.day-sep { color: #287da8; }
+.card.is-new { border-color: #4ca9d3; box-shadow: 0 0 0 1px rgba(76,169,211,.22), 0 10px 26px rgba(40,88,115,.10); }
+.card.is-new::after { color: #fff; background: #2b88b8; }
+.card.hwg { border-color: rgba(183,121,13,.48); box-shadow: 0 8px 24px rgba(136,92,12,.08); }
+.card-body .zh { color: var(--ink); }
+.card-body .en { color: #6f8391; }
+.card-body mark { background: #dceff8; }
+.src-note { background: #edf3f6; }
+.ev-badge { background: #e8f6fc; color: #176b95; border-color: #abd6e9; }
+.library-action.copy-link, .library-action.save { color: #276f95; }
+.library-action.favorite.on { color: #96620b; border-color: #d4ac51; background: #fff8e6; }
+.library-action.read.on { color: #237655; border-color: #8ac6ad; background: #edf8f3; }
+.reaction-btn.selected { background: #dff1f9; border-color: var(--accent); color: #176b95; }
+.pinned-card .reaction-hint { color: #24769d; }
+.feed-more { background: #f9fcfe; border-color: var(--accent); color: #24769d; }
+.feed-more:hover { background: #eaf6fb; }
+
+.city-prayer {
+  border-color: rgba(183,121,13,.50); background: #fffaf0; color: var(--ink);
+  box-shadow: 0 12px 30px rgba(76, 65, 34, .14);
+}
+.city-prayer:hover { background: #fff6e2; border-color: var(--gold); box-shadow: 0 14px 34px rgba(76,65,34,.18); }
+.prayer-copy strong, .prayer-count-number { color: var(--ink); }
+.prayer-cta { color: #9a6500; }
+.prayer-goal { color: #28779e; }
+.new-pill { background: #e5f4fb; color: #176b95; border-color: #6cb8db; box-shadow: 0 8px 22px rgba(34,83,110,.15); }
+
+.survey-overlay, .comment-overlay, .modal { background: rgba(25, 49, 64, .48); }
+.survey-sheet, .comment-sheet, .nickname-box, .modal-box, .status-panel, .share-save-panel {
+  background: #f9fcfe; border-color: var(--line-strong); color: var(--ink);
+  box-shadow: 0 24px 60px rgba(35, 67, 84, .24);
+}
+.survey-head, .comment-sheet-head {
+  background: linear-gradient(110deg, #e4f3fa, #f9fcfe);
+  border-bottom-color: var(--line);
+}
+.survey-close, .comment-close { background: #e7f3f8; }
+.survey-close:hover, .comment-close:hover { background: #d9edf6; color: var(--accent); }
+.survey-preview-item { background: #e7f4fa; color: #2a637f; }
+.survey-quote-card, .survey-question, .survey-result-card,
+.midfield-tendency-card, .midfield-ranking-card, .summer-position-panel {
+  background: #fff; border-color: var(--line);
+}
+.survey-option span, .survey-secondary, .survey-back, .survey-edit,
+.nickname-cancel, .share-save-close {
+  background: #f7fbfd; border-color: var(--line-strong); color: var(--ink);
+}
+.survey-option input:checked + span {
+  background: #dff1f9; border-color: var(--accent); color: #176b95;
+  box-shadow: inset 0 0 0 1px rgba(43,136,184,.08);
+}
+.survey-primary, .survey-submit, .coach-next-poll-button {
+  background: linear-gradient(135deg, #70c1e4, #4ba5cf); border-color: #469ac2; color: #10354b;
+}
+.survey-primary:hover, .survey-submit:hover, .coach-next-poll-button:hover { background: linear-gradient(135deg, #86cee9, #5aafd4); }
+.survey-result-summary, .summer-survey-results .survey-result-summary,
+.coach-survey-results .survey-result-summary, .midfield-survey-results .survey-result-summary {
+  background: #eaf6fb; border-color: #acd3e5;
+}
+.summer-survey-results, .coach-survey-results, .midfield-survey-results {
+  background: linear-gradient(180deg, rgba(108,171,221,.11), transparent 520px);
+}
+.midfield-tendency-dial::before { background: #f9fcfe; }
+.comment-composer, .comment-input, .nickname-input, .nickname-cancel { background: #fff; color: var(--ink); }
+.comment-sheet-handle { background: #9eb7c6; }
+.comment-thread, .comment-reply-row { border-color: var(--line); }
+.comment-input:focus, .nickname-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(43,136,184,.10); }
+.status-list li, .modal-sec, .toast { background: #f2f8fb; border-color: var(--line); }
+.recovery-notice-ok { background: linear-gradient(135deg, #70c1e4, #4ba5cf); color: #10354b; }
+.share-save-download { background: linear-gradient(135deg, #70c1e4, #4ba5cf); color: #10354b; border-color: #469ac2; }
+.share-save-download:hover { color: #10354b; }
+.foot { color: #728897; border-top-color: var(--line); }
+
+@media (max-width: 560px) {
+  .topbar {
+    background:
+      linear-gradient(90deg, rgba(2, 18, 32, .91) 0%, rgba(2, 18, 32, .73) 50%, rgba(2, 18, 32, .38) 100%),
+      url("assets/etihad-night-hero.webp") 69% 52% / cover no-repeat;
+    border-bottom-color: rgba(125, 199, 232, .42);
+    box-shadow: 0 8px 24px rgba(20, 52, 70, .16);
+  }
+  .topbar .brand h1 { color: #f4faff; }
+  .topbar .brand-sub, .topbar .site-url { color: #bfd3df; }
+  .topbar .brand-slogan { color: #c9e6f4; }
+  .topbar .fav-btn { background: rgba(11,32,48,.72); border-color: rgba(229,183,82,.68); color: #f1c85d; }
+  .topbar .icon-btn {
+    background: rgba(8, 36, 56, .76); color: #e6f4fb; border-color: rgba(125,199,232,.42);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .stadium-hero {
+    min-height: 0; background: #f7fbfd; border-bottom-color: var(--line);
+    box-shadow: 0 5px 16px rgba(38, 78, 100, .08);
+  }
+  .stadium-hero::before { display: none; }
+  .stadium-countdown-card {
+    background: #f7fbfd; border-top: 0; border-bottom: 1px solid var(--line);
+  }
+  .stadium-hero .countdown-label { color: #38566b; }
+  .stadium-hero .countdown-value {
+    background: linear-gradient(180deg, #fff7df, #f6ebc9); border-color: #d9bd72;
+    color: #9a6500; box-shadow: 0 2px 5px rgba(108,82,27,.10);
+  }
+  .stadium-hero .countdown-unit small { color: #7c6c48; }
+  .pinned-card, .card, .modal-box { background: rgba(255,255,255,.97); }
+  .city-prayer { background: #fffaf0; }
+  .survey-sheet, .comment-sheet { background: #f9fcfe; }
+}
