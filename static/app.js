@@ -31,8 +31,8 @@ const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
 const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
 const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
 const SURVEY_PROFILE_KEY = 'cth_survey_profile_v1';
-const SURVEY_POPUP_ID = 'summer_2026';
-const SURVEY_INVITE_KEY = 'cth_survey_invite_viana_backlash_20260819_12h_v1';
+const SURVEY_POPUP_ID = 'loan_watch_preview_2026';
+const SURVEY_INVITE_KEY = 'cth_loan_watch_preview_20260821_4h_v1';
 const SURVEY_INVITE_INTERVAL_MS = 4 * 60 * 60 * 1000;
 const SURVEY_INVITE_DELAY_MS = 1500;
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
@@ -47,6 +47,16 @@ const REACTION_DEFS = Object.freeze([
 ]);
 const REACTION_KEYS = new Set(REACTION_DEFS.map((item) => item.key));
 const SURVEY_DEFINITIONS = Object.freeze({
+  loan_watch_preview_2026: {
+    icon: '🌍',
+    title: '蓝月在外 · 新功能预告',
+    introHeadline: '离开曼城，不等于离开视线',
+    intro: '新赛季开始后，本站将追踪所有曼城外租球员（含 U21），以及今夏转会、离队球员的每场表现。',
+    announcementOnly: true,
+    previewItems: ['专业评分', '出场时间', '进球', '助攻'],
+    previewNote: '每场赛后更新 · 数据来源可追溯 · 国内无需代理',
+    primaryLabel: '开赛后来看战报',
+  },
   coach_debut_2026: {
     entry: '⚖️ 首秀评分',
     icon: '⚖️',
@@ -3173,6 +3183,20 @@ function renderSurveyIntro(context) {
   intro.appendChild(el('p', 'survey-intro-copy', data.ballot && definition.returningIntro
     ? definition.returningIntro
     : definition.intro));
+  if (definition.announcementOnly) {
+    const previewGrid = el('div', 'survey-preview-grid');
+    for (const item of definition.previewItems || []) previewGrid.appendChild(el('span', 'survey-preview-item', item));
+    intro.appendChild(previewGrid);
+    if (definition.previewNote) intro.appendChild(el('p', 'survey-preview-note', definition.previewNote));
+    const actions = el('div', 'survey-intro-actions single');
+    const ok = el('button', 'survey-primary', definition.primaryLabel || '知道了');
+    ok.type = 'button';
+    ok.onclick = closeSurvey;
+    actions.appendChild(ok);
+    intro.appendChild(actions);
+    body.appendChild(intro);
+    return;
+  }
   if (Array.isArray(definition.popupQuotes) && definition.popupQuotes.length > 0) {
     const quoteWall = el('section', 'survey-quote-wall');
     quoteWall.setAttribute('aria-label', 'City Xtra 评论区中英对照');
@@ -3655,6 +3679,10 @@ async function openSurvey(pollId) {
       loading: true,
     },
   };
+  if (definition.announcementOnly) {
+    renderSurveyIntro(context);
+    return;
+  }
   renderSurveyIntro(context);
   try {
     context.data = await surveyApi(pollId);
@@ -3761,6 +3789,7 @@ function renderFocusZone() {
   switchers.appendChild(targetTabs);
   const surveyEntries = el('div', 'focus-survey-entries');
   for (const [pollId, definition] of Object.entries(SURVEY_DEFINITIONS)) {
+    if (!definition.entry) continue;
     const entry = el('button', 'survey-entry', definition.entry);
     entry.type = 'button';
     entry.dataset.pollId = pollId;
