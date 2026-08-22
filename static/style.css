@@ -261,6 +261,47 @@ body.survey-open { overflow: hidden; }
 .survey-closed { color: var(--burgundy); font-weight: 700; }
 .survey-intro-actions { width: min(430px, 100%); margin-top: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
 .survey-intro-actions.single { width: min(300px, 100%); grid-template-columns: 1fr; }
+.scout-report-sheet { width: min(900px, 100%); }
+.scout-report-invite .survey-intro-copy { max-width: 560px; }
+.scout-intro-stats {
+  width: min(520px, 100%); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
+}
+.scout-intro-stat {
+  min-width: 0; padding: 11px 7px 10px; display: grid; justify-items: center; gap: 2px;
+  border: 1px solid var(--line-strong); border-radius: 10px;
+  background: linear-gradient(145deg, rgba(108,171,221,.14), rgba(255,255,255,.32));
+}
+.scout-intro-stat strong { color: var(--burgundy); font-size: 20px; font-weight: 900; line-height: 1.1; }
+.scout-intro-stat span { color: var(--text-dim); font-size: 11px; font-weight: 700; line-height: 1.35; }
+.scout-report { display: grid; gap: 16px; }
+.scout-report-toolbar {
+  position: sticky; top: -18px; z-index: 4; margin: -18px -20px 0; padding: 10px 20px;
+  display: flex; align-items: center; gap: 10px; background: var(--card); border-bottom: 1px solid var(--line);
+  box-shadow: 0 8px 18px rgba(35,67,84,.08);
+}
+.scout-report-read-time { flex: 1; color: var(--text-dim); font-size: 11px; text-align: center; }
+.scout-report-share { min-height: 34px; padding: 5px 10px; font-size: 11px; }
+.scout-report-summary {
+  padding: 18px; border: 1px solid var(--line-strong); border-radius: 14px;
+  background: linear-gradient(135deg, rgba(108,171,221,.17), rgba(245,200,91,.10));
+}
+.scout-report-kicker { color: var(--burgundy); font-size: 11px; font-weight: 900; letter-spacing: .08em; }
+.scout-report-summary h3 { margin-top: 5px; color: var(--text); font-size: 21px; line-height: 1.35; }
+.scout-report-summary p { margin-top: 7px; color: var(--text-dim); font-size: 13px; line-height: 1.65; }
+.scout-report-figure {
+  margin: 0; padding: 14px; border: 1px solid var(--line); border-radius: 14px;
+  background: var(--card); box-shadow: 0 9px 24px rgba(35,67,84,.08);
+}
+.scout-report-figure h3 { margin: 0 0 10px; color: var(--text); font-size: 16px; line-height: 1.4; }
+.scout-report-image-link { display: block; overflow: hidden; border-radius: 11px; background: #f1f7fb; }
+.scout-report-image-link:hover { text-decoration: none; }
+.scout-report-image-link img { display: block; width: 100%; height: auto; }
+.scout-report-figure figcaption { margin-top: 9px; color: var(--text-dim); font-size: 12px; line-height: 1.55; }
+.scout-report-note {
+  padding: 12px 14px; display: grid; gap: 3px; border: 1px dashed var(--line-strong); border-radius: 11px;
+  color: var(--text-dim); font-size: 11px; line-height: 1.55;
+}
+.scout-report-note strong { color: var(--text); }
 .survey-primary, .survey-secondary, .survey-submit, .survey-back, .survey-edit {
   min-height: 42px; border-radius: 8px; font-size: 13px; font-weight: 700;
 }
@@ -1297,6 +1338,21 @@ body.comments-open { overflow: hidden; }
   .survey-quote-en { font-size: 10.5px; }
   .survey-intro-actions { margin-top: 14px; }
   .survey-primary, .survey-secondary, .survey-submit { min-height: 44px; font-size: 13px; }
+  .scout-intro-stats { gap: 6px; }
+  .scout-intro-stat { padding: 9px 4px 8px; }
+  .scout-intro-stat strong { font-size: 18px; }
+  .scout-intro-stat span { font-size: 10px; }
+  .scout-report { gap: 11px; }
+  .scout-report-toolbar { top: -13px; margin: -13px -12px 0; padding: 8px 12px; gap: 7px; }
+  .scout-report-read-time { font-size: 10px; }
+  .scout-report-share, .scout-report-toolbar .survey-back { padding-inline: 8px; white-space: nowrap; }
+  .scout-report-summary { padding: 14px; border-radius: 12px; }
+  .scout-report-summary h3 { font-size: 18px; }
+  .scout-report-summary p { font-size: 12px; }
+  .scout-report-figure { padding: 8px; border-radius: 12px; }
+  .scout-report-figure h3 { margin: 1px 3px 8px; font-size: 14px; }
+  .scout-report-figure figcaption { margin: 7px 3px 2px; font-size: 11px; }
+  .scout-report-note { padding: 10px 11px; }
   .survey-question { padding: 11px 10px; }
   .survey-question legend { font-size: 13px; }
   .survey-options { gap: 5px; }

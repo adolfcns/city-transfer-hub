@@ -33,7 +33,7 @@ test('重点传闻入口按确认顺序排列并提供蓝月在外预约', () =>
   assert.match(app, /📊 夏窗调查/);
   assert.match(app, /💬 本站体验/);
   assert.match(app, /🌍 蓝月在外/);
-  assert.match(app, /const FOCUS_SURVEY_ORDER = Object\.freeze\(\[\s*'summer_2026',\s*'site_experience_2026',\s*'coach_debut_2026',\s*'loan_watch_preview_2026'/);
+  assert.match(app, /const FOCUS_SURVEY_ORDER = Object\.freeze\(\[\s*'allan_scouting_report_2026',\s*'summer_2026',\s*'site_experience_2026',\s*'coach_debut_2026',\s*'loan_watch_preview_2026'/);
   assert.match(app, /for \(const pollId of FOCUS_SURVEY_ORDER\)/);
   assert.doesNotMatch(app, /entry: '⚽ 中场投票'/);
   assert.match(app, /focus-switchers/);
@@ -41,6 +41,30 @@ test('重点传闻入口按确认顺序排列并提供蓝月在外预约', () =>
   assert.match(style, /\.survey-entry[\s\S]*?color: var\(--text\); font-size: 14px; font-weight: 800/);
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*\.focus-switchers/);
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.survey-entry \{[^}]*font-size: 13px; font-weight: 800/);
+});
+
+test('阿兰球探报告提供四张按需加载图表、固定入口和每日一次引流', () => {
+  assert.match(app, /entry: '🔍 阿兰球探报告'/);
+  assert.match(app, /title: '阿兰球探报告'/);
+  assert.match(app, /数据不炸裂，曼城为什么还想要他/);
+  assert.match(app, /reportOnly: true/);
+  assert.match(app, /function renderScoutReport\(context\)/);
+  assert.match(app, /image\.loading = 'lazy'/);
+  assert.match(app, /image\.decoding = 'async'/);
+  assert.match(app, /4 张图 · 约 1 分钟/);
+  assert.match(app, /SCOUT_REPORT_INVITE_INTERVAL_MS = 24 \* 60 \* 60 \* 1000/);
+  assert.match(app, /SCOUT_REPORT_INVITE_DELAY_MS = 6500/);
+  assert.match(app, /cth_allan_scout_report_20260822_daily_v1/);
+  assert.match(app, /function scheduleScoutReportInvite/);
+  assert.match(app, /document\.querySelector\('\.modal:not\(\[hidden\]\), \.comment-overlay, \.survey-overlay'\)[\s\S]*?scoutReportInviteHandled = true/);
+  assert.match(app, /scheduleSurveyInvite\(\);\s*scheduleScoutReportInvite\(\);/);
+  assert.match(style, /\.scout-report-sheet/);
+  assert.match(style, /\.scout-intro-stats/);
+  assert.match(style, /\.scout-report-toolbar/);
+  assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.scout-report-figure/);
+  for (const filename of ['01-overview.png', '02-dribbling.png', '03-output-gap.png', '04-role-map.png']) {
+    assert.ok(fs.statSync(`static/assets/allan-report/${filename}`).size > 20_000, `${filename} 应为完整图表资源`);
+  }
 });
 
 test('手机和电脑都会每四小时弹出夏窗调查', () => {

@@ -35,8 +35,13 @@ const SURVEY_POPUP_ID = 'summer_2026';
 const SURVEY_INVITE_KEY = 'cth_summer_20260822_4h_v1';
 const SURVEY_INVITE_INTERVAL_MS = 4 * 60 * 60 * 1000;
 const SURVEY_INVITE_DELAY_MS = 1500;
+const SCOUT_REPORT_POPUP_ID = 'allan_scouting_report_2026';
+const SCOUT_REPORT_INVITE_KEY = 'cth_allan_scout_report_20260822_daily_v1';
+const SCOUT_REPORT_INVITE_INTERVAL_MS = 24 * 60 * 60 * 1000;
+const SCOUT_REPORT_INVITE_DELAY_MS = 6500;
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
 const FOCUS_SURVEY_ORDER = Object.freeze([
+  'allan_scouting_report_2026',
   'summer_2026',
   'site_experience_2026',
   'coach_debut_2026',
@@ -53,6 +58,26 @@ const REACTION_DEFS = Object.freeze([
 ]);
 const REACTION_KEYS = new Set(REACTION_DEFS.map((item) => item.key));
 const SURVEY_DEFINITIONS = Object.freeze({
+  allan_scouting_report_2026: {
+    entry: '🔍 阿兰球探报告',
+    icon: '🔍',
+    title: '阿兰球探报告',
+    introHeadline: '数据不炸裂，曼城为什么还想要他？',
+    intro: '把 Allan 放进五大联赛 21—23 岁同位置球员中比较：突破强度和效率均居首，但禁区参与与预期产量仍然偏低。4 张图，看懂曼城究竟在赌什么。',
+    reportOnly: true,
+    primaryLabel: '查看完整球探报告',
+    introHighlights: [
+      { value: '第 1', label: '成功过人 /90' },
+      { value: '第 1', label: '过人成功率' },
+      { value: '第 6', label: '禁区触球 /90' },
+    ],
+    reportImages: [
+      { src: './assets/allan-report/01-overview.png', title: '1. 六项关键进攻指标总览', caption: 'Allan 的突破能力达到组内上游，但整体进攻画像仍然偏科。' },
+      { src: './assets/allan-report/02-dribbling.png', title: '2. 曼城看中的一对一能力', caption: '成功过人次数和过人成功率同时位列可比组第一。' },
+      { src: './assets/allan-report/03-output-gap.png', title: '3. 实际产量与底层数据差距', caption: '实际 G+A 不差，但 xG+xA 偏低，说明稳定产量仍有待证明。' },
+      { src: './assets/allan-report/04-role-map.png', title: '4. Allan 的真实角色定位', caption: '他更像外围持球破局的推进爆点，而非高频占据禁区的进攻核心。' },
+    ],
+  },
   loan_watch_preview_2026: {
     entry: '🌍 蓝月在外',
     icon: '🌍',
@@ -2608,8 +2633,17 @@ function appendPinnedText(card, it) {
 let activeSurveyId = '';
 let surveyInviteTimer = null;
 let surveyInviteHandled = false;
+let scoutReportInviteTimer = null;
+let scoutReportInviteHandled = false;
 
 function acknowledgeSurveyInvite(pollId = SURVEY_POPUP_ID) {
+  if (pollId === SCOUT_REPORT_POPUP_ID) {
+    scoutReportInviteHandled = true;
+    clearTimeout(scoutReportInviteTimer);
+    try { localStorage.setItem(SCOUT_REPORT_INVITE_KEY, String(Date.now())); }
+    catch { /* 禁用本机存储时，本次访问内不再重复弹出 */ }
+    return;
+  }
   if (pollId !== SURVEY_POPUP_ID) return;
   surveyInviteHandled = true;
   clearTimeout(surveyInviteTimer);
@@ -2635,6 +2669,31 @@ function scheduleSurveyInvite(delay = SURVEY_INVITE_DELAY_MS) {
     }
     acknowledgeSurveyInvite(SURVEY_POPUP_ID);
     openSurvey(SURVEY_POPUP_ID);
+  }, delay);
+}
+
+function scheduleScoutReportInvite(delay = SCOUT_REPORT_INVITE_DELAY_MS) {
+  if (scoutReportInviteHandled || !SURVEY_DEFINITIONS[SCOUT_REPORT_POPUP_ID]) return;
+  try {
+    const lastShownAt = Number(localStorage.getItem(SCOUT_REPORT_INVITE_KEY) || 0);
+    if (Number.isFinite(lastShownAt) && lastShownAt > 0 && Date.now() - lastShownAt < SCOUT_REPORT_INVITE_INTERVAL_MS) {
+      scoutReportInviteHandled = true;
+      return;
+    }
+  } catch { /* 本机存储不可用时仍可展示一次 */ }
+  clearTimeout(scoutReportInviteTimer);
+  scoutReportInviteTimer = setTimeout(() => {
+    if (document.hidden) {
+      scheduleScoutReportInvite(1800);
+      return;
+    }
+    if (document.querySelector('.modal:not([hidden]), .comment-overlay, .survey-overlay')) {
+      // 夏窗调查或其他弹层已经出现时，本次访问不追着再弹，避免连续打扰。
+      scoutReportInviteHandled = true;
+      return;
+    }
+    acknowledgeSurveyInvite(SCOUT_REPORT_POPUP_ID);
+    openSurvey(SCOUT_REPORT_POPUP_ID);
   }, delay);
 }
 
@@ -3212,6 +3271,57 @@ async function shareSummerSurveyResults(context) {
   }
 }
 
+function renderScoutReport(context) {
+  const { body, definition } = context;
+  body.textContent = '';
+  body.dataset.surveyView = 'report';
+  const report = el('article', 'scout-report');
+  const toolbar = el('div', 'scout-report-toolbar');
+  const back = el('button', 'survey-back', '← 报告简介');
+  back.type = 'button';
+  back.onclick = () => renderSurveyIntro(context);
+  const share = el('button', 'survey-secondary scout-report-share', '复制报告链接');
+  share.type = 'button';
+  share.onclick = async () => {
+    if (await copyText(surveyShareUrl(context.pollId))) toast('阿兰球探报告链接已复制 ✓');
+    else toast('链接复制失败，请稍后再试', 'err');
+  };
+  toolbar.append(back, el('span', 'scout-report-read-time', '4 张图 · 约 1 分钟'), share);
+  report.appendChild(toolbar);
+  const summary = el('section', 'scout-report-summary');
+  summary.append(
+    el('span', 'scout-report-kicker', 'ALLAN · 22岁 · 左脚右路'),
+    el('h3', null, '专项能力上游，整体进攻画像仍待补全'),
+    el('p', null, '曼城看中的不是一名已经稳定兑现产量的成品，而是左脚右路的一对一突破、纵向推进和翼卫兼容性。'),
+  );
+  report.appendChild(summary);
+  for (const item of definition.reportImages || []) {
+    const figure = el('figure', 'scout-report-figure');
+    figure.appendChild(el('h3', null, item.title));
+    const link = el('a', 'scout-report-image-link');
+    link.href = item.src;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.title = '点击查看原尺寸图片';
+    const image = document.createElement('img');
+    image.src = item.src;
+    image.alt = item.title;
+    image.loading = 'lazy';
+    image.decoding = 'async';
+    link.appendChild(image);
+    figure.append(link, el('figcaption', null, item.caption));
+    report.appendChild(figure);
+  }
+  const note = el('aside', 'scout-report-note');
+  note.append(
+    el('strong', null, '数据口径'),
+    el('span', null, 'Allan 为 2026 巴甲；其他球员为 2025/26 五大联赛。仅统计联赛并统一换算为每90分钟；Savinho 仅 821 分钟，属于小样本。'),
+  );
+  report.appendChild(note);
+  body.appendChild(report);
+  body.scrollTop = 0;
+}
+
 function renderSurveyIntro(context) {
   const { body, definition, data } = context;
   body.textContent = '';
@@ -3222,6 +3332,27 @@ function renderSurveyIntro(context) {
   intro.appendChild(el('p', 'survey-intro-copy', data.ballot && definition.returningIntro
     ? definition.returningIntro
     : definition.intro));
+  if (definition.reportOnly) {
+    intro.classList.add('scout-report-invite');
+    const stats = el('div', 'scout-intro-stats');
+    for (const item of definition.introHighlights || []) {
+      const stat = el('div', 'scout-intro-stat');
+      stat.append(el('strong', null, item.value), el('span', null, item.label));
+      stats.appendChild(stat);
+    }
+    intro.appendChild(stats);
+    const actions = el('div', 'survey-intro-actions');
+    const start = el('button', 'survey-primary', definition.primaryLabel || '查看报告');
+    start.type = 'button';
+    start.onclick = () => renderScoutReport(context);
+    const later = el('button', 'survey-secondary', '稍后再看');
+    later.type = 'button';
+    later.onclick = closeSurvey;
+    actions.append(start, later);
+    intro.appendChild(actions);
+    body.appendChild(intro);
+    return;
+  }
   if (definition.announcementOnly) {
     const previewGrid = el('div', 'survey-preview-grid');
     for (const item of definition.previewItems || []) previewGrid.appendChild(el('span', 'survey-preview-item', item));
@@ -3724,7 +3855,7 @@ async function openSurvey(pollId) {
   activeSurveyId = pollId;
   document.body.classList.add('survey-open');
   const overlay = el('div', 'survey-overlay');
-  const sheet = el('section', 'survey-sheet');
+  const sheet = el('section', `survey-sheet${definition.reportOnly ? ' scout-report-sheet' : ''}`);
   sheet.setAttribute('role', 'dialog');
   sheet.setAttribute('aria-modal', 'true');
   sheet.setAttribute('aria-label', definition.title);
@@ -3732,7 +3863,7 @@ async function openSurvey(pollId) {
   head.appendChild(el('h2', null, definition.title));
   const close = el('button', 'survey-close', '×');
   close.type = 'button';
-  close.setAttribute('aria-label', '关闭调查');
+  close.setAttribute('aria-label', definition.reportOnly ? '关闭阿兰球探报告' : '关闭调查');
   close.onclick = closeSurvey;
   head.appendChild(close);
   const body = el('div', 'survey-body');
@@ -3753,6 +3884,11 @@ async function openSurvey(pollId) {
       loading: true,
     },
   };
+  if (definition.reportOnly) {
+    context.data = { ...context.data, loading: false };
+    renderSurveyIntro(context);
+    return;
+  }
   if (definition.announcementOnly) {
     context.data = {
       ...context.data,
@@ -4429,6 +4565,7 @@ loadData(false).finally(() => {
     openSurvey(surveyId);
   } else {
     scheduleSurveyInvite();
+    scheduleScoutReportInvite();
   }
 });
 setInterval(() => loadData(true), REFRESH_MS);
