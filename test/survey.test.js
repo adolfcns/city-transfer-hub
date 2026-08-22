@@ -12,9 +12,9 @@ const workflow = fs.readFileSync('.github/workflows/fetch.yml', 'utf8');
 test('夏窗调查使用确认后的问题和文案', () => {
   assert.match(app, /维圣封神/);
   assert.match(app, /我信维圣/);
-  assert.match(app, /愤怒、失望、迷茫……\\n曼城究竟该何去何从？/);
+  assert.match(app, /卖人雷厉风行，买人杳无音讯。\\n泥城究竟该何去何从？\\n维亚纳还能翻盘吗？/);
   assert.match(style, /\.survey-intro-headline \{[^}]*white-space: pre-line/);
-  assert.match(app, /花 30 秒给曼城夏窗打个分，看看你的判断是不是蓝月主流。/);
+  assert.match(app, /会压哨补强，还是就这样结束？花30秒投出你的判断，看看蓝月球迷现在站哪边。/);
   assert.match(app, /primaryLabel: '花30秒给夏窗打分'/);
   assert.match(app, /已有 \$\{total\} 位蓝月球迷参与，看看你是不是少数派/);
   assert.match(app, /投票结果有变化，回来看看风向/);
@@ -44,7 +44,7 @@ test('手机和电脑都会每四小时弹出夏窗调查', () => {
   assert.match(app, /SURVEY_POPUP_ID = 'summer_2026'/);
   assert.match(app, /SURVEY_INVITE_INTERVAL_MS = 4 \* 60 \* 60 \* 1000/);
   assert.match(app, /title: '夏窗调查'/);
-  assert.match(app, /愤怒、失望、迷茫……\\n曼城究竟该何去何从？/);
+  assert.match(app, /卖人雷厉风行，买人杳无音讯。\\n泥城究竟该何去何从？\\n维亚纳还能翻盘吗？/);
   assert.match(app, /primaryLabel: '花30秒给夏窗打分'/);
   assert.doesNotMatch(app, /DESKTOP_SURVEY_MEDIA|matchMedia\(DESKTOP_SURVEY_MEDIA\)/);
   assert.match(app, /localStorage\.setItem\(SURVEY_INVITE_KEY, String\(Date\.now\(\)\)\)/);
