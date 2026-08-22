@@ -14,7 +14,8 @@ test('夏窗调查使用确认后的问题和文案', () => {
   assert.match(app, /我信维圣/);
   assert.match(app, /卖人雷厉风行，买人杳无音讯。\\n泥城究竟该何去何从？\\n维亚纳还能翻盘吗？/);
   assert.match(style, /\.survey-intro-headline \{[^}]*white-space: pre-line/);
-  assert.match(app, /会压哨补强，还是就这样结束？花30秒投出你的判断，看看蓝月球迷现在站哪边。/);
+  assert.match(app, /会压哨补强，还是就这样结束？/);
+  assert.doesNotMatch(app, /花30秒投出你的判断，看看蓝月球迷现在站哪边。/);
   assert.match(app, /primaryLabel: '花30秒给夏窗打分'/);
   assert.match(app, /已有 \$\{total\} 位蓝月球迷参与，看看你是不是少数派/);
   assert.match(app, /投票结果有变化，回来看看风向/);

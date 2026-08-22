@@ -98,7 +98,7 @@ const SURVEY_DEFINITIONS = Object.freeze({
     icon: '🔥',
     title: '夏窗调查',
     introHeadline: '卖人雷厉风行，买人杳无音讯。\n泥城究竟该何去何从？\n维亚纳还能翻盘吗？',
-    intro: '会压哨补强，还是就这样结束？花30秒投出你的判断，看看蓝月球迷现在站哪边。',
+    intro: '会压哨补强，还是就这样结束？',
     returningIntro: '投票结果有变化，回来看看风向？',
     primaryLabel: '花30秒给夏窗打分',
     resultsLabel: '看看大家怎么选',
