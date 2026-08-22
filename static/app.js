@@ -43,9 +43,9 @@ const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
 const FOCUS_SURVEY_ORDER = Object.freeze([
   'allan_scouting_report_2026',
   'summer_2026',
-  'site_experience_2026',
   'coach_debut_2026',
   'loan_watch_preview_2026',
+  'site_experience_2026',
 ]);
 const REACTION_SNAPSHOT_URL = './data/reactions.json';
 const REACTION_DEFS = Object.freeze([

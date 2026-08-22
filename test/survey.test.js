@@ -33,7 +33,7 @@ test('重点传闻入口按确认顺序排列并提供蓝月在外预约', () =>
   assert.match(app, /📊 夏窗调查/);
   assert.match(app, /💬 本站体验/);
   assert.match(app, /🌍 蓝月在外/);
-  assert.match(app, /const FOCUS_SURVEY_ORDER = Object\.freeze\(\[\s*'allan_scouting_report_2026',\s*'summer_2026',\s*'site_experience_2026',\s*'coach_debut_2026',\s*'loan_watch_preview_2026'/);
+  assert.match(app, /const FOCUS_SURVEY_ORDER = Object\.freeze\(\[\s*'allan_scouting_report_2026',\s*'summer_2026',\s*'coach_debut_2026',\s*'loan_watch_preview_2026',\s*'site_experience_2026'/);
   assert.match(app, /for \(const pollId of FOCUS_SURVEY_ORDER\)/);
   assert.doesNotMatch(app, /entry: '⚽ 中场投票'/);
   assert.match(app, /focus-switchers/);
