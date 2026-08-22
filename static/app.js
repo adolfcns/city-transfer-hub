@@ -36,6 +36,12 @@ const SURVEY_INVITE_KEY = 'cth_summer_20260822_4h_v1';
 const SURVEY_INVITE_INTERVAL_MS = 4 * 60 * 60 * 1000;
 const SURVEY_INVITE_DELAY_MS = 1500;
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
+const FOCUS_SURVEY_ORDER = Object.freeze([
+  'summer_2026',
+  'site_experience_2026',
+  'coach_debut_2026',
+  'loan_watch_preview_2026',
+]);
 const REACTION_SNAPSHOT_URL = './data/reactions.json';
 const REACTION_DEFS = Object.freeze([
   // 保留 fire 键以延续已有全站计数，仅更新前台展示语义。
@@ -48,6 +54,7 @@ const REACTION_DEFS = Object.freeze([
 const REACTION_KEYS = new Set(REACTION_DEFS.map((item) => item.key));
 const SURVEY_DEFINITIONS = Object.freeze({
   loan_watch_preview_2026: {
+    entry: '🌍 蓝月在外',
     icon: '🌍',
     title: '蓝月在外 · 新功能预告',
     introHeadline: '他们离开曼城，不等于离开视线',
@@ -55,7 +62,10 @@ const SURVEY_DEFINITIONS = Object.freeze({
     announcementOnly: true,
     previewItems: ['⭐ 专业评分 7.4', '⏱ 出场 82 分钟', '⚽ 进球 1', '🅰️ 助攻 1'],
     previewNote: '以上为展示示例 · 实际数据将在每场赛后更新',
-    primaryLabel: '敬请关注',
+    reservationFeature: 'loan_watch_2026',
+    reservationBase: 120,
+    primaryLabel: '预约关注',
+    reservedLabel: '✓ 已预约',
   },
   coach_debut_2026: {
     entry: '⚖️ 首秀评分',
@@ -233,6 +243,7 @@ const state = {
   commentEndpoint: null,
   surveyProfile: loadSurveyProfile(),
   surveyEndpoint: null,
+  featureReservationEndpoint: null,
   filters: loadFilters(),
 };
 let feedItems = [];
@@ -2672,6 +2683,34 @@ async function surveyApi(pollId, method = 'GET', answers = null) {
   throw lastError || new Error('survey_unavailable');
 }
 
+async function featureReservationApi(featureId, method = 'GET') {
+  const endpoints = [...new Set([
+    state.featureReservationEndpoint,
+    ...FEATURE_RESERVATION_ENDPOINTS,
+  ].filter(Boolean))];
+  let lastError = null;
+  for (const endpoint of endpoints) {
+    try {
+      const url = `${endpoint}?feature=${encodeURIComponent(featureId)}&voter=${encodeURIComponent(state.surveyProfile.voter)}`;
+      const response = await fetch(url, {
+        method,
+        cache: 'no-store',
+        headers: method === 'POST' ? { 'content-type': 'application/json' } : undefined,
+        body: method === 'POST'
+          ? JSON.stringify({ feature: featureId, voter: state.surveyProfile.voter })
+          : undefined,
+      });
+      const data = await response.json().catch(() => ({}));
+      if (response.ok && data.ok === true) {
+        state.featureReservationEndpoint = endpoint;
+        return data;
+      }
+      lastError = new Error(data.reason || `HTTP ${response.status}`);
+    } catch (error) { lastError = error; }
+  }
+  throw lastError || new Error('reservation_unavailable');
+}
+
 function surveyChoiceName(pollId, questionId) {
   return `survey_${pollId}_${questionId}`;
 }
@@ -3188,10 +3227,45 @@ function renderSurveyIntro(context) {
     for (const item of definition.previewItems || []) previewGrid.appendChild(el('span', 'survey-preview-item', item));
     intro.appendChild(previewGrid);
     if (definition.previewNote) intro.appendChild(el('p', 'survey-preview-note', definition.previewNote));
+    const reservation = data.reservation || {
+      count: Number(definition.reservationBase || 0),
+      reserved: false,
+      loading: false,
+    };
+    if (definition.reservationFeature) {
+      const count = Math.max(Number(definition.reservationBase || 0), Number(reservation.count || 0));
+      const status = el('p', 'feature-reservation-status', `全站已有 ${count.toLocaleString('zh-CN')} 人预约关注`);
+      if (reservation.reserved) status.appendChild(el('strong', 'feature-reservation-mine', ' · 其中有你 ✓'));
+      intro.appendChild(status);
+    }
     const actions = el('div', 'survey-intro-actions single');
-    const ok = el('button', 'survey-primary', definition.primaryLabel || '知道了');
+    const ok = el('button', 'survey-primary', data.reservationPending
+      ? '正在预约…'
+      : reservation.reserved
+        ? (definition.reservedLabel || '✓ 已预约')
+        : (definition.primaryLabel || '知道了'));
     ok.type = 'button';
-    ok.onclick = closeSurvey;
+    ok.disabled = Boolean(data.reservationPending || reservation.reserved);
+    ok.onclick = async () => {
+      if (!definition.reservationFeature) {
+        closeSurvey();
+        return;
+      }
+      context.data = { ...context.data, reservationPending: true };
+      renderSurveyIntro(context);
+      try {
+        const result = await featureReservationApi(definition.reservationFeature, 'POST');
+        if (activeSurveyId !== context.pollId) return;
+        context.data = { ...context.data, reservation: result, reservationPending: false };
+        renderSurveyIntro(context);
+        toast('预约成功！新赛季一起关注蓝月在外的表现 ✓');
+      } catch {
+        if (activeSurveyId !== context.pollId) return;
+        context.data = { ...context.data, reservationPending: false };
+        renderSurveyIntro(context);
+        toast('预约服务暂时不可用，请稍后再试', 'error');
+      }
+    };
     actions.appendChild(ok);
     intro.appendChild(actions);
     body.appendChild(intro);
@@ -3680,7 +3754,30 @@ async function openSurvey(pollId) {
     },
   };
   if (definition.announcementOnly) {
+    context.data = {
+      ...context.data,
+      loading: false,
+      reservation: {
+        count: Number(definition.reservationBase || 0),
+        reserved: false,
+        loading: Boolean(definition.reservationFeature),
+      },
+    };
     renderSurveyIntro(context);
+    if (!definition.reservationFeature) return;
+    try {
+      const reservation = await featureReservationApi(definition.reservationFeature);
+      if (activeSurveyId !== pollId) return;
+      context.data = { ...context.data, reservation: { ...reservation, loading: false } };
+      if (body.dataset.surveyView === 'intro') renderSurveyIntro(context);
+    } catch {
+      if (activeSurveyId !== pollId) return;
+      context.data = {
+        ...context.data,
+        reservation: { ...context.data.reservation, loading: false, loadError: true },
+      };
+      if (body.dataset.surveyView === 'intro') renderSurveyIntro(context);
+    }
     return;
   }
   renderSurveyIntro(context);
@@ -3788,7 +3885,8 @@ function renderFocusZone() {
   }
   switchers.appendChild(targetTabs);
   const surveyEntries = el('div', 'focus-survey-entries');
-  for (const [pollId, definition] of Object.entries(SURVEY_DEFINITIONS)) {
+  for (const pollId of FOCUS_SURVEY_ORDER) {
+    const definition = SURVEY_DEFINITIONS[pollId];
     if (!definition.entry) continue;
     const entry = el('button', 'survey-entry', definition.entry);
     entry.type = 'button';
@@ -4074,6 +4172,10 @@ const COMMENT_ENDPOINTS = [
 const SURVEY_ENDPOINTS = [
   'https://city-transfer-hub.pages.dev/surveys',
   `${TRIGGER_ENDPOINT}surveys`,
+];
+const FEATURE_RESERVATION_ENDPOINTS = [
+  'https://city-transfer-hub.pages.dev/reservations',
+  `${TRIGGER_ENDPOINT}reservations`,
 ];
 const TRIGGER_COOLDOWN_MS = 60 * 1000;      // 单设备触发冷却
 const FRESH_ENOUGH_MS = 3 * 60 * 1000;      // 数据足够新就不重复抓

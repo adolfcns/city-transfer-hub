@@ -224,6 +224,7 @@ jobs:
           const commentDetailUrl = 'https://city-transfer-hub.pages.dev/comments?item=api_smoke_read&voter=api_smoke_voter_2026';
           const surveyUrl = 'https://city-transfer-hub.pages.dev/surveys?poll=summer_2026&voter=api_smoke_voter_2026';
           const coachSurveyUrl = 'https://city-transfer-hub.pages.dev/surveys?poll=coach_debut_2026&voter=api_smoke_voter_2026';
+          const reservationsUrl = 'https://city-transfer-hub.pages.dev/reservations?feature=loan_watch_2026&voter=api_smoke_voter_2026';
           const origin = 'https://adolfcns.github.io';
           for (let attempt = 1; attempt <= 10; attempt += 1) {
             try {
@@ -247,6 +248,9 @@ jobs:
               const coachSurveyResponse = await fetch(coachSurveyUrl, { headers: { Origin: origin } });
               const coachSurveyBody = await coachSurveyResponse.json();
               const coachSurveyCors = coachSurveyResponse.headers.get('access-control-allow-origin');
+              const reservationsResponse = await fetch(reservationsUrl, { headers: { Origin: origin } });
+              const reservationsBody = await reservationsResponse.json();
+              const reservationsCors = reservationsResponse.headers.get('access-control-allow-origin');
               const reactionsReady = reactionsResponse.ok && reactionsBody.ok === true
                 && reactionsBody.counts && reactionsBody.counts.api_smoke_read
                 && reactionsCors === origin;
@@ -265,8 +269,12 @@ jobs:
                 && coachSurveyBody.results?.questions?.attitude?.counts
                 && coachSurveyBody.results?.questions?.blame?.counts
                 && coachSurveyCors === origin;
-              if (response.ok && body.ok === true && Number.isInteger(body.count) && cors === origin && reactionsReady && commentsReady && surveyReady && coachSurveyReady) {
-                console.log(`Direct interactions ready: prayer=${body.count}, reactions=ok, comments=ok, surveys=ok`);
+              const reservationsReady = reservationsResponse.ok && reservationsBody.ok === true
+                && reservationsBody.feature === 'loan_watch_2026'
+                && Number.isInteger(reservationsBody.count) && reservationsBody.count >= 120
+                && typeof reservationsBody.reserved === 'boolean' && reservationsCors === origin;
+              if (response.ok && body.ok === true && Number.isInteger(body.count) && cors === origin && reactionsReady && commentsReady && surveyReady && coachSurveyReady && reservationsReady) {
+                console.log(`Direct interactions ready: prayer=${body.count}, reactions=ok, comments=ok, surveys=ok, reservations=ok`);
                 process.exit(0);
               }
               console.log(`Attempt ${attempt}: HTTP ${response.status}, CORS ${cors}`, body);

@@ -28,10 +28,13 @@ test('夏窗调查使用确认后的问题和文案', () => {
   assert.doesNotMatch(positionsBlock, /门将/);
 });
 
-test('重点传闻旁提供两个紧凑调查入口', () => {
+test('重点传闻入口按确认顺序排列并提供蓝月在外预约', () => {
   assert.match(app, /⚖️ 首秀评分/);
   assert.match(app, /📊 夏窗调查/);
   assert.match(app, /💬 本站体验/);
+  assert.match(app, /🌍 蓝月在外/);
+  assert.match(app, /const FOCUS_SURVEY_ORDER = Object\.freeze\(\[\s*'summer_2026',\s*'site_experience_2026',\s*'coach_debut_2026',\s*'loan_watch_preview_2026'/);
+  assert.match(app, /for \(const pollId of FOCUS_SURVEY_ORDER\)/);
   assert.doesNotMatch(app, /entry: '⚽ 中场投票'/);
   assert.match(app, /focus-switchers/);
   assert.match(style, /\.focus-survey-entries/);
@@ -53,10 +56,32 @@ test('手机和电脑都会每四小时弹出夏窗调查', () => {
   assert.match(app, /document\.querySelector\('\.modal:not\(\[hidden\]\), \.comment-overlay, \.survey-overlay'\)/);
   assert.match(app, /openSurvey\(SURVEY_POPUP_ID\)/);
   assert.match(app, /scheduleSurveyInvite\(\);/);
-  assert.match(app, /if \(definition\.announcementOnly\) \{\s*renderSurveyIntro\(context\);\s*return;/);
+  assert.match(app, /if \(definition\.announcementOnly\) \{[\s\S]*?renderSurveyIntro\(context\);[\s\S]*?if \(!definition\.reservationFeature\) return;/);
   assert.match(app, /if \(!definition\.entry\) continue;/);
   assert.match(style, /\.survey-preview-grid/);
   assert.match(style, /\.survey-intro-actions\.single/);
+});
+
+test('蓝月在外从 120 人开始全站预约且同设备只计一次', () => {
+  assert.match(app, /reservationFeature: 'loan_watch_2026'/);
+  assert.match(app, /reservationBase: 120/);
+  assert.match(app, /primaryLabel: '预约关注'/);
+  assert.match(app, /reservedLabel: '✓ 已预约'/);
+  assert.match(app, /全站已有 \$\{count\.toLocaleString\('zh-CN'\)\} 人预约关注/);
+  assert.match(app, /async function featureReservationApi/);
+  assert.match(app, /city-transfer-hub\.pages\.dev\/reservations/);
+  assert.match(style, /\.feature-reservation-status/);
+  for (const worker of [pagesWorker, triggerWorker]) {
+    assert.match(worker, /loan_watch_2026: \{ base: 120 \}/);
+    assert.match(worker, /CREATE TABLE IF NOT EXISTS feature_reservations/);
+    assert.match(worker, /PRIMARY KEY \(feature_id, voter_id\)/);
+    assert.match(worker, /INSERT OR IGNORE INTO feature_reservations/);
+    assert.match(worker, /count: Number\(rule\.base \|\| 0\) \+ Math\.max/);
+    assert.match(worker, /\/reservations/);
+  }
+  assert.ok(routes.include.includes('/reservations'));
+  assert.match(workflow, /reservations\?feature=loan_watch_2026/);
+  assert.match(workflow, /reservations=ok/);
 });
 
 test('马嗨正赛首秀调查包含三题、投降式换人和漂亮统计图', () => {

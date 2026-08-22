@@ -33,6 +33,9 @@ const NICKNAME_CHANGE_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_COMMENT_IDS = 48;
 const SURVEY_RATE_SECONDS = 2;
 const SURVEY_IP_DEVICE_LIMIT = 3;
+const FEATURE_RESERVATIONS = Object.freeze({
+  loan_watch_2026: { base: 120 },
+});
 const SURVEY_RULES = Object.freeze({
   coach_debut_2026: {
     closes_at: null,
@@ -156,6 +159,12 @@ async function ensureSchema(env) {
     ),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_survey_ballots_poll ON survey_ballots(poll_id)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_survey_ip_claims_poll_ip ON survey_ip_claims(poll_id, ip_hash)'),
+    env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS feature_reservations (' +
+        'feature_id TEXT NOT NULL, voter_id TEXT NOT NULL, created_at INTEGER NOT NULL, ' +
+        'PRIMARY KEY (feature_id, voter_id))',
+    ),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_feature_reservations_feature ON feature_reservations(feature_id)'),
   ]);
   // 兼容已经在线运行的旧评论表：保留全部评论，只补充一级回复关系。
   let commentColumns = await env.DB.prepare('PRAGMA table_info(comments)').all();
@@ -620,6 +629,32 @@ async function saveSurveyBallot(env, request, pollId, voterId, answers) {
   return { ok: true };
 }
 
+async function readFeatureReservation(env, featureId, voterId) {
+  await ensureSchema(env);
+  const rule = FEATURE_RESERVATIONS[featureId];
+  if (!rule) return null;
+  const [countRow, reservedRow] = await Promise.all([
+    env.DB.prepare('SELECT COUNT(*) AS n FROM feature_reservations WHERE feature_id = ?').bind(featureId).first(),
+    VOTER_ID_RE.test(voterId)
+      ? env.DB.prepare('SELECT 1 AS yes FROM feature_reservations WHERE feature_id = ? AND voter_id = ?').bind(featureId, voterId).first()
+      : Promise.resolve(null),
+  ]);
+  return {
+    ok: true,
+    feature: featureId,
+    count: Number(rule.base || 0) + Math.max(0, Number(countRow?.n || 0)),
+    reserved: Boolean(reservedRow?.yes),
+  };
+}
+
+async function saveFeatureReservation(env, featureId, voterId) {
+  await ensureSchema(env);
+  await env.DB.prepare(
+    'INSERT OR IGNORE INTO feature_reservations (feature_id, voter_id, created_at) VALUES (?, ?, ?)',
+  ).bind(featureId, voterId, Date.now()).run();
+  return readFeatureReservation(env, featureId, voterId);
+}
+
 // 用服务端令牌触发 GitHub 抓取任务
 async function triggerGitHub(env) {
   return fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
@@ -649,6 +684,37 @@ export default {
     };
     if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
     const path = new URL(request.url).pathname;
+
+    if (path === '/reservations') {
+      if (!originAllowed) {
+        return new Response(JSON.stringify({ ok: false, reason: 'origin' }), { status: 403, headers: cors });
+      }
+      if (!env.DB) {
+        return new Response(JSON.stringify({ ok: false, reason: 'no_db' }), { status: 503, headers: cors });
+      }
+      try {
+        const url = new URL(request.url);
+        const featureId = String(url.searchParams.get('feature') || '');
+        if (!FEATURE_RESERVATIONS[featureId]) {
+          return new Response(JSON.stringify({ ok: false, reason: 'bad_feature' }), { status: 400, headers: cors });
+        }
+        if (request.method === 'GET') {
+          const voterId = String(url.searchParams.get('voter') || '');
+          return new Response(JSON.stringify(await readFeatureReservation(env, featureId, voterId)), { headers: cors });
+        }
+        if (request.method === 'POST') {
+          const body = await request.json().catch(() => ({}));
+          const voterId = String(body.voter || '');
+          if (!VOTER_ID_RE.test(voterId) || String(body.feature || '') !== featureId) {
+            return new Response(JSON.stringify({ ok: false, reason: 'bad_request' }), { status: 400, headers: cors });
+          }
+          return new Response(JSON.stringify(await saveFeatureReservation(env, featureId, voterId)), { headers: cors });
+        }
+        return new Response(JSON.stringify({ ok: false, reason: 'method' }), { status: 405, headers: cors });
+      } catch {
+        return new Response(JSON.stringify({ ok: false, reason: 'db_error' }), { status: 503, headers: cors });
+      }
+    }
 
     if (path === '/surveys') {
       if (!originAllowed) {

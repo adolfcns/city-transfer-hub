@@ -1,5 +1,5 @@
 {
   "version": 1,
-  "include": ["/prayer", "/reactions", "/comments", "/surveys"],
+  "include": ["/prayer", "/reactions", "/comments", "/surveys", "/reservations"],
   "exclude": []
 }

@@ -1,5 +1,5 @@
 // Cloudflare Pages 的互动接口。
-// /prayer、/reactions 与 /comments 走 D1；其他路径继续交给 Pages 静态资源服务。
+// /prayer、/reactions、/comments、/surveys 与 /reservations 走 D1；其他路径继续交给 Pages 静态资源服务。
 
 const ALLOW_ORIGINS = [
   'https://adolfcns.github.io',
@@ -19,6 +19,9 @@ const NICKNAME_CHANGE_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_COMMENT_IDS = 48;
 const SURVEY_RATE_SECONDS = 2;
 const SURVEY_IP_DEVICE_LIMIT = 3;
+const FEATURE_RESERVATIONS = Object.freeze({
+  loan_watch_2026: { base: 120 },
+});
 const SURVEY_RULES = Object.freeze({
   coach_debut_2026: {
     closes_at: null,
@@ -157,6 +160,12 @@ async function ensureSchema(env) {
     ),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_survey_ballots_poll ON survey_ballots(poll_id)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_survey_ip_claims_poll_ip ON survey_ip_claims(poll_id, ip_hash)'),
+    env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS feature_reservations (' +
+        'feature_id TEXT NOT NULL, voter_id TEXT NOT NULL, created_at INTEGER NOT NULL, ' +
+        'PRIMARY KEY (feature_id, voter_id))',
+    ),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_feature_reservations_feature ON feature_reservations(feature_id)'),
   ]);
   // 兼容已经在线运行的旧评论表：保留全部评论，只补充一级回复关系。
   let commentColumns = await env.DB.prepare('PRAGMA table_info(comments)').all();
@@ -620,10 +629,36 @@ async function saveSurveyBallot(env, request, pollId, voterId, answers) {
   return { ok: true };
 }
 
+async function readFeatureReservation(env, featureId, voterId) {
+  await ensureSchema(env);
+  const rule = FEATURE_RESERVATIONS[featureId];
+  if (!rule) return null;
+  const [countRow, reservedRow] = await Promise.all([
+    env.DB.prepare('SELECT COUNT(*) AS n FROM feature_reservations WHERE feature_id = ?').bind(featureId).first(),
+    VOTER_ID_RE.test(voterId)
+      ? env.DB.prepare('SELECT 1 AS yes FROM feature_reservations WHERE feature_id = ? AND voter_id = ?').bind(featureId, voterId).first()
+      : Promise.resolve(null),
+  ]);
+  return {
+    ok: true,
+    feature: featureId,
+    count: Number(rule.base || 0) + Math.max(0, Number(countRow?.n || 0)),
+    reserved: Boolean(reservedRow?.yes),
+  };
+}
+
+async function saveFeatureReservation(env, featureId, voterId) {
+  await ensureSchema(env);
+  await env.DB.prepare(
+    'INSERT OR IGNORE INTO feature_reservations (feature_id, voter_id, created_at) VALUES (?, ?, ?)',
+  ).bind(featureId, voterId, Date.now()).run();
+  return readFeatureReservation(env, featureId, voterId);
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (!['/prayer', '/reactions', '/comments', '/surveys'].includes(url.pathname)) return env.ASSETS.fetch(request);
+    if (!['/prayer', '/reactions', '/comments', '/surveys', '/reservations'].includes(url.pathname)) return env.ASSETS.fetch(request);
 
     const origin = request.headers.get('Origin') || '';
     const headers = responseHeaders(origin);
@@ -632,6 +667,24 @@ export default {
     if (!env.DB) return json({ ok: false, reason: 'no_db' }, headers, 503);
 
     try {
+      if (url.pathname === '/reservations') {
+        const featureId = String(url.searchParams.get('feature') || '');
+        if (!FEATURE_RESERVATIONS[featureId]) return json({ ok: false, reason: 'bad_feature' }, headers, 400);
+        if (request.method === 'GET') {
+          const voterId = String(url.searchParams.get('voter') || '');
+          return json(await readFeatureReservation(env, featureId, voterId), headers);
+        }
+        if (request.method === 'POST') {
+          const body = await request.json().catch(() => ({}));
+          const voterId = String(body.voter || '');
+          if (!VOTER_ID_RE.test(voterId) || String(body.feature || '') !== featureId) {
+            return json({ ok: false, reason: 'bad_request' }, headers, 400);
+          }
+          return json(await saveFeatureReservation(env, featureId, voterId), headers);
+        }
+        return json({ ok: false, reason: 'method' }, headers, 405);
+      }
+
       if (url.pathname === '/surveys') {
         const pollId = String(url.searchParams.get('poll') || '');
         const poll = surveyRule(pollId);
