@@ -12,7 +12,7 @@ const workflow = fs.readFileSync('.github/workflows/fetch.yml', 'utf8');
 test('夏窗调查使用确认后的问题和文案', () => {
   assert.match(app, /维圣封神/);
   assert.match(app, /我信维圣/);
-  assert.match(app, /维亚纳老师，\\n卖人真积极，\\n一个一个，\\n买人只在传闻里。/);
+  assert.match(app, /愤怒、失望、迷茫……\\n曼城究竟该何去何从？/);
   assert.match(style, /\.survey-intro-headline \{[^}]*white-space: pre-line/);
   assert.match(app, /花 30 秒给曼城夏窗打个分，看看你的判断是不是蓝月主流。/);
   assert.match(app, /primaryLabel: '花30秒给夏窗打分'/);
@@ -39,17 +39,13 @@ test('重点传闻旁提供两个紧凑调查入口', () => {
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.survey-entry \{[^}]*font-size: 13px; font-weight: 800/);
 });
 
-test('手机和电脑都会每四小时弹出蓝月在外新功能预告', () => {
-  assert.match(app, /cth_loan_watch_preview_20260821_4h_v1/);
-  assert.match(app, /SURVEY_POPUP_ID = 'loan_watch_preview_2026'/);
+test('手机和电脑都会每四小时弹出夏窗调查', () => {
+  assert.match(app, /cth_summer_20260822_4h_v1/);
+  assert.match(app, /SURVEY_POPUP_ID = 'summer_2026'/);
   assert.match(app, /SURVEY_INVITE_INTERVAL_MS = 4 \* 60 \* 60 \* 1000/);
-  assert.match(app, /title: '蓝月在外 · 新功能预告'/);
-  assert.match(app, /他们离开曼城，不等于离开视线/);
-  assert.match(app, /所有曼城外租球员（含 U21）/);
-  assert.match(app, /previewItems: \['⭐ 专业评分 7\.4', '⏱ 出场 82 分钟', '⚽ 进球 1', '🅰️ 助攻 1'\]/);
-  assert.match(app, /primaryLabel: '敬请关注'/);
-  assert.match(app, /以上为展示示例 · 实际数据将在每场赛后更新/);
-  assert.match(app, /announcementOnly: true/);
+  assert.match(app, /title: '夏窗调查'/);
+  assert.match(app, /愤怒、失望、迷茫……\\n曼城究竟该何去何从？/);
+  assert.match(app, /primaryLabel: '花30秒给夏窗打分'/);
   assert.doesNotMatch(app, /DESKTOP_SURVEY_MEDIA|matchMedia\(DESKTOP_SURVEY_MEDIA\)/);
   assert.match(app, /localStorage\.setItem\(SURVEY_INVITE_KEY, String\(Date\.now\(\)\)\)/);
   assert.match(app, /Date\.now\(\) - lastShownAt < SURVEY_INVITE_INTERVAL_MS/);

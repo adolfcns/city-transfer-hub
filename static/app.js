@@ -31,8 +31,8 @@ const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
 const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
 const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
 const SURVEY_PROFILE_KEY = 'cth_survey_profile_v1';
-const SURVEY_POPUP_ID = 'loan_watch_preview_2026';
-const SURVEY_INVITE_KEY = 'cth_loan_watch_preview_20260821_4h_v1';
+const SURVEY_POPUP_ID = 'summer_2026';
+const SURVEY_INVITE_KEY = 'cth_summer_20260822_4h_v1';
 const SURVEY_INVITE_INTERVAL_MS = 4 * 60 * 60 * 1000;
 const SURVEY_INVITE_DELAY_MS = 1500;
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
@@ -97,7 +97,7 @@ const SURVEY_DEFINITIONS = Object.freeze({
     entry: '📊 夏窗调查',
     icon: '🔥',
     title: '夏窗调查',
-    introHeadline: '维亚纳老师，\n卖人真积极，\n一个一个，\n买人只在传闻里。',
+    introHeadline: '愤怒、失望、迷茫……\n曼城究竟该何去何从？',
     intro: '花 30 秒给曼城夏窗打个分，看看你的判断是不是蓝月主流。',
     returningIntro: '投票结果有变化，回来看看风向？',
     primaryLabel: '花30秒给夏窗打分',
