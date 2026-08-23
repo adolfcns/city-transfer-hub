@@ -18,6 +18,6 @@ test('重点传闻保留布阿迪专区且顶部文案已更新', () => {
   assert.match(app, /focus-target-tabs/);
   assert.doesNotMatch(app, /key === 'vinicius'/);
   assert.match(app, /📌 重点传闻/);
-  assert.match(index, /卖人雷厉风行，买人只剩最后几天 💙/);
+  assert.match(index, /尽管不如人意，我想再信一次💙/);
   assert.doesNotMatch(index, /重点绯闻/);
 });

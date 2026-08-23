@@ -6,7 +6,7 @@ const app = fs.readFileSync('static/app.js', 'utf8');
 const index = fs.readFileSync('static/index.html', 'utf8');
 
 test('转会窗倒计时使用官方关窗时间并精确到天时分秒', () => {
-  assert.match(index, /卖人雷厉风行，买人只剩最后几天 💙/);
+  assert.match(index, /尽管不如人意，我想再信一次💙/);
   assert.match(index, /留给维亚纳出手的时间只剩/);
   assert.match(app, /2026-09-01T22:00:00Z/);
   assert.doesNotMatch(app, /2026-09-01T17:00:00Z/);
