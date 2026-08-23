@@ -194,6 +194,41 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 .focus-follow:focus-visible { outline: 3px solid rgba(21,95,159,.18); outline-offset: 2px; }
 .follow-label-short { display: none; }
 
+.bouaddi-signing-banner {
+  position: relative; overflow: hidden; padding: 14px 18px 15px;
+  border: 1px solid rgba(43,136,184,.42); border-radius: 14px;
+  background:
+    radial-gradient(circle at 94% 20%, rgba(245,200,91,.22), transparent 31%),
+    linear-gradient(118deg, #0a3554 0%, #125d89 58%, #2b88b8 100%);
+  color: #fff; box-shadow: 0 10px 26px rgba(35,82,108,.18);
+}
+.bouaddi-signing-banner::after {
+  content: ''; position: absolute; width: 150px; height: 150px; right: -58px; top: -91px;
+  border: 22px solid rgba(255,255,255,.08); border-radius: 50%; pointer-events: none;
+}
+.bouaddi-signing-kicker {
+  position: relative; z-index: 1; display: block; margin-bottom: 5px;
+  color: #cfefff; font-size: 10px; font-weight: 900; letter-spacing: .09em;
+}
+.bouaddi-signing-headline {
+  position: relative; z-index: 1; margin: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px;
+  color: #fff; font-size: 20px; font-weight: 900; line-height: 1.28; letter-spacing: -.02em;
+}
+.bouaddi-signing-player {
+  color: #ffd66b; font-size: 1.16em; font-weight: 1000;
+  text-shadow: 0 2px 14px rgba(245,200,91,.28);
+}
+.bouaddi-signing-question {
+  position: relative; z-index: 1; margin: 5px 0 0; color: #d9f1fc;
+  font-size: 14px; font-weight: 800; line-height: 1.45;
+}
+.focus-feature-row {
+  width: 100%; margin-top: 7px; overflow-x: auto; padding: 1px 1px 3px;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.focus-feature-row::-webkit-scrollbar { display: none; }
+.focus-feature-row .focus-survey-entries { min-width: max-content; }
+
 /* ============ 蓝月调查：匿名选票 + 实时结果 ============ */
 body.survey-open { overflow: hidden; }
 .survey-overlay {
@@ -1939,4 +1974,10 @@ code { background: #e6f1f7; color: #294f68; }
   .pinned-card, .card, .modal-box { background: rgba(255,255,255,.97); }
   .city-prayer { background: #fffaf0; }
   .survey-sheet, .comment-sheet { background: #f9fcfe; }
+  .bouaddi-signing-banner { padding: 11px 12px 12px; border-radius: 11px; }
+  .bouaddi-signing-kicker { margin-bottom: 4px; font-size: 9px; }
+  .bouaddi-signing-headline { gap: 1px 5px; font-size: 16px; line-height: 1.3; }
+  .bouaddi-signing-player { font-size: 1.13em; }
+  .bouaddi-signing-question { margin-top: 4px; font-size: 12px; }
+  .focus-feature-row { margin-top: 5px; }
 }

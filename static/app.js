@@ -40,6 +40,8 @@ const SCOUT_REPORT_INVITE_KEY = 'cth_allan_scout_report_20260822_daily_v1';
 const SCOUT_REPORT_INVITE_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const SCOUT_REPORT_INVITE_DELAY_MS = 6500;
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
+// 布阿迪交易已进入 Here we go 阶段，暂时撤下重点传闻卡片；保留数据与逻辑，方便后续恢复。
+const FOCUS_RUMOR_STRIP_ENABLED = false;
 const FOCUS_SURVEY_ORDER = Object.freeze([
   'allan_scouting_report_2026',
   'summer_2026',
@@ -2612,7 +2614,8 @@ function pinnedStripItems() {
 
 function shouldShowPinnedStrip(items = pinnedStripItems()) {
   const f = state.filters;
-  return items.length > 0
+  return FOCUS_RUMOR_STRIP_ENABLED
+    && items.length > 0
     && !state.isDemo
     && f.libraryView === 'all'
     && !f.search
@@ -3992,52 +3995,27 @@ function renderPinnedCard(it) {
 
 function renderFocusZone() {
   const zone = $('#focus-zone');
-  const allPinned = pinnedStripItems();
   clearEngagementWatchers(zone);
   zone.textContent = '';
-  zone.hidden = !shouldShowPinnedStrip(allPinned);
-  if (zone.hidden) return;
+  zone.hidden = false;
 
-  const targets = state.focusTargets || [];
-  const selectedTarget = targets.find((target) => String(target.key) === String(state.focusTargetKey))
-    || targets.find((target) => allPinned.some((it) => (it.focus || []).includes(target.key)))
-    || targets[0];
-  if (!selectedTarget) return;
-  state.focusTargetKey = String(selectedTarget.key);
+  const banner = el('section', 'bouaddi-signing-banner');
+  banner.setAttribute('aria-label', '布阿迪加盟曼城重磅消息');
+  banner.appendChild(el('span', 'bouaddi-signing-kicker', '🚨 HERE WE GO · 蓝月重磅'));
+  const headline = el('h2', 'bouaddi-signing-headline');
+  headline.append(
+    document.createTextNode('销售冠军终于进货了！'),
+    el('strong', 'bouaddi-signing-player', '布阿迪入城！'),
+    document.createTextNode('💙'),
+  );
+  banner.append(
+    headline,
+    el('p', 'bouaddi-signing-question', '维圣的绝地反击，真要开始了？'),
+  );
+  zone.appendChild(banner);
 
-  const selectedPinned = allPinned.filter((it) => (it.focus || []).includes(selectedTarget.key));
-  const visiblePinned = selectedPinned.filter((it) => !state.library.hiddenPinned.has(itemId(it)));
-  const hiddenCount = selectedPinned.length - visiblePinned.length;
-  const available = visiblePinned.slice(0, PINNED_RUMOR_LIMIT);
-
-  const head = el('div', 'focus-strip-head');
-  head.appendChild(el('h2', 'focus-strip-title', '📌 重点传闻'));
-
-  const switchers = el('div', 'focus-switchers');
-  const targetTabs = el('div', 'focus-target-tabs');
-  targetTabs.setAttribute('role', 'tablist');
-  targetTabs.setAttribute('aria-label', '选择重点传闻球员');
-  for (const target of targets) {
-    const key = String(target.key);
-    const selected = key === state.focusTargetKey;
-    const targetCount = allPinned.filter((it) => (it.focus || []).includes(target.key)).length;
-    const tab = el('button', `focus-target-tab${selected ? ' active' : ''}`);
-    tab.type = 'button';
-    tab.dataset.targetKey = key;
-    tab.setAttribute('role', 'tab');
-    tab.setAttribute('aria-selected', String(selected));
-    tab.setAttribute('aria-label', `${focusTargetName(target)}，${targetCount} 条重点传闻`);
-    tab.append(
-      el('span', 'focus-target-name', focusTargetName(target)),
-      el('span', 'focus-target-count', String(targetCount)),
-    );
-    tab.onclick = () => {
-      state.focusTargetKey = key;
-      renderFocusZone();
-    };
-    targetTabs.appendChild(tab);
-  }
-  switchers.appendChild(targetTabs);
+  const featureRow = el('div', 'focus-feature-row');
+  featureRow.setAttribute('aria-label', '专题与调查');
   const surveyEntries = el('div', 'focus-survey-entries');
   for (const pollId of FOCUS_SURVEY_ORDER) {
     const definition = SURVEY_DEFINITIONS[pollId];
@@ -4049,76 +4027,8 @@ function renderFocusZone() {
     entry.onclick = () => openSurvey(pollId);
     surveyEntries.appendChild(entry);
   }
-  switchers.appendChild(surveyEntries);
-  head.appendChild(switchers);
-
-  if (selectedTarget) {
-    const followButtons = el('div', 'focus-follow-buttons');
-    const name = focusTargetName(selectedTarget);
-    const following = state.playerFollows.has(String(selectedTarget.key));
-    const follow = el('button', `focus-follow${following ? ' on' : ''}`);
-    follow.type = 'button';
-    follow.appendChild(el('span', 'follow-label-full',
-      following ? `🔔 已关注 ${name}` : `＋ 关注 ${name}`));
-    follow.appendChild(el('span', 'follow-label-short', following ? '🔔 关注中' : '＋ 关注'));
-    follow.setAttribute('aria-pressed', String(following));
-    follow.setAttribute('aria-label', following ? `取消关注 ${name}` : `关注 ${name}`);
-    follow.title = following
-      ? `取消关注 ${name}`
-      : `关注 ${name}，出现 T0、报价或官宣时提醒`;
-    follow.onclick = () => { togglePlayerFollow(selectedTarget); };
-    followButtons.appendChild(follow);
-    head.appendChild(followButtons);
-  }
-  head.appendChild(el('span', 'focus-strip-total', hiddenCount > 0
-    ? `剩余 ${visiblePinned.length} · 隐藏 ${hiddenCount}`
-    : `共 ${selectedPinned.length} 条`));
-  if (hiddenCount > 0) {
-    const restore = el('button', 'focus-strip-restore', '恢复');
-    restore.type = 'button';
-    restore.title = `恢复已隐藏的 ${hiddenCount} 条专区消息`;
-    restore.setAttribute('aria-label', restore.title);
-    restore.onclick = () => restoreHiddenPinned(selectedPinned);
-    head.appendChild(restore);
-  }
-  const progress = el('span', 'focus-strip-progress', available.length ? `1 / ${available.length}` : '0 / 0');
-  head.appendChild(progress);
-  zone.appendChild(head);
-
-  if (available.length === 0) {
-    const message = selectedPinned.length > 0
-      ? '该球员的置顶消息已全部读完并隐藏，可点击上方“恢复”重新查看。'
-      : `${focusTargetName(selectedTarget)}暂时没有新的重点传闻。`;
-    zone.appendChild(el('div', 'focus-strip-empty', message));
-    return;
-  }
-
-  const track = el('div', 'focus-track');
-  let renderedCount = 0;
-  const appendPinnedBatch = () => {
-    const end = Math.min(renderedCount + PINNED_BATCH_SIZE, available.length);
-    const fragment = document.createDocumentFragment();
-    for (let i = renderedCount; i < end; i++) fragment.appendChild(renderPinnedCard(available[i]));
-    renderedCount = end;
-    track.appendChild(fragment);
-  };
-  const initialCount = Math.min(PINNED_INITIAL_SIZE, available.length);
-  while (renderedCount < initialCount) appendPinnedBatch();
-
-  let frame = 0;
-  track.addEventListener('scroll', () => {
-    cancelAnimationFrame(frame);
-    frame = requestAnimationFrame(() => {
-      const first = track.querySelector('.pinned-card');
-      const step = first ? first.getBoundingClientRect().width + 9 : track.clientWidth;
-      const current = Math.min(available.length, Math.max(1, Math.round(track.scrollLeft / step) + 1));
-      progress.textContent = `${current} / ${available.length}`;
-      const nearEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - Math.max(track.clientWidth, step * 2);
-      if (nearEnd && renderedCount < available.length) appendPinnedBatch();
-    });
-  }, { passive: true });
-
-  zone.appendChild(track);
+  featureRow.appendChild(surveyEntries);
+  zone.appendChild(featureRow);
 }
 
 function renderCard(it) {

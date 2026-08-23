@@ -32,7 +32,7 @@ test('夏窗调查使用确认后的问题和文案', () => {
   assert.doesNotMatch(positionsBlock, /门将/);
 });
 
-test('重点传闻入口按确认顺序排列并提供蓝月在外预约', () => {
+test('签约横幅下方的专题入口按确认顺序排列并提供蓝月在外预约', () => {
   assert.match(app, /⚖️ 首秀评分/);
   assert.match(app, /📊 夏窗调查/);
   assert.match(app, /💬 本站体验/);
@@ -40,10 +40,11 @@ test('重点传闻入口按确认顺序排列并提供蓝月在外预约', () =>
   assert.match(app, /const FOCUS_SURVEY_ORDER = Object\.freeze\(\[\s*'allan_scouting_report_2026',\s*'summer_2026',\s*'coach_debut_2026',\s*'loan_watch_preview_2026',\s*'site_experience_2026'/);
   assert.match(app, /for \(const pollId of FOCUS_SURVEY_ORDER\)/);
   assert.doesNotMatch(app, /entry: '⚽ 中场投票'/);
-  assert.match(app, /focus-switchers/);
+  assert.match(app, /focus-feature-row/);
   assert.match(style, /\.focus-survey-entries/);
+  assert.match(style, /\.bouaddi-signing-banner/);
   assert.match(style, /\.survey-entry[\s\S]*?color: var\(--text\); font-size: 14px; font-weight: 800/);
-  assert.match(style, /@media \(max-width: 560px\)[\s\S]*\.focus-switchers/);
+  assert.match(style, /@media \(max-width: 560px\)[\s\S]*\.focus-feature-row/);
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.survey-entry \{[^}]*font-size: 13px; font-weight: 800/);
 });
 

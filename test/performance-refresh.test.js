@@ -25,11 +25,11 @@ test('首次只加载最新消息，滚动或搜索时再加载十天内历史�
   assert.match(app, /if \(query && hasMoreArchives\(\)\) await loadAllArchives\(\)/);
 });
 
-test('重点传闻分六张追加，互动计数进入视口后再请求', () => {
-  assert.match(app, /const PINNED_INITIAL_SIZE = 6/);
-  assert.match(app, /const PINNED_BATCH_SIZE = 6/);
-  assert.match(app, /const appendPinnedBatch = \(\) =>/);
-  assert.match(app, /nearEnd && renderedCount < available\.length/);
+test('重点传闻卡片关闭后消息回归普通流，互动计数仍按需请求', () => {
+  assert.match(app, /const FOCUS_RUMOR_STRIP_ENABLED = false/);
+  assert.match(app, /const pinnedIds = shouldShowPinnedStrip\(pinned\)[\s\S]*?: null/);
+  assert.match(app, /filter\(\(it\) => !pinnedIds\?\.has\(itemId\(it\)\)\)/);
+  assert.match(app, /销售冠军终于进货了！/);
   assert.match(app, /function observeEngagement\(card, item\)/);
   assert.match(app, /engagementObserver = new IntersectionObserver/);
   assert.match(app, /queueReactionCounts\(\[item\]\)/);
