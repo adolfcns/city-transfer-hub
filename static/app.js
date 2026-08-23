@@ -132,7 +132,9 @@ const SURVEY_DEFINITIONS = Object.freeze({
     entry: '📊 夏窗调查',
     icon: '🔥',
     title: '夏窗调查',
-    introHeadline: '卖人雷厉风行，买人杳无音讯。\n泥城究竟该何去何从？\n维亚纳还能翻盘吗？',
+    introHeadline: '恭喜维亚纳带领曼城获得26/27赛季销售冠军！',
+    introEmphasis: '销售',
+    introQuestion: '泥城究竟该何去何从？',
     intro: '会压哨补强，还是就这样结束？',
     returningIntro: '投票结果有变化，回来看看风向？',
     primaryLabel: '花30秒给夏窗打分',
@@ -3328,7 +3330,23 @@ function renderSurveyIntro(context) {
   body.dataset.surveyView = 'intro';
   const intro = el('div', 'survey-intro');
   intro.appendChild(el('div', 'survey-intro-icon', definition.icon || (context.pollId === 'summer_2026' ? '📊' : '💬')));
-  if (definition.introHeadline) intro.appendChild(el('strong', 'survey-intro-headline', definition.introHeadline));
+  if (definition.introHeadline) {
+    const headline = el('strong', 'survey-intro-headline');
+    const emphasis = definition.introEmphasis;
+    const emphasisAt = emphasis ? definition.introHeadline.indexOf(emphasis) : -1;
+    if (emphasisAt >= 0) {
+      headline.classList.add('has-emphasis');
+      headline.append(
+        document.createTextNode(definition.introHeadline.slice(0, emphasisAt)),
+        el('span', 'survey-intro-emphasis', emphasis),
+        document.createTextNode(definition.introHeadline.slice(emphasisAt + emphasis.length)),
+      );
+    } else {
+      headline.textContent = definition.introHeadline;
+    }
+    intro.appendChild(headline);
+  }
+  if (definition.introQuestion) intro.appendChild(el('strong', 'survey-intro-question', definition.introQuestion));
   intro.appendChild(el('p', 'survey-intro-copy', data.ballot && definition.returningIntro
     ? definition.returningIntro
     : definition.intro));
