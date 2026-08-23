@@ -4447,7 +4447,7 @@ function renderCountdown() {
     if (node) node.textContent = part === 'days' ? value : String(value).padStart(2, '0');
   }
   n.setAttribute('aria-label',
-    `距离维亚纳交卷只剩 ${days} 天 ${hours} 时 ${minutes} 分 ${seconds} 秒`);
+    `留给维亚纳出手的时间只剩 ${days} 天 ${hours} 时 ${minutes} 分 ${seconds} 秒`);
 }
 
 // ---------------- 事件绑定 ----------------
