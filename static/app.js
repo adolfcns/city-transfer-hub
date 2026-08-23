@@ -8,7 +8,7 @@ const STATUS_URL = './data/status.json';
 const REFRESH_MS = 90 * 1000;
 // 转会窗关闭时间（到点自动切到下一个）
 const WINDOWS = [
-  { label: '夏窗关闭', ts: Date.parse('2026-09-01T17:00:00Z') },
+  { label: '夏窗关闭', ts: Date.parse('2026-09-01T22:00:00Z') },
   { label: '冬窗关闭', ts: Date.parse('2027-02-02T22:00:00Z') },
 ];
 const TIER_CLASS = { T0: 't0', T1: 't1', T2: 't2', ITK: 'itk' };
@@ -4447,7 +4447,7 @@ function renderCountdown() {
     if (node) node.textContent = part === 'days' ? value : String(value).padStart(2, '0');
   }
   n.setAttribute('aria-label',
-    `留给维亚纳的时间还有 ${days} 天 ${hours} 时 ${minutes} 分 ${seconds} 秒`);
+    `距离维亚纳交卷只剩 ${days} 天 ${hours} 时 ${minutes} 分 ${seconds} 秒`);
 }
 
 // ---------------- 事件绑定 ----------------

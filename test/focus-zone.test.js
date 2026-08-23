@@ -18,6 +18,6 @@ test('重点传闻保留布阿迪专区且顶部文案已更新', () => {
   assert.match(app, /focus-target-tabs/);
   assert.doesNotMatch(app, /key === 'vinicius'/);
   assert.match(app, /📌 重点传闻/);
-  assert.match(index, /好戏才刚开始，一起关注曼城的转会动态 💙/);
+  assert.match(index, /最后一周！/);
   assert.doesNotMatch(index, /重点绯闻/);
 });
