@@ -121,7 +121,7 @@ test('马雷斯卡英超首秀调查包含五题和完整统计图', () => {
   assert.match(app, /完全无关，又觉得自己行了/);
   assert.match(app, /你对本场的“战术科研”满意吗/);
   assert.match(app, /id: 'concerns'[\s\S]*?hint: '最多选择两个'[\s\S]*?type: 'multi', max: 2/);
-  assert.match(app, /6、14稳定出场/);
+  assert.match(app, /刘神稳定出场、禁区争顶、冒充球王/);
   assert.match(app, /你看好马雷斯卡治下的曼城前景吗/);
   assert.match(app, /不太看好，迟早科研翻车/);
   assert.match(app, /完全不看好，好日子还在后头呢/);

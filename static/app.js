@@ -134,7 +134,7 @@ const SURVEY_DEFINITIONS = Object.freeze({
         { value: 'roles', label: '球员位置和使用方式奇怪' },
         { value: 'subs', label: '临场换人过于保守' },
         { value: 'cohesion', label: '新援与原有体系尚未磨合' },
-        { value: 'stable_614', label: '6、14稳定出场' },
+        { value: 'stable_614', label: '刘神稳定出场、禁区争顶、冒充球王' },
       ] },
       { id: 'outlook', title: '5. 你看好马雷斯卡治下的曼城前景吗？', type: 'single', options: [
         { value: 'very', label: '非常看好，有机会开创新时代' },
