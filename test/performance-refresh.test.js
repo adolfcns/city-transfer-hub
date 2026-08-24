@@ -25,6 +25,13 @@ test('首次只加载最新消息，滚动或搜索时再加载十天内历史�
   assert.match(app, /if \(query && hasMoreArchives\(\)\) await loadAllArchives\(\)/);
 });
 
+test('分享链接只定位消息，不改变按发布时间排列的消息顺序', () => {
+  assert.doesNotMatch(app, /feedItems\.unshift\(\.\.\.feedItems\.splice\(sharedIndex, 1\)\)/);
+  assert.match(app, /appendNextFeedBatch\(sharedIndex\)/);
+  assert.match(app, /cleanUrl\.searchParams\.delete\('msg'\)/);
+  assert.match(app, /window\.history\.replaceState\(null, '', cleanUrl\.href\)/);
+});
+
 test('重点传闻卡片关闭后消息回归普通流，互动计数仍按需请求', () => {
   assert.match(app, /const FOCUS_RUMOR_STRIP_ENABLED = false/);
   assert.match(app, /const pinnedIds = shouldShowPinnedStrip\(pinned\)[\s\S]*?: null/);

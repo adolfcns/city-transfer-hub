@@ -651,6 +651,9 @@ function revealRequestedMessage() {
   target.classList.add('shared-message-target');
   target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
   toast('已为你定位到这条消息');
+  const cleanUrl = new URL(window.location.href);
+  cleanUrl.searchParams.delete('msg');
+  window.history.replaceState(null, '', cleanUrl.href);
   setTimeout(() => target.classList.remove('shared-message-target'), 4200);
 }
 
@@ -2471,7 +2474,6 @@ function renderFeed() {
   feedItems = currentFilteredFeedItems();
   const sharedId = requestedMessageId();
   const sharedIndex = sharedId ? feedItems.findIndex((it) => itemId(it) === sharedId) : -1;
-  if (sharedIndex > 0) feedItems.unshift(...feedItems.splice(sharedIndex, 1));
   feedCursor = 0;
   feedLastDay = null;
   feedAppending = false;
@@ -2489,7 +2491,7 @@ function renderFeed() {
     if (hasMoreArchives()) appendArchiveControl();
     return;
   }
-  appendNextFeedBatch();
+  appendNextFeedBatch(sharedIndex);
 }
 
 function currentFilteredFeedItems() {
@@ -2544,7 +2546,7 @@ function extendFeedAfterArchive() {
   renderFeed();
 }
 
-function appendNextFeedBatch() {
+function appendNextFeedBatch(requestedIndex = -1) {
   if (feedAppending || feedCursor >= feedItems.length) return;
   feedAppending = true;
   stopFeedObserver();
@@ -2553,7 +2555,8 @@ function appendNextFeedBatch() {
 
   const feed = $('#feed');
   const fragment = document.createDocumentFragment();
-  const end = Math.min(feedCursor + FEED_BATCH_SIZE, feedItems.length);
+  const requestedEnd = Number.isInteger(requestedIndex) ? requestedIndex + 1 : 0;
+  const end = Math.min(Math.max(feedCursor + FEED_BATCH_SIZE, requestedEnd), feedItems.length);
   for (let i = feedCursor; i < end; i++) {
     const it = feedItems[i];
     const dk = dayKey(it.published_at);
@@ -2621,9 +2624,6 @@ function pinnedStripItems() {
   const items = state.items
     .filter((it) => (it.focus || []).some((key) => targetKeys.has(key)))
     .sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at));
-  const sharedId = requestedMessageId();
-  const sharedIndex = sharedId ? items.findIndex((it) => itemId(it) === sharedId) : -1;
-  if (sharedIndex > 0) items.unshift(...items.splice(sharedIndex, 1));
   return items;
 }
 
