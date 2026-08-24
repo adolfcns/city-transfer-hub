@@ -33,11 +33,11 @@ test('夏窗调查使用确认后的问题和文案', () => {
 });
 
 test('签约横幅下方的专题入口按确认顺序排列并提供蓝月在外预约', () => {
-  assert.match(app, /⚖️ 首秀评分/);
+  assert.match(app, /⚖️ 英超首秀评分/);
   assert.match(app, /📊 夏窗调查/);
   assert.match(app, /💬 本站体验/);
   assert.match(app, /🌍 蓝月在外/);
-  assert.match(app, /const FOCUS_SURVEY_ORDER = Object\.freeze\(\[\s*'allan_scouting_report_2026',\s*'summer_2026',\s*'coach_debut_2026',\s*'loan_watch_preview_2026',\s*'site_experience_2026'/);
+  assert.match(app, /const FOCUS_SURVEY_ORDER = Object\.freeze\(\[\s*COACH_SURVEY_ID,\s*'allan_scouting_report_2026',\s*'summer_2026',\s*'loan_watch_preview_2026',\s*'site_experience_2026'/);
   assert.match(app, /for \(const pollId of FOCUS_SURVEY_ORDER\)/);
   assert.doesNotMatch(app, /entry: '⚽ 中场投票'/);
   assert.match(app, /focus-feature-row/);
@@ -48,7 +48,7 @@ test('签约横幅下方的专题入口按确认顺序排列并提供蓝月在�
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.survey-entry \{[^}]*font-size: 13px; font-weight: 800/);
 });
 
-test('阿兰球探报告提供四张按需加载图表、固定入口和每日一次引流', () => {
+test('阿兰球探报告提供四张按需加载图表和固定入口，但不再自动弹出', () => {
   assert.match(app, /entry: '🔍 阿兰球探报告'/);
   assert.match(app, /title: '阿兰球探报告'/);
   assert.match(app, /数据不炸裂，曼城为什么还想要他/);
@@ -57,12 +57,8 @@ test('阿兰球探报告提供四张按需加载图表、固定入口和每日�
   assert.match(app, /image\.loading = 'lazy'/);
   assert.match(app, /image\.decoding = 'async'/);
   assert.match(app, /4 张图 · 约 1 分钟/);
-  assert.match(app, /SCOUT_REPORT_INVITE_INTERVAL_MS = 24 \* 60 \* 60 \* 1000/);
-  assert.match(app, /SCOUT_REPORT_INVITE_DELAY_MS = 6500/);
-  assert.match(app, /cth_allan_scout_report_20260822_daily_v1/);
-  assert.match(app, /function scheduleScoutReportInvite/);
-  assert.match(app, /document\.querySelector\('\.modal:not\(\[hidden\]\), \.comment-overlay, \.survey-overlay'\)[\s\S]*?scoutReportInviteHandled = true/);
-  assert.match(app, /scheduleSurveyInvite\(\);\s*scheduleScoutReportInvite\(\);/);
+  const startup = app.slice(app.lastIndexOf('// ---------------- 启动 ----------------'));
+  assert.doesNotMatch(startup, /scheduleScoutReportInvite\(\)/);
   assert.match(style, /\.scout-report-sheet/);
   assert.match(style, /\.scout-intro-stats/);
   assert.match(style, /\.scout-report-toolbar/);
@@ -72,20 +68,22 @@ test('阿兰球探报告提供四张按需加载图表、固定入口和每日�
   }
 });
 
-test('手机和电脑都会每四小时弹出夏窗调查', () => {
-  assert.match(app, /cth_summer_20260822_4h_v1/);
-  assert.match(app, /SURVEY_POPUP_ID = 'summer_2026'/);
+test('手机和电脑每四小时只自动弹出马雷斯卡英超首秀评分', () => {
+  assert.match(app, /COACH_SURVEY_ID = 'maresca_league_debut_2026'/);
+  assert.match(app, /cth_maresca_league_debut_20260824_4h_v1/);
+  assert.match(app, /SURVEY_POPUP_ID = COACH_SURVEY_ID/);
   assert.match(app, /SURVEY_INVITE_INTERVAL_MS = 4 \* 60 \* 60 \* 1000/);
-  assert.match(app, /title: '夏窗调查'/);
-  assert.match(app, /恭喜维亚纳带领曼城获得26\/27赛季销售冠军！/);
-  assert.match(app, /introQuestion: '泥城究竟该何去何从？'/);
-  assert.match(app, /primaryLabel: '花30秒给夏窗打分'/);
+  assert.match(app, /title: '马雷斯卡英超首秀评分'/);
+  assert.match(app, /马雷斯卡英超首考：这份答卷你打几分/);
+  assert.match(app, /primaryLabel: '给马雷斯卡打分'/);
   assert.doesNotMatch(app, /DESKTOP_SURVEY_MEDIA|matchMedia\(DESKTOP_SURVEY_MEDIA\)/);
   assert.match(app, /localStorage\.setItem\(SURVEY_INVITE_KEY, String\(Date\.now\(\)\)\)/);
   assert.match(app, /Date\.now\(\) - lastShownAt < SURVEY_INVITE_INTERVAL_MS/);
   assert.match(app, /document\.querySelector\('\.modal:not\(\[hidden\]\), \.comment-overlay, \.survey-overlay'\)/);
   assert.match(app, /openSurvey\(SURVEY_POPUP_ID\)/);
-  assert.match(app, /scheduleSurveyInvite\(\);/);
+  const startup = app.slice(app.lastIndexOf('// ---------------- 启动 ----------------'));
+  assert.match(startup, /scheduleSurveyInvite\(\);/);
+  assert.doesNotMatch(startup, /scheduleScoutReportInvite\(\)|showRecoveryNotice\(\)/);
   assert.match(app, /if \(definition\.announcementOnly\) \{[\s\S]*?renderSurveyIntro\(context\);[\s\S]*?if \(!definition\.reservationFeature\) return;/);
   assert.match(app, /if \(!definition\.entry\) continue;/);
   assert.match(style, /\.survey-preview-grid/);
@@ -114,35 +112,35 @@ test('蓝月在外从 120 人开始全站预约且同设备只计一次', () => 
   assert.match(workflow, /reservations=ok/);
 });
 
-test('马嗨正赛首秀调查包含三题、投降式换人和漂亮统计图', () => {
-  assert.match(app, /title: '社区盾赛后开庭'/);
-  assert.match(app, /正赛首秀就投降，马嗨这份答卷配拿几分/);
-  assert.match(app, /争议焦点：投降式换人 · 0 到 10 分，直接宣判/);
-  assert.match(app, /id: 'score'[\s\S]*?id: 'attitude'[\s\S]*?id: 'blame'/);
-  assert.match(app, /看完正赛首秀，你现在是什么态度/);
-  assert.match(app, /这场最大的锅应该扣给谁/);
-  assert.match(app, /id: 'blame'[\s\S]*?hint: '最多选择两个'[\s\S]*?type: 'multi', max: 2/);
+test('马雷斯卡英超首秀调查包含五题和完整统计图', () => {
+  assert.match(app, /title: '马雷斯卡英超首秀评分'/);
+  assert.match(app, /马雷斯卡的首场英超答卷，你给几分/);
+  assert.match(app, /一声马来，重回陆地 GOAT 之境/);
+  assert.match(app, /id: 'score'[\s\S]*?id: 'adjustments'[\s\S]*?id: 'tactics'[\s\S]*?id: 'concerns'[\s\S]*?id: 'outlook'/);
+  assert.match(app, /本场胜利与马雷斯卡的临场调整有关吗/);
+  assert.match(app, /完全无关，又觉得自己行了/);
+  assert.match(app, /你对本场的“战术科研”满意吗/);
+  assert.match(app, /id: 'concerns'[\s\S]*?hint: '最多选择两个'[\s\S]*?type: 'multi', max: 2/);
+  assert.match(app, /6、14稳定出场/);
+  assert.match(app, /你看好马雷斯卡治下的曼城前景吗/);
+  assert.match(app, /不太看好，迟早科研翻车/);
+  assert.match(app, /完全不看好，好日子还在后头呢/);
   assert.match(app, /function renderCoachSurveyResults\(context\)/);
   assert.match(app, /function buildCoachSurveyShareCard\(context\)/);
   assert.match(app, /function downloadCoachSurveyResults\(context\)/);
-  assert.match(app, /投降马嗨正赛首秀打分/);
-  assert.match(app, /首秀不及格/);
-  assert.doesNotMatch(app, /战术板建议直接回收/);
+  assert.match(app, /马雷斯卡英超首秀评分/);
   assert.match(app, /0—10 分完整分布/);
   assert.match(app, /'去给夏窗打分'/);
-  assert.doesNotMatch(app, /维亚纳的夏窗也该交卷/);
   assert.match(app, /openSurvey\('summer_2026'\)/);
   assert.match(app, /↓ 下载统计图/);
-  assert.match(app, /三个问题的实时统计已经汇总/);
-  assert.match(app, /问题一：0—10 分完整分布/);
-  assert.match(app, /问题二：看完首秀，现在是什么态度/);
-  assert.match(app, /问题三：这场最大的锅扣给谁/);
+  assert.match(app, /五个问题的实时统计已经汇总/);
+  assert.match(app, /detailQuestions\.forEach/);
   assert.match(style, /\.coach-verdict-card/);
   assert.match(style, /\.coach-result-grid/);
   assert.match(style, /\.coach-next-poll/);
   for (const worker of [pagesWorker, triggerWorker]) {
-    assert.match(worker, /coach_debut_2026:[\s\S]*?score: \{ type: 'number', min: 0, max: 10 \}/);
-    assert.match(worker, /attitude: \{ type: 'single'[\s\S]*?blame: \{ type: 'multi', max: 2/);
+    assert.match(worker, /maresca_league_debut_2026:[\s\S]*?score: \{ type: 'number', min: 0, max: 10 \}/);
+    assert.match(worker, /adjustments: \{ type: 'single'[\s\S]*?tactics: \{ type: 'single'[\s\S]*?concerns: \{ type: 'multi', max: 2[\s\S]*?outlook: \{ type: 'single'/);
     assert.match(worker, /Array\.isArray\(value\) \? value : \[value\]/);
   }
 });
@@ -165,9 +163,11 @@ test('调查支持匿名修改、公开结果和云端持久化', () => {
   }
   assert.ok(routes.include.includes('/surveys'));
   assert.match(workflow, /surveys\?poll=summer_2026/);
-  assert.match(workflow, /surveys\?poll=coach_debut_2026/);
-  assert.match(workflow, /coachSurveyBody\.results\?\.questions\?\.attitude\?\.counts/);
-  assert.match(workflow, /coachSurveyBody\.results\?\.questions\?\.blame\?\.counts/);
+  assert.match(workflow, /surveys\?poll=maresca_league_debut_2026/);
+  assert.match(workflow, /coachSurveyBody\.results\?\.questions\?\.adjustments\?\.counts/);
+  assert.match(workflow, /coachSurveyBody\.results\?\.questions\?\.tactics\?\.counts/);
+  assert.match(workflow, /coachSurveyBody\.results\?\.questions\?\.concerns\?\.counts/);
+  assert.match(workflow, /coachSurveyBody\.results\?\.questions\?\.outlook\?\.counts/);
   assert.match(workflow, /surveys=ok/);
 });
 

@@ -23,12 +23,14 @@ const FEATURE_RESERVATIONS = Object.freeze({
   loan_watch_2026: { base: 120 },
 });
 const SURVEY_RULES = Object.freeze({
-  coach_debut_2026: {
+  maresca_league_debut_2026: {
     closes_at: null,
     questions: {
       score: { type: 'number', min: 0, max: 10 },
-      attitude: { type: 'single', options: ['believe', 'three_games', 'next_meeting', 'miss_previous', 'surrender'] },
-      blame: { type: 'multi', max: 2, options: ['coach_all', 'coach_main', 'players', 'recruitment', 'shield_only'] },
+      adjustments: { type: 'single', options: ['decisive', 'some', 'little', 'none'] },
+      tactics: { type: 'single', options: ['very', 'direction', 'average', 'confused'] },
+      concerns: { type: 'multi', max: 2, options: ['attack', 'midfield', 'transition', 'roles', 'subs', 'cohesion', 'stable_614'] },
+      outlook: { type: 'single', options: ['very', 'cautious', 'wait', 'low', 'no'] },
     },
   },
   midfield_final_2026: {

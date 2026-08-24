@@ -31,8 +31,9 @@ const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
 const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
 const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
 const SURVEY_PROFILE_KEY = 'cth_survey_profile_v1';
-const SURVEY_POPUP_ID = 'summer_2026';
-const SURVEY_INVITE_KEY = 'cth_summer_20260822_4h_v1';
+const COACH_SURVEY_ID = 'maresca_league_debut_2026';
+const SURVEY_POPUP_ID = COACH_SURVEY_ID;
+const SURVEY_INVITE_KEY = 'cth_maresca_league_debut_20260824_4h_v1';
 const SURVEY_INVITE_INTERVAL_MS = 4 * 60 * 60 * 1000;
 const SURVEY_INVITE_DELAY_MS = 1500;
 const SCOUT_REPORT_POPUP_ID = 'allan_scouting_report_2026';
@@ -43,9 +44,9 @@ const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
 // 布阿迪交易已进入 Here we go 阶段，暂时撤下重点传闻卡片；保留数据与逻辑，方便后续恢复。
 const FOCUS_RUMOR_STRIP_ENABLED = false;
 const FOCUS_SURVEY_ORDER = Object.freeze([
+  COACH_SURVEY_ID,
   'allan_scouting_report_2026',
   'summer_2026',
-  'coach_debut_2026',
   'loan_watch_preview_2026',
   'site_experience_2026',
 ]);
@@ -94,39 +95,53 @@ const SURVEY_DEFINITIONS = Object.freeze({
     primaryLabel: '预约关注',
     reservedLabel: '✓ 已预约',
   },
-  coach_debut_2026: {
-    entry: '⚖️ 首秀评分',
+  maresca_league_debut_2026: {
+    entry: '⚖️ 英超首秀评分',
     icon: '⚖️',
-    title: '社区盾赛后开庭',
-    introHeadline: '投降马嗨正赛首秀',
-    intro: '正赛首秀就投降，马嗨这份答卷配拿几分？花 15 秒打分、表态、分锅。',
-    returningIntro: '最新判决有变化，回来看看蓝月球迷现在怎么判。',
-    primaryLabel: '开始判分',
-    submitLabel: '提交判决，看看全网怎么判',
-    resultsLabel: '先看实时判决',
+    title: '马雷斯卡英超首秀评分',
+    introHeadline: '马雷斯卡英超首考：这份答卷你打几分？',
+    intro: '首场英超踢完，这套“战术科研”到底有没有东西？花 30 秒打分，看看蓝月球迷怎么判。',
+    returningIntro: '英超首秀评分有变化，回来看看蓝月球迷的最新判断。',
+    primaryLabel: '给马雷斯卡打分',
+    submitLabel: '提交评分，查看实时结果',
+    resultsLabel: '先看球迷怎么评',
     openOnForm: true,
     closesAt: null,
     questions: [
       {
         id: 'score',
-        title: '1. 正赛首秀就投降，马嗨这份答卷配拿几分？',
-        hint: '争议焦点：投降式换人 · 0 到 10 分，直接宣判。',
+        title: '1. 马雷斯卡的首场英超答卷，你给几分？',
+        hint: '0～2 科研失败 · 3～4 问题不少 · 5～6 勉强及格 · 7～8 值得期待 · 9～10 一声马来，重回陆地 GOAT 之境',
         type: 'number',
         options: Array.from({ length: 11 }, (_, value) => ({ value: String(value), label: String(value) })),
       },
-      { id: 'attitude', title: '2. 看完正赛首秀，你现在是什么态度？', type: 'single', options: [
-        { value: 'believe', label: '马圣初显，继续相信' },
-        { value: 'three_games', label: '再给三场，暂缓开庭' },
-        { value: 'next_meeting', label: '下场再这样，会议室见' },
-        { value: 'miss_previous', label: '已经开始怀念上一任' },
-        { value: 'surrender', label: '别问，问就是投降马嗨' },
+      { id: 'adjustments', title: '2. 你认为本场胜利与马雷斯卡的临场调整有关吗？', type: 'single', options: [
+        { value: 'decisive', label: '关系很大，调整直接改变了比赛' },
+        { value: 'some', label: '有一定关系，但主要还是球员发挥' },
+        { value: 'little', label: '关系不大，基本靠阵容实力拿下' },
+        { value: 'none', label: '完全无关，又觉得自己行了' },
       ] },
-      { id: 'blame', title: '3. 这场最大的锅应该扣给谁？', hint: '最多选择两个', type: 'multi', max: 2, options: [
-        { value: 'coach_all', label: '马嗨全责，别找借口' },
-        { value: 'coach_main', label: '马嗨主责，球员次责' },
-        { value: 'players', label: '球员自己踢得抽象' },
-        { value: 'recruitment', label: '维亚纳引援还没配齐' },
-        { value: 'shield_only', label: '社区盾而已，暂时别急' },
+      { id: 'tactics', title: '3. 你对本场的“战术科研”满意吗？', type: 'single', options: [
+        { value: 'very', label: '非常满意，新体系已经有模有样' },
+        { value: 'direction', label: '方向不错，但还需要继续磨合' },
+        { value: 'average', label: '想法很多，实际效果比较一般' },
+        { value: 'confused', label: '完全不满意，根本看不懂在研究什么' },
+      ] },
+      { id: 'concerns', title: '4. 目前这支曼城最让你担心什么？', hint: '最多选择两个', type: 'multi', max: 2, options: [
+        { value: 'attack', label: '进攻套路太单一' },
+        { value: 'midfield', label: '中场控制力不足' },
+        { value: 'transition', label: '防守转换容易被打穿' },
+        { value: 'roles', label: '球员位置和使用方式奇怪' },
+        { value: 'subs', label: '临场换人过于保守' },
+        { value: 'cohesion', label: '新援与原有体系尚未磨合' },
+        { value: 'stable_614', label: '6、14稳定出场' },
+      ] },
+      { id: 'outlook', title: '5. 你看好马雷斯卡治下的曼城前景吗？', type: 'single', options: [
+        { value: 'very', label: '非常看好，有机会开创新时代' },
+        { value: 'cautious', label: '谨慎看好，磨合后会越来越好' },
+        { value: 'wait', label: '暂时观望，再看几轮联赛' },
+        { value: 'low', label: '不太看好，迟早科研翻车' },
+        { value: 'no', label: '完全不看好，好日子还在后头呢' },
       ] },
     ],
   },
@@ -2820,11 +2835,11 @@ function surveyScoreBand(score) {
 }
 
 function coachScoreVerdict(score) {
-  if (score >= 9) return '对不起，马圣请上座';
-  if (score >= 7) return '有点东西，今天先不骂';
-  if (score >= 5) return '缓刑观察';
-  if (score >= 3) return '嘴比战术硬';
-  return '首秀不及格';
+  if (score >= 9) return '一声马来，陆地 GOAT';
+  if (score >= 7) return '值得期待';
+  if (score >= 5) return '勉强及格';
+  if (score >= 3) return '问题不少';
+  return '科研失败';
 }
 
 function surveyResultOptions(context, question, includeZero = false) {
@@ -3044,27 +3059,25 @@ async function buildCoachSurveyShareCard(context) {
   if (!total) throw new Error('NO_SURVEY_RESULTS');
   const definition = context.definition;
   const scoreQuestion = definition.questions.find((question) => question.id === 'score');
-  const attitudeQuestion = definition.questions.find((question) => question.id === 'attitude');
-  const blameQuestion = definition.questions.find((question) => question.id === 'blame');
+  const detailQuestions = definition.questions.filter((question) => question.id !== 'score');
   const average = Math.max(0, Math.min(10, Number(context.data.results?.questions?.score?.average || 0)));
   const scoreOptions = surveyResultOptions(context, scoreQuestion, true);
-  const attitudeOptions = surveyResultOptions(context, attitudeQuestion, true);
-  const blameOptions = surveyResultOptions(context, blameQuestion, true);
+  const cardHeight = 2480;
 
   const canvas = document.createElement('canvas');
   canvas.width = SURVEY_SHARE_WIDTH;
-  canvas.height = SURVEY_SHARE_HEIGHT;
+  canvas.height = cardHeight;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('CANVAS_UNAVAILABLE');
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
 
-  const background = ctx.createLinearGradient(0, 0, SURVEY_SHARE_WIDTH, SURVEY_SHARE_HEIGHT);
+  const background = ctx.createLinearGradient(0, 0, SURVEY_SHARE_WIDTH, cardHeight);
   background.addColorStop(0, '#061c33');
   background.addColorStop(.55, '#0b3658');
   background.addColorStop(1, '#16658d');
   ctx.fillStyle = background;
-  ctx.fillRect(0, 0, SURVEY_SHARE_WIDTH, SURVEY_SHARE_HEIGHT);
+  ctx.fillRect(0, 0, SURVEY_SHARE_WIDTH, cardHeight);
 
   ctx.save();
   ctx.globalAlpha = .22;
@@ -3086,7 +3099,7 @@ async function buildCoachSurveyShareCard(context) {
   ctx.fillText('曼城转会情报站', 238, 91);
   cardFont(ctx, 56, 900);
   ctx.fillStyle = '#ffffff';
-  ctx.fillText('投降马嗨正赛首秀打分', 238, 158);
+  ctx.fillText('马雷斯卡英超首秀评分', 238, 158);
   cardFont(ctx, 24, 600);
   ctx.fillStyle = '#c8e7f8';
   ctx.fillText(`统计截止 ${surveyShareDate(new Date())}`, 238, 207);
@@ -3095,13 +3108,13 @@ async function buildCoachSurveyShareCard(context) {
   ctx.shadowColor = 'rgba(0,0,0,.25)';
   ctx.shadowBlur = 30;
   ctx.shadowOffsetY = 12;
-  fillRoundedCanvasRect(ctx, 50, 270, 980, 1450, 34, '#f7fbfe');
+  fillRoundedCanvasRect(ctx, 50, 270, 980, 2020, 34, '#f7fbfe');
   ctx.restore();
 
   fillRoundedCanvasRect(ctx, 86, 312, 590, 220, 26, '#0b2f50');
   cardFont(ctx, 24, 700);
   ctx.fillStyle = '#9edcf6';
-  ctx.fillText('正赛首秀平均分', 122, 360);
+  ctx.fillText('英超首秀平均分', 122, 360);
   cardFont(ctx, 84, 900);
   ctx.fillStyle = '#ffffff';
   ctx.fillText(average.toFixed(1), 120, 456);
@@ -3148,11 +3161,12 @@ async function buildCoachSurveyShareCard(context) {
   }
   ctx.textAlign = 'left';
 
-  const drawRanking = (title, options, startY, multi = false) => {
-    cardFont(ctx, 30, 900);
+  const drawRanking = (question, startY) => {
+    const options = surveyResultOptions(context, question, true);
+    cardFont(ctx, 27, 900);
     ctx.fillStyle = '#0b2f50';
-    ctx.fillText(title, 90, startY);
-    if (multi) {
+    ctx.fillText(fitCanvasText(ctx, question.title, 870), 90, startY);
+    if (question.type === 'multi') {
       cardFont(ctx, 18, 700);
       ctx.fillStyle = '#6b8191';
       ctx.textAlign = 'right';
@@ -3160,33 +3174,33 @@ async function buildCoachSurveyShareCard(context) {
       ctx.textAlign = 'left';
     }
     options.forEach((option, index) => {
-      const y = startY + 39 + index * 66;
-      cardFont(ctx, 21, 700);
+      const y = startY + 34 + index * 49;
+      cardFont(ctx, 19, 700);
       ctx.fillStyle = '#35566d';
-      ctx.fillText(fitCanvasText(ctx, option.label, 315), 92, y + 23);
-      drawSurveyShareBar(ctx, 420, y + 5, 420, option.percent, index === 0 ? '#7a1830' : '#6cabdd');
-      cardFont(ctx, 20, 900);
+      ctx.fillText(fitCanvasText(ctx, option.label, 345), 92, y + 20);
+      drawSurveyShareBar(ctx, 465, y + 4, 350, option.percent, index === 0 ? '#7a1830' : '#6cabdd');
+      cardFont(ctx, 18, 900);
       ctx.fillStyle = '#0b2f50';
       ctx.textAlign = 'right';
-      ctx.fillText(`${option.percent}% · ${option.count}票`, 960, y + 23);
+      ctx.fillText(`${option.percent}% · ${option.count}票`, 960, y + 20);
       ctx.textAlign = 'left';
     });
   };
-  drawRanking('问题二：看完首秀，现在是什么态度？', attitudeOptions, 900);
-  drawRanking('问题三：这场最大的锅扣给谁？', blameOptions, 1290, true);
+  const rankingStarts = [900, 1180, 1460, 1900];
+  detailQuestions.forEach((question, index) => drawRanking(question, rankingStarts[index]));
 
-  const footer = ctx.createLinearGradient(0, 1760, SURVEY_SHARE_WIDTH, SURVEY_SHARE_HEIGHT);
+  const footer = ctx.createLinearGradient(0, 2320, SURVEY_SHARE_WIDTH, cardHeight);
   footer.addColorStop(0, '#8dd2f2');
   footer.addColorStop(1, '#6cabdd');
   ctx.fillStyle = footer;
-  ctx.fillRect(0, 1760, SURVEY_SHARE_WIDTH, 160);
+  ctx.fillRect(0, 2320, SURVEY_SHARE_WIDTH, 160);
   cardFont(ctx, 30, 900);
   ctx.fillStyle = '#071d34';
-  ctx.fillText('来给马嗨的正赛首秀判个分', 60, 1814);
+  ctx.fillText('来给马雷斯卡的英超首秀打个分', 60, 2374);
   cardFont(ctx, 22, 800);
-  ctx.fillText('adolfcns.github.io/city-transfer-hub/', 60, 1862);
-  fillRoundedCanvasRect(ctx, 890, 1777, 126, 126, 14, '#ffffff');
-  ctx.drawImage(qr, 899, 1786, 108, 108);
+  ctx.fillText('adolfcns.github.io/city-transfer-hub/', 60, 2422);
+  fillRoundedCanvasRect(ctx, 890, 2337, 126, 126, 14, '#ffffff');
+  ctx.drawImage(qr, 899, 2346, 108, 108);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('PNG_EXPORT_FAILED')), 'image/png', .96);
@@ -3205,14 +3219,14 @@ async function downloadCoachSurveyResults(context) {
     if (!fresh?.results?.total) throw new Error('NO_SURVEY_RESULTS');
     context.data = fresh;
     const blob = await buildCoachSurveyShareCard(context);
-    const filename = `马嗨正赛首秀统计-${surveyShareDate(new Date(), false).replace(/[\s年月日]/g, '-')}.png`;
+    const filename = `马雷斯卡英超首秀评分-${surveyShareDate(new Date(), false).replace(/[\s年月日]/g, '-')}.png`;
     showShareCardSavePreview(blob, filename, {
-      title: '马嗨正赛首秀统计长图',
-      hint: '三个问题的实时统计已经汇总。点击保存；手机浏览器不支持直接保存时，也可以长按图片存入相册。',
-      alt: '马嗨正赛首秀三题投票实时统计图',
+      title: '马雷斯卡英超首秀评分长图',
+      hint: '五个问题的实时统计已经汇总。点击保存；手机浏览器不支持直接保存时，也可以长按图片存入相册。',
+      alt: '马雷斯卡英超首秀五题投票实时统计图',
       downloadLabel: '↓ 保存统计图',
     });
-    toast('三题统计图已生成 ✓');
+    toast('五题统计图已生成 ✓');
   } catch {
     toast('实时结果暂时无法同步，请稍后再试', 'err');
   } finally {
@@ -3486,7 +3500,7 @@ function renderSurveyForm(context) {
 
   const form = el('form', 'survey-form');
   const isMidfield = pollId === 'midfield_final_2026';
-  const isCoach = pollId === 'coach_debut_2026';
+  const isCoach = pollId === COACH_SURVEY_ID;
   if (isMidfield) form.classList.add('midfield-survey-form');
   if (isCoach) form.classList.add('coach-survey-form');
   for (const question of definition.questions) {
@@ -3599,7 +3613,7 @@ function renderSurveyResults(context) {
   body.dataset.surveyView = 'results';
   const isSummer = context.pollId === 'summer_2026';
   const isMidfield = context.pollId === 'midfield_final_2026';
-  const isCoach = context.pollId === 'coach_debut_2026';
+  const isCoach = context.pollId === COACH_SURVEY_ID;
   body.classList.toggle('summer-survey-results', isSummer);
   body.classList.toggle('midfield-survey-results', isMidfield);
   body.classList.toggle('coach-survey-results', isCoach);
@@ -3638,7 +3652,7 @@ function renderSurveyResults(context) {
   }
   const summary = el('div', 'survey-result-summary');
   summary.appendChild(el('strong', null, isCoach && total
-    ? '马嗨正赛首秀判决书'
+    ? '马雷斯卡英超首秀实时评分'
     : isMidfield && total ? '实时蓝月中场风向' : (isSummer && total ? '实时蓝月风向' : `${total} 份有效选票`)));
   summary.appendChild(el('span', null, total
     ? (isSummer ? `${total} 份有效选票 · 截至 ${surveyShareDate(new Date())}` : '实时统计 · 修改答案后会自动重新计算')
@@ -3758,9 +3772,9 @@ function renderCoachSurveyResults(context) {
   dial.appendChild(value);
   const verdict = el('div', 'coach-verdict-copy');
   verdict.append(
-    el('span', null, '当前判决'),
+    el('span', null, '当前球迷评分'),
     el('strong', null, coachScoreVerdict(average)),
-    el('p', null, '投降式换人，蓝月球迷已经开庭。'),
+    el('p', null, '战术科研、临场调整与未来前景，五题实时统计。'),
   );
   overview.append(dial, verdict);
   body.appendChild(overview);
@@ -3770,7 +3784,7 @@ function renderCoachSurveyResults(context) {
   const scoreOptions = surveyResultOptions(context, scoreQuestion, true);
   const maxCount = Math.max(1, ...scoreOptions.map((option) => option.count));
   const chart = el('div', 'survey-score-distribution');
-  chart.setAttribute('aria-label', '马嗨正赛首秀评分分布');
+  chart.setAttribute('aria-label', '马雷斯卡英超首秀评分分布');
   for (const option of scoreOptions) {
     const column = el('div', 'survey-score-column');
     const track = el('div', 'survey-score-column-track');
@@ -3785,9 +3799,7 @@ function renderCoachSurveyResults(context) {
   body.appendChild(scoreCard);
 
   const grid = el('div', 'coach-result-grid');
-  for (const questionId of ['attitude', 'blame']) {
-    const question = definition.questions.find((item) => item.id === questionId);
-    if (!question) continue;
+  for (const question of definition.questions.filter((item) => item.id !== 'score')) {
     const card = el('section', 'survey-result-card coach-result-card');
     card.appendChild(el('h3', null, surveyQuestionTitle(definition, question).replace(/^\d+\.\s*/, '')));
     const rows = el('div', 'survey-result-rows');
@@ -4375,7 +4387,7 @@ function renderCountdown() {
     if (node) node.textContent = part === 'days' ? value : String(value).padStart(2, '0');
   }
   n.setAttribute('aria-label',
-    `留给维亚纳出手的时间只剩 ${days} 天 ${hours} 时 ${minutes} 分 ${seconds} 秒`);
+    `最后一周，蓝月终局之战。距离关窗还有 ${days} 天 ${hours} 时 ${minutes} 分 ${seconds} 秒。是满载而归，还是遗憾收场？`);
 }
 
 // ---------------- 事件绑定 ----------------
@@ -4461,7 +4473,6 @@ function bind() {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) loadData(true); });
   bindPrayer();
   updateSrcBtn();
-  showRecoveryNotice();
 }
 
 // ---------------- 演示数据（真实数据缺失时兜底） ----------------
@@ -4493,7 +4504,6 @@ loadData(false).finally(() => {
     openSurvey(surveyId);
   } else {
     scheduleSurveyInvite();
-    scheduleScoutReportInvite();
   }
 });
 setInterval(() => loadData(true), REFRESH_MS);

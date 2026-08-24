@@ -26,7 +26,7 @@ test('报头接入本地球场横幅并在手机端保持紧凑', () => {
   assert.match(css, /@media \(max-width: 560px\) \{[\s\S]*?\.topbar \{[\s\S]*?url\("assets\/etihad-night-hero\.webp"\)/);
   assert.match(css, /\.stadium-hero::before \{ display:\s*none; \}/);
   assert.match(css, /\.stadium-countdown-card \{[\s\S]*?width:\s*100%;[\s\S]*?border-radius:\s*0/);
-  assert.match(css, /\.stadium-kicker \{ display:\s*none; \}/);
+  assert.match(css, /\.stadium-kicker \{ display:\s*block; font-size:\s*12px/);
   assert.equal(fs.existsSync('static/assets/etihad-night-hero.webp'), true);
 });
 

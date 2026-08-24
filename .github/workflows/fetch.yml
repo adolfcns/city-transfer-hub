@@ -223,7 +223,7 @@ jobs:
           const commentsUrl = 'https://city-transfer-hub.pages.dev/comments?ids=api_smoke_read';
           const commentDetailUrl = 'https://city-transfer-hub.pages.dev/comments?item=api_smoke_read&voter=api_smoke_voter_2026';
           const surveyUrl = 'https://city-transfer-hub.pages.dev/surveys?poll=summer_2026&voter=api_smoke_voter_2026';
-          const coachSurveyUrl = 'https://city-transfer-hub.pages.dev/surveys?poll=coach_debut_2026&voter=api_smoke_voter_2026';
+          const coachSurveyUrl = 'https://city-transfer-hub.pages.dev/surveys?poll=maresca_league_debut_2026&voter=api_smoke_voter_2026';
           const reservationsUrl = 'https://city-transfer-hub.pages.dev/reservations?feature=loan_watch_2026&voter=api_smoke_voter_2026';
           const origin = 'https://adolfcns.github.io';
           for (let attempt = 1; attempt <= 10; attempt += 1) {
@@ -264,10 +264,12 @@ jobs:
                 && surveyBody.poll === 'summer_2026' && Number.isInteger(surveyBody.results?.total)
                 && surveyBody.results?.questions?.score?.counts && surveyCors === origin;
               const coachSurveyReady = coachSurveyResponse.ok && coachSurveyBody.ok === true
-                && coachSurveyBody.poll === 'coach_debut_2026' && Number.isInteger(coachSurveyBody.results?.total)
+                && coachSurveyBody.poll === 'maresca_league_debut_2026' && Number.isInteger(coachSurveyBody.results?.total)
                 && coachSurveyBody.results?.questions?.score?.counts
-                && coachSurveyBody.results?.questions?.attitude?.counts
-                && coachSurveyBody.results?.questions?.blame?.counts
+                && coachSurveyBody.results?.questions?.adjustments?.counts
+                && coachSurveyBody.results?.questions?.tactics?.counts
+                && coachSurveyBody.results?.questions?.concerns?.counts
+                && coachSurveyBody.results?.questions?.outlook?.counts
                 && coachSurveyCors === origin;
               const reservationsReady = reservationsResponse.ok && reservationsBody.ok === true
                 && reservationsBody.feature === 'loan_watch_2026'

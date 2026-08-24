@@ -1723,13 +1723,13 @@ code { background: rgba(57, 189, 248, .12); color: #dff4ff; }
   }
   .stadium-countdown-card {
     width: 100%; max-width: none; box-sizing: border-box;
-    flex-direction: row; align-items: center; justify-content: center; gap: 0;
+    flex-direction: column; align-items: center; justify-content: center; gap: 3px;
     padding: 7px 10px; border: 0; border-radius: 0;
     border-top: 1px solid rgba(91, 199, 247, .24);
     background: rgba(3, 18, 33, .96); box-shadow: none;
     -webkit-backdrop-filter: none; backdrop-filter: none;
   }
-  .stadium-kicker { display: none; }
+  .stadium-kicker { display: block; font-size: 12px; letter-spacing: .035em; }
   .stadium-hero #window-countdown { max-width: 100%; gap: 2px; }
   .stadium-hero .countdown-label { margin-right: 2px; font-size: 10px; }
   .stadium-hero .countdown-value {
