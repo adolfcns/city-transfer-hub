@@ -415,6 +415,11 @@ body.survey-open { overflow: hidden; }
   margin-bottom: 11px; padding: 13px 15px; display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
   border: 1px solid rgba(108,171,221,.38); border-radius: 10px; background: rgba(108,171,221,.10);
 }
+.departure-survey-thanks {
+  margin: 0 0 12px; padding: 11px 14px; border-left: 3px solid var(--sky);
+  border-radius: 0 9px 9px 0; background: rgba(108,171,221,.09); color: var(--text);
+  font-size: 13px; font-weight: 700; line-height: 1.65;
+}
 .survey-result-summary strong { color: var(--t1); font-size: 18px; }
 .survey-result-summary span { color: var(--text-dim); font-size: 11px; text-align: right; }
 .survey-result-card { margin-bottom: 10px; padding: 13px 14px; border: 1px solid var(--line); border-radius: 11px; background: rgba(255,255,255,.78); }

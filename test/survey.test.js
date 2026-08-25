@@ -97,6 +97,9 @@ test('夏窗离队意难平投票提供十名候选、感言和最多三选', ()
   }
   assert.match(app, /任劳任怨、甘愿替补，直到最后仍一心想留下/);
   assert.match(app, /机会不多却屡次回应，还没看够，他就走了/);
+  assert.match(app, /谢谢你记得他们。球衣会换，蓝色岁月不会褪色；愿每位故人前路有光。/);
+  assert.match(app, /if \(isDeparture && data\.ballot\)/);
+  assert.match(style, /\.departure-survey-thanks/);
   assert.match(app, /survey-option-detail/);
   assert.match(style, /\.departure-survey-form \.survey-options \{ grid-template-columns: 1fr/);
   for (const worker of [pagesWorker, triggerWorker]) {

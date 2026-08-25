@@ -3704,6 +3704,9 @@ function renderSurveyResults(context) {
     ? (isSummer ? `${total} 份有效选票 · 截至 ${surveyShareDate(new Date())}` : '实时统计 · 修改答案后会自动重新计算')
     : '还没有人投票，等你来开第一票'));
   body.appendChild(summary);
+  if (isDeparture && data.ballot) {
+    body.appendChild(el('p', 'departure-survey-thanks', '谢谢你记得他们。球衣会换，蓝色岁月不会褪色；愿每位故人前路有光。'));
+  }
   if (!total) return;
 
   if (isCoach) {
