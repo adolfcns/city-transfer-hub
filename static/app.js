@@ -3088,6 +3088,107 @@ async function buildSummerSurveyShareCard(context) {
   });
 }
 
+async function buildDepartureSurveyShareCard(context) {
+  const total = Math.max(0, Number(context.data.results?.total || 0));
+  if (!total) throw new Error('NO_SURVEY_RESULTS');
+  const question = context.definition.questions.find((item) => item.id === 'departures');
+  const options = surveyResultOptions(context, question, true)
+    .sort((a, b) => b.count - a.count || a.order - b.order);
+  const cardHeight = 1640;
+  const canvas = document.createElement('canvas');
+  canvas.width = SURVEY_SHARE_WIDTH;
+  canvas.height = cardHeight;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('CANVAS_UNAVAILABLE');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  const background = ctx.createLinearGradient(0, 0, SURVEY_SHARE_WIDTH, cardHeight);
+  background.addColorStop(0, '#061c33');
+  background.addColorStop(.58, '#0b3658');
+  background.addColorStop(1, '#16658d');
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, SURVEY_SHARE_WIDTH, cardHeight);
+
+  ctx.save();
+  ctx.globalAlpha = .18;
+  ctx.strokeStyle = '#78c9f0';
+  ctx.lineWidth = 72;
+  ctx.beginPath();
+  ctx.arc(1015, 60, 260, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  cardFont(ctx, 24, 900);
+  ctx.fillStyle = '#8dd2f2';
+  ctx.fillText('夏窗收尾 · 蓝月球迷实时选择', 58, 70);
+  cardFont(ctx, 58, 900);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText('谁最让你意难平？', 58, 142);
+  cardFont(ctx, 23, 700);
+  ctx.fillStyle = '#c8e7f8';
+  ctx.fillText(`${total} 份有效选票 · 每人最多选 3 人 · 统计截止 ${surveyShareDate(new Date())}`, 58, 195);
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.24)';
+  ctx.shadowBlur = 28;
+  ctx.shadowOffsetY = 12;
+  fillRoundedCanvasRect(ctx, 48, 245, 984, 1225, 34, '#f7fbfe');
+  ctx.restore();
+
+  cardFont(ctx, 23, 800);
+  ctx.fillStyle = '#567286';
+  ctx.fillText('实时排名', 84, 305);
+  ctx.textAlign = 'right';
+  ctx.fillText('支持率 · 票数', 994, 305);
+  ctx.textAlign = 'left';
+
+  const barX = 405;
+  const barWidth = 410;
+  const rowStart = 338;
+  const rowStep = 106;
+  options.forEach((option, index) => {
+    const y = rowStart + index * rowStep;
+    if (index > 0) {
+      ctx.strokeStyle = '#dce8f0';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(84, y - 20);
+      ctx.lineTo(994, y - 20);
+      ctx.stroke();
+    }
+    fillRoundedCanvasRect(ctx, 84, y + 1, 46, 46, 14, index < 3 ? '#0b3658' : '#e2eff6');
+    cardFont(ctx, 22, 900);
+    ctx.fillStyle = index < 3 ? '#ffffff' : '#41647c';
+    ctx.textAlign = 'center';
+    ctx.fillText(String(index + 1), 107, y + 32);
+    ctx.textAlign = 'left';
+
+    cardFont(ctx, 23, 850);
+    ctx.fillStyle = '#0b2f50';
+    ctx.fillText(fitCanvasText(ctx, option.label, 245), 148, y + 31);
+    drawSurveyShareBar(ctx, barX, y + 14, barWidth, option.percent, index === 0 ? '#a83a57' : index < 3 ? '#3b9ed2' : '#79bddd');
+    cardFont(ctx, 21, 900);
+    ctx.fillStyle = index === 0 ? '#7a1830' : '#0b2f50';
+    ctx.textAlign = 'right';
+    ctx.fillText(`${option.percent}% · ${option.count}票`, 994, y + 33);
+    ctx.textAlign = 'left';
+  });
+
+  cardFont(ctx, 30, 900);
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.fillText('曼城转会情报站', SURVEY_SHARE_WIDTH / 2, 1552);
+  cardFont(ctx, 20, 700);
+  ctx.fillStyle = '#9edcf6';
+  ctx.fillText('记录蓝月球迷共同的不舍', SURVEY_SHARE_WIDTH / 2, 1592);
+  ctx.textAlign = 'left';
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('PNG_EXPORT_FAILED')), 'image/png', .96);
+  });
+}
+
 async function buildCoachSurveyShareCard(context) {
   const total = Math.max(0, Number(context.data.results?.total || 0));
   if (!total) throw new Error('NO_SURVEY_RESULTS');
@@ -3261,6 +3362,56 @@ async function downloadCoachSurveyResults(context) {
       downloadLabel: '↓ 保存统计图',
     });
     toast('五题统计图已生成 ✓');
+  } catch {
+    toast('实时结果暂时无法同步，请稍后再试', 'err');
+  } finally {
+    shareCardInFlight = false;
+    if (activeSurveyId === context.pollId) renderSurveyResults(context);
+  }
+}
+
+async function shareDepartureSurveyLink(context) {
+  const link = surveyShareUrl(context.pollId);
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: '夏窗收尾｜谁最让你意难平？',
+        text: '这个夏天，谁的离队最让你意难平？最多选 3 人，看看蓝月球迷怎么选。',
+        url: link,
+      });
+      toast('投票链接已分享 ✓');
+      return;
+    } catch (error) {
+      if (error?.name === 'AbortError') {
+        toast('已取消分享');
+        return;
+      }
+    }
+  }
+  const copied = await copyText(link);
+  toast(copied ? '投票链接已复制 ✓' : '链接复制失败，请稍后再试', copied ? undefined : 'err');
+}
+
+async function downloadDepartureSurveyResults(context) {
+  if (shareCardInFlight) {
+    toast('统计图正在生成，请稍候');
+    return;
+  }
+  shareCardInFlight = true;
+  toast('正在同步最新票数并生成无二维码统计图…');
+  try {
+    const fresh = await surveyApi(context.pollId);
+    if (!fresh?.results?.total) throw new Error('NO_SURVEY_RESULTS');
+    context.data = fresh;
+    const blob = await buildDepartureSurveyShareCard(context);
+    const filename = `曼城夏窗意难平榜-${surveyShareDate(new Date(), false).replace(/[\s年月日]/g, '-')}.png`;
+    showShareCardSavePreview(blob, filename, {
+      title: '夏窗意难平实时统计图',
+      hint: '图片不含二维码和网址，可直接保存后分享到懂球帝等平台。',
+      alt: '曼城夏窗离队意难平投票实时统计图',
+      downloadLabel: '↓ 保存统计图',
+    });
+    toast('无二维码统计图已生成 ✓');
   } catch {
     toast('实时结果暂时无法同步，请稍后再试', 'err');
   } finally {
@@ -3693,6 +3844,15 @@ function renderSurveyResults(context) {
     share.type = 'button';
     share.onclick = () => shareSummerSurveyResults(context);
     toolbar.appendChild(share);
+  }
+  if (isDeparture && total) {
+    const share = el('button', 'survey-share', '↗ 分享链接');
+    share.type = 'button';
+    share.onclick = () => shareDepartureSurveyLink(context);
+    const download = el('button', 'survey-share', '↓ 下载统计图');
+    download.type = 'button';
+    download.onclick = () => downloadDepartureSurveyResults(context);
+    toolbar.append(share, download);
   }
   const summary = el('div', 'survey-result-summary');
   summary.appendChild(el('strong', null, isDeparture && total

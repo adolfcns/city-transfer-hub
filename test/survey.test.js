@@ -109,6 +109,19 @@ test('夏窗离队意难平投票提供十名候选、感言和最多三选', ()
   assert.match(workflow, /departureSurveyBody\.results\?\.questions\?\.departures\?\.counts/);
 });
 
+test('意难平结果提供独立分享链接与无二维码统计图下载', () => {
+  assert.match(app, /el\('button', 'survey-share', '↗ 分享链接'\)/);
+  assert.match(app, /el\('button', 'survey-share', '↓ 下载统计图'\)/);
+  assert.match(app, /function shareDepartureSurveyLink\(context\)/);
+  assert.match(app, /function downloadDepartureSurveyResults\(context\)/);
+  assert.match(app, /function buildDepartureSurveyShareCard\(context\)/);
+  assert.match(app, /图片不含二维码和网址，可直接保存后分享到懂球帝等平台/);
+  const shareCard = app.match(/async function buildDepartureSurveyShareCard\(context\) \{[\s\S]*?\n\}\n\nasync function buildCoachSurveyShareCard/)?.[0] || '';
+  assert.ok(shareCard, '应存在意难平统计图生成逻辑');
+  assert.equal((shareCard.match(/曼城转会情报站/g) || []).length, 1);
+  assert.doesNotMatch(shareCard, /site-qr|adolfcns\.github\.io|city-transfer-hub\.pages\.dev|drawImage\(/);
+});
+
 test('蓝月在外从 120 人开始全站预约且同设备只计一次', () => {
   assert.match(app, /reservationFeature: 'loan_watch_2026'/);
   assert.match(app, /reservationBase: 120/);
