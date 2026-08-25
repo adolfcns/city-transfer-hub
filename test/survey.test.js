@@ -135,6 +135,9 @@ test('投票后用克制的纪念文案和实时同选比例承接分享', () =>
   assert.match(app, /只有\$\{choice\.percent\}%的蓝月球迷和你做出了同样的选择。/);
   assert.match(app, /'保存结果'/);
   assert.match(app, /'分享给陪你看过曼城的人'/);
+  const thanksBlock = app.match(/if \(isDeparture && data\.ballot\) \{[\s\S]*?body\.appendChild\(thanks\);\s*\}/)?.[0] || '';
+  assert.doesNotMatch(thanksBlock, /departureSurveyAffinity/);
+  assert.match(app, /body\.appendChild\(resultGrid\);\s*if \(isDeparture && data\.ballot\) \{[\s\S]*?departureSurveyAffinity\(context\)[\s\S]*?body\.appendChild\(note\)/);
 });
 
 test('蓝月在外从 120 人开始全站预约且同设备只计一次', () => {

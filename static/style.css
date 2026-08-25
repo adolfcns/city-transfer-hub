@@ -435,7 +435,7 @@ body.survey-open { overflow: hidden; }
 .departure-thanks-title { font-size: 16px; font-weight: 900; }
 .departure-thanks-copy { font-size: 14px; font-weight: 800; }
 .departure-survey-affinity {
-  margin-top: 3px; padding: 10px 12px; display: grid; gap: 2px;
+  margin: 2px 0 0; padding: 10px 12px; display: grid; gap: 2px;
   border: 1px solid rgba(108,171,221,.28); border-radius: 8px; background: rgba(255,255,255,.62);
 }
 .departure-survey-affinity strong { color: var(--t1); font-size: 13px; line-height: 1.55; }

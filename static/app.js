@@ -3901,13 +3901,6 @@ function renderSurveyResults(context) {
       el('p', 'departure-thanks-title', '谢谢你记得他们。'),
       el('p', 'departure-thanks-copy', '有些名字离开了名单，却留在了我们看球的那些年里。'),
     );
-    const affinity = departureSurveyAffinity(context);
-    if (affinity) {
-      const note = el('div', 'departure-survey-affinity');
-      note.appendChild(el('strong', null, affinity.primary));
-      if (affinity.secondary) note.appendChild(el('span', null, affinity.secondary));
-      thanks.appendChild(note);
-    }
     const actions = el('div', 'departure-survey-actions');
     const save = el('button', 'survey-share departure-save-result', '保存结果');
     save.type = 'button';
@@ -4018,6 +4011,15 @@ function renderSurveyResults(context) {
     resultGrid.appendChild(card);
   }
   body.appendChild(resultGrid);
+  if (isDeparture && data.ballot) {
+    const affinity = departureSurveyAffinity(context);
+    if (affinity) {
+      const note = el('div', 'departure-survey-affinity');
+      note.appendChild(el('strong', null, affinity.primary));
+      if (affinity.secondary) note.appendChild(el('span', null, affinity.secondary));
+      body.appendChild(note);
+    }
+  }
 }
 
 function renderCoachSurveyResults(context) {
