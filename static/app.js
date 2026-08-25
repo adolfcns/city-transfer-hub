@@ -3856,7 +3856,7 @@ function renderSurveyResults(context) {
   }
   const summary = el('div', 'survey-result-summary');
   summary.appendChild(el('strong', null, isDeparture && total
-    ? '蓝月球迷实时意难平榜'
+    ? '夏窗离队意难平榜'
     : isCoach && total
     ? '马雷斯卡英超首秀实时评分'
     : isMidfield && total ? '实时蓝月中场风向' : (isSummer && total ? '实时蓝月风向' : `${total} 份有效选票`)));

@@ -110,6 +110,7 @@ test('夏窗离队意难平投票提供十名候选、感言和最多三选', ()
 });
 
 test('意难平结果提供独立分享链接与无二维码统计图下载', () => {
+  assert.match(app, /夏窗离队意难平榜/);
   assert.match(app, /el\('button', 'survey-share', '↗ 分享链接'\)/);
   assert.match(app, /el\('button', 'survey-share', '↓ 下载统计图'\)/);
   assert.match(app, /function shareDepartureSurveyLink\(context\)/);
