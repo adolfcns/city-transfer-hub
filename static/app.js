@@ -66,7 +66,7 @@ const SURVEY_DEFINITIONS = Object.freeze({
     icon: '💔',
     title: '夏窗收尾｜谁最让你意难平？',
     introHeadline: '这个夏天，曼城送走了太多熟悉的面孔。',
-    intro: '哪些离队最让你难以接受？最多选 3 人。',
+    intro: '',
     returningIntro: '意难平榜单有变化，回来看看谁最让蓝月球迷舍不得。',
     primaryLabel: '选出我的意难平',
     submitLabel: '提交选择，查看实时结果',
@@ -2889,6 +2889,27 @@ function surveyResultOptions(context, question, includeZero = false) {
     .sort(includeZero ? (a, b) => a.order - b.order : (a, b) => b.count - a.count || a.order - b.order);
 }
 
+function departureSurveyAffinity(context) {
+  const question = context.definition.questions.find((item) => item.id === 'departures');
+  const saved = context.data.ballot?.answers?.departures;
+  const selected = new Set((Array.isArray(saved) ? saved : saved == null ? [] : [saved]).map(String));
+  if (!question || selected.size === 0) return null;
+  const choice = surveyResultOptions(context, question, true)
+    .filter((option) => selected.has(String(option.value)))
+    .sort((a, b) => b.percent - a.percent || b.count - a.count || a.order - b.order)[0];
+  if (!choice) return null;
+  const player = String(choice.label || '').split(' → ')[0].trim() || choice.label;
+  return choice.percent >= 50
+    ? {
+        primary: `你与${choice.percent}%的蓝月球迷共同选择了${player}。`,
+        secondary: '看来这次，不是你一个人放不下。',
+      }
+    : {
+        primary: `只有${choice.percent}%的蓝月球迷和你做出了同样的选择。`,
+        secondary: '',
+      };
+}
+
 function surveyShareDate(date = new Date(), withTime = true) {
   try {
     return new Intl.DateTimeFormat('zh-CN', {
@@ -3549,9 +3570,10 @@ function renderSurveyIntro(context) {
     intro.appendChild(headline);
   }
   if (definition.introQuestion) intro.appendChild(el('strong', 'survey-intro-question', definition.introQuestion));
-  intro.appendChild(el('p', 'survey-intro-copy', data.ballot && definition.returningIntro
+  const introCopy = data.ballot && definition.returningIntro
     ? definition.returningIntro
-    : definition.intro));
+    : definition.intro;
+  if (introCopy) intro.appendChild(el('p', 'survey-intro-copy', introCopy));
   if (definition.reportOnly) {
     intro.classList.add('scout-report-invite');
     const stats = el('div', 'scout-intro-stats');
@@ -3845,7 +3867,7 @@ function renderSurveyResults(context) {
     share.onclick = () => shareSummerSurveyResults(context);
     toolbar.appendChild(share);
   }
-  if (isDeparture && total) {
+  if (isDeparture && total && !data.ballot) {
     const share = el('button', 'survey-share', '↗ 分享链接');
     share.type = 'button';
     share.onclick = () => shareDepartureSurveyLink(context);
@@ -3865,7 +3887,28 @@ function renderSurveyResults(context) {
     : '还没有人投票，等你来开第一票'));
   body.appendChild(summary);
   if (isDeparture && data.ballot) {
-    body.appendChild(el('p', 'departure-survey-thanks', '谢谢你记得他们。球衣会换，蓝色岁月不会褪色；愿每位故人前路有光。'));
+    const thanks = el('section', 'departure-survey-thanks');
+    thanks.append(
+      el('p', 'departure-thanks-title', '谢谢你记得他们。'),
+      el('p', 'departure-thanks-copy', '有些名字离开了名单，却留在了我们看球的那些年里。'),
+    );
+    const affinity = departureSurveyAffinity(context);
+    if (affinity) {
+      const note = el('div', 'departure-survey-affinity');
+      note.appendChild(el('strong', null, affinity.primary));
+      if (affinity.secondary) note.appendChild(el('span', null, affinity.secondary));
+      thanks.appendChild(note);
+    }
+    const actions = el('div', 'departure-survey-actions');
+    const save = el('button', 'survey-share departure-save-result', '保存结果');
+    save.type = 'button';
+    save.onclick = () => downloadDepartureSurveyResults(context);
+    const share = el('button', 'survey-share departure-share-with-friends', '分享给陪你看过曼城的人');
+    share.type = 'button';
+    share.onclick = () => shareDepartureSurveyLink(context);
+    actions.append(save, share);
+    thanks.appendChild(actions);
+    body.appendChild(thanks);
   }
   if (!total) return;
 
@@ -4228,7 +4271,7 @@ function renderFocusZone() {
   const headline = el('h2', 'departure-heartbreak-headline', '夏窗收尾｜谁最让你意难平？');
   banner.append(
     headline,
-    el('p', 'departure-heartbreak-question', '这个夏天，曼城送走了太多熟悉的面孔。最多选 3 人。'),
+    el('p', 'departure-heartbreak-question', '这个夏天，曼城送走了太多熟悉的面孔。'),
     el('span', 'departure-heartbreak-cta', '去投票 →'),
   );
   zone.appendChild(banner);

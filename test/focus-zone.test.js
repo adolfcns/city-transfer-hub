@@ -17,7 +17,8 @@ test('重点传闻配置只保留布阿迪', () => {
 test('布阿迪重点传闻暂时撤下并换成夏窗意难平投票横幅', () => {
   assert.match(app, /const FOCUS_RUMOR_STRIP_ENABLED = false/);
   assert.match(app, /夏窗收尾｜谁最让你意难平？/);
-  assert.match(app, /这个夏天，曼城送走了太多熟悉的面孔。最多选 3 人。/);
+  assert.match(app, /这个夏天，曼城送走了太多熟悉的面孔。/);
+  assert.doesNotMatch(app, /这个夏天，曼城送走了太多熟悉的面孔。最多选 3 人。/);
   assert.match(app, /departure-heartbreak-banner/);
   assert.match(app, /banner\.onclick = \(\) => openSurvey\(DEPARTURE_SURVEY_ID\)/);
   assert.doesNotMatch(app, /销售冠军终于进货了！/);

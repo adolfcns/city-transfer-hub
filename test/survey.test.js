@@ -91,13 +91,16 @@ test('手机和电脑每十二小时只自动弹出夏窗离队意难平投票',
 });
 
 test('夏窗离队意难平投票提供十名候选、感言和最多三选', () => {
+  assert.match(app, /introHeadline: '这个夏天，曼城送走了太多熟悉的面孔。'/);
+  assert.match(app, /intro: ''/);
   assert.match(app, /id: 'departures'[\s\S]*?type: 'multi',[\s\S]*?max: 3/);
   for (const name of ['罗德里', '贝尔纳多·席尔瓦', '约翰·斯通斯', '萨维尼奥', '马尔穆什', '尼科·冈萨雷斯', '蒂贾尼·赖因德斯', '詹姆斯·特拉福德', '纳坦·阿克', '曼努埃尔·阿坎吉']) {
     assert.match(app, new RegExp(name.replace(/[·]/g, '·')));
   }
   assert.match(app, /任劳任怨、甘愿替补，直到最后仍一心想留下/);
   assert.match(app, /机会不多却屡次回应，还没看够，他就走了/);
-  assert.match(app, /谢谢你记得他们。球衣会换，蓝色岁月不会褪色；愿每位故人前路有光。/);
+  assert.match(app, /谢谢你记得他们。/);
+  assert.match(app, /有些名字离开了名单，却留在了我们看球的那些年里。/);
   assert.match(app, /if \(isDeparture && data\.ballot\)/);
   assert.match(style, /\.departure-survey-thanks/);
   assert.match(app, /survey-option-detail/);
@@ -121,6 +124,17 @@ test('意难平结果提供独立分享链接与无二维码统计图下载', ()
   assert.ok(shareCard, '应存在意难平统计图生成逻辑');
   assert.equal((shareCard.match(/曼城转会情报站/g) || []).length, 1);
   assert.doesNotMatch(shareCard, /site-qr|adolfcns\.github\.io|city-transfer-hub\.pages\.dev|drawImage\(/);
+});
+
+test('投票后用克制的纪念文案和实时同选比例承接分享', () => {
+  assert.match(app, /谢谢你记得他们。/);
+  assert.match(app, /有些名字离开了名单，却留在了我们看球的那些年里。/);
+  assert.match(app, /function departureSurveyAffinity\(context\)/);
+  assert.match(app, /你与\$\{choice\.percent\}%的蓝月球迷共同选择了\$\{player\}/);
+  assert.match(app, /看来这次，不是你一个人放不下。/);
+  assert.match(app, /只有\$\{choice\.percent\}%的蓝月球迷和你做出了同样的选择。/);
+  assert.match(app, /'保存结果'/);
+  assert.match(app, /'分享给陪你看过曼城的人'/);
 });
 
 test('蓝月在外从 120 人开始全站预约且同设备只计一次', () => {
