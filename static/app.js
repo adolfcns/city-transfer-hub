@@ -32,9 +32,10 @@ const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
 const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
 const SURVEY_PROFILE_KEY = 'cth_survey_profile_v1';
 const COACH_SURVEY_ID = 'maresca_league_debut_2026';
-const SURVEY_POPUP_ID = COACH_SURVEY_ID;
-const SURVEY_INVITE_KEY = 'cth_maresca_league_debut_20260824_4h_v1';
-const SURVEY_INVITE_INTERVAL_MS = 4 * 60 * 60 * 1000;
+const DEPARTURE_SURVEY_ID = 'summer_departure_heartbreak_2026';
+const SURVEY_POPUP_ID = DEPARTURE_SURVEY_ID;
+const SURVEY_INVITE_KEY = 'cth_summer_departure_heartbreak_20260825_12h_v1';
+const SURVEY_INVITE_INTERVAL_MS = 12 * 60 * 60 * 1000;
 const SURVEY_INVITE_DELAY_MS = 1500;
 const SCOUT_REPORT_POPUP_ID = 'allan_scouting_report_2026';
 const SCOUT_REPORT_INVITE_KEY = 'cth_allan_scout_report_20260822_daily_v1';
@@ -61,6 +62,39 @@ const REACTION_DEFS = Object.freeze([
 ]);
 const REACTION_KEYS = new Set(REACTION_DEFS.map((item) => item.key));
 const SURVEY_DEFINITIONS = Object.freeze({
+  summer_departure_heartbreak_2026: {
+    icon: '💔',
+    title: '夏窗收尾｜谁最让你意难平？',
+    introHeadline: '这个夏天，曼城送走了太多熟悉的面孔。',
+    intro: '哪些离队最让你难以接受？最多选 3 人。',
+    returningIntro: '意难平榜单有变化，回来看看谁最让蓝月球迷舍不得。',
+    primaryLabel: '选出我的意难平',
+    submitLabel: '提交选择，查看实时结果',
+    resultsLabel: '先看蓝月球迷怎么选',
+    openOnForm: true,
+    closesAt: WINDOWS[0].ts,
+    questions: [
+      {
+        id: 'departures',
+        title: '哪三笔离队最让你难以接受？',
+        hint: '最多选择 3 人 · 提交后仍可修改',
+        type: 'multi',
+        max: 3,
+        options: [
+          { value: 'rodri', label: '罗德里 → 巴塞罗那', description: '伊斯坦布尔一脚定江山，蓝月的定海神针。' },
+          { value: 'bernardo', label: '贝尔纳多·席尔瓦 → 皇家马德里', description: '九年不知疲倦地奔跑，离开时仍满身蓝血。' },
+          { value: 'stones', label: '约翰·斯通斯 → 国际米兰', description: '从后防走到中场，石头永远是三冠王的英雄。' },
+          { value: 'savinho', label: '萨维尼奥 → 托特纳姆热刺', description: '天赋才刚开始兑现，最好的年华却留给了对手。' },
+          { value: 'marmoush', label: '马尔穆什 → 托特纳姆热刺', description: '机会不多却屡次回应，还没看够，他就走了。' },
+          { value: 'nico_gonzalez', label: '尼科·冈萨雷斯 → 纽卡斯尔联', description: '任劳任怨、甘愿替补，直到最后仍一心想留下。' },
+          { value: 'reijnders', label: '蒂贾尼·赖因德斯 → 卡迪西亚', description: '匆匆一个赛季，还没真正看清他的上限。' },
+          { value: 'trafford', label: '詹姆斯·特拉福德 → 利兹联', description: '好不容易回到家，未来却再次留给了别人。' },
+          { value: 'ake', label: '纳坦·阿克 → 费内巴切', description: '哪里需要就站在哪里，从不抱怨，从不退缩。' },
+          { value: 'akanji', label: '曼努埃尔·阿坎吉 → 国际米兰', description: '默默补遍整条防线，可靠到让人习以为常。' },
+        ],
+      },
+    ],
+  },
   allan_scouting_report_2026: {
     entry: '🔍 阿兰球探报告',
     icon: '🔍',
@@ -3501,8 +3535,10 @@ function renderSurveyForm(context) {
   const form = el('form', 'survey-form');
   const isMidfield = pollId === 'midfield_final_2026';
   const isCoach = pollId === COACH_SURVEY_ID;
+  const isDeparture = pollId === DEPARTURE_SURVEY_ID;
   if (isMidfield) form.classList.add('midfield-survey-form');
   if (isCoach) form.classList.add('coach-survey-form');
+  if (isDeparture) form.classList.add('departure-survey-form');
   for (const question of definition.questions) {
     const fieldset = document.createElement('fieldset');
     fieldset.className = 'survey-question';
@@ -3522,7 +3558,13 @@ function renderSurveyForm(context) {
       input.checked = question.type === 'multi'
         ? (Array.isArray(saved) ? saved : saved == null ? [] : [saved]).map(String).includes(option.value)
         : saved != null && String(saved) === option.value;
-      const visible = el('span', null, option.label);
+      const visible = el('span', option.description ? 'survey-option-detail' : null, option.description ? null : option.label);
+      if (option.description) {
+        visible.append(
+          el('strong', null, option.label),
+          el('small', null, option.description),
+        );
+      }
       label.append(input, visible);
       options.appendChild(label);
       if (question.type === 'multi') {
@@ -3614,9 +3656,11 @@ function renderSurveyResults(context) {
   const isSummer = context.pollId === 'summer_2026';
   const isMidfield = context.pollId === 'midfield_final_2026';
   const isCoach = context.pollId === COACH_SURVEY_ID;
+  const isDeparture = context.pollId === DEPARTURE_SURVEY_ID;
   body.classList.toggle('summer-survey-results', isSummer);
   body.classList.toggle('midfield-survey-results', isMidfield);
   body.classList.toggle('coach-survey-results', isCoach);
+  body.classList.toggle('departure-survey-results', isDeparture);
   const toolbar = el('div', 'survey-toolbar');
   const back = el('button', 'survey-back', '← 返回');
   back.type = 'button';
@@ -3651,7 +3695,9 @@ function renderSurveyResults(context) {
     toolbar.appendChild(share);
   }
   const summary = el('div', 'survey-result-summary');
-  summary.appendChild(el('strong', null, isCoach && total
+  summary.appendChild(el('strong', null, isDeparture && total
+    ? '蓝月球迷实时意难平榜'
+    : isCoach && total
     ? '马雷斯卡英超首秀实时评分'
     : isMidfield && total ? '实时蓝月中场风向' : (isSummer && total ? '实时蓝月风向' : `${total} 份有效选票`)));
   summary.appendChild(el('span', null, total
@@ -4011,18 +4057,16 @@ function renderFocusZone() {
   zone.textContent = '';
   zone.hidden = false;
 
-  const banner = el('section', 'bouaddi-signing-banner');
-  banner.setAttribute('aria-label', '布阿迪加盟曼城重磅消息');
-  banner.appendChild(el('span', 'bouaddi-signing-kicker', '🚨 HERE WE GO · 蓝月重磅'));
-  const headline = el('h2', 'bouaddi-signing-headline');
-  headline.append(
-    document.createTextNode('销售冠军终于进货了！'),
-    el('strong', 'bouaddi-signing-player', '布阿迪入城！'),
-    document.createTextNode('💙'),
-  );
+  const banner = el('button', 'departure-heartbreak-banner');
+  banner.type = 'button';
+  banner.setAttribute('aria-label', '打开夏窗离队意难平投票');
+  banner.onclick = () => openSurvey(DEPARTURE_SURVEY_ID);
+  banner.appendChild(el('span', 'departure-heartbreak-kicker', '💔 夏窗收尾 · 蓝月告别'));
+  const headline = el('h2', 'departure-heartbreak-headline', '夏窗收尾｜谁最让你意难平？');
   banner.append(
     headline,
-    el('p', 'bouaddi-signing-question', '维圣的绝地反击，真要开始了？'),
+    el('p', 'departure-heartbreak-question', '这个夏天，曼城送走了太多熟悉的面孔。最多选 3 人。'),
+    el('span', 'departure-heartbreak-cta', '去投票 →'),
   );
   zone.appendChild(banner);
 

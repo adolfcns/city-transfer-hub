@@ -43,7 +43,7 @@ test('重点传闻卡片关闭后消息回归普通流，互动计数仍按需�
   assert.match(app, /const FOCUS_RUMOR_STRIP_ENABLED = false/);
   assert.match(app, /const pinnedIds = shouldShowPinnedStrip\(pinned\)[\s\S]*?: null/);
   assert.match(app, /filter\(\(it\) => !pinnedIds\?\.has\(itemId\(it\)\)\)/);
-  assert.match(app, /销售冠军终于进货了！/);
+  assert.match(app, /夏窗收尾｜谁最让你意难平？/);
   assert.match(app, /function observeEngagement\(card, item\)/);
   assert.match(app, /engagementObserver = new IntersectionObserver/);
   assert.match(app, /queueReactionCounts\(\[item\]\)/);

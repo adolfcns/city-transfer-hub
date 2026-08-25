@@ -224,6 +224,7 @@ jobs:
           const commentDetailUrl = 'https://city-transfer-hub.pages.dev/comments?item=api_smoke_read&voter=api_smoke_voter_2026';
           const surveyUrl = 'https://city-transfer-hub.pages.dev/surveys?poll=summer_2026&voter=api_smoke_voter_2026';
           const coachSurveyUrl = 'https://city-transfer-hub.pages.dev/surveys?poll=maresca_league_debut_2026&voter=api_smoke_voter_2026';
+          const departureSurveyUrl = 'https://city-transfer-hub.pages.dev/surveys?poll=summer_departure_heartbreak_2026&voter=api_smoke_voter_2026';
           const reservationsUrl = 'https://city-transfer-hub.pages.dev/reservations?feature=loan_watch_2026&voter=api_smoke_voter_2026';
           const origin = 'https://adolfcns.github.io';
           for (let attempt = 1; attempt <= 10; attempt += 1) {
@@ -248,6 +249,9 @@ jobs:
               const coachSurveyResponse = await fetch(coachSurveyUrl, { headers: { Origin: origin } });
               const coachSurveyBody = await coachSurveyResponse.json();
               const coachSurveyCors = coachSurveyResponse.headers.get('access-control-allow-origin');
+              const departureSurveyResponse = await fetch(departureSurveyUrl, { headers: { Origin: origin } });
+              const departureSurveyBody = await departureSurveyResponse.json();
+              const departureSurveyCors = departureSurveyResponse.headers.get('access-control-allow-origin');
               const reservationsResponse = await fetch(reservationsUrl, { headers: { Origin: origin } });
               const reservationsBody = await reservationsResponse.json();
               const reservationsCors = reservationsResponse.headers.get('access-control-allow-origin');
@@ -271,11 +275,16 @@ jobs:
                 && coachSurveyBody.results?.questions?.concerns?.counts
                 && coachSurveyBody.results?.questions?.outlook?.counts
                 && coachSurveyCors === origin;
+              const departureSurveyReady = departureSurveyResponse.ok && departureSurveyBody.ok === true
+                && departureSurveyBody.poll === 'summer_departure_heartbreak_2026'
+                && Number.isInteger(departureSurveyBody.results?.total)
+                && departureSurveyBody.results?.questions?.departures?.counts
+                && departureSurveyCors === origin;
               const reservationsReady = reservationsResponse.ok && reservationsBody.ok === true
                 && reservationsBody.feature === 'loan_watch_2026'
                 && Number.isInteger(reservationsBody.count) && reservationsBody.count >= 120
                 && typeof reservationsBody.reserved === 'boolean' && reservationsCors === origin;
-              if (response.ok && body.ok === true && Number.isInteger(body.count) && cors === origin && reactionsReady && commentsReady && surveyReady && coachSurveyReady && reservationsReady) {
+              if (response.ok && body.ok === true && Number.isInteger(body.count) && cors === origin && reactionsReady && commentsReady && surveyReady && coachSurveyReady && departureSurveyReady && reservationsReady) {
                 console.log(`Direct interactions ready: prayer=${body.count}, reactions=ok, comments=ok, surveys=ok, reservations=ok`);
                 process.exit(0);
               }

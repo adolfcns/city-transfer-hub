@@ -194,33 +194,37 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 .focus-follow:focus-visible { outline: 3px solid rgba(21,95,159,.18); outline-offset: 2px; }
 .follow-label-short { display: none; }
 
-.bouaddi-signing-banner {
-  position: relative; overflow: hidden; padding: 14px 18px 15px;
+.departure-heartbreak-banner {
+  position: relative; width: 100%; overflow: hidden; padding: 14px 112px 15px 18px;
   border: 1px solid rgba(43,136,184,.42); border-radius: 14px;
   background:
-    radial-gradient(circle at 94% 20%, rgba(245,200,91,.22), transparent 31%),
+    radial-gradient(circle at 94% 20%, rgba(230,105,137,.24), transparent 31%),
     linear-gradient(118deg, #0a3554 0%, #125d89 58%, #2b88b8 100%);
-  color: #fff; box-shadow: 0 10px 26px rgba(35,82,108,.18);
+  color: #fff; box-shadow: 0 10px 26px rgba(35,82,108,.18); cursor: pointer;
+  font: inherit; text-align: left; touch-action: manipulation;
 }
-.bouaddi-signing-banner::after {
+.departure-heartbreak-banner::after {
   content: ''; position: absolute; width: 150px; height: 150px; right: -58px; top: -91px;
   border: 22px solid rgba(255,255,255,.08); border-radius: 50%; pointer-events: none;
 }
-.bouaddi-signing-kicker {
+.departure-heartbreak-banner:hover { border-color: rgba(111,211,249,.75); filter: brightness(1.04); }
+.departure-heartbreak-banner:focus-visible { outline: 3px solid rgba(91,199,247,.35); outline-offset: 3px; }
+.departure-heartbreak-kicker {
   position: relative; z-index: 1; display: block; margin-bottom: 5px;
   color: #cfefff; font-size: 10px; font-weight: 900; letter-spacing: .09em;
 }
-.bouaddi-signing-headline {
+.departure-heartbreak-headline {
   position: relative; z-index: 1; margin: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px;
   color: #fff; font-size: 20px; font-weight: 900; line-height: 1.28; letter-spacing: -.02em;
 }
-.bouaddi-signing-player {
-  color: #ffd66b; font-size: 1.16em; font-weight: 1000;
-  text-shadow: 0 2px 14px rgba(245,200,91,.28);
-}
-.bouaddi-signing-question {
+.departure-heartbreak-question {
   position: relative; z-index: 1; margin: 5px 0 0; color: #d9f1fc;
   font-size: 14px; font-weight: 800; line-height: 1.45;
+}
+.departure-heartbreak-cta {
+  position: absolute; z-index: 2; right: 20px; top: 50%; transform: translateY(-50%);
+  padding: 7px 11px; border: 1px solid rgba(255,255,255,.42); border-radius: 999px;
+  background: rgba(2,18,32,.24); color: #fff; font-size: 12px; font-weight: 900; white-space: nowrap;
 }
 .focus-feature-row {
   width: 100%; margin-top: 7px; overflow-x: auto; padding: 1px 1px 3px;
@@ -379,6 +383,14 @@ body.survey-open { overflow: hidden; }
 .survey-option:hover span { border-color: var(--sky); }
 .survey-option input:checked + span { border-color: var(--burgundy); background: var(--cream-deep); color: var(--burgundy); font-weight: 800; box-shadow: inset 0 0 0 1px rgba(122,24,48,.08); }
 .survey-option input:focus-visible + span { outline: 3px solid rgba(21,95,159,.18); outline-offset: 2px; }
+.survey-option span.survey-option-detail {
+  min-height: 72px; padding: 9px 11px; align-items: flex-start; justify-content: center; flex-direction: column;
+  text-align: left;
+}
+.survey-option-detail strong { font-size: 12px; line-height: 1.35; }
+.survey-option-detail small { color: var(--text-dim); font-size: 10px; line-height: 1.45; }
+.survey-option input:checked + .survey-option-detail small { color: inherit; opacity: .78; }
+.departure-survey-form .survey-question { background: linear-gradient(135deg, rgba(244,250,253,.88), rgba(255,250,240,.76)); }
 .coach-survey-form .survey-question:first-child {
   border-color: rgba(122,24,48,.32); background: linear-gradient(120deg, rgba(255,250,240,.96), rgba(108,171,221,.10));
 }
@@ -1954,10 +1966,14 @@ code { background: #e6f1f7; color: #294f68; }
   .pinned-card, .card, .modal-box { background: rgba(255,255,255,.97); }
   .city-prayer { background: #fffaf0; }
   .survey-sheet, .comment-sheet { background: #f9fcfe; }
-  .bouaddi-signing-banner { padding: 11px 12px 12px; border-radius: 11px; }
-  .bouaddi-signing-kicker { margin-bottom: 4px; font-size: 9px; }
-  .bouaddi-signing-headline { gap: 1px 5px; font-size: 16px; line-height: 1.3; }
-  .bouaddi-signing-player { font-size: 1.13em; }
-  .bouaddi-signing-question { margin-top: 4px; font-size: 12px; }
+  .departure-heartbreak-banner { padding: 11px 78px 12px 12px; border-radius: 11px; }
+  .departure-heartbreak-kicker { margin-bottom: 4px; font-size: 9px; }
+  .departure-heartbreak-headline { gap: 1px 5px; font-size: 16px; line-height: 1.3; }
+  .departure-heartbreak-question { margin-top: 4px; font-size: 11px; line-height: 1.35; }
+  .departure-heartbreak-cta { right: 10px; padding: 6px 8px; font-size: 10px; }
+  .departure-survey-form .survey-options { grid-template-columns: 1fr; }
+  .survey-option span.survey-option-detail { min-height: 64px; padding: 8px 9px; }
+  .survey-option-detail strong { font-size: 12px; }
+  .survey-option-detail small { font-size: 10.5px; }
   .focus-feature-row { margin-top: 5px; }
 }

@@ -37,6 +37,16 @@ const FEATURE_RESERVATIONS = Object.freeze({
   loan_watch_2026: { base: 120 },
 });
 const SURVEY_RULES = Object.freeze({
+  summer_departure_heartbreak_2026: {
+    closes_at: Date.parse('2026-09-01T22:00:00Z'),
+    questions: {
+      departures: {
+        type: 'multi',
+        max: 3,
+        options: ['rodri', 'bernardo', 'stones', 'savinho', 'marmoush', 'nico_gonzalez', 'reijnders', 'trafford', 'ake', 'akanji'],
+      },
+    },
+  },
   maresca_league_debut_2026: {
     closes_at: null,
     questions: {

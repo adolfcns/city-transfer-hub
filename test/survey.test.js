@@ -32,7 +32,7 @@ test('夏窗调查使用确认后的问题和文案', () => {
   assert.doesNotMatch(positionsBlock, /门将/);
 });
 
-test('签约横幅下方的专题入口按确认顺序排列并提供蓝月在外预约', () => {
+test('意难平横幅下方的专题入口按确认顺序排列并提供蓝月在外预约', () => {
   assert.match(app, /⚖️ 英超首秀评分/);
   assert.match(app, /📊 夏窗调查/);
   assert.match(app, /💬 本站体验/);
@@ -42,7 +42,7 @@ test('签约横幅下方的专题入口按确认顺序排列并提供蓝月在�
   assert.doesNotMatch(app, /entry: '⚽ 中场投票'/);
   assert.match(app, /focus-feature-row/);
   assert.match(style, /\.focus-survey-entries/);
-  assert.match(style, /\.bouaddi-signing-banner/);
+  assert.match(style, /\.departure-heartbreak-banner/);
   assert.match(style, /\.survey-entry[\s\S]*?color: var\(--text\); font-size: 14px; font-weight: 800/);
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*\.focus-feature-row/);
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.survey-entry \{[^}]*font-size: 13px; font-weight: 800/);
@@ -68,14 +68,14 @@ test('阿兰球探报告提供四张按需加载图表和固定入口，但不�
   }
 });
 
-test('手机和电脑每四小时只自动弹出马雷斯卡英超首秀评分', () => {
+test('手机和电脑每十二小时只自动弹出夏窗离队意难平投票', () => {
   assert.match(app, /COACH_SURVEY_ID = 'maresca_league_debut_2026'/);
-  assert.match(app, /cth_maresca_league_debut_20260824_4h_v1/);
-  assert.match(app, /SURVEY_POPUP_ID = COACH_SURVEY_ID/);
-  assert.match(app, /SURVEY_INVITE_INTERVAL_MS = 4 \* 60 \* 60 \* 1000/);
-  assert.match(app, /title: '马雷斯卡英超首秀评分'/);
-  assert.match(app, /马雷斯卡英超首考：这份答卷你打几分/);
-  assert.match(app, /primaryLabel: '给马雷斯卡打分'/);
+  assert.match(app, /DEPARTURE_SURVEY_ID = 'summer_departure_heartbreak_2026'/);
+  assert.match(app, /cth_summer_departure_heartbreak_20260825_12h_v1/);
+  assert.match(app, /SURVEY_POPUP_ID = DEPARTURE_SURVEY_ID/);
+  assert.match(app, /SURVEY_INVITE_INTERVAL_MS = 12 \* 60 \* 60 \* 1000/);
+  assert.match(app, /title: '夏窗收尾｜谁最让你意难平？'/);
+  assert.match(app, /primaryLabel: '选出我的意难平'/);
   assert.doesNotMatch(app, /DESKTOP_SURVEY_MEDIA|matchMedia\(DESKTOP_SURVEY_MEDIA\)/);
   assert.match(app, /localStorage\.setItem\(SURVEY_INVITE_KEY, String\(Date\.now\(\)\)\)/);
   assert.match(app, /Date\.now\(\) - lastShownAt < SURVEY_INVITE_INTERVAL_MS/);
@@ -88,6 +88,22 @@ test('手机和电脑每四小时只自动弹出马雷斯卡英超首秀评分',
   assert.match(app, /if \(!definition\.entry\) continue;/);
   assert.match(style, /\.survey-preview-grid/);
   assert.match(style, /\.survey-intro-actions\.single/);
+});
+
+test('夏窗离队意难平投票提供十名候选、感言和最多三选', () => {
+  assert.match(app, /id: 'departures'[\s\S]*?type: 'multi',[\s\S]*?max: 3/);
+  for (const name of ['罗德里', '贝尔纳多·席尔瓦', '约翰·斯通斯', '萨维尼奥', '马尔穆什', '尼科·冈萨雷斯', '蒂贾尼·赖因德斯', '詹姆斯·特拉福德', '纳坦·阿克', '曼努埃尔·阿坎吉']) {
+    assert.match(app, new RegExp(name.replace(/[·]/g, '·')));
+  }
+  assert.match(app, /任劳任怨、甘愿替补，直到最后仍一心想留下/);
+  assert.match(app, /机会不多却屡次回应，还没看够，他就走了/);
+  assert.match(app, /survey-option-detail/);
+  assert.match(style, /\.departure-survey-form \.survey-options \{ grid-template-columns: 1fr/);
+  for (const worker of [pagesWorker, triggerWorker]) {
+    assert.match(worker, /summer_departure_heartbreak_2026:[\s\S]*?departures: \{[\s\S]*?type: 'multi',[\s\S]*?max: 3/);
+  }
+  assert.match(workflow, /surveys\?poll=summer_departure_heartbreak_2026/);
+  assert.match(workflow, /departureSurveyBody\.results\?\.questions\?\.departures\?\.counts/);
 });
 
 test('蓝月在外从 120 人开始全站预约且同设备只计一次', () => {
@@ -164,6 +180,7 @@ test('调查支持匿名修改、公开结果和云端持久化', () => {
   assert.ok(routes.include.includes('/surveys'));
   assert.match(workflow, /surveys\?poll=summer_2026/);
   assert.match(workflow, /surveys\?poll=maresca_league_debut_2026/);
+  assert.match(workflow, /surveys\?poll=summer_departure_heartbreak_2026/);
   assert.match(workflow, /coachSurveyBody\.results\?\.questions\?\.adjustments\?\.counts/);
   assert.match(workflow, /coachSurveyBody\.results\?\.questions\?\.tactics\?\.counts/);
   assert.match(workflow, /coachSurveyBody\.results\?\.questions\?\.concerns\?\.counts/);
