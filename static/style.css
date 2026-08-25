@@ -623,15 +623,6 @@ body.survey-open { overflow: hidden; }
 .pinned-actions .library-action { margin-left: 0; padding: 3px 7px; font-size: 10px; }
 .pinned-actions .library-action:first-of-type { margin-left: auto; }
 .focus-mark { font-size: 12px; flex: none; }
-.reaction-legend {
-  display: grid; grid-template-columns: 1.3fr 1fr 1.1fr 1fr 1.6fr; align-items: center; gap: 8px;
-  margin: 0 1px 10px; color: var(--text-dim); font-size: 12px; line-height: 1.4;
-}
-.reaction-legend span {
-  min-width: 0; display: inline-flex; align-items: center; justify-content: center;
-  gap: 4px; white-space: nowrap; text-align: center;
-}
-.reaction-legend b { font-size: 15px; line-height: 1; font-weight: 400; }
 
 /* 徽章 */
 .badge-tier {
@@ -1266,13 +1257,6 @@ body.comments-open { overflow: hidden; }
   .pinned-actions .library-action.save::before { content: "↓"; font-size: 15px; }
   .pinned-actions .library-action.dongqiudi { width: 36px; height: 36px; min-width: 36px; padding: 0; }
   .pinned-card { flex-basis: calc(100% - 34px); max-width: none; min-height: 154px; }
-  .reaction-legend {
-    grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: 3px; row-gap: 6px;
-    margin: 0 1px 9px; font-size: 12px;
-  }
-  .reaction-legend span { grid-column: span 2; gap: 3px; }
-  .reaction-legend span:nth-child(n + 4) { grid-column: span 3; }
-  .reaction-legend b { font-size: 15px; }
   .filterbar {
     display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 5px;
     margin-bottom: 5px;
@@ -1457,8 +1441,6 @@ body.comments-open { overflow: hidden; }
   .library-seg button { font-size: 12px; }
   .filterbar { gap: 5px 6px; }
   .filterbar .seg button { min-width: 39px; padding-inline: 5px; }
-  .reaction-legend { font-size: 12px; }
-  .reaction-legend b { font-size: 14px; }
   .mark-all-read { padding-inline: 6px; font-size: 12px; }
   .comment-profile-note { display: none; }
   .comment-action { padding-inline: 7px; }
@@ -1584,7 +1566,6 @@ code { background: rgba(57, 189, 248, .12); color: #dff4ff; }
 .pinned-hide { background: rgba(4,22,39,.62); border-color: var(--line); }
 .pinned-hide:hover { background: rgba(57,189,248,.10); color: var(--sky); border-color: var(--sky); }
 .pinned-link:hover { color: var(--sky); }
-.reaction-legend { color: #94afc2; }
 
 .badge-tier.t0 { background: rgba(245,200,91,.11); color: var(--t0); border-color: rgba(245,200,91,.45); }
 .badge-tier.t1 { background: rgba(91,199,247,.12); color: var(--t1); border-color: rgba(91,199,247,.42); }
@@ -1840,7 +1821,6 @@ code { background: #e6f1f7; color: #294f68; }
 }
 .pinned-hide { background: rgba(247,251,253,.92); border-color: var(--line); }
 .pinned-hide:hover { background: #eaf6fb; color: var(--accent); border-color: var(--accent); }
-.reaction-legend { color: #718999; }
 .badge-tier.t0 { background: #fff8e6; color: var(--t0); border-color: #e8c66e; }
 .badge-tier.t1 { background: #e8f6fc; color: var(--t1); border-color: #9bcfe6; }
 .badge-tier.t2 { background: #f0f4f6; color: var(--t2); border-color: #c5d2d9; }

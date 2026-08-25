@@ -32,6 +32,13 @@ test('分享链接只定位消息，不改变按发布时间排列的消息顺�
   assert.match(app, /window\.history\.replaceState\(null, '', cleanUrl\.href\)/);
 });
 
+test('消息流顶部不再重复展示表情含义说明', () => {
+  const html = fs.readFileSync('static/index.html', 'utf8');
+  const css = fs.readFileSync('static/style.css', 'utf8');
+  assert.doesNotMatch(html, /reaction-legend/);
+  assert.doesNotMatch(css, /reaction-legend/);
+});
+
 test('重点传闻卡片关闭后消息回归普通流，互动计数仍按需请求', () => {
   assert.match(app, /const FOCUS_RUMOR_STRIP_ENABLED = false/);
   assert.match(app, /const pinnedIds = shouldShowPinnedStrip\(pinned\)[\s\S]*?: null/);
