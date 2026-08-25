@@ -19,6 +19,8 @@ const NICKNAME_CHANGE_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_COMMENT_IDS = 48;
 const SURVEY_RATE_SECONDS = 2;
 const SURVEY_IP_DEVICE_LIMIT = 3;
+const SHARE_EVENT_TYPES = ['native_share', 'copy_link', 'save_image', 'shared_visit'];
+const SHARE_EVENT_ID_RE = /^se_[A-Za-z0-9_-]{16,80}$/;
 const FEATURE_RESERVATIONS = Object.freeze({
   loan_watch_2026: { base: 120 },
 });
@@ -178,6 +180,13 @@ async function ensureSchema(env) {
         'PRIMARY KEY (feature_id, voter_id))',
     ),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_feature_reservations_feature ON feature_reservations(feature_id)'),
+    env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS share_events (' +
+        'event_id TEXT PRIMARY KEY, event_type TEXT NOT NULL, target_id TEXT NOT NULL, ' +
+        'voter_id TEXT NOT NULL, created_at INTEGER NOT NULL)',
+    ),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_share_events_target_type_created ON share_events(target_id, event_type, created_at)'),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_share_events_voter ON share_events(voter_id)'),
   ]);
   // 兼容已经在线运行的旧评论表：保留全部评论，只补充一级回复关系。
   let commentColumns = await env.DB.prepare('PRAGMA table_info(comments)').all();
@@ -667,10 +676,18 @@ async function saveFeatureReservation(env, featureId, voterId) {
   return readFeatureReservation(env, featureId, voterId);
 }
 
+async function saveShareEvent(env, eventId, eventType, targetId, voterId) {
+  await ensureSchema(env);
+  await env.DB.prepare(
+    'INSERT OR IGNORE INTO share_events (event_id, event_type, target_id, voter_id, created_at) VALUES (?, ?, ?, ?, ?)',
+  ).bind(eventId, eventType, targetId, voterId, Date.now()).run();
+  return { ok: true };
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (!['/prayer', '/reactions', '/comments', '/surveys', '/reservations'].includes(url.pathname)) return env.ASSETS.fetch(request);
+    if (!['/prayer', '/reactions', '/comments', '/surveys', '/reservations', '/share-events'].includes(url.pathname)) return env.ASSETS.fetch(request);
 
     const origin = request.headers.get('Origin') || '';
     const headers = responseHeaders(origin);
@@ -679,6 +696,20 @@ export default {
     if (!env.DB) return json({ ok: false, reason: 'no_db' }, headers, 503);
 
     try {
+      if (url.pathname === '/share-events') {
+        if (request.method !== 'POST') return json({ ok: false, reason: 'method' }, headers, 405);
+        const body = await request.json().catch(() => ({}));
+        const eventId = String(body.event_id || '');
+        const eventType = String(body.event_type || '');
+        const targetId = String(body.target_id || '');
+        const voterId = String(body.voter || '');
+        if (!SHARE_EVENT_ID_RE.test(eventId) || !SHARE_EVENT_TYPES.includes(eventType)
+          || !ITEM_ID_RE.test(targetId) || !VOTER_ID_RE.test(voterId)) {
+          return json({ ok: false, reason: 'bad_request' }, headers, 400);
+        }
+        return json(await saveShareEvent(env, eventId, eventType, targetId, voterId), headers);
+      }
+
       if (url.pathname === '/reservations') {
         const featureId = String(url.searchParams.get('feature') || '');
         if (!FEATURE_RESERVATIONS[featureId]) return json({ ok: false, reason: 'bad_feature' }, headers, 400);

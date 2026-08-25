@@ -1,0 +1,41 @@
+name: Hidden share stats
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  query:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Query private D1 share counters
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Cloudflare credentials are unavailable"
+            exit 1
+          fi
+          SQL="SELECT event_type AS metric, COUNT(*) AS actions_all, COUNT(DISTINCT voter_id) AS unique_all, SUM(CASE WHEN created_at >= (strftime('%s','now') * 1000 - 86400000) THEN 1 ELSE 0 END) AS actions_24h, COUNT(DISTINCT CASE WHEN created_at >= (strftime('%s','now') * 1000 - 86400000) THEN voter_id END) AS unique_24h, MIN(created_at) AS first_at, MAX(created_at) AS last_at FROM share_events WHERE target_id = 'summer_departure_heartbreak_2026' GROUP BY event_type UNION ALL SELECT 'unique_sharers' AS metric, COUNT(DISTINCT voter_id) AS actions_all, COUNT(DISTINCT voter_id) AS unique_all, COUNT(DISTINCT CASE WHEN created_at >= (strftime('%s','now') * 1000 - 86400000) THEN voter_id END) AS actions_24h, COUNT(DISTINCT CASE WHEN created_at >= (strftime('%s','now') * 1000 - 86400000) THEN voter_id END) AS unique_24h, MIN(created_at) AS first_at, MAX(created_at) AS last_at FROM share_events WHERE target_id = 'summer_departure_heartbreak_2026' AND event_type IN ('native_share','copy_link') ORDER BY metric"
+          npx --yes wrangler@4 d1 execute city-reactions --remote --json --command "$SQL" > share-stats.json
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const payload = JSON.parse(fs.readFileSync('share-stats.json', 'utf8'));
+          const rows = payload.flatMap((entry) => entry.results || []);
+          const map = Object.fromEntries(rows.map((row) => [row.metric, row]));
+          const value = (metric, field) => Number(map[metric]?.[field] || 0);
+          const lines = [
+            '# 隐藏分享统计（夏窗意难平投票）',
+            '',
+            `- 分享人数（原生分享或复制链接，匿名设备去重）：${value('unique_sharers', 'unique_all')}；近24小时 ${value('unique_sharers', 'unique_24h')}`,
+            `- 原生分享成功：${value('native_share', 'actions_all')} 次 / ${value('native_share', 'unique_all')} 台设备；近24小时 ${value('native_share', 'actions_24h')} 次`,
+            `- 复制链接成功：${value('copy_link', 'actions_all')} 次 / ${value('copy_link', 'unique_all')} 台设备；近24小时 ${value('copy_link', 'actions_24h')} 次`,
+            `- 点击保存统计图：${value('save_image', 'actions_all')} 次 / ${value('save_image', 'unique_all')} 台设备；近24小时 ${value('save_image', 'actions_24h')} 次`,
+            `- 分享链接带回访问：${value('shared_visit', 'actions_all')} 次 / ${value('shared_visit', 'unique_all')} 台设备；近24小时 ${value('shared_visit', 'actions_24h')} 次`,
+          ];
+          console.log(lines.join('\n'));
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`);
+          NODE

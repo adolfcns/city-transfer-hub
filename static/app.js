@@ -31,6 +31,7 @@ const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
 const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
 const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
 const SURVEY_PROFILE_KEY = 'cth_survey_profile_v1';
+const SHARE_ATTRIBUTION_KEY = 'departure_poll_share';
 const COACH_SURVEY_ID = 'maresca_league_debut_2026';
 const DEPARTURE_SURVEY_ID = 'summer_departure_heartbreak_2026';
 const SURVEY_POPUP_ID = DEPARTURE_SURVEY_ID;
@@ -322,6 +323,7 @@ const state = {
   surveyProfile: loadSurveyProfile(),
   surveyEndpoint: null,
   featureReservationEndpoint: null,
+  shareEventEndpoint: null,
   filters: loadFilters(),
 };
 let feedItems = [];
@@ -1178,6 +1180,9 @@ function showShareCardSavePreview(blob, filename, options = {}) {
   const download = el('a', 'share-save-download', options.downloadLabel || '↓ 再次下载');
   download.href = url;
   download.download = filename;
+  if (typeof options.onDownload === 'function') {
+    download.addEventListener('click', () => { void options.onDownload(); });
+  }
   const close = el('button', 'share-save-close', '完成');
   close.type = 'button';
   const dismiss = () => {
@@ -2919,11 +2924,12 @@ function surveyShareDate(date = new Date(), withTime = true) {
   } catch { return date.toLocaleString('zh-CN', { hour12: false }); }
 }
 
-function surveyShareUrl(pollId) {
+function surveyShareUrl(pollId, attribution = '') {
   const url = new URL(window.location.href);
   url.search = '';
   url.hash = '';
   url.searchParams.set('survey', pollId);
+  if (attribution) url.searchParams.set('from', attribution);
   return url.href;
 }
 
@@ -3392,7 +3398,7 @@ async function downloadCoachSurveyResults(context) {
 }
 
 async function shareDepartureSurveyLink(context) {
-  const link = surveyShareUrl(context.pollId);
+  const link = surveyShareUrl(context.pollId, SHARE_ATTRIBUTION_KEY);
   if (navigator.share) {
     try {
       await navigator.share({
@@ -3400,6 +3406,7 @@ async function shareDepartureSurveyLink(context) {
         text: '这个夏天，谁的离队最让你意难平？最多选 3 人，看看蓝月球迷怎么选。',
         url: link,
       });
+      void recordShareEvent('native_share', context.pollId);
       toast('投票链接已分享 ✓');
       return;
     } catch (error) {
@@ -3410,6 +3417,7 @@ async function shareDepartureSurveyLink(context) {
     }
   }
   const copied = await copyText(link);
+  if (copied) void recordShareEvent('copy_link', context.pollId);
   toast(copied ? '投票链接已复制 ✓' : '链接复制失败，请稍后再试', copied ? undefined : 'err');
 }
 
@@ -3431,6 +3439,7 @@ async function downloadDepartureSurveyResults(context) {
       hint: '图片不含二维码和网址，可直接保存后分享到懂球帝等平台。',
       alt: '曼城夏窗离队意难平投票实时统计图',
       downloadLabel: '↓ 保存统计图',
+      onDownload: () => recordShareEvent('save_image', context.pollId),
     });
     toast('无二维码统计图已生成 ✓');
   } catch {
@@ -4503,6 +4512,55 @@ const FEATURE_RESERVATION_ENDPOINTS = [
   'https://city-transfer-hub.pages.dev/reservations',
   `${TRIGGER_ENDPOINT}reservations`,
 ];
+const SHARE_EVENT_ENDPOINTS = [
+  'https://city-transfer-hub.pages.dev/share-events',
+  `${TRIGGER_ENDPOINT}share-events`,
+];
+
+function newShareEventId() {
+  try {
+    if (crypto.randomUUID) return `se_${crypto.randomUUID().replace(/-/g, '')}`;
+  } catch { /* 非安全上下文时使用随机兜底 */ }
+  return `se_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 18)}`;
+}
+
+async function recordShareEvent(eventType, targetId = DEPARTURE_SURVEY_ID) {
+  const eventId = newShareEventId();
+  const endpoints = [...new Set([state.shareEventEndpoint, ...SHARE_EVENT_ENDPOINTS].filter(Boolean))];
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        cache: 'no-store',
+        keepalive: true,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          event_id: eventId,
+          event_type: eventType,
+          target_id: targetId,
+          voter: state.surveyProfile.voter,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (response.ok && data.ok === true) {
+        state.shareEventEndpoint = endpoint;
+        return true;
+      }
+    } catch { /* 静默切换备用接口，不影响分享体验 */ }
+  }
+  return false;
+}
+
+function recordRequestedShareVisit() {
+  try {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('survey') !== DEPARTURE_SURVEY_ID
+      || url.searchParams.get('from') !== SHARE_ATTRIBUTION_KEY) return;
+    void recordShareEvent('shared_visit', DEPARTURE_SURVEY_ID);
+    url.searchParams.delete('from');
+    window.history.replaceState(null, '', url.href);
+  } catch { /* 无效地址不影响页面启动 */ }
+}
 const TRIGGER_COOLDOWN_MS = 60 * 1000;      // 单设备触发冷却
 const FRESH_ENOUGH_MS = 3 * 60 * 1000;      // 数据足够新就不重复抓
 let toastTimer = null;
@@ -4745,6 +4803,7 @@ function mockItems() {
 // ---------------- 启动 ----------------
 bind();
 renderCountdown();
+recordRequestedShareVisit();
 setInterval(renderCountdown, 1000);
 loadData(false).finally(() => {
   scheduleDeferredReactionSnapshot();
