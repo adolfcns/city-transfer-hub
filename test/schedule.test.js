@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { selectTwitterSources, runAdaptiveTwitterSchedule } from '../scripts/lib/schedule.js';
 
 const sources = [
-  ['city_xtra', 'ITK'], ['tolmie', 'ITK'], ['etihad_intel', 'ITK'],
+  ['city_xtra', 'ITK'], ['tolmie', 'ITK'], ['etihad_intel', 'ITK'], ['mcfcous', 'ITK'], ['fpl_maine_road', 'ITK'],
   ['romano', 'T0'], ['ornstein', 'T0'], ['jacobs', 'T1'], ['samlee', 'T1'],
   ['schira', 'T2'], ['plettenberg', 'T2'], ['tavolieri', 'T2'], ['aouna', 'T2'], ['br', 'T2'], ['nixon', 'T2'],
 ].map(([key, tier]) => ({ key, tier, type: 'twitter' }));
@@ -14,7 +14,7 @@ const settings = {
 };
 
 test('全部 ITK/T0/T1 和斯基拉每轮必抓', () => {
-  const expected = ['city_xtra', 'tolmie', 'etihad_intel', 'romano', 'ornstein', 'jacobs', 'samlee', 'schira'];
+  const expected = ['city_xtra', 'tolmie', 'etihad_intel', 'mcfcous', 'fpl_maine_road', 'romano', 'ornstein', 'jacobs', 'samlee', 'schira'];
   for (let slot = 0; slot < 4; slot += 1) {
     assert.deepEqual(selectTwitterSources(sources, settings, slot).everyRun.map((source) => source.key), expected);
   }

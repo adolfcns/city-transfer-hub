@@ -662,3 +662,23 @@ sources:
     handle: RealTolmie
     filter: none        # 全收：他常打哑谜，关键词过滤会漏掉精华
     note_zh: 蓝月亮论坛出身·爱发暗示
+
+  - key: mcfcous
+    name: mcfcous
+    name_zh: mcfcous
+    tier: ITK
+    type: twitter
+    handle: mcfcous
+    include_replies: true
+    filter: none        # 曼城专属重点账号，简短消息和回复也必须保留
+    note_zh: 曼城重点消息源·每轮必抓
+
+  - key: fpl_maine_road
+    name: FPL Maine Road
+    name_zh: FPL Maine Road
+    tier: ITK
+    type: twitter
+    handle: FPLMaineRoad
+    include_replies: true
+    filter: none        # 阵容与球队动态重点账号，简短消息和回复也必须保留
+    note_zh: 曼城阵容与球队动态重点源·每轮必抓
