@@ -671,7 +671,6 @@ sources:
     handle: mcfcous
     include_replies: true
     filter: none        # 曼城专属重点账号，简短消息和回复也必须保留
-    note_zh: 曼城重点消息源·每轮必抓
 
   - key: fpl_maine_road
     name: FPL Maine Road
