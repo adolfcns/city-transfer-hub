@@ -23,6 +23,7 @@ const OUTGOING = new RegExp(
     String.raw`(?:agreement|deal)\s+with\s+(?:chelsea|#?cfc)\s+to\s+sign`,
     String.raw`(?:negotiat\w*|talks?)\s+with\s+(?:chelsea|#?cfc)\s+(?:over|for)\s+(?:a\s+)?deal`,
     String.raw`(?:chelsea|#?cfc).{0,80}(?:turn(?:ed|s|ing)?\s+down|reject(?:ed|s|ing)?).{0,45}(?:approach|bid).{0,45}(?:loan|sign)`,
+    String.raw`undergo\s+(?:his|a)\s+(?!chelsea\b|cfc\b)(?:[a-z][\w'-]*\s+){1,4}medical`,
     String.raw`离开切尔西|切尔西.{0,30}(?:出售|外租|接受.{0,12}报价)`
   ].join('|'),
   'i',

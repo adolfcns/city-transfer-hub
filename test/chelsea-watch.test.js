@@ -33,6 +33,7 @@ test('蓝桥雷达排除比赛、伤病、续约、女足和普通离队', () =>
     "Aston Villa strike agreement with Chelsea to sign Nicolas Jackson. The player is moving from #CFC to #AVFC.",
     "The two clubs are now negotiating with Chelsea over a deal worth around £65m for Nicolas Jackson.",
     "Chelsea have turned down an approach from Roma to loan Jamie Gittens. He will remain at the club.",
+    "Nicolas Jackson is travelling to the Midlands today to undergo his Aston Villa medical #avfc #cfc.",
     'Manchester City are targeting a new right-back.',
   ];
   for (const value of rejected) assert.equal(isChelseaWatchItem(value), false, value);
