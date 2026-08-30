@@ -4687,17 +4687,16 @@ function renderCountdown() {
   const n = $('#window-countdown');
   if (!w) { n.textContent = '转会窗已关闭'; return; }
   const totalMs = Math.max(0, w.ts - now);
-  const days = Math.floor(totalMs / 86400e3);
-  const hours = Math.floor((totalMs % 86400e3) / 3600e3);
+  const hours = Math.floor(totalMs / 3600e3);
   const minutes = Math.floor((totalMs % 3600e3) / 60e3);
   const seconds = Math.floor((totalMs % 60e3) / 1000);
-  const values = { days: String(days), hours, minutes, seconds };
+  const values = { hours, minutes, seconds };
   for (const [part, value] of Object.entries(values)) {
     const node = n.querySelector(`[data-countdown="${part}"]`);
-    if (node) node.textContent = part === 'days' ? value : String(value).padStart(2, '0');
+    if (node) node.textContent = String(value).padStart(2, '0');
   }
   n.setAttribute('aria-label',
-    `最后一周，蓝月终局之战。距离关窗还有 ${days} 天 ${hours} 时 ${minutes} 分 ${seconds} 秒。是满载而归，还是遗憾收场？`);
+    `关窗警报，蓝月最后冲刺。留给维亚纳出手的时间，只剩 ${hours} 小时 ${minutes} 分 ${seconds} 秒。`);
 }
 
 // ---------------- 事件绑定 ----------------
