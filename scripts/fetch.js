@@ -11,12 +11,13 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
 import { initHttp, httpGet, mapLimit } from './lib/http.js';
-import { fetchSource, buildDomainMap, fetchFocusGnews } from './lib/sources.js';
+import { fetchSource, buildDomainMap, fetchFocusGnews, fetchChelseaTransferGnews } from './lib/sources.js';
 import { htmlToText } from './lib/rss.js';
 import { makeMatchers, passFilter, detectBadges, makeId, mergeItems } from './lib/pipeline.js';
 import { selectTwitterSources, runAdaptiveTwitterSchedule } from './lib/schedule.js';
 import { translateNew } from './lib/translate.js';
 import { buildPagedData } from './lib/paged-data.js';
+import { classifyChelseaWatch } from './lib/chelsea-watch.js';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const DATA_DIR = resolve(ROOT, 'data');
@@ -67,6 +68,7 @@ async function main() {
   // 上一次的数据（保留历史 + 翻译缓存 + 连续失败计数）
   const prevData = await loadPrev('PREV_DATA_URL', 'items.json');
   const prevStatus = await loadPrev('PREV_STATUS_URL', 'status.json');
+  const prevChelseaWatch = await loadPrev('PREV_CHELSEA_WATCH_URL', 'chelsea-watch.json');
   const prevStatusMap = new Map((prevStatus?.sources || []).map((s) => [s.key, s]));
 
   // 信源 key → 配置，用于对旧数据重新套用当前过滤规则
@@ -185,6 +187,27 @@ async function main() {
     }
   }
 
+  // 蓝桥引援雷达：只增加一次白名单新闻检索；X 动态复用本轮已经抓取的时间线。
+  let chelseaGnewsEntries = [];
+  try {
+    const entries = await fetchChelseaTransferGnews(domainMap);
+    chelseaGnewsEntries = entries.filter((entry) => classifyChelseaWatch(entry.text));
+    statusList.push({
+      key: 'watch_chelsea_incoming', name: 'Chelsea incoming watch', name_zh: '蓝桥引援雷达',
+      tier: '🔍', type: 'gnews', enabled: true, ok: true, items: chelseaGnewsEntries.length,
+      last_success: new Date().toISOString(), error: null,
+    });
+    console.log(`[ok] watch_chelsea_incoming: ${chelseaGnewsEntries.length} 条（白名单内）`);
+  } catch (e) {
+    const prev = prevStatusMap.get('watch_chelsea_incoming');
+    statusList.push({
+      key: 'watch_chelsea_incoming', name: 'Chelsea incoming watch', name_zh: '蓝桥引援雷达',
+      tier: '🔍', type: 'gnews', enabled: true, ok: false, items: 0,
+      last_success: prev?.last_success || null, error: String(e.message || e).slice(0, 200),
+    });
+    console.warn(`[fail] watch_chelsea_incoming: ${e.message}`);
+  }
+
   // ---------- 过滤 + 成品化 ----------
   const incoming = [];
   for (const src of sources) {
@@ -234,6 +257,48 @@ async function main() {
       note_zh: o.note_zh || undefined,
     });
   }
+
+  // ---------- 蓝桥引援雷达独立数据流 ----------
+  // 不写入普通曼城消息流；只复用相同信源、翻译和去重能力。
+  const chelseaWatchCutoff = Date.now() - (settings.chelsea_watch_days_keep ?? 7) * 86400e3;
+  const chelseaWatchKept = (prevChelseaWatch?.items || [])
+    .filter((item) => new Date(item.published_at).getTime() >= chelseaWatchCutoff)
+    .map((item) => ({ ...item, text: htmlToText(item.text) || item.text }))
+    .filter((item) => classifyChelseaWatch(item.text));
+  const chelseaWatchKnownIds = new Set(chelseaWatchKept.map((item) => item.id));
+  const chelseaWatchIncoming = [];
+  const addChelseaWatchEntry = (entry, source) => {
+    if (!entry?.url || !entry?.text || !source) return;
+    if (new Date(entry.published_at).getTime() < chelseaWatchCutoff) return;
+    const watchType = classifyChelseaWatch(entry.text);
+    if (!watchType) return;
+    const id = makeId(entry.url);
+    if (chelseaWatchKnownIds.has(id) || chelseaWatchIncoming.some((item) => item.id === id)) return;
+    chelseaWatchIncoming.push({
+      id,
+      source_key: source.key,
+      source_name: source.name,
+      source_name_zh: source.name_zh || source.name,
+      tier: source.tier,
+      kind: entry.kind || 'tweet',
+      text: entry.text,
+      text_zh: null,
+      url: entry.url,
+      published_at: entry.published_at,
+      badges: detectBadges(entry.text),
+      watch_type: watchType,
+    });
+  };
+  for (const source of sources) {
+    for (const entry of rawBySource.get(source.key) || []) addChelseaWatchEntry(entry, source);
+  }
+  for (const entry of chelseaGnewsEntries) addChelseaWatchEntry(entry, entry.outlet);
+  chelseaWatchIncoming.sort((a, b) => new Date(a.published_at) - new Date(b.published_at));
+  const chelseaWatchMerged = mergeItems(chelseaWatchKept, chelseaWatchIncoming);
+  chelseaWatchMerged.sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+  const chelseaWatchItems = chelseaWatchMerged.slice(0, settings.chelsea_watch_max_items ?? 36);
+  console.log(`[chelsea-watch] 保留 ${chelseaWatchItems.length} 条，本轮新增 ${chelseaWatchIncoming.length} 条`);
+
   // 回填每个源"本轮新入库"条数（面板显示 抓X·入Y，避免误读）
   const admittedBySrc = {};
   for (const it of incoming) admittedBySrc[it.source_key] = (admittedBySrc[it.source_key] || 0) + 1;
@@ -258,6 +323,20 @@ async function main() {
     );
   }
 
+  // 与主流重复的恩佐消息直接复用译文，只翻雷达独有的切尔西引援消息。
+  const mainTranslations = new Map(merged.filter((item) => item.text_zh).map((item) => [item.id, item.text_zh]));
+  for (const item of chelseaWatchItems) {
+    if (!item.text_zh && mainTranslations.has(item.id)) item.text_zh = mainTranslations.get(item.id);
+  }
+  const chelseaTranslation = await translateNew(chelseaWatchItems, process.env.DEEPSEEK_API_KEY);
+  console.log(
+    `[chelsea-translate] 本次翻译 ${chelseaTranslation.translated} 条` +
+    `（备用通道 ${chelseaTranslation.fallbackTranslated} 条），剩余 ${chelseaTranslation.remaining} 条`,
+  );
+  if (chelseaTranslation.remaining > 0) {
+    throw new Error(`蓝桥引援雷达翻译未完成：仍有 ${chelseaTranslation.remaining} 条，停止发布以保留上一版`);
+  }
+
   // ---------- 输出 ----------
   // 焦点标记全量重算（翻译后的中文别名也能命中）
   merged.forEach(tagFocus);
@@ -266,8 +345,9 @@ async function main() {
   statusList.sort((a, b) => (a.tier > b.tier ? 1 : a.tier < b.tier ? -1 : a.key.localeCompare(b.key)));
 
   await mkdir(DATA_DIR, { recursive: true });
+  const generatedAt = new Date().toISOString();
   const metadata = {
-    generated_at: new Date().toISOString(),
+    generated_at: generatedAt,
     twitter_enabled: Boolean(rsshubUrl),
     focus_targets: focusTargets.map(({ key, name, name_zh, desc_zh }) => ({ key, name, name_zh, desc_zh })),
     sources: sources.map(({ key, name, name_zh, tier, type }) => ({ key, name, name_zh, tier, type })),
@@ -278,13 +358,18 @@ async function main() {
     archiveSize: settings.archive_chunk_size,
   });
   await writeFile(resolve(DATA_DIR, 'items.json'), JSON.stringify({ ...metadata, items: finalItems }));
+  await writeFile(resolve(DATA_DIR, 'chelsea-watch.json'), JSON.stringify({
+    generated_at: generatedAt,
+    scope: 'chelsea_incoming_and_enzo_city',
+    items: chelseaWatchItems,
+  }));
   await writeFile(resolve(DATA_DIR, 'items-latest.json'), JSON.stringify(paged.latest));
   for (const archive of paged.archives) {
     await writeFile(resolve(DATA_DIR, archive.file), JSON.stringify(archive.payload));
   }
   await writeFile(
     resolve(DATA_DIR, 'status.json'),
-    JSON.stringify({ updated_at: new Date().toISOString(), sources: statusList }),
+    JSON.stringify({ updated_at: generatedAt, sources: statusList }),
   );
 
   const okCount = statusList.filter((s) => s.ok).length;

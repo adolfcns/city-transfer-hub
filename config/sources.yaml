@@ -25,6 +25,8 @@ settings:
   initial_items: 100 # 首次只下发最新 100 条
   initial_focus_items: 30 # 重点传闻最多预载 30 条，保证专区完整
   archive_chunk_size: 100 # 更早消息按 100 条拆包，滚动或搜索时再加载
+  chelsea_watch_days_keep: 7 # 蓝桥引援雷达保留最近 7 天
+  chelsea_watch_max_items: 36 # 独立小数据文件，避免增加首页负担
   exclude_retweets: true # 过滤纯转推（RT）
   exclude_replies: true # 过滤回复推文
   twitter_every_run_tiers: # 这些等级的 X 信源每轮全部抓取，顺序即优先级

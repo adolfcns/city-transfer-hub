@@ -194,6 +194,67 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 .focus-follow:focus-visible { outline: 3px solid rgba(21,95,159,.18); outline-offset: 2px; }
 .follow-label-short { display: none; }
 
+.chelsea-watch {
+  width: 100%; margin-bottom: 9px; overflow: hidden;
+  border: 1px solid rgba(43,136,184,.34); border-radius: 14px;
+  background: rgba(250,253,255,.96); color: #18384d;
+  box-shadow: 0 8px 22px rgba(35,82,108,.10);
+}
+.chelsea-watch-head {
+  width: 100%; min-height: 68px; padding: 11px 15px; display: flex; align-items: center; gap: 14px;
+  border: 0; background: linear-gradient(112deg, #e7f5fb 0%, #f9fcfe 72%, #eef8fc 100%);
+  color: #17384e; text-align: left;
+}
+.chelsea-watch-head:hover { background: linear-gradient(112deg, #dff2fa, #f5fbfe 72%, #e6f5fb); }
+.chelsea-watch-heading-copy { min-width: 0; display: grid; gap: 1px; }
+.chelsea-watch-title { color: #145d84; font-size: 17px; font-weight: 950; line-height: 1.25; }
+.chelsea-watch-subtitle { color: #244c64; font-size: 12px; font-weight: 800; line-height: 1.45; }
+.chelsea-watch-scope { color: #668294; font-size: 10px; font-weight: 700; line-height: 1.4; }
+.chelsea-watch-count {
+  flex: none; margin-left: auto; padding: 6px 9px; border: 1px solid rgba(43,136,184,.30); border-radius: 999px;
+  background: rgba(255,255,255,.80); color: #287ca5; font-size: 11px; font-weight: 900; white-space: nowrap;
+}
+.chelsea-watch-grid {
+  padding: 10px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
+  border-top: 1px solid rgba(43,136,184,.16);
+}
+.chelsea-watch.is-open .chelsea-watch-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.chelsea-watch-card {
+  min-width: 0; padding: 10px 11px; display: flex; flex-direction: column; gap: 7px;
+  border: 1px solid rgba(112,164,191,.32); border-radius: 10px;
+  background: #fff; color: #19384d; box-shadow: 0 3px 10px rgba(35,82,108,.06);
+  text-decoration: none; transition: transform .12s, border-color .12s, box-shadow .12s;
+}
+.chelsea-watch-card:hover {
+  border-color: #64b4d8; box-shadow: 0 7px 18px rgba(35,82,108,.12); transform: translateY(-1px); text-decoration: none;
+}
+.chelsea-watch-card-meta { min-width: 0; display: flex; align-items: center; gap: 5px; }
+.chelsea-watch-card-meta .badge-tier { flex: none; }
+.chelsea-watch-source {
+  min-width: 0; overflow: hidden; color: #18384d; font-size: 11px; font-weight: 900;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.chelsea-watch-kind {
+  flex: none; padding: 1px 5px; border-radius: 999px; background: #e7f4fa;
+  color: #27789f; font-size: 9px; font-weight: 900; white-space: nowrap;
+}
+.chelsea-watch-kind.enzo { background: #fff2c9; color: #956006; }
+.chelsea-watch-time { flex: none; margin-left: auto; color: #7890a0; font-size: 9px; white-space: nowrap; }
+.chelsea-watch-copy {
+  margin: 0; display: -webkit-box; overflow: hidden; color: #17384d; font-size: 12px; font-weight: 700;
+  line-height: 1.62; -webkit-line-clamp: 4; -webkit-box-orient: vertical;
+}
+.chelsea-watch-copy.en { color: #728694; font-weight: 500; }
+.chelsea-watch-copy.secondary { padding-top: 5px; border-top: 1px dashed rgba(112,164,191,.28); -webkit-line-clamp: 2; }
+.chelsea-watch-link { margin-top: auto; color: #2b85af; font-size: 10px; font-weight: 800; }
+.chelsea-watch-empty { margin: 0; padding: 12px 15px; border-top: 1px solid rgba(43,136,184,.16); color: #607d8f; font-size: 12px; }
+.chelsea-watch-more {
+  display: block; min-height: 34px; margin: 0 auto 10px; padding: 5px 13px;
+  border: 1px solid rgba(43,136,184,.32); border-radius: 999px;
+  background: #f1f9fc; color: #287ca5; font-size: 11px; font-weight: 900;
+}
+.chelsea-watch-more:hover { background: #e4f4fa; border-color: #64b4d8; }
+
 .departure-heartbreak-banner {
   position: relative; width: 100%; overflow: hidden; padding: 14px 112px 15px 18px;
   border: 1px solid rgba(43,136,184,.42); border-radius: 14px;
@@ -1994,6 +2055,17 @@ code { background: #e6f1f7; color: #294f68; }
   .pinned-card, .card, .modal-box { background: rgba(255,255,255,.97); }
   .city-prayer { background: #fffaf0; }
   .survey-sheet, .comment-sheet { background: #f9fcfe; }
+  .chelsea-watch { margin-bottom: 7px; border-radius: 11px; }
+  .chelsea-watch-head { min-height: 58px; padding: 9px 10px; gap: 7px; }
+  .chelsea-watch-title { font-size: 15px; }
+  .chelsea-watch-subtitle { font-size: 10.5px; line-height: 1.38; }
+  .chelsea-watch-scope { font-size: 9px; }
+  .chelsea-watch-count { padding: 4px 6px; font-size: 9px; }
+  .chelsea-watch-grid, .chelsea-watch.is-open .chelsea-watch-grid { grid-template-columns: 1fr; padding: 8px; }
+  .chelsea-watch:not(.is-open) .chelsea-watch-card:nth-child(n+2) { display: none; }
+  .chelsea-watch-card { padding: 9px 10px; gap: 6px; }
+  .chelsea-watch-copy { font-size: 11.5px; -webkit-line-clamp: 3; }
+  .chelsea-watch-more { margin-bottom: 8px; font-size: 10px; }
   .departure-heartbreak-banner { padding: 11px 78px 12px 12px; border-radius: 11px; }
   .departure-heartbreak-kicker { margin-bottom: 4px; font-size: 9px; }
   .departure-heartbreak-headline { gap: 1px 5px; font-size: 16px; line-height: 1.3; }

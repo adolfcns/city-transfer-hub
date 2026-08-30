@@ -5,6 +5,7 @@
 const DATA_URL = './data/items-latest.json';
 const DATA_FALLBACK_URL = './data/items.json';
 const STATUS_URL = './data/status.json';
+const CHELSEA_WATCH_URL = './data/chelsea-watch.json';
 const REFRESH_MS = 90 * 1000;
 // 转会窗关闭时间（到点自动切到下一个）
 const WINDOWS = [
@@ -309,6 +310,10 @@ const state = {
   sourceCatalog: [],
   focusTargets: [],
   focusTargetKey: '',
+  chelseaWatchItems: [],
+  chelseaWatchGeneratedAt: null,
+  chelseaWatchLoaded: false,
+  chelseaWatchOpen: false,
   seenIds: new Set(),
   newIds: new Set(),
   pendingNew: 0,
@@ -2432,6 +2437,17 @@ async function loadData(isRefresh = false) {
   buildSourceMenu();
   render();
 
+  // 雷达数据文件很小，但仍放到主消息流渲染之后异步读取，不增加首屏等待时间。
+  fetchJSON(CHELSEA_WATCH_URL).then((payload) => {
+    state.chelseaWatchItems = Array.isArray(payload.items) ? payload.items : [];
+    state.chelseaWatchGeneratedAt = payload.generated_at || null;
+    state.chelseaWatchLoaded = true;
+    renderFocusZone();
+  }).catch(() => {
+    state.chelseaWatchLoaded = true;
+    renderFocusZone();
+  });
+
   const sharedId = requestedMessageId();
   if (sharedId && !state.items.some((item) => itemId(item) === sharedId) && hasMoreArchives()) {
     loadAllArchives().then((loaded) => {
@@ -4268,11 +4284,88 @@ function renderPinnedCard(it) {
   return card;
 }
 
+function renderChelseaWatchCard(item) {
+  const card = el('a', 'chelsea-watch-card');
+  card.href = item.url;
+  card.target = '_blank';
+  card.rel = 'noopener noreferrer';
+  card.setAttribute('aria-label', `查看${item.source_name_zh || item.source_name}的蓝桥引援消息`);
+
+  const meta = el('div', 'chelsea-watch-card-meta');
+  meta.appendChild(el('span', `badge-tier ${TIER_CLASS[item.tier] || 't2'}`, item.tier || 'T2'));
+  meta.appendChild(el('strong', 'chelsea-watch-source', item.source_name_zh || item.source_name));
+  meta.appendChild(el(
+    'span',
+    `chelsea-watch-kind${item.watch_type === 'enzo_city' ? ' enzo' : ''}`,
+    item.watch_type === 'enzo_city' ? '恩佐直连曼城' : '切尔西引援',
+  ));
+  meta.appendChild(el('time', 'chelsea-watch-time', relTime(item.published_at)));
+  card.appendChild(meta);
+
+  const language = state.filters.lang;
+  if (language !== 'en' && item.text_zh) card.appendChild(el('p', 'chelsea-watch-copy zh', item.text_zh));
+  if (language === 'en' || language === 'both' || !item.text_zh) {
+    card.appendChild(el('p', `chelsea-watch-copy en${language === 'both' ? ' secondary' : ''}`, item.text));
+  }
+  card.appendChild(el('span', 'chelsea-watch-link', item.kind === 'tweet' ? '查看原推 ↗' : '阅读原文 ↗'));
+  return card;
+}
+
+function renderChelseaWatchModule(zone) {
+  const items = state.chelseaWatchItems || [];
+  const section = el('section', `chelsea-watch${state.chelseaWatchOpen ? ' is-open' : ''}`);
+  section.setAttribute('aria-label', '蓝桥引援雷达');
+
+  const toggle = el('button', 'chelsea-watch-head');
+  toggle.type = 'button';
+  toggle.setAttribute('aria-expanded', String(state.chelseaWatchOpen));
+  const copy = el('span', 'chelsea-watch-heading-copy');
+  copy.append(
+    el('strong', 'chelsea-watch-title', '🔍 蓝桥引援雷达'),
+    el('span', 'chelsea-watch-subtitle', '盯住切尔西的每一笔来人，等待恩佐松动的信号。'),
+    el('span', 'chelsea-watch-scope', '只收切尔西引援与恩佐直连曼城动态'),
+  );
+  const count = state.chelseaWatchLoaded ? `最新 ${items.length} 条` : '正在盯盘';
+  toggle.append(copy, el('span', 'chelsea-watch-count', `${count} ${state.chelseaWatchOpen ? '⌃' : '⌄'}`));
+  toggle.onclick = () => {
+    state.chelseaWatchOpen = !state.chelseaWatchOpen;
+    renderFocusZone();
+  };
+  section.appendChild(toggle);
+
+  if (!state.chelseaWatchLoaded) {
+    section.appendChild(el('p', 'chelsea-watch-empty', '正在同步最新切尔西引援动态…'));
+  } else if (!items.length) {
+    section.appendChild(el('p', 'chelsea-watch-empty', '暂无符合条件的新动态，后台仍会每 15 分钟继续盯盘。'));
+  } else {
+    const grid = el('div', 'chelsea-watch-grid');
+    const visibleItems = items.slice(0, state.chelseaWatchOpen ? 12 : 3);
+    visibleItems.forEach((item) => grid.appendChild(renderChelseaWatchCard(item)));
+    section.appendChild(grid);
+    if (items.length > 3) {
+      const more = el(
+        'button',
+        'chelsea-watch-more',
+        state.chelseaWatchOpen ? '收起蓝桥雷达' : `展开更多动态（${Math.min(items.length, 12)} 条）`,
+      );
+      more.type = 'button';
+      more.onclick = () => {
+        state.chelseaWatchOpen = !state.chelseaWatchOpen;
+        renderFocusZone();
+      };
+      section.appendChild(more);
+    }
+  }
+  zone.appendChild(section);
+}
+
 function renderFocusZone() {
   const zone = $('#focus-zone');
   clearEngagementWatchers(zone);
   zone.textContent = '';
   zone.hidden = false;
+
+  renderChelseaWatchModule(zone);
 
   const banner = el('button', 'departure-heartbreak-banner');
   banner.type = 'button';

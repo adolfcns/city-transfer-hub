@@ -144,6 +144,26 @@ export async function fetchFocusGnews(target, domainMap) {
   return out;
 }
 
+// 蓝桥引援雷达只多发出一次 Google News 请求，再由严格规则筛掉比赛、伤病和离队内容。
+export async function fetchChelseaTransferGnews(domainMap) {
+  const q = encodeURIComponent('Chelsea (sign OR signing OR bid OR target OR talks OR deal) when:7d');
+  const url = `https://news.google.com/rss/search?q=${q}&hl=en-GB&gl=GB&ceid=GB:en`;
+  const xml = await httpGet(url);
+  const out = [];
+  for (const e of parseFeed(xml)) {
+    const outlet = e.source ? domainMatch(domainMap, e.source.url) : null;
+    if (!outlet) continue;
+    out.push({
+      kind: 'article',
+      text: e.title.replace(/\s+-\s+[^-]+$/, ''),
+      url: e.link,
+      published_at: toISO(e.date),
+      outlet,
+    });
+  }
+  return out;
+}
+
 // ---------- 统一入口 ----------
 export async function fetchSource(src, ctx) {
   if (src.type === 'rss') return fetchRss(src);

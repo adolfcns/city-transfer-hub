@@ -112,6 +112,7 @@ jobs:
           BASE="https://${GITHUB_REPOSITORY_OWNER}.github.io/${REPO_NAME}"
           export PREV_DATA_URL="${BASE}/data/items.json"
           export PREV_STATUS_URL="${BASE}/data/status.json"
+          export PREV_CHELSEA_WATCH_URL="${BASE}/data/chelsea-watch.json"
           node scripts/fetch.js
 
       - name: Snapshot item reactions
