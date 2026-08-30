@@ -13,6 +13,8 @@ const ENZO = /(?:\benzo(?:\s+fernandez)?\b|恩佐(?:·费尔南德斯)?)/i;
 const MAN_CITY = /(?:\bmanchester city\b|\bman city\b|\bmcfc\b|曼城)/i;
 const WOMEN_OR_HISTORY = /(?:chelsea women|women's team|women’s team|\bwsl\b|女足|#onthisday|on this day|#otd)/i;
 const CONTRACT_ONLY = /(?:new contract|contract extension|renew(?:al|ed|s|ing)?|续约)/i;
+const SPECULATION_ONLY = /(?:does|should|could|can|will)\s+.{0,85}(?:need|make|complete)\s+.{0,35}(?:signing|transfer)/i;
+const COMMERCIAL_OR_ROUNDUP = /(?:sponsor(?:ship)?|commercial partner|front-of-shirt|financial platform|paper talk)/i;
 const OUTGOING = new RegExp(
   [
     String.raw`(?:leave|leaves|leaving|left|depart(?:ure|s|ed|ing)?|exit(?:s|ed|ing)?|move(?:s|d|ing)? away from|sold by|sale by|from)\s+chelsea`,
@@ -34,8 +36,9 @@ const CHELSEA_FIRST = new RegExp(
 );
 const CHELSEA_DESTINATION = new RegExp(
   String.raw`(?:join(?:s|ed|ing)?|move(?:s|d|ing)?\s+to|transfer(?:s|red|ring)?\s+to|sign(?:s|ed|ing)?\s+for|` +
-  String.raw`headed\s+to|on\s+(?:his|the)\s+way\s+to|chelsea-bound|加盟|转会至|转投).{0,55}` +
-  String.raw`(?:\bchelsea(?:\s+fc)?\b|\bcfc\b|stamford bridge|切尔西|車路士)`,
+  String.raw`headed\s+to|on\s+(?:his|the)\s+way\s+to)\s+` +
+  String.raw`(?:\bchelsea(?:\s+fc)?\b|\bcfc\b|stamford bridge|切尔西|車路士)|` +
+  String.raw`(?:加盟|转会至|转投)(?:切尔西|車路士)|chelsea-bound`,
   'i',
 );
 const TO_CHELSEA_DEAL = new RegExp(
@@ -46,7 +49,13 @@ const TO_CHELSEA_DEAL = new RegExp(
 
 export function classifyChelseaWatch(text) {
   const value = normalize(text);
-  if (!value || WOMEN_OR_HISTORY.test(value)) return null;
+  if (
+    !value
+    || WOMEN_OR_HISTORY.test(value)
+    || CONTRACT_ONLY.test(value)
+    || SPECULATION_ONLY.test(value)
+    || COMMERCIAL_OR_ROUNDUP.test(value)
+  ) return null;
 
   // 只要同时明确提到恩佐、曼城和转会动作，就作为核心直连消息保留。
   const enzoCity = ENZO.test(value)
@@ -54,7 +63,12 @@ export function classifyChelseaWatch(text) {
     && /(?:transfer|move|join|sign|deal|bid|offer|talks|negotiat|agree|interest|target|leave|sell|报价|谈判|加盟|转会|出售|离队)/i.test(value);
   if (enzoCity) return 'enzo_city';
 
-  if (!CHELSEA.test(value) || CONTRACT_ONLY.test(value) || OUTGOING.test(value)) return null;
+  if (
+    !CHELSEA.test(value)
+    || OUTGOING.test(value)
+  ) {
+    return null;
+  }
   if (CHELSEA_FIRST.test(value) || CHELSEA_DESTINATION.test(value) || TO_CHELSEA_DEAL.test(value)) {
     return 'chelsea_incoming';
   }

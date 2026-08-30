@@ -108,6 +108,7 @@ export function buildDomainMap(sources) {
   for (const s of sources) {
     if (s.type === 'gnews' && s.site) put(s.site.split('/')[0], s);
     else if (s.type === 'rss' && s.url) { try { put(new URL(s.url).hostname, s); } catch { /* 忽略坏URL */ } }
+    for (const alias of s.site_aliases || []) put(alias, s);
   }
   // RSS 源域名与文章域名不一致的已知别称
   const bbc = sources.find((s) => s.key === 'bbc_city');
@@ -144,7 +145,7 @@ export async function fetchFocusGnews(target, domainMap) {
   return out;
 }
 
-// 蓝桥引援雷达只多发出一次 Google News 请求，再由严格规则筛掉比赛、伤病和离队内容。
+// 蓝桥引援雷达只多发出一次 Google News 请求；domainMap 是专用的官方/跟队白名单。
 export async function fetchChelseaTransferGnews(domainMap) {
   const q = encodeURIComponent('Chelsea (sign OR signing OR bid OR target OR talks OR deal) when:7d');
   const url = `https://news.google.com/rss/search?q=${q}&hl=en-GB&gl=GB&ceid=GB:en`;

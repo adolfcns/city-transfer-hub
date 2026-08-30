@@ -4323,7 +4323,7 @@ function renderChelseaWatchModule(zone) {
   copy.append(
     el('strong', 'chelsea-watch-title', '🔍 蓝桥引援雷达'),
     el('span', 'chelsea-watch-subtitle', '盯住切尔西的每一笔来人，等待恩佐松动的信号。'),
-    el('span', 'chelsea-watch-scope', '只收切尔西引援与恩佐直连曼城动态'),
+    el('span', 'chelsea-watch-scope', '可信白名单：切尔西官方、跟队记者与一线转会记者'),
   );
   const count = state.chelseaWatchLoaded ? `最新 ${items.length} 条` : '正在盯盘';
   toggle.append(copy, el('span', 'chelsea-watch-count', `${count} ${state.chelseaWatchOpen ? '⌃' : '⌄'}`));

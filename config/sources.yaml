@@ -27,6 +27,15 @@ settings:
   archive_chunk_size: 100 # 更早消息按 100 条拆包，滚动或搜索时再加载
   chelsea_watch_days_keep: 7 # 蓝桥引援雷达保留最近 7 天
   chelsea_watch_max_items: 36 # 独立小数据文件，避免增加首页负担
+  chelsea_watch_global_source_keys: # 可同时收切尔西引援与恩佐直连曼城的一线记者
+    - romano
+    - ornstein
+    - jacobs
+    - hawkins
+  chelsea_watch_enzo_only_source_keys: # 曼城侧信源只收恩佐直连，不收其转载的普通切尔西消息
+    - city_xtra
+    - etihad_intel
+    - mcfcous
   exclude_retweets: true # 过滤纯转推（RT）
   exclude_replies: true # 过滤回复推文
   twitter_every_run_tiers: # 这些等级的 X 信源每轮全部抓取，顺序即优先级
@@ -225,6 +234,91 @@ transfer_keywords:
 # 热门球员/目标名单：命中名字直接视为"曼城相关"（转会窗期间自行维护，一行一个）
 # 例： - "Florian Wirtz"
 hot_players: []
+
+# 蓝桥引援雷达专用白名单，不进入普通曼城消息流。
+# X 跟队号每 15 分钟单独抓取；文章检索只允许以下官方/权威域名入库。
+chelsea_watch_sources:
+  - key: chelsea_official
+    name: Chelsea FC Official
+    name_zh: 切尔西官方
+    tier: T0
+    type: gnews
+    site: chelseafc.com
+    watch_role_zh: 官方确认
+
+  - key: chelsea_athletic
+    name: The Athletic - Chelsea
+    name_zh: TA·切尔西
+    tier: T0
+    type: gnews
+    site: nytimes.com/athletic
+    watch_role_zh: 权威跟队
+
+  - key: chelsea_telegraph
+    name: The Telegraph - Chelsea
+    name_zh: 电讯报·切尔西
+    tier: T0
+    type: gnews
+    site: telegraph.co.uk
+    watch_role_zh: 权威跟队
+
+  - key: chelsea_bbc
+    name: BBC Sport - Chelsea
+    name_zh: BBC·切尔西
+    tier: T0
+    type: gnews
+    site: bbc.co.uk
+    site_aliases:
+      - bbc.com
+    watch_role_zh: 权威媒体
+
+  - key: chelsea_sky
+    name: Sky Sports - Chelsea
+    name_zh: 天空体育·切尔西
+    tier: T0
+    type: gnews
+    site: skysports.com
+    watch_role_zh: 权威媒体
+
+  - key: chelsea_matt_law
+    name: Matt Law (The Telegraph)
+    name_zh: 电讯报·Matt Law
+    tier: T0
+    type: twitter
+    handle: Matt_Law_DT
+    watch_role_zh: 切尔西跟队
+
+  - key: chelsea_nizaar
+    name: Nizaar Kinsella
+    name_zh: Nizaar Kinsella
+    tier: T0
+    type: twitter
+    handle: NizaarKinsella
+    watch_role_zh: 切尔西记者
+
+  - key: chelsea_simon_johnson
+    name: Simon Johnson (The Athletic)
+    name_zh: TA·Simon Johnson
+    tier: T0
+    type: twitter
+    handle: SJohnsonSport
+    watch_role_zh: 切尔西跟队
+
+  - key: chelsea_liam_twomey
+    name: Liam Twomey (The Athletic)
+    name_zh: TA·Liam Twomey
+    tier: T0
+    type: twitter
+    handle: liam_twomey
+    watch_role_zh: 切尔西跟队
+
+  - key: chelsea_kieran_gill
+    name: Kieran Gill (Daily Mail)
+    name_zh: 邮报·Kieran Gill
+    tier: T1
+    type: twitter
+    handle: kierangill_DM
+    watch_role_zh: 切尔西跟队
 
 # ==============================================================
 # 焦点追踪对象：与他相关的所有消息（含别队动态）进入页面顶部专区卡，

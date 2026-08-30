@@ -45,6 +45,15 @@ async function main() {
   const cfg = YAML.parse(await readFile(resolve(ROOT, 'config/sources.yaml'), 'utf8'));
   const settings = cfg.settings || {};
   const focusTargets = cfg.focus_targets || [];
+  const chelseaWatchSources = cfg.chelsea_watch_sources || [];
+  const chelseaWatchGlobalKeys = new Set(settings.chelsea_watch_global_source_keys || []);
+  const chelseaWatchEnzoOnlyKeys = new Set(settings.chelsea_watch_enzo_only_source_keys || []);
+  const chelseaWatchDedicatedKeys = new Set(chelseaWatchSources.map((source) => source.key));
+  const allowsChelseaWatchSource = (sourceKey, watchType) => (
+    chelseaWatchDedicatedKeys.has(sourceKey)
+    || chelseaWatchGlobalKeys.has(sourceKey)
+    || (watchType === 'enzo_city' && chelseaWatchEnzoOnlyKeys.has(sourceKey))
+  );
   // 焦点对象的别名并入热门名单：命中名字的消息（含别队动态）在源头就放行
   const matchers = makeMatchers({
     ...cfg,
@@ -166,6 +175,19 @@ async function main() {
     }
   }
 
+  // 切尔西跟队记者使用独立白名单抓取，不进入普通曼城消息流。
+  const chelseaWatchTimelineSources = chelseaWatchSources.filter((source) => source.type === 'twitter');
+  if (!rsshubUrl) {
+    for (const source of chelseaWatchTimelineSources) await runOne(source);
+  } else {
+    const delayMs = Math.max(0, Number(settings.twitter_request_delay_ms) || 2500);
+    console.log(`[chelsea-watch] 抓取可信跟队 ${chelseaWatchTimelineSources.length} 个`);
+    for (const source of chelseaWatchTimelineSources) {
+      await runOne(source);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+
   // 焦点对象专属检索（开放搜索 + 白名单判级，别队动态也能进来）
   const domainMap = buildDomainMap(sources);
   const focusEntries = [];
@@ -187,10 +209,11 @@ async function main() {
     }
   }
 
-  // 蓝桥引援雷达：只增加一次白名单新闻检索；X 动态复用本轮已经抓取的时间线。
+  // 蓝桥引援雷达：文章只允许切尔西官方与权威跟队域名；普通媒体不会进入。
+  const chelseaDomainMap = buildDomainMap(chelseaWatchSources.filter((source) => source.type !== 'twitter'));
   let chelseaGnewsEntries = [];
   try {
-    const entries = await fetchChelseaTransferGnews(domainMap);
+    const entries = await fetchChelseaTransferGnews(chelseaDomainMap);
     chelseaGnewsEntries = entries.filter((entry) => classifyChelseaWatch(entry.text));
     statusList.push({
       key: 'watch_chelsea_incoming', name: 'Chelsea incoming watch', name_zh: '蓝桥引援雷达',
@@ -264,7 +287,10 @@ async function main() {
   const chelseaWatchKept = (prevChelseaWatch?.items || [])
     .filter((item) => new Date(item.published_at).getTime() >= chelseaWatchCutoff)
     .map((item) => ({ ...item, text: htmlToText(item.text) || item.text }))
-    .filter((item) => classifyChelseaWatch(item.text));
+    .filter((item) => {
+      const watchType = classifyChelseaWatch(item.text);
+      return watchType && allowsChelseaWatchSource(item.source_key, watchType);
+    });
   const chelseaWatchKnownIds = new Set(chelseaWatchKept.map((item) => item.id));
   const chelseaWatchIncoming = [];
   const addChelseaWatchEntry = (entry, source) => {
@@ -272,6 +298,7 @@ async function main() {
     if (new Date(entry.published_at).getTime() < chelseaWatchCutoff) return;
     const watchType = classifyChelseaWatch(entry.text);
     if (!watchType) return;
+    if (!allowsChelseaWatchSource(source.key, watchType)) return;
     const id = makeId(entry.url);
     if (chelseaWatchKnownIds.has(id) || chelseaWatchIncoming.some((item) => item.id === id)) return;
     chelseaWatchIncoming.push({
@@ -287,9 +314,14 @@ async function main() {
       published_at: entry.published_at,
       badges: detectBadges(entry.text),
       watch_type: watchType,
+      source_role_zh: source.watch_role_zh
+        || (chelseaWatchGlobalKeys.has(source.key) ? '一线记者' : '曼城可靠线'),
     });
   };
-  for (const source of sources) {
+  const chelseaReusableSources = sources.filter((source) => (
+    chelseaWatchGlobalKeys.has(source.key) || chelseaWatchEnzoOnlyKeys.has(source.key)
+  ));
+  for (const source of [...chelseaReusableSources, ...chelseaWatchTimelineSources]) {
     for (const entry of rawBySource.get(source.key) || []) addChelseaWatchEntry(entry, source);
   }
   for (const entry of chelseaGnewsEntries) addChelseaWatchEntry(entry, entry.outlet);
