@@ -34,6 +34,10 @@ test('蓝桥雷达排除比赛、伤病、续约、女足和普通离队', () =>
     "The two clubs are now negotiating with Chelsea over a deal worth around £65m for Nicolas Jackson.",
     "Chelsea have turned down an approach from Roma to loan Jamie Gittens. He will remain at the club.",
     "Nicolas Jackson is travelling to the Midlands today to undergo his Aston Villa medical #avfc #cfc.",
+    "Chelsea have agreed a deal to sign Emiliano Martinez from Aston Villa.",
+    "Emi Martínez signs for Chelsea on a three-year contract.",
+    "切尔西官方宣布签下埃米利亚诺·马丁内斯。",
+    "大马丁加盟切尔西，交易已经完成。",
     'Manchester City are targeting a new right-back.',
   ];
   for (const value of rejected) assert.equal(isChelseaWatchItem(value), false, value);

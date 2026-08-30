@@ -12,6 +12,7 @@ const CHELSEA = /(?:\bchelsea(?:\s+fc)?\b|\bcfc\b|stamford bridge|切尔西|車�
 const ENZO = /(?:\benzo(?:\s+fernandez)?\b|恩佐(?:·费尔南德斯)?)/i;
 const MAN_CITY = /(?:\bmanchester city\b|\bman city\b|\bmcfc\b|曼城)/i;
 const WOMEN_OR_HISTORY = /(?:chelsea women|women's team|women’s team|\bwsl\b|女足|#onthisday|on this day|#otd)/i;
+const EXCLUDED_PLAYERS = /(?:\bemiliano\s+martinez\b|\bemi\s+martinez\b|\bdibu\s+martinez\b|埃米利亚诺[·・\s]?马丁内斯|埃米[·・\s]?马丁内斯|大马丁)/i;
 const CONTRACT_ONLY = /(?:new contract|contract extension|renew(?:al|ed|s|ing)?|续约)/i;
 const SPECULATION_ONLY = /(?:does|should|could|can|will)\s+.{0,85}(?:need|make|complete)\s+.{0,35}(?:signing|transfer)/i;
 const COMMERCIAL_OR_ROUNDUP = /(?:sponsor(?:ship)?|commercial partner|front-of-shirt|financial platform|paper talk)/i;
@@ -56,6 +57,7 @@ export function classifyChelseaWatch(text) {
   if (
     !value
     || WOMEN_OR_HISTORY.test(value)
+    || EXCLUDED_PLAYERS.test(value)
     || CONTRACT_ONLY.test(value)
     || SPECULATION_ONLY.test(value)
     || COMMERCIAL_OR_ROUNDUP.test(value)
