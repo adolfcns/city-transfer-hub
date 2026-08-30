@@ -17,9 +17,12 @@ const SPECULATION_ONLY = /(?:does|should|could|can|will)\s+.{0,85}(?:need|make|c
 const COMMERCIAL_OR_ROUNDUP = /(?:sponsor(?:ship)?|commercial partner|front-of-shirt|financial platform|paper talk)/i;
 const OUTGOING = new RegExp(
   [
-    String.raw`(?:leave|leaves|leaving|left|depart(?:ure|s|ed|ing)?|exit(?:s|ed|ing)?|move(?:s|d|ing)? away from|sold by|sale by|from)\s+chelsea`,
-    String.raw`chelsea.{0,90}(?:sell|sold|selling|sale|loan out|send on loan|accept(?:ed|s|ing)?\s+(?:a\s+)?bid.{0,30}(?:for|from)|let.{0,25}leave|departure|exit)`,
-    String.raw`(?:sale|transfer|move)\s+from\s+chelsea`,
+    String.raw`(?:leave|leaves|leaving|left|depart(?:ure|s|ed|ing)?|exit(?:s|ed|ing)?|move(?:s|d|ing)? away from|moving from|sold by|sale by|from)\s+(?:chelsea|#?cfc)`,
+    String.raw`(?:chelsea|#?cfc).{0,90}(?:sell|sold|selling|sale|loan out|send on loan|accept(?:ed|s|ing)?\s+(?:a\s+)?bid.{0,30}(?:for|from)|let.{0,25}leave|departure|exit)`,
+    String.raw`(?:sale|transfer|move)\s+from\s+(?:chelsea|#?cfc)`,
+    String.raw`(?:agreement|deal)\s+with\s+(?:chelsea|#?cfc)\s+to\s+sign`,
+    String.raw`(?:negotiat\w*|talks?)\s+with\s+(?:chelsea|#?cfc)\s+(?:over|for)\s+(?:a\s+)?deal`,
+    String.raw`(?:chelsea|#?cfc).{0,80}(?:turn(?:ed|s|ing)?\s+down|reject(?:ed|s|ing)?).{0,45}(?:approach|bid).{0,45}(?:loan|sign)`,
     String.raw`离开切尔西|切尔西.{0,30}(?:出售|外租|接受.{0,12}报价)`
   ].join('|'),
   'i',

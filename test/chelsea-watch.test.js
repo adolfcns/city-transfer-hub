@@ -30,6 +30,9 @@ test('蓝桥雷达排除比赛、伤病、续约、女足和普通离队', () =>
     "Chelsea: Does Xabi Alonso need a last-minute goalkeeper signing after the derby?",
     "Chelsea announce a new front-of-shirt sponsorship deal with a financial platform.",
     "Enzo Fernandez transfer news: Manchester City confident of signing Chelsea midfielder - Paper Talk",
+    "Aston Villa strike agreement with Chelsea to sign Nicolas Jackson. The player is moving from #CFC to #AVFC.",
+    "The two clubs are now negotiating with Chelsea over a deal worth around £65m for Nicolas Jackson.",
+    "Chelsea have turned down an approach from Roma to loan Jamie Gittens. He will remain at the club.",
     'Manchester City are targeting a new right-back.',
   ];
   for (const value of rejected) assert.equal(isChelseaWatchItem(value), false, value);
