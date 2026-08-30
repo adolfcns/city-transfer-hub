@@ -4696,7 +4696,7 @@ function renderCountdown() {
     if (node) node.textContent = String(value).padStart(2, '0');
   }
   n.setAttribute('aria-label',
-    `关窗警报，蓝月最后冲刺。留给维亚纳出手的时间，只剩 ${hours} 小时 ${minutes} 分 ${seconds} 秒。`);
+    `留给维亚纳出手的时间，只剩 ${hours} 小时 ${minutes} 分 ${seconds} 秒。`);
 }
 
 // ---------------- 事件绑定 ----------------
