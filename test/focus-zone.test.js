@@ -27,6 +27,6 @@ test('布阿迪重点传闻暂时撤下并换成夏窗意难平投票横幅', ()
   assert.match(app, /FOCUS_RUMOR_STRIP_ENABLED[\s\S]*?&& items\.length > 0/);
   assert.doesNotMatch(app, /key === 'vinicius'/);
   assert.doesNotMatch(app, /el\('h2', 'focus-strip-title', '📌 重点传闻'\)/);
-  assert.match(index, /尽管不如人意，我想再信一次💙/);
+  assert.match(index, /去nmd维亚纳，再也不信了/);
   assert.doesNotMatch(index, /重点绯闻/);
 });

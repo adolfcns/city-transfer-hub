@@ -6,7 +6,7 @@ const app = fs.readFileSync('static/app.js', 'utf8');
 const index = fs.readFileSync('static/index.html', 'utf8');
 
 test('转会窗倒计时使用官方关窗时间并以累计小时制造紧迫感', () => {
-  assert.match(index, /尽管不如人意，我想再信一次💙/);
+  assert.match(index, /去nmd维亚纳，再也不信了/);
   assert.doesNotMatch(index, /关窗警报！蓝月最后冲刺！/);
   assert.match(index, /距离维圣变成维处，只剩/);
   assert.match(app, /`距离维圣变成维处，只剩 \$\{hours\}/);
