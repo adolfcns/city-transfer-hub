@@ -12,11 +12,14 @@ const CHELSEA = /(?:\bchelsea(?:\s+fc)?\b|\bcfc\b|stamford bridge|切尔西|車�
 const ENZO = /(?:\benzo(?:\s+fernandez)?\b|恩佐(?:·费尔南德斯)?)/i;
 const MAN_CITY = /(?:\bmanchester city\b|\bman city\b|\bmcfc\b|曼城)/i;
 const LAMINE_CAMARA = /(?:\blamine\s+camara\b|拉明[·・\s]?(?:卡马拉|卡馬拉)|\bmonaco(?:'s)?\s+(?:midfielder\s+)?camara\b|摩纳哥(?:中场)?(?:的)?卡马拉)/i;
+const MANU_KONE = /(?:\b(?:manu|emmanuel|kouadio)\s+kone\b|马努[·・\s]?科内|(?:\broma\b.{0,55}\bkone\b|\bkone\b.{0,55}\broma\b)|罗马.{0,15}科内)/i;
+const TARGET_TRANSFER = /(?:\b(?:transfer|bid|offer|talks|negotiat\w*|agreement|deal|interest\w*|target\w*|contact\w*|accord\w*|offre\w*|transfert\w*|priorit\w*|piste|dement\w*)\b|报价|谈判|接触|加盟|转会|协议|辟谣|有意|目标)/i;
 
-// 两路检索并行，仍由同一份官方/跟队域名白名单决定是否收录。
+// 三路检索并行，仍由同一份官方/跟队域名白名单决定是否收录。
 export const CHELSEA_WATCH_QUERIES = [
   { key: 'watch_chelsea_incoming', name: 'Chelsea incoming watch', name_zh: '蓝桥引援雷达', query: 'Chelsea (sign OR signing OR bid OR target OR talks OR deal) when:7d' },
   { key: 'watch_chelsea_camara', name: 'Lamine Camara Chelsea watch', name_zh: '蓝桥重点·卡马拉', query: '"Lamine Camara" Chelsea when:7d' },
+  { key: 'watch_chelsea_kone', name: 'Manu Kone Chelsea watch', name_zh: '蓝桥重点·科内', query: '"Manu Kone" Chelsea when:7d' },
 ];
 const WOMEN_OR_HISTORY = /(?:chelsea women|women's team|women’s team|\bwsl\b|女足|#onthisday|on this day|#otd)/i;
 const EXCLUDED_PLAYERS = /(?:\bemiliano\s+martinez\b|\bemi\s+martinez\b|\bdibu\s+martinez\b|埃米利亚诺[·・\s]?马丁内斯|埃米[·・\s]?马丁内斯|大马丁)/i;
@@ -82,7 +85,9 @@ export function classifyChelseaWatch(text) {
   ) {
     return null;
   }
-  if (CHELSEA_FIRST.test(value) || CHELSEA_DESTINATION.test(value) || TO_CHELSEA_DEAL.test(value)) {
+  // 重点球员也收录“尚无协议/未报价”等澄清，不能只收到交易推进的报道。
+  const targetUpdate = (LAMINE_CAMARA.test(value) || MANU_KONE.test(value)) && TARGET_TRANSFER.test(value);
+  if (targetUpdate || CHELSEA_FIRST.test(value) || CHELSEA_DESTINATION.test(value) || TO_CHELSEA_DEAL.test(value)) {
     return 'chelsea_incoming';
   }
   return null;
@@ -98,13 +103,20 @@ export function isChelseaCamaraFocus(text) {
   return CHELSEA.test(value) && LAMINE_CAMARA.test(value) && isChelseaWatchItem(value);
 }
 
+export function isChelseaKoneFocus(text) {
+  const value = normalize(text);
+  return CHELSEA.test(value) && MANU_KONE.test(value) && isChelseaWatchItem(value);
+}
+
 export function prioritizeChelseaWatchItems(items) {
   // 新旧记录都重新打标；只作用于雷达，不改变普通曼城消息流的时间排序。
-  return items.map((item) => ({
-    ...item,
-    watch_focus: isChelseaCamaraFocus(item.text) ? 'lamine_camara' : null,
-  })).sort((a, b) => (
-    Number(b.watch_focus === 'lamine_camara') - Number(a.watch_focus === 'lamine_camara')
+  return items.map((item) => {
+    const targets = [];
+    if (isChelseaCamaraFocus(item.text)) targets.push('lamine_camara');
+    if (isChelseaKoneFocus(item.text)) targets.push('manu_kone');
+    return { ...item, watch_targets: targets, watch_focus: targets[0] || null };
+  }).sort((a, b) => (
+    Number(Boolean(b.watch_focus)) - Number(Boolean(a.watch_focus))
     || (Date.parse(b.published_at) || 0) - (Date.parse(a.published_at) || 0)
   ));
 }

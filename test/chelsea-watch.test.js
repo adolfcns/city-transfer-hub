@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import YAML from 'yaml';
-import { CHELSEA_WATCH_QUERIES, classifyChelseaWatch, isChelseaCamaraFocus, isChelseaWatchItem, prioritizeChelseaWatchItems } from '../scripts/lib/chelsea-watch.js';
+import { CHELSEA_WATCH_QUERIES, classifyChelseaWatch, isChelseaCamaraFocus, isChelseaKoneFocus, isChelseaWatchItem, prioritizeChelseaWatchItems } from '../scripts/lib/chelsea-watch.js';
 
 test('蓝桥雷达收录切尔西各位置引援，不局限中场', () => {
   assert.equal(classifyChelseaWatch('Chelsea agree deal to sign a new centre-back after talks today.'), 'chelsea_incoming');
@@ -56,9 +56,10 @@ test('卡马拉在雷达内优先，同组按新到旧排序，历史重点标�
   assert.deepEqual(items, before);
 });
 
-test('卡马拉增加专门检索并与原雷达并行，重点展示不增加普通消息流负担', () => {
-  assert.equal(CHELSEA_WATCH_QUERIES.length, 2);
+test('卡马拉和科内增加专门检索并与原雷达并行，重点展示不增加普通消息流负担', () => {
+  assert.equal(CHELSEA_WATCH_QUERIES.length, 3);
   assert.equal(CHELSEA_WATCH_QUERIES.find((search) => search.key === 'watch_chelsea_camara')?.query, '"Lamine Camara" Chelsea when:7d');
+  assert.equal(CHELSEA_WATCH_QUERIES.find((search) => search.key === 'watch_chelsea_kone')?.query, '"Manu Kone" Chelsea when:7d');
   const fetchScript = fs.readFileSync('scripts/fetch.js', 'utf8');
   const app = fs.readFileSync('static/app.js', 'utf8');
   const style = fs.readFileSync('static/style.css', 'utf8');
@@ -67,7 +68,7 @@ test('卡马拉增加专门检索并与原雷达并行，重点展示不增加�
   assert.match(fetchScript, /prioritizeChelseaWatchItems\(chelseaWatchMerged\)\.slice/);
   assert.match(app, /watch_focus === 'lamine_camara'/);
   assert.match(app, /重点·卡马拉/);
-  assert.match(app, /重点关注：拉明·卡马拉与切尔西的转会进展/);
+  assert.match(app, /双线重点：卡马拉（摩纳哥） \/ 科内（罗马）/);
   assert.match(style, /\.chelsea-watch-card\.is-camara/);
 });
 
@@ -106,7 +107,7 @@ test('首页预留独立蓝桥雷达数据流，且不混入普通消息筛选',
   assert.match(app, /renderChelseaWatchModule/);
   assert.match(app, /蓝桥引援雷达/);
   assert.match(app, /可信白名单：切尔西官方、跟队记者与一线转会记者/);
-  assert.match(app, /renderChelseaWatchModule\(zone\);\s*const banner =/);
+  assert.match(app, /renderChelseaWatchModule\(zone\);\s*renderLiverpoolSarrWatchModule\(zone\);\s*const banner =/);
   assert.match(fetchScript, /writeFile\(resolve\(DATA_DIR, 'chelsea-watch\.json'\)/);
   assert.match(fetchScript, /chelseaReusableSources = sources\.filter/);
   assert.match(fetchScript, /\[\.\.\.chelseaReusableSources, \.\.\.chelseaWatchTimelineSources\]/);
@@ -115,6 +116,31 @@ test('首页预留独立蓝桥雷达数据流，且不混入普通消息筛选',
   assert.match(workflow, /PREV_CHELSEA_WATCH_URL/);
   assert.match(style, /\.chelsea-watch-grid/);
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.chelsea-watch:not\(\.is-open\) \.chelsea-watch-card:nth-child\(n\+2\)/);
+});
+
+test('科内识别罗马马努，不混入同姓球员；两条重点都接纳辟谣', () => {
+  for (const text of [
+    'Chelsea contact Manu Koné agents. No bid has been made to Roma.',
+    'Chelsea have Roma midfielder Kone high on their transfer list.',
+    '切尔西接触罗马中场马努·科内。',
+    'Aucun accord avec Chelsea pour Manu Koné.',
+  ]) assert.equal(isChelseaKoneFocus(text), true, text);
+  for (const text of [
+    'Chelsea target Ismael Kone.', 'Chelsea interested in Kone.',
+    'Manu Kone scores against Chelsea.', 'Roma hope to keep Manu Kone.',
+  ]) assert.equal(isChelseaKoneFocus(text), false, text);
+  assert.equal(isChelseaCamaraFocus("À ce stade il n'y a encore AUCUN accord avec Chelsea pour Lamine Camara qui joue ce soir face à l'OM"), true);
+});
+
+test('卡马拉科内同等优先、按时间排序，同一条提及两人保留两个标签', () => {
+  const items = prioritizeChelseaWatchItems([
+    { id: 'camara', text: 'Chelsea target Lamine Camara.', published_at: '2026-08-30T12:00:00Z' },
+    { id: 'kone', text: 'Chelsea target Manu Kone.', published_at: '2026-08-31T12:00:00Z' },
+    { id: 'both', text: 'Chelsea contact Manu Kone and Lamine Camara agents.', published_at: '2026-08-31T13:00:00Z' },
+    { id: 'other', text: 'Chelsea sign a winger.', published_at: '2026-08-31T14:00:00Z' },
+  ]);
+  assert.deepEqual(items.map((item) => item.id), ['both', 'kone', 'camara', 'other']);
+  assert.deepEqual(items[0].watch_targets, ['lamine_camara', 'manu_kone']);
 });
 
 test('蓝桥雷达只使用切尔西官方、跟队与一线记者白名单', () => {

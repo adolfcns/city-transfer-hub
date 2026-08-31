@@ -147,6 +147,11 @@ export async function fetchFocusGnews(target, domainMap) {
 
 // 蓝桥通用/卡马拉定向检索共用严格白名单；单路失败不会影响另一路或主消息流。
 export async function fetchChelseaTransferGnews(domainMap, query = 'Chelsea (sign OR signing OR bid OR target OR talks OR deal) when:7d', get = httpGet) {
+  return fetchTrustedTransferGnews(domainMap, query, get);
+}
+
+// 各专题共用严格域名白名单，不把搜索结果中的陌生媒体自动纳入。
+export async function fetchTrustedTransferGnews(domainMap, query, get = httpGet) {
   const q = encodeURIComponent(query);
   const url = `https://news.google.com/rss/search?q=${q}&hl=en-GB&gl=GB&ceid=GB:en`;
   const xml = await get(url, { timeout: 12000, retries: 0 });

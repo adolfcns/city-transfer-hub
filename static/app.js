@@ -6,6 +6,7 @@ const DATA_URL = './data/items-latest.json';
 const DATA_FALLBACK_URL = './data/items.json';
 const STATUS_URL = './data/status.json';
 const CHELSEA_WATCH_URL = './data/chelsea-watch.json';
+const LIVERPOOL_SARR_WATCH_URL = './data/liverpool-sarr-watch.json';
 const REFRESH_MS = 90 * 1000;
 // 转会窗关闭时间（到点自动切到下一个）
 const WINDOWS = [
@@ -314,6 +315,10 @@ const state = {
   chelseaWatchGeneratedAt: null,
   chelseaWatchLoaded: false,
   chelseaWatchOpen: false,
+  liverpoolSarrWatchItems: [],
+  liverpoolSarrWatchLoaded: false,
+  liverpoolSarrWatchError: false,
+  liverpoolSarrWatchOpen: false,
   seenIds: new Set(),
   newIds: new Set(),
   pendingNew: 0,
@@ -2448,6 +2453,17 @@ async function loadData(isRefresh = false) {
     renderFocusZone();
   });
 
+  fetchJSON(LIVERPOOL_SARR_WATCH_URL).then((payload) => {
+    state.liverpoolSarrWatchItems = Array.isArray(payload.items) ? payload.items : [];
+    state.liverpoolSarrWatchLoaded = true;
+    state.liverpoolSarrWatchError = false;
+    renderFocusZone();
+  }).catch(() => {
+    state.liverpoolSarrWatchLoaded = true;
+    state.liverpoolSarrWatchError = true;
+    renderFocusZone();
+  });
+
   const sharedId = requestedMessageId();
   if (sharedId && !state.items.some((item) => itemId(item) === sharedId) && hasMoreArchives()) {
     loadAllArchives().then((loaded) => {
@@ -4284,21 +4300,24 @@ function renderPinnedCard(it) {
   return card;
 }
 
-function renderChelseaWatchCard(item) {
-  const isCamara = item.watch_focus === 'lamine_camara';
-  const card = el('a', `chelsea-watch-card${isCamara ? ' is-camara' : ''}`);
+function renderChelseaWatchCard(item, context = 'chelsea') {
+  const isSarr = context === 'liverpool_sarr';
+  const isCamara = !isSarr && (item.watch_targets?.includes('lamine_camara') || item.watch_focus === 'lamine_camara');
+  const isKone = !isSarr && (item.watch_targets?.includes('manu_kone') || item.watch_focus === 'manu_kone');
+  const focusLabel = isCamara && isKone ? '卡马拉 / 科内' : isCamara ? '重点·卡马拉' : isKone ? '重点·科内' : null;
+  const card = el('a', `chelsea-watch-card${isCamara ? ' is-camara' : isKone ? ' is-kone' : ''}`);
   card.href = item.url;
   card.target = '_blank';
   card.rel = 'noopener noreferrer';
-  card.setAttribute('aria-label', `查看${item.source_name_zh || item.source_name}的蓝桥引援消息`);
+  card.setAttribute('aria-label', `查看${item.source_name_zh || item.source_name}的${isSarr ? '萨尔转会' : '蓝桥引援'}消息`);
 
   const meta = el('div', 'chelsea-watch-card-meta');
   meta.appendChild(el('span', `badge-tier ${TIER_CLASS[item.tier] || 't2'}`, item.tier || 'T2'));
   meta.appendChild(el('strong', 'chelsea-watch-source', item.source_name_zh || item.source_name));
   meta.appendChild(el(
     'span',
-    `chelsea-watch-kind${isCamara ? ' camara' : item.watch_type === 'enzo_city' ? ' enzo' : ''}`,
-    isCamara ? '重点·卡马拉' : item.watch_type === 'enzo_city' ? '恩佐直连曼城' : '切尔西引援',
+    `chelsea-watch-kind${isSarr ? ' sarr' : focusLabel ? ' camara' : item.watch_type === 'enzo_city' ? ' enzo' : ''}`,
+    isSarr ? '萨尔追踪' : focusLabel || (item.watch_type === 'enzo_city' ? '恩佐直连曼城' : '切尔西引援'),
   ));
   meta.appendChild(el('time', 'chelsea-watch-time', relTime(item.published_at)));
   card.appendChild(meta);
@@ -4323,7 +4342,7 @@ function renderChelseaWatchModule(zone) {
   const copy = el('span', 'chelsea-watch-heading-copy');
   copy.append(
     el('strong', 'chelsea-watch-title', '🔍 蓝桥引援雷达'),
-    el('span', 'chelsea-watch-subtitle', '重点关注：拉明·卡马拉与切尔西的转会进展。'),
+    el('span', 'chelsea-watch-subtitle', '双线重点：卡马拉（摩纳哥） / 科内（罗马）'),
     el('span', 'chelsea-watch-scope', '可信白名单：切尔西官方、跟队记者与一线转会记者'),
   );
   const count = state.chelseaWatchLoaded ? `${items.length} 条动态` : '正在盯盘';
@@ -4360,6 +4379,48 @@ function renderChelseaWatchModule(zone) {
   zone.appendChild(section);
 }
 
+function renderLiverpoolSarrWatchModule(zone) {
+  const items = state.liverpoolSarrWatchItems || [];
+  const open = state.liverpoolSarrWatchOpen;
+  const section = el('section', `chelsea-watch liverpool-sarr-watch${open ? ' is-open' : ''}`);
+  section.setAttribute('aria-label', '利物浦·萨尔追踪');
+  const changeOpen = () => {
+    state.liverpoolSarrWatchOpen = !state.liverpoolSarrWatchOpen;
+    renderFocusZone();
+  };
+  const toggle = el('button', 'chelsea-watch-head');
+  toggle.type = 'button';
+  toggle.setAttribute('aria-expanded', String(open));
+  const copy = el('span', 'chelsea-watch-heading-copy');
+  copy.append(
+    el('strong', 'chelsea-watch-title', '🔎 利物浦·萨尔追踪'),
+    el('span', 'chelsea-watch-subtitle', '只盯这笔：利物浦求购水晶宫伊斯梅拉·萨尔'),
+    el('span', 'chelsea-watch-scope', '两队跟队 + 一线记者 · 报价、谈判与辟谣同步追踪'),
+  );
+  const count = state.liverpoolSarrWatchLoaded ? `${items.length} 条动态` : '正在盯盘';
+  toggle.append(copy, el('span', 'chelsea-watch-count', `${count} ${open ? '⌃' : '⌄'}`));
+  toggle.onclick = changeOpen;
+  section.appendChild(toggle);
+  if (!state.liverpoolSarrWatchLoaded) {
+    section.appendChild(el('p', 'chelsea-watch-empty', '正在同步萨尔转会动态…'));
+  } else if (!items.length) {
+    section.appendChild(el('p', 'chelsea-watch-empty', state.liverpoolSarrWatchError
+      ? '暂未连上动态数据，请稍后刷新；不影响其他消息更新。'
+      : '暂无符合条件的新动态，后台仍会每 15 分钟继续盯盘。'));
+  } else {
+    const grid = el('div', 'chelsea-watch-grid');
+    items.slice(0, open ? 12 : 3).forEach((item) => grid.appendChild(renderChelseaWatchCard(item, 'liverpool_sarr')));
+    section.appendChild(grid);
+    if (items.length > 1) {
+      const more = el('button', 'chelsea-watch-more', open ? '收起萨尔追踪' : `展开更多动态（${Math.min(items.length, 12)} 条）`);
+      more.type = 'button';
+      more.onclick = changeOpen;
+      section.appendChild(more);
+    }
+  }
+  zone.appendChild(section);
+}
+
 function renderFocusZone() {
   const zone = $('#focus-zone');
   clearEngagementWatchers(zone);
@@ -4367,6 +4428,7 @@ function renderFocusZone() {
   zone.hidden = false;
 
   renderChelseaWatchModule(zone);
+  renderLiverpoolSarrWatchModule(zone);
 
   const banner = el('button', 'departure-heartbreak-banner');
   banner.type = 'button';
@@ -4790,7 +4852,7 @@ function renderCountdown() {
     if (node) node.textContent = String(value).padStart(2, '0');
   }
   n.setAttribute('aria-label',
-    `留给维亚纳出手的时间，只剩 ${hours} 小时 ${minutes} 分 ${seconds} 秒。`);
+    `距离维圣变成维处，只剩 ${hours} 小时 ${minutes} 分 ${seconds} 秒。`);
 }
 
 // ---------------- 事件绑定 ----------------

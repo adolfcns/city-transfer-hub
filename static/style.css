@@ -228,8 +228,8 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 .chelsea-watch-card:hover {
   border-color: #64b4d8; box-shadow: 0 7px 18px rgba(35,82,108,.12); transform: translateY(-1px); text-decoration: none;
 }
-.chelsea-watch-card.is-camara { border-color: #d4b164; background: linear-gradient(135deg, #fffaf0, #fff 70%); }
-.chelsea-watch-card.is-camara:hover { border-color: #ae811e; }
+.chelsea-watch-card.is-camara, .chelsea-watch-card.is-kone { border-color: #d4b164; background: linear-gradient(135deg, #fffaf0, #fff 70%); }
+.chelsea-watch-card.is-camara:hover, .chelsea-watch-card.is-kone:hover { border-color: #ae811e; }
 .chelsea-watch-card-meta { min-width: 0; display: flex; align-items: center; gap: 5px; }
 .chelsea-watch-card-meta .badge-tier { flex: none; }
 .chelsea-watch-source {
@@ -257,6 +257,14 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   background: #f1f9fc; color: #287ca5; font-size: 11px; font-weight: 900;
 }
 .chelsea-watch-more:hover { background: #e4f4fa; border-color: #64b4d8; }
+
+.liverpool-sarr-watch { border-color: #dcc1c7; }
+.liverpool-sarr-watch .chelsea-watch-head { background: linear-gradient(112deg, #fff0f2, #fffafb 75%); }
+.liverpool-sarr-watch .chelsea-watch-head:hover { background: #fcebee; }
+.liverpool-sarr-watch .chelsea-watch-title { color: #8c3347; }
+.liverpool-sarr-watch .chelsea-watch-count,
+.liverpool-sarr-watch .chelsea-watch-more { color: #963c50; border-color: #dfbcc5; background: #fff7f8; }
+.chelsea-watch-kind.sarr { color: #963c50; background: #ffe8ed; }
 
 .departure-heartbreak-banner {
   position: relative; width: 100%; overflow: hidden; padding: 14px 112px 15px 18px;

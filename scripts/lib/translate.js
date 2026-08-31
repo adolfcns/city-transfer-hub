@@ -9,12 +9,14 @@ const RETRIES = 3;
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function withRetry(label, operation, attempts = RETRIES) {
+async function withRetry(label, operation, attempts = RETRIES, signal) {
   let lastError;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    signal?.throwIfAborted();
     try {
       return await operation();
     } catch (error) {
+      signal?.throwIfAborted();
       lastError = error;
       if (attempt < attempts) await wait(800 * attempt);
     }
@@ -22,7 +24,7 @@ async function withRetry(label, operation, attempts = RETRIES) {
   throw new Error(`${label}: ${lastError?.message || lastError}`);
 }
 
-async function callDeepSeek(key, texts) {
+async function callDeepSeek(key, texts, signal) {
   const numbered = texts.map((text, index) => (
     `${index + 1}. ${String(text).replace(/\n/g, ' ')}`
   )).join('\n');
@@ -43,6 +45,7 @@ async function callDeepSeek(key, texts) {
     ],
   });
   const response = await request(DEEPSEEK_API, {
+    signal,
     method: 'POST',
     dispatcher: new Agent(),
     headers: {
@@ -70,8 +73,9 @@ export function edgeResponseToMap(rows) {
   return map;
 }
 
-async function callEdgeTranslator(texts) {
+async function callEdgeTranslator(texts, signal) {
   const tokenResponse = await request(EDGE_AUTH_API, {
+    signal,
     method: 'GET',
     dispatcher: new Agent(),
     headers: {
@@ -87,6 +91,7 @@ async function callEdgeTranslator(texts) {
   }
 
   const response = await request(`${EDGE_TRANSLATE_API}?api-version=3.0&to=zh-Hans`, {
+    signal,
     method: 'POST',
     dispatcher: new Agent(),
     headers: {
@@ -116,12 +121,13 @@ function applyMap(items, map) {
   return done;
 }
 
-export async function translateNew(items, deepSeekKey) {
+export async function translateNew(items, deepSeekKey, { signal } = {}) {
   const todo = items.filter((item) => !item.text_zh && item.text).slice(0, MAX_PER_RUN);
   let translated = 0;
   let fallbackTranslated = 0;
 
   for (let index = 0; index < todo.length; index += BATCH) {
+    if (signal?.aborted) break;
     const batch = todo.slice(index, index + BATCH);
     const texts = batch.map((item) => item.text);
     let deepSeekMap = {};
@@ -130,7 +136,8 @@ export async function translateNew(items, deepSeekKey) {
       try {
         deepSeekMap = await withRetry(
           'DeepSeek',
-          () => callDeepSeek(deepSeekKey, texts),
+          () => callDeepSeek(deepSeekKey, texts, signal),
+          RETRIES, signal,
         );
       } catch (error) {
         console.warn(`[translate] DeepSeek 批次失败，切换备用翻译：${error.message}`);
@@ -142,11 +149,13 @@ export async function translateNew(items, deepSeekKey) {
     translated += applyMap(batch, deepSeekMap);
     const missing = batch.filter((item) => !item.text_zh);
     if (!missing.length) continue;
+    if (signal?.aborted) break;
 
     try {
       const fallbackMap = await withRetry(
         'Edge translator',
-        () => callEdgeTranslator(missing.map((item) => item.text)),
+        () => callEdgeTranslator(missing.map((item) => item.text), signal),
+        RETRIES, signal,
       );
       const count = applyMap(missing, fallbackMap);
       translated += count;

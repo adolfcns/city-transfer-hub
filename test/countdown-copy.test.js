@@ -8,8 +8,8 @@ const index = fs.readFileSync('static/index.html', 'utf8');
 test('转会窗倒计时使用官方关窗时间并以累计小时制造紧迫感', () => {
   assert.match(index, /尽管不如人意，我想再信一次💙/);
   assert.doesNotMatch(index, /关窗警报！蓝月最后冲刺！/);
-  assert.match(index, /留给维亚纳出手的时间，只剩/);
-  assert.match(app, /`留给维亚纳出手的时间，只剩 \$\{hours\}/);
+  assert.match(index, /距离维圣变成维处，只剩/);
+  assert.match(app, /`距离维圣变成维处，只剩 \$\{hours\}/);
   assert.doesNotMatch(app, /关窗警报，蓝月最后冲刺。/);
   assert.match(app, /2026-09-01T22:00:00Z/);
   assert.doesNotMatch(app, /2026-09-01T17:00:00Z/);
