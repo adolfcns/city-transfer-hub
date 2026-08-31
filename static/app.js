@@ -6,7 +6,6 @@ const DATA_URL = './data/items-latest.json';
 const DATA_FALLBACK_URL = './data/items.json';
 const STATUS_URL = './data/status.json';
 const CHELSEA_WATCH_URL = './data/chelsea-watch.json';
-const LIVERPOOL_SARR_WATCH_URL = './data/liverpool-sarr-watch.json';
 const REFRESH_MS = 90 * 1000;
 // 转会窗关闭时间（到点自动切到下一个）
 const WINDOWS = [
@@ -315,10 +314,7 @@ const state = {
   chelseaWatchGeneratedAt: null,
   chelseaWatchLoaded: false,
   chelseaWatchOpen: false,
-  liverpoolSarrWatchItems: [],
-  liverpoolSarrWatchLoaded: false,
-  liverpoolSarrWatchError: false,
-  liverpoolSarrWatchOpen: false,
+  chelseaWatchFilter: 'all',
   seenIds: new Set(),
   newIds: new Set(),
   pendingNew: 0,
@@ -2453,17 +2449,6 @@ async function loadData(isRefresh = false) {
     renderFocusZone();
   });
 
-  fetchJSON(LIVERPOOL_SARR_WATCH_URL).then((payload) => {
-    state.liverpoolSarrWatchItems = Array.isArray(payload.items) ? payload.items : [];
-    state.liverpoolSarrWatchLoaded = true;
-    state.liverpoolSarrWatchError = false;
-    renderFocusZone();
-  }).catch(() => {
-    state.liverpoolSarrWatchLoaded = true;
-    state.liverpoolSarrWatchError = true;
-    renderFocusZone();
-  });
-
   const sharedId = requestedMessageId();
   if (sharedId && !state.items.some((item) => itemId(item) === sharedId) && hasMoreArchives()) {
     loadAllArchives().then((loaded) => {
@@ -4300,24 +4285,23 @@ function renderPinnedCard(it) {
   return card;
 }
 
-function renderChelseaWatchCard(item, context = 'chelsea') {
-  const isSarr = context === 'liverpool_sarr';
-  const isCamara = !isSarr && (item.watch_targets?.includes('lamine_camara') || item.watch_focus === 'lamine_camara');
-  const isKone = !isSarr && (item.watch_targets?.includes('manu_kone') || item.watch_focus === 'manu_kone');
-  const focusLabel = isCamara && isKone ? '卡马拉 / 科内' : isCamara ? '重点·卡马拉' : isKone ? '重点·科内' : null;
-  const card = el('a', `chelsea-watch-card${isCamara ? ' is-camara' : isKone ? ' is-kone' : ''}`);
+function renderChelseaWatchCard(item) {
+  const isCamara = item.watch_targets?.includes('lamine_camara') || item.watch_focus === 'lamine_camara';
+  const isKone = item.watch_targets?.includes('manu_kone') || item.watch_focus === 'manu_kone';
+  const focusLabel = isKone ? '首要·科内' : isCamara ? '重点·卡马拉' : null;
+  const card = el('a', `chelsea-watch-card${isKone ? ' is-kone' : isCamara ? ' is-camara' : ''}`);
   card.href = item.url;
   card.target = '_blank';
   card.rel = 'noopener noreferrer';
-  card.setAttribute('aria-label', `查看${item.source_name_zh || item.source_name}的${isSarr ? '萨尔转会' : '蓝桥引援'}消息`);
+  card.setAttribute('aria-label', `查看${item.source_name_zh || item.source_name}的蓝桥中场消息`);
 
   const meta = el('div', 'chelsea-watch-card-meta');
   meta.appendChild(el('span', `badge-tier ${TIER_CLASS[item.tier] || 't2'}`, item.tier || 'T2'));
   meta.appendChild(el('strong', 'chelsea-watch-source', item.source_name_zh || item.source_name));
   meta.appendChild(el(
     'span',
-    `chelsea-watch-kind${isSarr ? ' sarr' : focusLabel ? ' camara' : item.watch_type === 'enzo_city' ? ' enzo' : ''}`,
-    isSarr ? '萨尔追踪' : focusLabel || (item.watch_type === 'enzo_city' ? '恩佐直连曼城' : '切尔西引援'),
+    `chelsea-watch-kind${isKone ? ' kone' : focusLabel ? ' camara' : item.watch_type === 'enzo_city' ? ' enzo' : ''}`,
+    focusLabel || (item.watch_type === 'enzo_city' ? '恩佐直连曼城' : '中场引援'),
   ));
   meta.appendChild(el('time', 'chelsea-watch-time', relTime(item.published_at)));
   card.appendChild(meta);
@@ -4332,17 +4316,22 @@ function renderChelseaWatchCard(item, context = 'chelsea') {
 }
 
 function renderChelseaWatchModule(zone) {
-  const items = state.chelseaWatchItems || [];
+  const allItems = state.chelseaWatchItems || [];
+  const filter = state.chelseaWatchFilter || 'all';
+  const items = allItems.filter((item) => {
+    const kone = item.watch_targets?.includes('manu_kone') || item.watch_focus === 'manu_kone';
+    return filter === 'kone' ? kone : filter === 'midfield' ? (item.watch_type === 'chelsea_incoming' || item.watch_midfield || item.watch_targets?.includes('lamine_camara')) && !kone : true;
+  });
   const section = el('section', `chelsea-watch${state.chelseaWatchOpen ? ' is-open' : ''}`);
-  section.setAttribute('aria-label', '蓝桥引援雷达');
+  section.setAttribute('aria-label', '蓝桥中场雷达');
 
   const toggle = el('button', 'chelsea-watch-head');
   toggle.type = 'button';
   toggle.setAttribute('aria-expanded', String(state.chelseaWatchOpen));
   const copy = el('span', 'chelsea-watch-heading-copy');
   copy.append(
-    el('strong', 'chelsea-watch-title', '🔍 蓝桥引援雷达'),
-    el('span', 'chelsea-watch-subtitle', '双线重点：卡马拉（摩纳哥） / 科内（罗马）'),
+    el('strong', 'chelsea-watch-title', '🔍 蓝桥中场雷达'),
+    el('span', 'chelsea-watch-subtitle', '科内优先 · 切尔西其他中场引援同步追踪'),
     el('span', 'chelsea-watch-scope', '可信白名单：切尔西官方、跟队记者与一线转会记者'),
   );
   const count = state.chelseaWatchLoaded ? `${items.length} 条动态` : '正在盯盘';
@@ -4353,68 +4342,38 @@ function renderChelseaWatchModule(zone) {
   };
   section.appendChild(toggle);
 
+  const tabs = el('div', 'chelsea-watch-tabs');
+  tabs.setAttribute('role', 'group');
+  tabs.setAttribute('aria-label', '切尔西中场消息筛选');
+  for (const [key, label] of [['all', '全部动态'], ['kone', '首要·科内'], ['midfield', '其他中场']]) {
+    const button = el('button', `chelsea-watch-tab${filter === key ? ' active' : ''}`, label);
+    button.type = 'button';
+    button.setAttribute('aria-pressed', String(filter === key));
+    button.onclick = () => { state.chelseaWatchFilter = key; renderFocusZone(); };
+    tabs.appendChild(button);
+  }
+  section.appendChild(tabs);
+
   if (!state.chelseaWatchLoaded) {
-    section.appendChild(el('p', 'chelsea-watch-empty', '正在同步最新切尔西引援动态…'));
+    section.appendChild(el('p', 'chelsea-watch-empty', '正在同步科内与切尔西中场引援动态…'));
   } else if (!items.length) {
     section.appendChild(el('p', 'chelsea-watch-empty', '暂无符合条件的新动态，后台仍会每 15 分钟继续盯盘。'));
   } else {
     const grid = el('div', 'chelsea-watch-grid');
-    const visibleItems = items.slice(0, state.chelseaWatchOpen ? 12 : 3);
+    const visibleItems = state.chelseaWatchOpen ? items : items.slice(0, 3);
     visibleItems.forEach((item) => grid.appendChild(renderChelseaWatchCard(item)));
     section.appendChild(grid);
-    if (items.length > 3) {
+    if (items.length > 1) {
       const more = el(
         'button',
         'chelsea-watch-more',
-        state.chelseaWatchOpen ? '收起蓝桥雷达' : `展开更多动态（${Math.min(items.length, 12)} 条）`,
+        state.chelseaWatchOpen ? '收起蓝桥雷达' : `展开更多动态（${items.length} 条）`,
       );
       more.type = 'button';
       more.onclick = () => {
         state.chelseaWatchOpen = !state.chelseaWatchOpen;
         renderFocusZone();
       };
-      section.appendChild(more);
-    }
-  }
-  zone.appendChild(section);
-}
-
-function renderLiverpoolSarrWatchModule(zone) {
-  const items = state.liverpoolSarrWatchItems || [];
-  const open = state.liverpoolSarrWatchOpen;
-  const section = el('section', `chelsea-watch liverpool-sarr-watch${open ? ' is-open' : ''}`);
-  section.setAttribute('aria-label', '利物浦·萨尔追踪');
-  const changeOpen = () => {
-    state.liverpoolSarrWatchOpen = !state.liverpoolSarrWatchOpen;
-    renderFocusZone();
-  };
-  const toggle = el('button', 'chelsea-watch-head');
-  toggle.type = 'button';
-  toggle.setAttribute('aria-expanded', String(open));
-  const copy = el('span', 'chelsea-watch-heading-copy');
-  copy.append(
-    el('strong', 'chelsea-watch-title', '🔎 利物浦·萨尔追踪'),
-    el('span', 'chelsea-watch-subtitle', '只盯这笔：利物浦求购水晶宫伊斯梅拉·萨尔'),
-    el('span', 'chelsea-watch-scope', '两队跟队 + 一线记者 · 报价、谈判与辟谣同步追踪'),
-  );
-  const count = state.liverpoolSarrWatchLoaded ? `${items.length} 条动态` : '正在盯盘';
-  toggle.append(copy, el('span', 'chelsea-watch-count', `${count} ${open ? '⌃' : '⌄'}`));
-  toggle.onclick = changeOpen;
-  section.appendChild(toggle);
-  if (!state.liverpoolSarrWatchLoaded) {
-    section.appendChild(el('p', 'chelsea-watch-empty', '正在同步萨尔转会动态…'));
-  } else if (!items.length) {
-    section.appendChild(el('p', 'chelsea-watch-empty', state.liverpoolSarrWatchError
-      ? '暂未连上动态数据，请稍后刷新；不影响其他消息更新。'
-      : '暂无符合条件的新动态，后台仍会每 15 分钟继续盯盘。'));
-  } else {
-    const grid = el('div', 'chelsea-watch-grid');
-    items.slice(0, open ? 12 : 3).forEach((item) => grid.appendChild(renderChelseaWatchCard(item, 'liverpool_sarr')));
-    section.appendChild(grid);
-    if (items.length > 1) {
-      const more = el('button', 'chelsea-watch-more', open ? '收起萨尔追踪' : `展开更多动态（${Math.min(items.length, 12)} 条）`);
-      more.type = 'button';
-      more.onclick = changeOpen;
       section.appendChild(more);
     }
   }
@@ -4428,7 +4387,6 @@ function renderFocusZone() {
   zone.hidden = false;
 
   renderChelseaWatchModule(zone);
-  renderLiverpoolSarrWatchModule(zone);
 
   const banner = el('button', 'departure-heartbreak-banner');
   banner.type = 'button';

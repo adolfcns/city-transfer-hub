@@ -8,7 +8,7 @@ import {
 } from '../scripts/lib/sources.js';
 import { CHELSEA_WATCH_QUERIES } from '../scripts/lib/chelsea-watch.js';
 
-test('Chelsea general and Camara searches both reject articles outside the trusted domain map', async () => {
+test('Chelsea midfield and Kone searches reject untrusted domains and use their configured language', async () => {
   const outlet = { key: 'chelsea_telegraph', name: 'The Telegraph', tier: 'T0' };
   const domainMap = new Map([['telegraph.co.uk', outlet]]);
   const xml = `<rss><channel>
@@ -16,12 +16,13 @@ test('Chelsea general and Camara searches both reject articles outside the trust
     <item><title>Chelsea target Lamine Camara - Rumour Blog</title><link>https://news.google.com/articles/blog</link><pubDate>Mon, 31 Aug 2026 08:00:00 GMT</pubDate><source url="https://rumour.example">Rumour Blog</source></item>
     <item><title>Chelsea target Lamine Camara - Unknown</title><link>https://news.google.com/articles/unknown</link><pubDate>Mon, 31 Aug 2026 08:00:00 GMT</pubDate></item>
   </channel></rss>`;
-  for (const { query } of CHELSEA_WATCH_QUERIES) {
+  for (const { query, locale = 'en-GB' } of CHELSEA_WATCH_QUERIES) {
     const entries = await fetchChelseaTransferGnews(domainMap, query, async (url, options) => {
       assert.equal(new URL(url).searchParams.get('q'), query);
+      assert.equal(new URL(url).searchParams.get('hl'), locale);
       assert.deepEqual(options, { timeout: 12000, retries: 0 });
       return xml;
-    });
+    }, locale);
     assert.equal(entries.length, 1);
     assert.equal(entries[0].outlet.key, 'chelsea_telegraph');
     assert.equal(entries[0].text, 'Chelsea target Lamine Camara');

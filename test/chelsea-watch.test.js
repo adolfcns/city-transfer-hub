@@ -4,12 +4,17 @@ import fs from 'node:fs';
 import YAML from 'yaml';
 import { CHELSEA_WATCH_QUERIES, classifyChelseaWatch, isChelseaCamaraFocus, isChelseaKoneFocus, isChelseaWatchItem, prioritizeChelseaWatchItems } from '../scripts/lib/chelsea-watch.js';
 
-test('蓝桥雷达收录切尔西各位置引援，不局限中场', () => {
-  assert.equal(classifyChelseaWatch('Chelsea agree deal to sign a new centre-back after talks today.'), 'chelsea_incoming');
-  assert.equal(classifyChelseaWatch('Chelsea submit an opening bid for the winger.'), 'chelsea_incoming');
-  assert.equal(classifyChelseaWatch('The striker is expected to join Chelsea after his medical.'), 'chelsea_incoming');
-  assert.equal(classifyChelseaWatch('Alejandro Garnett to Chelsea, here we go!'), 'chelsea_incoming');
-  assert.equal(classifyChelseaWatch('切尔西已报价引进一名新的左后卫。'), 'chelsea_incoming');
+test('蓝桥雷达聚焦中场，排除前锋、后卫和门将引援', () => {
+  assert.equal(classifyChelseaWatch('Chelsea agree deal to sign a new midfielder after talks today.'), 'chelsea_incoming');
+  assert.equal(classifyChelseaWatch('Chelsea submit an opening bid for Alex Scott.'), 'chelsea_incoming');
+  assert.equal(classifyChelseaWatch('切尔西已报价引进一名新的后腰。'), 'chelsea_incoming');
+  for (const text of [
+    'Chelsea agree deal to sign a new centre-back after talks today.',
+    'Chelsea submit an opening bid for the winger.',
+    'The striker is expected to join Chelsea after his medical.',
+    'Alejandro Garnett to Chelsea, here we go!',
+    '切尔西已报价引进一名新的左后卫。',
+  ]) assert.equal(classifyChelseaWatch(text), null, text);
 });
 
 test('恩佐加盟曼城的直接动态始终进入蓝桥雷达', () => {
@@ -42,7 +47,7 @@ test('卡马拉重点只识别拉明与切尔西的转会报道，不混入同�
   for (const text of rejected) assert.equal(isChelseaCamaraFocus(text), false, text);
 });
 
-test('卡马拉在雷达内优先，同组按新到旧排序，历史重点标记会重算且原数组不变', () => {
+test('非科内条目按新到旧排序，历史重点标记会重算且原数组不变', () => {
   const items = [
     { id: 'other-new', text: 'Chelsea bid for a striker.', published_at: '2026-08-31T12:00:00Z', watch_focus: 'lamine_camara' },
     { id: 'camara-old', text: 'Chelsea target Lamine Camara.', published_at: '2026-08-28T12:00:00Z' },
@@ -51,24 +56,26 @@ test('卡马拉在雷达内优先，同组按新到旧排序，历史重点标�
   ];
   const before = structuredClone(items);
   const ranked = prioritizeChelseaWatchItems(items);
-  assert.deepEqual(ranked.map((item) => item.id), ['camara-new', 'camara-old', 'other-new', 'other-old']);
-  assert.deepEqual(ranked.map((item) => item.watch_focus), ['lamine_camara', 'lamine_camara', null, null]);
+  assert.deepEqual(ranked.map((item) => item.id), ['other-new', 'camara-new', 'other-old', 'camara-old']);
+  assert.deepEqual(ranked.map((item) => item.watch_focus), [null, 'lamine_camara', null, 'lamine_camara']);
   assert.deepEqual(items, before);
 });
 
 test('卡马拉和科内增加专门检索并与原雷达并行，重点展示不增加普通消息流负担', () => {
-  assert.equal(CHELSEA_WATCH_QUERIES.length, 3);
+  assert.equal(CHELSEA_WATCH_QUERIES.length, 5);
   assert.equal(CHELSEA_WATCH_QUERIES.find((search) => search.key === 'watch_chelsea_camara')?.query, '"Lamine Camara" Chelsea when:7d');
-  assert.equal(CHELSEA_WATCH_QUERIES.find((search) => search.key === 'watch_chelsea_kone')?.query, '"Manu Kone" Chelsea when:7d');
+  assert.equal(CHELSEA_WATCH_QUERIES.find((search) => search.key === 'watch_chelsea_kone')?.query, '"Manu Kone" (Chelsea OR Roma) when:7d');
+  assert.deepEqual(CHELSEA_WATCH_QUERIES.filter((search) => search.locale).map((search) => search.locale), ['fr', 'it']);
   const fetchScript = fs.readFileSync('scripts/fetch.js', 'utf8');
   const app = fs.readFileSync('static/app.js', 'utf8');
   const style = fs.readFileSync('static/style.css', 'utf8');
   assert.match(fetchScript, /Promise\.all\(CHELSEA_WATCH_QUERIES\.map/);
-  assert.match(fetchScript, /fetchChelseaTransferGnews\(chelseaDomainMap, query\)/);
+  assert.match(fetchScript, /fetchChelseaTransferGnews\(chelseaDomainMap, query, undefined, locale\)/);
   assert.match(fetchScript, /prioritizeChelseaWatchItems\(chelseaWatchMerged\)\.slice/);
   assert.match(app, /watch_focus === 'lamine_camara'/);
   assert.match(app, /重点·卡马拉/);
-  assert.match(app, /双线重点：卡马拉（摩纳哥） \/ 科内（罗马）/);
+  assert.match(app, /科内优先 · 切尔西其他中场引援同步追踪/);
+  assert.match(app, /切尔西中场消息筛选/);
   assert.match(style, /\.chelsea-watch-card\.is-camara/);
 });
 
@@ -105,9 +112,9 @@ test('首页预留独立蓝桥雷达数据流，且不混入普通消息筛选',
   const style = fs.readFileSync('static/style.css', 'utf8');
   assert.match(app, /CHELSEA_WATCH_URL/);
   assert.match(app, /renderChelseaWatchModule/);
-  assert.match(app, /蓝桥引援雷达/);
+  assert.match(app, /蓝桥中场雷达/);
   assert.match(app, /可信白名单：切尔西官方、跟队记者与一线转会记者/);
-  assert.match(app, /renderChelseaWatchModule\(zone\);\s*renderLiverpoolSarrWatchModule\(zone\);\s*const banner =/);
+  assert.match(app, /renderChelseaWatchModule\(zone\);\s*const banner =/);
   assert.match(fetchScript, /writeFile\(resolve\(DATA_DIR, 'chelsea-watch\.json'\)/);
   assert.match(fetchScript, /chelseaReusableSources = sources\.filter/);
   assert.match(fetchScript, /\[\.\.\.chelseaReusableSources, \.\.\.chelseaWatchTimelineSources\]/);
@@ -124,23 +131,30 @@ test('科内识别罗马马努，不混入同姓球员；两条重点都接纳�
     'Chelsea have Roma midfielder Kone high on their transfer list.',
     '切尔西接触罗马中场马努·科内。',
     'Aucun accord avec Chelsea pour Manu Koné.',
+    'Roma hope to keep Manu Kone.',
+    'Roma demand €70m for Manu Kone. The midfielder is not for sale.',
+    'La Roma considera Manu Koné incedibile.',
   ]) assert.equal(isChelseaKoneFocus(text), true, text);
   for (const text of [
     'Chelsea target Ismael Kone.', 'Chelsea interested in Kone.',
-    'Manu Kone scores against Chelsea.', 'Roma hope to keep Manu Kone.',
+    'Manu Kone scores against Chelsea.',
   ]) assert.equal(isChelseaKoneFocus(text), false, text);
   assert.equal(isChelseaCamaraFocus("À ce stade il n'y a encore AUCUN accord avec Chelsea pour Lamine Camara qui joue ce soir face à l'OM"), true);
 });
 
-test('卡马拉科内同等优先、按时间排序，同一条提及两人保留两个标签', () => {
+test('科内最高优先，其余按时间排序，同一条提及两人以科内为主标签', () => {
   const items = prioritizeChelseaWatchItems([
     { id: 'camara', text: 'Chelsea target Lamine Camara.', published_at: '2026-08-30T12:00:00Z' },
     { id: 'kone', text: 'Chelsea target Manu Kone.', published_at: '2026-08-31T12:00:00Z' },
     { id: 'both', text: 'Chelsea contact Manu Kone and Lamine Camara agents.', published_at: '2026-08-31T13:00:00Z' },
     { id: 'other', text: 'Chelsea sign a winger.', published_at: '2026-08-31T14:00:00Z' },
   ]);
-  assert.deepEqual(items.map((item) => item.id), ['both', 'kone', 'camara', 'other']);
-  assert.deepEqual(items[0].watch_targets, ['lamine_camara', 'manu_kone']);
+  assert.deepEqual(items.map((item) => item.id), ['both', 'kone', 'other', 'camara']);
+  assert.deepEqual(items[0].watch_targets, ['manu_kone', 'lamine_camara']);
+  assert.equal(items[0].watch_focus, 'manu_kone');
+  const combined = prioritizeChelseaWatchItems([{ text: 'Chelsea target Alex Scott to replace Enzo Fernandez, who could join Manchester City.', published_at: '2026-08-31T14:00:00Z' }])[0];
+  assert.equal(combined.watch_type, 'enzo_city');
+  assert.equal(combined.watch_midfield, true);
 });
 
 test('蓝桥雷达只使用切尔西官方、跟队与一线记者白名单', () => {
@@ -159,10 +173,38 @@ test('蓝桥雷达只使用切尔西官方、跟队与一线记者白名单', ()
   for (const site of ['chelseafc.com', 'nytimes.com/athletic', 'telegraph.co.uk', 'bbc.co.uk', 'skysports.com']) {
     assert.ok(sites.has(site), `${site} 应在权威域名白名单`);
   }
-  for (const key of ['romano', 'ornstein', 'jacobs', 'hawkins', 'city_xtra', 'etihad_intel', 'mcfcous']) {
+  for (const key of ['romano', 'ornstein', 'jacobs', 'hawkins', 'dimarzio', 'city_xtra', 'etihad_intel', 'mcfcous']) {
     assert.ok(sourceKeys.has(key), `${key} 应在复用信源白名单`);
   }
   for (const key of ['goal', 'teamtalk', 'talksport', 'espn', 'schira']) {
     assert.equal(sourceKeys.has(key), false, `${key} 不得进入蓝桥雷达白名单`);
   }
+});
+
+test('当前线上误匹配回归：马雷斯卡、外租、女足、专栏和无关位置不得混入', () => {
+  for (const text of [
+    'Swansea agree deal to sign Jeremy Monga from Manchester City, here we go! Approved by MCFC and Enzo Maresca.',
+    '恩佐·马雷斯卡同意曼城外租蒙加。',
+    "Sure there are bound to be bumps but #CFC fans want to watch Chelsea games. Alonso is more popular. My column here: https://www.nytimes.com/athletic/chelsea-transfer-maresca/",
+    'Hull City remain in talks to sign Chelsea midfielder Dario Essugo.',
+    'Chelsea news: Hull City in talks to sign Dario Essugo on loan',
+    'Chelsea have accepted a £3m agreement for David Datro Fofana to join Servette. The striker leaves on a permanent deal.',
+    'Tottenham are working on double deal with Chelsea: Mykhailo Mudryk and Tosin Adarabioyo on loan.',
+    'Chelsea agree £40m deal for Atalanta defender Ahanor.',
+    'Melvine Malard: Chelsea complete signing of Manchester United forward on £750,000 deal',
+    'Beever-Jones on signing new Chelsea deal',
+    'Enzo Fernandez could make Manchester City significantly better. The football case for selling.',
+  ]) assert.equal(classifyChelseaWatch(text), null, text);
+});
+
+test('中场引援的否认、被拒绝、其他人选都保留，不靠球员名单封死新目标', () => {
+  for (const text of [
+    'Chelsea have not made a bid for Adam Wharton.',
+    'Chelsea approach for Alex Scott rejected by Bournemouth.',
+    'A move to Chelsea for Morgan Gibbs-White has been played down.',
+    'Chelsea are in talks for a new midfielder whose identity is not disclosed.',
+    "Chelsea's interest in a French midfielder is real, but there is no agreement.",
+    '切尔西正在接触新的中场目标，尚未达成协议。',
+    'Jordan Henderson joins Chelsea',
+  ]) assert.equal(classifyChelseaWatch(text), 'chelsea_incoming', text);
 });

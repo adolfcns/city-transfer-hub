@@ -11,14 +11,13 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
 import { initHttp, httpGet, mapLimit } from './lib/http.js';
-import { fetchSource, buildDomainMap, fetchFocusGnews, fetchChelseaTransferGnews, fetchTrustedTransferGnews } from './lib/sources.js';
+import { fetchSource, buildDomainMap, fetchFocusGnews, fetchChelseaTransferGnews } from './lib/sources.js';
 import { htmlToText } from './lib/rss.js';
 import { makeMatchers, passFilter, detectBadges, makeId, mergeItems } from './lib/pipeline.js';
 import { selectTwitterSources, runAdaptiveTwitterSchedule } from './lib/schedule.js';
 import { translateNew } from './lib/translate.js';
 import { buildPagedData } from './lib/paged-data.js';
 import { CHELSEA_WATCH_QUERIES, classifyChelseaWatch, isChelseaCamaraFocus, isChelseaKoneFocus, prioritizeChelseaWatchItems } from './lib/chelsea-watch.js';
-import { LIVERPOOL_SARR_QUERY, isLiverpoolSarrWatchItem, buildLiverpoolSarrWatchItems } from './lib/liverpool-sarr-watch.js';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const DATA_DIR = resolve(ROOT, 'data');
@@ -47,9 +46,6 @@ async function main() {
   const settings = cfg.settings || {};
   const focusTargets = cfg.focus_targets || [];
   const chelseaWatchSources = cfg.chelsea_watch_sources || [];
-  const liverpoolSarrSources = cfg.liverpool_sarr_watch_sources || [];
-  const liverpoolSarrGlobalKeys = new Set(settings.liverpool_sarr_watch_global_source_keys || []);
-  const liverpoolSarrAllowedKeys = new Set([...liverpoolSarrSources.map((source) => source.key), ...liverpoolSarrGlobalKeys]);
   const chelseaWatchGlobalKeys = new Set(settings.chelsea_watch_global_source_keys || []);
   const chelseaWatchEnzoOnlyKeys = new Set(settings.chelsea_watch_enzo_only_source_keys || []);
   const chelseaWatchDedicatedKeys = new Set(chelseaWatchSources.map((source) => source.key));
@@ -82,7 +78,6 @@ async function main() {
   const prevData = await loadPrev('PREV_DATA_URL', 'items.json');
   const prevStatus = await loadPrev('PREV_STATUS_URL', 'status.json');
   const prevChelseaWatch = await loadPrev('PREV_CHELSEA_WATCH_URL', 'chelsea-watch.json');
-  const prevLiverpoolSarrWatch = await loadPrev('PREV_LIVERPOOL_SARR_WATCH_URL', 'liverpool-sarr-watch.json');
   const prevStatusMap = new Map((prevStatus?.sources || []).map((s) => [s.key, s]));
 
   // 信源 key → 配置，用于对旧数据重新套用当前过滤规则
@@ -182,14 +177,12 @@ async function main() {
 
   // 切尔西跟队记者使用独立白名单抓取，不进入普通曼城消息流。
   const chelseaWatchTimelineSources = chelseaWatchSources.filter((source) => source.type === 'twitter');
-  const liverpoolSarrTimelineSources = liverpoolSarrSources.filter((source) => source.type === 'twitter');
-  const radarTimelineSources = [...chelseaWatchTimelineSources, ...liverpoolSarrTimelineSources];
   if (!rsshubUrl) {
-    for (const source of radarTimelineSources) await runOne(source);
+    for (const source of chelseaWatchTimelineSources) await runOne(source);
   } else {
     const delayMs = Math.max(0, Number(settings.twitter_request_delay_ms) || 2500);
-    console.log(`[transfer-watch] 抓取可信跟队 ${radarTimelineSources.length} 个`);
-    for (const source of radarTimelineSources) {
+    console.log(`[chelsea-watch] 抓取可信跟队 ${chelseaWatchTimelineSources.length} 个`);
+    for (const source of chelseaWatchTimelineSources) {
       await runOne(source);
       await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
@@ -218,28 +211,13 @@ async function main() {
 
   // 蓝桥引援雷达：文章只允许切尔西官方与权威跟队域名；普通媒体不会进入。
   const chelseaDomainMap = buildDomainMap(chelseaWatchSources.filter((source) => source.type !== 'twitter'));
-  // 萨尔检索与蓝桥三路并行；每路超时 12 秒且不重试，不拉长抓取周期。
-  const liverpoolSarrGnewsPromise = (async () => {
-    const key = 'watch_liverpool_sarr';
-    const status = { key, name: 'Liverpool Sarr watch', name_zh: '利物浦·萨尔追踪', tier: '🔍', type: 'gnews', enabled: true };
-    try {
-      const map = buildDomainMap(liverpoolSarrSources.filter((source) => source.type !== 'twitter'));
-      const entries = (await fetchTrustedTransferGnews(map, LIVERPOOL_SARR_QUERY)).filter((entry) => isLiverpoolSarrWatchItem(entry.text));
-      statusList.push({ ...status, ok: true, items: entries.length, last_success: new Date().toISOString(), error: null });
-      return entries;
-    } catch (error) {
-      statusList.push({ ...status, ok: false, items: 0, last_success: prevStatusMap.get(key)?.last_success || null, error: String(error.message || error).slice(0, 200) });
-      console.warn(`[fail] ${key}: ${error.message}`);
-      return [];
-    }
-  })();
   const chelseaGnewsEntries = (await Promise.all(CHELSEA_WATCH_QUERIES.map(async (search) => {
-    const { key, name, name_zh, query } = search;
+    const { key, name, name_zh, query, locale = 'en-GB' } = search;
     const status = { key, name, name_zh, tier: '🔍', type: 'gnews', enabled: true };
     try {
-      const entries = (await fetchChelseaTransferGnews(chelseaDomainMap, query)).filter((entry) => (
+      const entries = (await fetchChelseaTransferGnews(chelseaDomainMap, query, undefined, locale)).filter((entry) => (
         search.key === 'watch_chelsea_camara' ? isChelseaCamaraFocus(entry.text)
-          : search.key === 'watch_chelsea_kone' ? isChelseaKoneFocus(entry.text) : classifyChelseaWatch(entry.text)
+          : search.key.startsWith('watch_chelsea_kone') ? isChelseaKoneFocus(entry.text) : classifyChelseaWatch(entry.text)
       ));
       statusList.push({ ...status, ok: true, items: entries.length, last_success: new Date().toISOString(), error: null });
       console.log(`[ok] ${key}: ${entries.length} 条（白名单内）`);
@@ -251,7 +229,6 @@ async function main() {
       return [];
     }
   }))).flat();
-  const liverpoolSarrGnewsEntries = await liverpoolSarrGnewsPromise;
 
   // ---------- 过滤 + 成品化 ----------
   const incoming = [];
@@ -354,15 +331,6 @@ async function main() {
   const koneCount = chelseaWatchItems.filter((item) => item.watch_targets.includes('manu_kone')).length;
   console.log(`[chelsea-watch] 保留 ${chelseaWatchItems.length} 条，卡马拉 ${camaraCount} 条，科内 ${koneCount} 条，本轮新增 ${chelseaWatchIncoming.length} 条`);
 
-  const liverpoolSarrReusableSources = sources.filter((source) => liverpoolSarrGlobalKeys.has(source.key));
-  const liverpoolSarrBatches = [...liverpoolSarrReusableSources, ...liverpoolSarrTimelineSources]
-    .map((source) => ({ source, entries: rawBySource.get(source.key) || [] }));
-  for (const entry of liverpoolSarrGnewsEntries) liverpoolSarrBatches.push({ source: entry.outlet, entries: [entry] });
-  let liverpoolSarrItems = buildLiverpoolSarrWatchItems(prevLiverpoolSarrWatch?.items, liverpoolSarrBatches, liverpoolSarrAllowedKeys, {
-    daysKeep: settings.liverpool_sarr_watch_days_keep ?? 7,
-    maxItems: settings.liverpool_sarr_watch_max_items ?? 24,
-  });
-
   // 回填每个源"本轮新入库"条数（面板显示 抓X·入Y，避免误读）
   const admittedBySrc = {};
   for (const it of incoming) admittedBySrc[it.source_key] = (admittedBySrc[it.source_key] || 0) + 1;
@@ -401,19 +369,6 @@ async function main() {
     throw new Error(`蓝桥引援雷达翻译未完成：仍有 ${chelseaTranslation.remaining} 条，停止发布以保留上一版`);
   }
 
-  for (const item of liverpoolSarrItems) {
-    if (!item.text_zh && mainTranslations.has(item.id)) item.text_zh = mainTranslations.get(item.id);
-  }
-  // 新雷达翻译失败时只延后未译条目，不能阻塞普通曼城消息的更新和发布。
-  try {
-    const result = await translateNew(liverpoolSarrItems, process.env.DEEPSEEK_API_KEY, { signal: AbortSignal.timeout(45000) });
-    console.log(`[sarr-translate] 翻译 ${result.translated} 条，暂缓 ${result.remaining} 条`);
-  } catch (error) {
-    console.warn(`[sarr-translate] ${error.message}`);
-  }
-  liverpoolSarrItems = liverpoolSarrItems.filter((item) => item.text_zh);
-  console.log(`[liverpool-sarr-watch] 保留 ${liverpoolSarrItems.length} 条`);
-
   // ---------- 输出 ----------
   // 焦点标记全量重算（翻译后的中文别名也能命中）
   merged.forEach(tagFocus);
@@ -437,13 +392,8 @@ async function main() {
   await writeFile(resolve(DATA_DIR, 'items.json'), JSON.stringify({ ...metadata, items: finalItems }));
   await writeFile(resolve(DATA_DIR, 'chelsea-watch.json'), JSON.stringify({
     generated_at: generatedAt,
-    scope: 'chelsea_incoming_and_enzo_city',
+    scope: 'chelsea_midfield_kone_and_enzo_city',
     items: chelseaWatchItems,
-  }));
-  await writeFile(resolve(DATA_DIR, 'liverpool-sarr-watch.json'), JSON.stringify({
-    generated_at: generatedAt,
-    scope: 'liverpool_incoming_ismaila_sarr',
-    items: liverpoolSarrItems,
   }));
   await writeFile(resolve(DATA_DIR, 'items-latest.json'), JSON.stringify(paged.latest));
   for (const archive of paged.archives) {

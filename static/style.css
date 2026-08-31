@@ -230,6 +230,7 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 }
 .chelsea-watch-card.is-camara, .chelsea-watch-card.is-kone { border-color: #d4b164; background: linear-gradient(135deg, #fffaf0, #fff 70%); }
 .chelsea-watch-card.is-camara:hover, .chelsea-watch-card.is-kone:hover { border-color: #ae811e; }
+.chelsea-watch-card.is-kone { border-color: #c99020; border-left: 4px solid #c99020; }
 .chelsea-watch-card-meta { min-width: 0; display: flex; align-items: center; gap: 5px; }
 .chelsea-watch-card-meta .badge-tier { flex: none; }
 .chelsea-watch-source {
@@ -242,6 +243,7 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 }
 .chelsea-watch-kind.enzo { background: #fff2c9; color: #956006; }
 .chelsea-watch-kind.camara { background: #ffe6a8; color: #754400; }
+.chelsea-watch-kind.kone { background: #975c00; color: #fff; }
 .chelsea-watch-time { flex: none; margin-left: auto; color: #7890a0; font-size: 9px; white-space: nowrap; }
 .chelsea-watch-copy {
   margin: 0; display: -webkit-box; overflow: hidden; color: #17384d; font-size: 12px; font-weight: 700;
@@ -258,13 +260,9 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 }
 .chelsea-watch-more:hover { background: #e4f4fa; border-color: #64b4d8; }
 
-.liverpool-sarr-watch { border-color: #dcc1c7; }
-.liverpool-sarr-watch .chelsea-watch-head { background: linear-gradient(112deg, #fff0f2, #fffafb 75%); }
-.liverpool-sarr-watch .chelsea-watch-head:hover { background: #fcebee; }
-.liverpool-sarr-watch .chelsea-watch-title { color: #8c3347; }
-.liverpool-sarr-watch .chelsea-watch-count,
-.liverpool-sarr-watch .chelsea-watch-more { color: #963c50; border-color: #dfbcc5; background: #fff7f8; }
-.chelsea-watch-kind.sarr { color: #963c50; background: #ffe8ed; }
+.chelsea-watch-tabs { display: flex; gap: 6px; padding: 8px 10px; border-top: 1px solid rgba(43,136,184,.16); }
+.chelsea-watch-tab { flex: 1; min-width: 0; min-height: 30px; padding: 4px 7px; border: 1px solid #bfd8e6; border-radius: 7px; background: #fff; color: #315c74; font-size: 12px; font-weight: 800; }
+.chelsea-watch-tab.active { background: #dff2fa; color: #105f88; border-color: #3188b5; }
 
 .departure-heartbreak-banner {
   position: relative; width: 100%; overflow: hidden; padding: 14px 112px 15px 18px;

@@ -27,18 +27,12 @@ settings:
   archive_chunk_size: 100 # 更早消息按 100 条拆包，滚动或搜索时再加载
   chelsea_watch_days_keep: 7 # 蓝桥引援雷达保留最近 7 天
   chelsea_watch_max_items: 36 # 独立小数据文件，避免增加首页负担
-  liverpool_sarr_watch_days_keep: 7
-  liverpool_sarr_watch_max_items: 24
-  liverpool_sarr_watch_global_source_keys:
-    - romano
-    - ornstein
-    - jacobs
-    - hawkins
   chelsea_watch_global_source_keys: # 可同时收切尔西引援与恩佐直连曼城的一线记者
     - romano
     - ornstein
     - jacobs
     - hawkins
+    - dimarzio # 复用意大利转会记者，补充罗马方面的科内动态
   chelsea_watch_enzo_only_source_keys: # 曼城侧信源只收恩佐直连，不收其转载的普通切尔西消息
     - city_xtra
     - etihad_intel
@@ -327,68 +321,27 @@ chelsea_watch_sources:
     handle: kierangill_DM
     watch_role_zh: 切尔西跟队
 
-# 利物浦求购水晶宫萨尔：只用两队跟队记者及权威媒体，独立于曼城消息流。
-liverpool_sarr_watch_sources:
-  - key: sarr_james_pearce
-    name: James Pearce (The Athletic)
-    name_zh: TA·James Pearce
-    tier: T0
-    type: twitter
-    handle: JamesPearceLFC
-    watch_role_zh: 利物浦跟队
-  - key: sarr_paul_joyce
-    name: Paul Joyce (The Times)
-    name_zh: 泰晤士报·Paul Joyce
-    tier: T0
-    type: twitter
-    handle: _pauljoyce
-    watch_role_zh: 利物浦跟队
-  - key: sarr_matt_woosnam
-    name: Matt Woosnam (The Athletic)
-    name_zh: TA·Matt Woosnam
-    tier: T0
-    type: twitter
-    handle: MattWoosie
-    watch_role_zh: 水晶宫跟队
-  - key: sarr_athletic
-    name: The Athletic
-    name_zh: The Athletic
-    tier: T0
-    type: gnews
-    site: nytimes.com/athletic
-    watch_role_zh: 权威跟队
-  - key: sarr_times
-    name: The Times
-    name_zh: 泰晤士报
-    tier: T0
-    type: gnews
-    site: thetimes.com
-    site_aliases:
-      - thetimes.co.uk
-    watch_role_zh: 权威跟队
-  - key: sarr_echo
-    name: Liverpool Echo
-    name_zh: 利物浦回声报
+  - key: chelsea_rmc
+    name: RMC Sport
+    name_zh: RMC体育
     tier: T1
     type: gnews
-    site: liverpoolecho.co.uk
-    watch_role_zh: 利物浦跟队
-  - key: sarr_bbc
-    name: BBC Sport
-    name_zh: BBC体育
-    tier: T0
+    site: rmcsport.bfmtv.com
+    watch_role_zh: 法国权威媒体
+  - key: chelsea_lequipe
+    name: L'Equipe
+    name_zh: 队报
+    tier: T1
     type: gnews
-    site: bbc.co.uk
-    site_aliases:
-      - bbc.com
-    watch_role_zh: 权威媒体
-  - key: sarr_sky
-    name: Sky Sports
-    name_zh: 天空体育
-    tier: T0
+    site: lequipe.fr
+    watch_role_zh: 法国权威媒体
+  - key: chelsea_sky_italia
+    name: Sky Sport Italia
+    name_zh: 意大利天空体育
+    tier: T2
     type: gnews
-    site: skysports.com
-    watch_role_zh: 权威媒体
+    site: sport.sky.it
+    watch_role_zh: 意大利转会线
 
 # ==============================================================
 # 焦点追踪对象：与他相关的所有消息（含别队动态）进入页面顶部专区卡，
