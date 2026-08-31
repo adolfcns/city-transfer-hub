@@ -11,6 +11,13 @@ const normalize = (value) => String(value || '')
 const CHELSEA = /(?:\bchelsea(?:\s+fc)?\b|\bcfc\b|stamford bridge|切尔西|車路士)/i;
 const ENZO = /(?:\benzo(?:\s+fernandez)?\b|恩佐(?:·费尔南德斯)?)/i;
 const MAN_CITY = /(?:\bmanchester city\b|\bman city\b|\bmcfc\b|曼城)/i;
+const LAMINE_CAMARA = /(?:\blamine\s+camara\b|拉明[·・\s]?(?:卡马拉|卡馬拉)|\bmonaco(?:'s)?\s+(?:midfielder\s+)?camara\b|摩纳哥(?:中场)?(?:的)?卡马拉)/i;
+
+// 两路检索并行，仍由同一份官方/跟队域名白名单决定是否收录。
+export const CHELSEA_WATCH_QUERIES = [
+  { key: 'watch_chelsea_incoming', name: 'Chelsea incoming watch', name_zh: '蓝桥引援雷达', query: 'Chelsea (sign OR signing OR bid OR target OR talks OR deal) when:7d' },
+  { key: 'watch_chelsea_camara', name: 'Lamine Camara Chelsea watch', name_zh: '蓝桥重点·卡马拉', query: '"Lamine Camara" Chelsea when:7d' },
+];
 const WOMEN_OR_HISTORY = /(?:chelsea women|women's team|women’s team|\bwsl\b|女足|#onthisday|on this day|#otd)/i;
 const EXCLUDED_PLAYERS = /(?:\bemiliano\s+martinez\b|\bemi\s+martinez\b|\bdibu\s+martinez\b|埃米利亚诺[·・\s]?马丁内斯|埃米[·・\s]?马丁内斯|大马丁)/i;
 const CONTRACT_ONLY = /(?:new contract|contract extension|renew(?:al|ed|s|ing)?|续约)/i;
@@ -83,4 +90,21 @@ export function classifyChelseaWatch(text) {
 
 export function isChelseaWatchItem(text) {
   return Boolean(classifyChelseaWatch(text));
+}
+
+export function isChelseaCamaraFocus(text) {
+  const value = normalize(text);
+  // 不能仅凭“卡马拉”同名或恩佐转会就加重点，仍需通过原有转会相关性过滤。
+  return CHELSEA.test(value) && LAMINE_CAMARA.test(value) && isChelseaWatchItem(value);
+}
+
+export function prioritizeChelseaWatchItems(items) {
+  // 新旧记录都重新打标；只作用于雷达，不改变普通曼城消息流的时间排序。
+  return items.map((item) => ({
+    ...item,
+    watch_focus: isChelseaCamaraFocus(item.text) ? 'lamine_camara' : null,
+  })).sort((a, b) => (
+    Number(b.watch_focus === 'lamine_camara') - Number(a.watch_focus === 'lamine_camara')
+    || (Date.parse(b.published_at) || 0) - (Date.parse(a.published_at) || 0)
+  ));
 }

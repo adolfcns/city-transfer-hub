@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import YAML from 'yaml';
-import { classifyChelseaWatch, isChelseaWatchItem } from '../scripts/lib/chelsea-watch.js';
+import { CHELSEA_WATCH_QUERIES, classifyChelseaWatch, isChelseaCamaraFocus, isChelseaWatchItem, prioritizeChelseaWatchItems } from '../scripts/lib/chelsea-watch.js';
 
 test('蓝桥雷达收录切尔西各位置引援，不局限中场', () => {
   assert.equal(classifyChelseaWatch('Chelsea agree deal to sign a new centre-back after talks today.'), 'chelsea_incoming');
@@ -15,6 +15,60 @@ test('蓝桥雷达收录切尔西各位置引援，不局限中场', () => {
 test('恩佐加盟曼城的直接动态始终进入蓝桥雷达', () => {
   assert.equal(classifyChelseaWatch('Manchester City open talks with Chelsea for Enzo Fernandez.'), 'enzo_city');
   assert.equal(classifyChelseaWatch('切尔西愿意出售恩佐，曼城已经开始谈判。'), 'enzo_city');
+});
+
+test('卡马拉重点只识别拉明与切尔西的转会报道，不混入同姓球员或比赛', () => {
+  const accepted = [
+    'Chelsea believed to be progressing with their interest in Monaco midfielder Lamine Camara #cfc',
+    'Chelsea are exploring midfield options, with talks ongoing with Lamine Camara.',
+    'Lamine Camara to Chelsea, here we go!',
+    "Chelsea target Monaco’s midfielder Camara.",
+    '切尔西正在谈判引进摩纳哥中场拉明·卡马拉。',
+    '切尔西有意摩纳哥中场卡马拉。',
+    'Manchester City bid for Enzo Fernandez while Chelsea target Lamine Camara.',
+  ];
+  for (const text of accepted) assert.equal(isChelseaCamaraFocus(text), true, text);
+  const rejected = [
+    'Chelsea are interested in Boubacar Kamara.',
+    'Chelsea bid for Mohamed Camara.',
+    'Chelsea interested in Camara.', // 无名字/母队依据，不能把所有同姓球员都当成拉明
+    'Manchester City target Lamine Camara.',
+    'Lamine Camara scores against Chelsea.',
+    'Chelsea announce a new contract for Lamine Camara.',
+    'Chelsea Women target Lamine Camara.',
+    'Lamine Camara will leave Chelsea and join Milan.',
+    'Chelsea sign Emiliano Martinez and target Lamine Camara.', // 保留用户要求的大马丁硬排除
+  ];
+  for (const text of rejected) assert.equal(isChelseaCamaraFocus(text), false, text);
+});
+
+test('卡马拉在雷达内优先，同组按新到旧排序，历史重点标记会重算且原数组不变', () => {
+  const items = [
+    { id: 'other-new', text: 'Chelsea bid for a striker.', published_at: '2026-08-31T12:00:00Z', watch_focus: 'lamine_camara' },
+    { id: 'camara-old', text: 'Chelsea target Lamine Camara.', published_at: '2026-08-28T12:00:00Z' },
+    { id: 'other-old', text: 'Chelsea sign a winger.', published_at: '2026-08-29T12:00:00Z' },
+    { id: 'camara-new', text: 'Chelsea open talks for Lamine Camara.', published_at: '2026-08-30T12:00:00Z' },
+  ];
+  const before = structuredClone(items);
+  const ranked = prioritizeChelseaWatchItems(items);
+  assert.deepEqual(ranked.map((item) => item.id), ['camara-new', 'camara-old', 'other-new', 'other-old']);
+  assert.deepEqual(ranked.map((item) => item.watch_focus), ['lamine_camara', 'lamine_camara', null, null]);
+  assert.deepEqual(items, before);
+});
+
+test('卡马拉增加专门检索并与原雷达并行，重点展示不增加普通消息流负担', () => {
+  assert.equal(CHELSEA_WATCH_QUERIES.length, 2);
+  assert.equal(CHELSEA_WATCH_QUERIES.find((search) => search.key === 'watch_chelsea_camara')?.query, '"Lamine Camara" Chelsea when:7d');
+  const fetchScript = fs.readFileSync('scripts/fetch.js', 'utf8');
+  const app = fs.readFileSync('static/app.js', 'utf8');
+  const style = fs.readFileSync('static/style.css', 'utf8');
+  assert.match(fetchScript, /Promise\.all\(CHELSEA_WATCH_QUERIES\.map/);
+  assert.match(fetchScript, /fetchChelseaTransferGnews\(chelseaDomainMap, query\)/);
+  assert.match(fetchScript, /prioritizeChelseaWatchItems\(chelseaWatchMerged\)\.slice/);
+  assert.match(app, /watch_focus === 'lamine_camara'/);
+  assert.match(app, /重点·卡马拉/);
+  assert.match(app, /重点关注：拉明·卡马拉与切尔西的转会进展/);
+  assert.match(style, /\.chelsea-watch-card\.is-camara/);
 });
 
 test('蓝桥雷达排除比赛、伤病、续约、女足和普通离队', () => {

@@ -4285,7 +4285,8 @@ function renderPinnedCard(it) {
 }
 
 function renderChelseaWatchCard(item) {
-  const card = el('a', 'chelsea-watch-card');
+  const isCamara = item.watch_focus === 'lamine_camara';
+  const card = el('a', `chelsea-watch-card${isCamara ? ' is-camara' : ''}`);
   card.href = item.url;
   card.target = '_blank';
   card.rel = 'noopener noreferrer';
@@ -4296,8 +4297,8 @@ function renderChelseaWatchCard(item) {
   meta.appendChild(el('strong', 'chelsea-watch-source', item.source_name_zh || item.source_name));
   meta.appendChild(el(
     'span',
-    `chelsea-watch-kind${item.watch_type === 'enzo_city' ? ' enzo' : ''}`,
-    item.watch_type === 'enzo_city' ? '恩佐直连曼城' : '切尔西引援',
+    `chelsea-watch-kind${isCamara ? ' camara' : item.watch_type === 'enzo_city' ? ' enzo' : ''}`,
+    isCamara ? '重点·卡马拉' : item.watch_type === 'enzo_city' ? '恩佐直连曼城' : '切尔西引援',
   ));
   meta.appendChild(el('time', 'chelsea-watch-time', relTime(item.published_at)));
   card.appendChild(meta);
@@ -4322,10 +4323,10 @@ function renderChelseaWatchModule(zone) {
   const copy = el('span', 'chelsea-watch-heading-copy');
   copy.append(
     el('strong', 'chelsea-watch-title', '🔍 蓝桥引援雷达'),
-    el('span', 'chelsea-watch-subtitle', '盯住切尔西的每一笔来人，等待恩佐松动的信号。'),
+    el('span', 'chelsea-watch-subtitle', '重点关注：拉明·卡马拉与切尔西的转会进展。'),
     el('span', 'chelsea-watch-scope', '可信白名单：切尔西官方、跟队记者与一线转会记者'),
   );
-  const count = state.chelseaWatchLoaded ? `最新 ${items.length} 条` : '正在盯盘';
+  const count = state.chelseaWatchLoaded ? `${items.length} 条动态` : '正在盯盘';
   toggle.append(copy, el('span', 'chelsea-watch-count', `${count} ${state.chelseaWatchOpen ? '⌃' : '⌄'}`));
   toggle.onclick = () => {
     state.chelseaWatchOpen = !state.chelseaWatchOpen;

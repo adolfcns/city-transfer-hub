@@ -17,7 +17,7 @@ import { makeMatchers, passFilter, detectBadges, makeId, mergeItems } from './li
 import { selectTwitterSources, runAdaptiveTwitterSchedule } from './lib/schedule.js';
 import { translateNew } from './lib/translate.js';
 import { buildPagedData } from './lib/paged-data.js';
-import { classifyChelseaWatch } from './lib/chelsea-watch.js';
+import { CHELSEA_WATCH_QUERIES, classifyChelseaWatch, isChelseaCamaraFocus, prioritizeChelseaWatchItems } from './lib/chelsea-watch.js';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const DATA_DIR = resolve(ROOT, 'data');
@@ -211,25 +211,23 @@ async function main() {
 
   // 蓝桥引援雷达：文章只允许切尔西官方与权威跟队域名；普通媒体不会进入。
   const chelseaDomainMap = buildDomainMap(chelseaWatchSources.filter((source) => source.type !== 'twitter'));
-  let chelseaGnewsEntries = [];
-  try {
-    const entries = await fetchChelseaTransferGnews(chelseaDomainMap);
-    chelseaGnewsEntries = entries.filter((entry) => classifyChelseaWatch(entry.text));
-    statusList.push({
-      key: 'watch_chelsea_incoming', name: 'Chelsea incoming watch', name_zh: '蓝桥引援雷达',
-      tier: '🔍', type: 'gnews', enabled: true, ok: true, items: chelseaGnewsEntries.length,
-      last_success: new Date().toISOString(), error: null,
-    });
-    console.log(`[ok] watch_chelsea_incoming: ${chelseaGnewsEntries.length} 条（白名单内）`);
-  } catch (e) {
-    const prev = prevStatusMap.get('watch_chelsea_incoming');
-    statusList.push({
-      key: 'watch_chelsea_incoming', name: 'Chelsea incoming watch', name_zh: '蓝桥引援雷达',
-      tier: '🔍', type: 'gnews', enabled: true, ok: false, items: 0,
-      last_success: prev?.last_success || null, error: String(e.message || e).slice(0, 200),
-    });
-    console.warn(`[fail] watch_chelsea_incoming: ${e.message}`);
-  }
+  const chelseaGnewsEntries = (await Promise.all(CHELSEA_WATCH_QUERIES.map(async (search) => {
+    const { key, name, name_zh, query } = search;
+    const status = { key, name, name_zh, tier: '🔍', type: 'gnews', enabled: true };
+    try {
+      const entries = (await fetchChelseaTransferGnews(chelseaDomainMap, query)).filter((entry) => (
+        search.key === 'watch_chelsea_camara' ? isChelseaCamaraFocus(entry.text) : classifyChelseaWatch(entry.text)
+      ));
+      statusList.push({ ...status, ok: true, items: entries.length, last_success: new Date().toISOString(), error: null });
+      console.log(`[ok] ${key}: ${entries.length} 条（白名单内）`);
+      return entries;
+    } catch (e) {
+      const prev = prevStatusMap.get(key);
+      statusList.push({ ...status, ok: false, items: 0, last_success: prev?.last_success || null, error: String(e.message || e).slice(0, 200) });
+      console.warn(`[fail] ${key}: ${e.message}`);
+      return [];
+    }
+  }))).flat();
 
   // ---------- 过滤 + 成品化 ----------
   const incoming = [];
@@ -327,9 +325,9 @@ async function main() {
   for (const entry of chelseaGnewsEntries) addChelseaWatchEntry(entry, entry.outlet);
   chelseaWatchIncoming.sort((a, b) => new Date(a.published_at) - new Date(b.published_at));
   const chelseaWatchMerged = mergeItems(chelseaWatchKept, chelseaWatchIncoming);
-  chelseaWatchMerged.sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
-  const chelseaWatchItems = chelseaWatchMerged.slice(0, settings.chelsea_watch_max_items ?? 36);
-  console.log(`[chelsea-watch] 保留 ${chelseaWatchItems.length} 条，本轮新增 ${chelseaWatchIncoming.length} 条`);
+  const chelseaWatchItems = prioritizeChelseaWatchItems(chelseaWatchMerged).slice(0, settings.chelsea_watch_max_items ?? 36);
+  const camaraCount = chelseaWatchItems.filter((item) => item.watch_focus === 'lamine_camara').length;
+  console.log(`[chelsea-watch] 保留 ${chelseaWatchItems.length} 条，卡马拉重点 ${camaraCount} 条，本轮新增 ${chelseaWatchIncoming.length} 条`);
 
   // 回填每个源"本轮新入库"条数（面板显示 抓X·入Y，避免误读）
   const admittedBySrc = {};

@@ -228,6 +228,8 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 .chelsea-watch-card:hover {
   border-color: #64b4d8; box-shadow: 0 7px 18px rgba(35,82,108,.12); transform: translateY(-1px); text-decoration: none;
 }
+.chelsea-watch-card.is-camara { border-color: #d4b164; background: linear-gradient(135deg, #fffaf0, #fff 70%); }
+.chelsea-watch-card.is-camara:hover { border-color: #ae811e; }
 .chelsea-watch-card-meta { min-width: 0; display: flex; align-items: center; gap: 5px; }
 .chelsea-watch-card-meta .badge-tier { flex: none; }
 .chelsea-watch-source {
@@ -239,6 +241,7 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   color: #27789f; font-size: 9px; font-weight: 900; white-space: nowrap;
 }
 .chelsea-watch-kind.enzo { background: #fff2c9; color: #956006; }
+.chelsea-watch-kind.camara { background: #ffe6a8; color: #754400; }
 .chelsea-watch-time { flex: none; margin-left: auto; color: #7890a0; font-size: 9px; white-space: nowrap; }
 .chelsea-watch-copy {
   margin: 0; display: -webkit-box; overflow: hidden; color: #17384d; font-size: 12px; font-weight: 700;

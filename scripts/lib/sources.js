@@ -145,11 +145,11 @@ export async function fetchFocusGnews(target, domainMap) {
   return out;
 }
 
-// 蓝桥引援雷达只多发出一次 Google News 请求；domainMap 是专用的官方/跟队白名单。
-export async function fetchChelseaTransferGnews(domainMap) {
-  const q = encodeURIComponent('Chelsea (sign OR signing OR bid OR target OR talks OR deal) when:7d');
+// 蓝桥通用/卡马拉定向检索共用严格白名单；单路失败不会影响另一路或主消息流。
+export async function fetchChelseaTransferGnews(domainMap, query = 'Chelsea (sign OR signing OR bid OR target OR talks OR deal) when:7d', get = httpGet) {
+  const q = encodeURIComponent(query);
   const url = `https://news.google.com/rss/search?q=${q}&hl=en-GB&gl=GB&ceid=GB:en`;
-  const xml = await httpGet(url);
+  const xml = await get(url, { timeout: 12000, retries: 0 });
   const out = [];
   for (const e of parseFeed(xml)) {
     const outlet = e.source ? domainMatch(domainMap, e.source.url) : null;
