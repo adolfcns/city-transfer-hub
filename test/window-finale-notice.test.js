@@ -34,10 +34,12 @@ test('关窗后终章自动切换为落幕文案', () => {
   assert.match(app, /夏窗已经落幕/);
 });
 
-test('终章实时汇总投票、好运、表情、评论和分享次数', () => {
-  for (const id of ['votes', 'prayers', 'reactions', 'comments', 'shares']) {
+test('终章展示投票、好运、表情和评论，分享仅保留后台统计', () => {
+  for (const id of ['votes', 'prayers', 'reactions', 'comments']) {
     assert.match(html, new RegExp(`id="window-finale-${id}"`));
   }
+  assert.doesNotMatch(html, /id="window-finale-shares"/);
+  assert.doesNotMatch(html, /同一球迷参加不同问卷/);
   assert.match(app, /WINDOW_FINALE_STATS_ENDPOINTS/);
   assert.match(app, /loadWindowFinaleInteractionStats\(\)/);
   assert.match(style, /\.window-finale-interaction-grid/);

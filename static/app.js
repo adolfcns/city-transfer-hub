@@ -4679,7 +4679,6 @@ async function loadWindowFinaleInteractionStats() {
         prayers: '#window-finale-prayers',
         reactions: '#window-finale-reactions',
         comments: '#window-finale-comments',
-        shares: '#window-finale-shares',
       };
       for (const [field, selector] of Object.entries(fields)) {
         const node = $(selector);
