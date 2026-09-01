@@ -1,0 +1,32 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
+const html = fs.readFileSync('static/index.html', 'utf8');
+const app = fs.readFileSync('static/app.js', 'utf8');
+const style = fs.readFileSync('static/style.css', 'utf8');
+
+test('手机和电脑每台设备每五小时显示夏窗终章', () => {
+  assert.match(html, /id="window-finale-notice"/);
+  assert.match(html, /夏窗终章/);
+  assert.match(html, /我们一起等到了最后/);
+  assert.match(app, /WINDOW_FINALE_NOTICE_INTERVAL_MS = 5 \* 60 \* 60 \* 1000/);
+  assert.match(app, /localStorage\.setItem\(WINDOW_FINALE_NOTICE_KEY, String\(Date\.now\(\)\)\)/);
+  assert.match(app, /scheduleWindowFinaleNotice\(\);/);
+  assert.match(style, /\.window-finale-notice/);
+  assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.window-finale-box/);
+});
+
+test('终章突出四项统计、署名和最终按钮', () => {
+  for (const value of ['54', '5,381', '1,103', '45']) assert.match(html, new RegExp(`>${value}<`));
+  assert.match(html, /懂球帝 @秃然离城/);
+  assert.match(html, /为了💙，不见不散/);
+  assert.match(html, /曼城外租球员和今夏离队球员/);
+  assert.match(style, /grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
+});
+
+test('关窗后终章自动切换为落幕文案', () => {
+  assert.match(app, /Date\.now\(\) >= WINDOWS\[0\]\.ts/);
+  assert.match(app, /答案已经写下，夏窗正式落幕/);
+  assert.match(app, /夏窗已经落幕/);
+});

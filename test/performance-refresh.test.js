@@ -53,5 +53,5 @@ test('重点传闻卡片关闭后消息回归普通流，互动计数仍按需�
 test('调查先显示静态内容，实时票数在后台同步', () => {
   assert.match(app, /renderSurveyIntro\(context\);\s*try \{\s*context\.data = await surveyApi\(pollId\)/);
   assert.match(app, /正在后台同步实时票数/);
-  assert.match(app, /loadData\(false\)\.finally\(\(\) => \{[\s\S]*scheduleSurveyInvite\(\)/);
+  assert.doesNotMatch(app.slice(app.lastIndexOf('// ---------------- 启动 ----------------')), /scheduleSurveyInvite\(\)/);
 });

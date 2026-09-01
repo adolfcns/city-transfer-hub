@@ -68,22 +68,14 @@ test('阿兰球探报告提供四张按需加载图表和固定入口，但不�
   }
 });
 
-test('手机和电脑每十二小时只自动弹出夏窗离队意难平投票', () => {
+test('问卷保留手动入口，但不再自动弹出', () => {
   assert.match(app, /COACH_SURVEY_ID = 'maresca_league_debut_2026'/);
   assert.match(app, /DEPARTURE_SURVEY_ID = 'summer_departure_heartbreak_2026'/);
-  assert.match(app, /cth_summer_departure_heartbreak_20260825_12h_v1/);
-  assert.match(app, /SURVEY_POPUP_ID = DEPARTURE_SURVEY_ID/);
-  assert.match(app, /SURVEY_INVITE_INTERVAL_MS = 12 \* 60 \* 60 \* 1000/);
   assert.match(app, /title: '夏窗收尾｜谁最让你意难平？'/);
   assert.match(app, /primaryLabel: '选出我的意难平'/);
-  assert.doesNotMatch(app, /DESKTOP_SURVEY_MEDIA|matchMedia\(DESKTOP_SURVEY_MEDIA\)/);
-  assert.match(app, /localStorage\.setItem\(SURVEY_INVITE_KEY, String\(Date\.now\(\)\)\)/);
-  assert.match(app, /Date\.now\(\) - lastShownAt < SURVEY_INVITE_INTERVAL_MS/);
-  assert.match(app, /document\.querySelector\('\.modal:not\(\[hidden\]\), \.comment-overlay, \.survey-overlay'\)/);
-  assert.match(app, /openSurvey\(SURVEY_POPUP_ID\)/);
   const startup = app.slice(app.lastIndexOf('// ---------------- 启动 ----------------'));
-  assert.match(startup, /scheduleSurveyInvite\(\);/);
-  assert.doesNotMatch(startup, /scheduleScoutReportInvite\(\)|showRecoveryNotice\(\)/);
+  assert.doesNotMatch(startup, /scheduleSurveyInvite\(\)|scheduleScoutReportInvite\(\)|openSurvey\(DEPARTURE_SURVEY_ID\)/);
+  assert.doesNotMatch(app, /SURVEY_POPUP_ID|SURVEY_INVITE_INTERVAL_MS|SCOUT_REPORT_INVITE_INTERVAL_MS/);
   assert.match(app, /if \(definition\.announcementOnly\) \{[\s\S]*?renderSurveyIntro\(context\);[\s\S]*?if \(!definition\.reservationFeature\) return;/);
   assert.match(app, /if \(!definition\.entry\) continue;/);
   assert.match(style, /\.survey-preview-grid/);
@@ -120,7 +112,7 @@ test('意难平结果提供独立分享链接与无二维码统计图下载', ()
   assert.match(app, /function downloadDepartureSurveyResults\(context\)/);
   assert.match(app, /function buildDepartureSurveyShareCard\(context\)/);
   assert.match(app, /图片不含二维码和网址，可直接保存后分享到懂球帝等平台/);
-  const shareCard = app.match(/async function buildDepartureSurveyShareCard\(context\) \{[\s\S]*?\n\}\n\nasync function buildCoachSurveyShareCard/)?.[0] || '';
+  const shareCard = app.match(/async function buildDepartureSurveyShareCard\(context\) \{[\s\S]*?\r?\n\}\r?\n\r?\nasync function buildCoachSurveyShareCard/)?.[0] || '';
   assert.ok(shareCard, '应存在意难平统计图生成逻辑');
   assert.equal((shareCard.match(/曼城转会情报站/g) || []).length, 1);
   assert.doesNotMatch(shareCard, /site-qr|adolfcns\.github\.io|city-transfer-hub\.pages\.dev|drawImage\(/);

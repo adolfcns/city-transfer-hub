@@ -35,14 +35,9 @@ const SURVEY_PROFILE_KEY = 'cth_survey_profile_v1';
 const SHARE_ATTRIBUTION_KEY = 'departure_poll_share';
 const COACH_SURVEY_ID = 'maresca_league_debut_2026';
 const DEPARTURE_SURVEY_ID = 'summer_departure_heartbreak_2026';
-const SURVEY_POPUP_ID = DEPARTURE_SURVEY_ID;
-const SURVEY_INVITE_KEY = 'cth_summer_departure_heartbreak_20260825_12h_v1';
-const SURVEY_INVITE_INTERVAL_MS = 12 * 60 * 60 * 1000;
-const SURVEY_INVITE_DELAY_MS = 1500;
-const SCOUT_REPORT_POPUP_ID = 'allan_scouting_report_2026';
-const SCOUT_REPORT_INVITE_KEY = 'cth_allan_scout_report_20260822_daily_v1';
-const SCOUT_REPORT_INVITE_INTERVAL_MS = 24 * 60 * 60 * 1000;
-const SCOUT_REPORT_INVITE_DELAY_MS = 6500;
+const WINDOW_FINALE_NOTICE_KEY = 'cth_window_finale_20260901_5h_v1';
+const WINDOW_FINALE_NOTICE_INTERVAL_MS = 5 * 60 * 60 * 1000;
+const WINDOW_FINALE_NOTICE_DELAY_MS = 1500;
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
 // 布阿迪交易已进入 Here we go 阶段，暂时撤下重点传闻卡片；保留数据与逻辑，方便后续恢复。
 const FOCUS_RUMOR_STRIP_ENABLED = false;
@@ -2707,71 +2702,6 @@ function appendPinnedText(card, it) {
 }
 
 let activeSurveyId = '';
-let surveyInviteTimer = null;
-let surveyInviteHandled = false;
-let scoutReportInviteTimer = null;
-let scoutReportInviteHandled = false;
-
-function acknowledgeSurveyInvite(pollId = SURVEY_POPUP_ID) {
-  if (pollId === SCOUT_REPORT_POPUP_ID) {
-    scoutReportInviteHandled = true;
-    clearTimeout(scoutReportInviteTimer);
-    try { localStorage.setItem(SCOUT_REPORT_INVITE_KEY, String(Date.now())); }
-    catch { /* 禁用本机存储时，本次访问内不再重复弹出 */ }
-    return;
-  }
-  if (pollId !== SURVEY_POPUP_ID) return;
-  surveyInviteHandled = true;
-  clearTimeout(surveyInviteTimer);
-  try { localStorage.setItem(SURVEY_INVITE_KEY, String(Date.now())); }
-  catch { /* 禁用本机存储时，本次访问内不再重复弹出 */ }
-}
-
-function scheduleSurveyInvite(delay = SURVEY_INVITE_DELAY_MS) {
-  const inviteDefinition = SURVEY_DEFINITIONS[SURVEY_POPUP_ID];
-  if (surveyInviteHandled || !inviteDefinition || (inviteDefinition.closesAt && Date.now() >= inviteDefinition.closesAt)) return;
-  try {
-    const lastShownAt = Number(localStorage.getItem(SURVEY_INVITE_KEY) || 0);
-    if (Number.isFinite(lastShownAt) && lastShownAt > 0 && Date.now() - lastShownAt < SURVEY_INVITE_INTERVAL_MS) {
-      surveyInviteHandled = true;
-      return;
-    }
-  } catch { /* 本机存储不可用时仍可展示一次 */ }
-  clearTimeout(surveyInviteTimer);
-  surveyInviteTimer = setTimeout(() => {
-    if (document.hidden || document.querySelector('.modal:not([hidden]), .comment-overlay, .survey-overlay')) {
-      scheduleSurveyInvite(1200);
-      return;
-    }
-    acknowledgeSurveyInvite(SURVEY_POPUP_ID);
-    openSurvey(SURVEY_POPUP_ID);
-  }, delay);
-}
-
-function scheduleScoutReportInvite(delay = SCOUT_REPORT_INVITE_DELAY_MS) {
-  if (scoutReportInviteHandled || !SURVEY_DEFINITIONS[SCOUT_REPORT_POPUP_ID]) return;
-  try {
-    const lastShownAt = Number(localStorage.getItem(SCOUT_REPORT_INVITE_KEY) || 0);
-    if (Number.isFinite(lastShownAt) && lastShownAt > 0 && Date.now() - lastShownAt < SCOUT_REPORT_INVITE_INTERVAL_MS) {
-      scoutReportInviteHandled = true;
-      return;
-    }
-  } catch { /* 本机存储不可用时仍可展示一次 */ }
-  clearTimeout(scoutReportInviteTimer);
-  scoutReportInviteTimer = setTimeout(() => {
-    if (document.hidden) {
-      scheduleScoutReportInvite(1800);
-      return;
-    }
-    if (document.querySelector('.modal:not([hidden]), .comment-overlay, .survey-overlay')) {
-      // 夏窗调查或其他弹层已经出现时，本次访问不追着再弹，避免连续打扰。
-      scoutReportInviteHandled = true;
-      return;
-    }
-    acknowledgeSurveyInvite(SCOUT_REPORT_POPUP_ID);
-    openSurvey(SCOUT_REPORT_POPUP_ID);
-  }, delay);
-}
 
 function closeSurvey() {
   document.querySelector('.survey-overlay')?.remove();
@@ -4707,6 +4637,55 @@ function showRecoveryNotice() {
   setTimeout(() => $('#recovery-notice-ok')?.focus(), 0);
 }
 
+let windowFinaleNoticeTimer = null;
+
+function windowFinaleNoticeWait() {
+  try {
+    const lastShownAt = Number(localStorage.getItem(WINDOW_FINALE_NOTICE_KEY) || 0);
+    if (Number.isFinite(lastShownAt) && lastShownAt > 0) {
+      return Math.max(0, WINDOW_FINALE_NOTICE_INTERVAL_MS - (Date.now() - lastShownAt));
+    }
+  } catch { /* 禁用本机存储时，本次访问仍可展示 */ }
+  return WINDOW_FINALE_NOTICE_DELAY_MS;
+}
+
+function showWindowFinaleNotice() {
+  const notice = $('#window-finale-notice');
+  if (!notice) return;
+  const closed = Date.now() >= WINDOWS[0].ts;
+  $('#window-finale-answer').textContent = closed
+    ? '答案已经写下，夏窗正式落幕。'
+    : '现在，只剩最后的答案。';
+  $('#window-finale-outro').innerHTML = `${closed ? '夏窗已经落幕' : '夏窗即将落幕'}，赛季才刚刚开始。<br>我们冬窗再见。`;
+  notice.hidden = false;
+  document.body.classList.add('finale-open');
+  try { localStorage.setItem(WINDOW_FINALE_NOTICE_KEY, String(Date.now())); }
+  catch { /* 禁用本机存储时仍可正常关闭 */ }
+  setTimeout(() => $('#window-finale-ok')?.focus(), 0);
+}
+
+function scheduleWindowFinaleNotice(delay = null) {
+  clearTimeout(windowFinaleNoticeTimer);
+  const wait = delay === null ? windowFinaleNoticeWait() : delay;
+  windowFinaleNoticeTimer = setTimeout(() => {
+    if (document.hidden || document.querySelector('.modal:not([hidden]), .comment-overlay, .survey-overlay')) {
+      scheduleWindowFinaleNotice(1200);
+      return;
+    }
+    showWindowFinaleNotice();
+  }, wait);
+}
+
+function dismissWindowFinaleNotice() {
+  const notice = $('#window-finale-notice');
+  if (!notice) return;
+  notice.hidden = true;
+  document.body.classList.remove('finale-open');
+  try { localStorage.setItem(WINDOW_FINALE_NOTICE_KEY, String(Date.now())); }
+  catch { /* 禁用本机存储时仍可正常关闭 */ }
+  scheduleWindowFinaleNotice();
+}
+
 async function triggerCloudFetch() {
   const pat = localStorage.getItem('cth_pat');
   if (!pat && !TRIGGER_ENDPOINT) { $('#trigger-panel').hidden = false; return; }
@@ -4826,6 +4805,7 @@ function bind() {
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && document.querySelector('.comment-overlay')) closeComments();
     if (event.key === 'Escape' && document.querySelector('.survey-overlay')) closeSurvey();
+    if (event.key === 'Escape' && !$('#window-finale-notice')?.hidden) dismissWindowFinaleNotice();
     if (event.key === 'Escape' && !$('#recovery-notice')?.hidden) dismissRecoveryNotice();
   });
   document.querySelectorAll('#lang-seg button').forEach((button) => {
@@ -4877,6 +4857,11 @@ function bind() {
   $('#recovery-notice').addEventListener('click', (event) => {
     if (event.target === $('#recovery-notice')) dismissRecoveryNotice();
   });
+  $('#window-finale-close').onclick = dismissWindowFinaleNotice;
+  $('#window-finale-ok').onclick = dismissWindowFinaleNotice;
+  $('#window-finale-notice').addEventListener('click', (event) => {
+    if (event.target === $('#window-finale-notice')) dismissWindowFinaleNotice();
+  });
   $('#pat-save').onclick = savePat;
   $('#btn-status').onclick = openStatus;
   $('#btn-status-close').onclick = closeStatus;
@@ -4924,10 +4909,8 @@ loadData(false).finally(() => {
   scheduleDeferredReactionSnapshot();
   const surveyId = requestedSurveyId();
   if (surveyId) {
-    acknowledgeSurveyInvite(surveyId);
     openSurvey(surveyId);
-  } else {
-    scheduleSurveyInvite();
   }
+  scheduleWindowFinaleNotice();
 });
 setInterval(() => loadData(true), REFRESH_MS);
