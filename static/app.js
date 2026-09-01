@@ -6,6 +6,7 @@ const DATA_URL = './data/items-latest.json';
 const DATA_FALLBACK_URL = './data/items.json';
 const STATUS_URL = './data/status.json';
 const CHELSEA_WATCH_URL = './data/chelsea-watch.json';
+const CHELSEA_WATCH_ENABLED = false;
 const REFRESH_MS = 90 * 1000;
 // 转会窗关闭时间（到点自动切到下一个）
 const WINDOWS = [
@@ -2433,16 +2434,18 @@ async function loadData(isRefresh = false) {
   buildSourceMenu();
   render();
 
-  // 雷达数据文件很小，但仍放到主消息流渲染之后异步读取，不增加首屏等待时间。
-  fetchJSON(CHELSEA_WATCH_URL).then((payload) => {
-    state.chelseaWatchItems = Array.isArray(payload.items) ? payload.items : [];
-    state.chelseaWatchGeneratedAt = payload.generated_at || null;
-    state.chelseaWatchLoaded = true;
-    renderFocusZone();
-  }).catch(() => {
-    state.chelseaWatchLoaded = true;
-    renderFocusZone();
-  });
+  // 夏窗关闭后首页用收官互动替换蓝桥雷达；保留后台雷达抓取，日后可直接恢复。
+  if (CHELSEA_WATCH_ENABLED) {
+    fetchJSON(CHELSEA_WATCH_URL).then((payload) => {
+      state.chelseaWatchItems = Array.isArray(payload.items) ? payload.items : [];
+      state.chelseaWatchGeneratedAt = payload.generated_at || null;
+      state.chelseaWatchLoaded = true;
+      renderFocusZone();
+    }).catch(() => {
+      state.chelseaWatchLoaded = true;
+      renderFocusZone();
+    });
+  }
 
   const sharedId = requestedMessageId();
   if (sharedId && !state.items.some((item) => itemId(item) === sharedId) && hasMoreArchives()) {
@@ -4309,13 +4312,46 @@ function renderChelseaWatchModule(zone) {
   zone.appendChild(section);
 }
 
+function renderSeasonBlessingModule(zone) {
+  const section = el('section', 'season-blessing-banner');
+  section.setAttribute('aria-label', '蓝月新赛季好运接力');
+
+  const copy = el('div', 'season-blessing-copy');
+  copy.append(
+    el('span', 'season-blessing-kicker', '💙 夏窗落幕 · 好运继续'),
+    el('h2', 'season-blessing-title', '接住新赛季的蓝月好运'),
+    el('p', 'season-blessing-text', '夏窗结束了，情报站还会继续。也给一路守到关窗的站长 @秃然离城 加个油。'),
+  );
+
+  const defaultLabel = '接住蓝月好运，也给秃然离城加个油 💙';
+  const action = el('button', 'season-blessing-action', defaultLabel);
+  action.type = 'button';
+  action.onclick = () => {
+    const prayer = $('#city-prayer');
+    if (!prayer || prayer.disabled) return;
+    prayer.click();
+    action.disabled = true;
+    action.classList.add('hit');
+    action.textContent = '好运已接住，你的鼓励站长也收到啦！';
+    setTimeout(() => {
+      if (!action.isConnected) return;
+      action.disabled = false;
+      action.classList.remove('hit');
+      action.textContent = defaultLabel;
+    }, 2400);
+  };
+
+  section.append(copy, action);
+  zone.appendChild(section);
+}
+
 function renderFocusZone() {
   const zone = $('#focus-zone');
   clearEngagementWatchers(zone);
   zone.textContent = '';
   zone.hidden = false;
 
-  renderChelseaWatchModule(zone);
+  renderSeasonBlessingModule(zone);
 
   const banner = el('button', 'departure-heartbreak-banner');
   banner.type = 'button';
@@ -4799,25 +4835,6 @@ function savePat() {
   triggerCloudFetch();
 }
 
-// ---------------- 倒计时 ----------------
-function renderCountdown() {
-  const now = Date.now();
-  const w = WINDOWS.find((x) => x.ts > now);
-  const n = $('#window-countdown');
-  if (!w) { n.textContent = '转会窗已关闭'; return; }
-  const totalMs = Math.max(0, w.ts - now);
-  const hours = Math.floor(totalMs / 3600e3);
-  const minutes = Math.floor((totalMs % 3600e3) / 60e3);
-  const seconds = Math.floor((totalMs % 60e3) / 1000);
-  const values = { hours, minutes, seconds };
-  for (const [part, value] of Object.entries(values)) {
-    const node = n.querySelector(`[data-countdown="${part}"]`);
-    if (node) node.textContent = String(value).padStart(2, '0');
-  }
-  n.setAttribute('aria-label',
-    `距离维圣变成维处，只剩 ${hours} 小时 ${minutes} 分 ${seconds} 秒。`);
-}
-
 // ---------------- 事件绑定 ----------------
 function bind() {
   $('#search').oninput = (e) => {
@@ -4928,9 +4945,7 @@ function mockItems() {
 
 // ---------------- 启动 ----------------
 bind();
-renderCountdown();
 recordRequestedShareVisit();
-setInterval(renderCountdown, 1000);
 loadData(false).finally(() => {
   scheduleDeferredReactionSnapshot();
   const surveyId = requestedSurveyId();

@@ -145,6 +145,28 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 
 /* ============ 重点传闻置顶横滑栏 ============ */
 .focus-zone { margin-bottom: 11px; }
+.season-blessing-banner {
+  margin-bottom: 10px; padding: 16px 18px; display: grid;
+  grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 14px 22px;
+  border: 1px solid #9bcde3; border-radius: 13px;
+  background:
+    radial-gradient(circle at 94% 0%, rgba(255,211,110,.24), transparent 30%),
+    linear-gradient(118deg, #e7f5fb 0%, #f9fcfe 62%, #eef8fc 100%);
+  box-shadow: 0 8px 24px rgba(42,83,106,.08);
+}
+.season-blessing-copy { min-width: 0; }
+.season-blessing-kicker { color: #7f641d; font-size: 10px; font-weight: 900; letter-spacing: .06em; }
+.season-blessing-title { margin: 4px 0 0; color: #173d58; font-size: 20px; font-weight: 950; line-height: 1.3; }
+.season-blessing-text { margin: 5px 0 0; color: #58758a; font-size: 12px; font-weight: 700; line-height: 1.55; }
+.season-blessing-action {
+  min-height: 45px; padding: 9px 16px; border: 1px solid #d1a944; border-radius: 10px;
+  background: linear-gradient(135deg, #fff2c8, #f4cf70); color: #17384f;
+  font-size: 12px; font-weight: 950; white-space: nowrap; cursor: pointer;
+  box-shadow: 0 7px 18px rgba(115,86,23,.13); transition: transform .16s, filter .16s;
+}
+.season-blessing-action:hover { transform: translateY(-1px); filter: brightness(1.03); }
+.season-blessing-action:disabled { cursor: default; opacity: 1; }
+.season-blessing-action.hit { background: linear-gradient(135deg, #dff4fd, #a9ddf2); border-color: #5cafd4; }
 .focus-strip-head {
   display: flex; align-items: center; gap: 8px; min-width: 0;
   margin: 0 2px 7px; flex-wrap: wrap;
@@ -1635,6 +1657,9 @@ code { background: rgba(57, 189, 248, .12); color: #dff4ff; }
   min-width: 40px; padding-inline: 7px; font-size: 21px; line-height: 32px;
 }
 .stadium-hero .countdown-unit small { font-size: 11px; }
+.stadium-finale-message { display: grid; gap: 5px; margin: 0; }
+.stadium-finale-message strong { color: #fff; font-size: 23px; font-weight: 950; line-height: 1.2; }
+.stadium-finale-message span { color: #d4e7f1; font-size: 13px; font-weight: 750; line-height: 1.55; }
 .fav-btn {
   border-color: rgba(245, 200, 91, .62); background: rgba(245, 200, 91, .09);
   color: var(--gold); box-shadow: none;
@@ -1827,6 +1852,9 @@ code { background: rgba(57, 189, 248, .12); color: #dff4ff; }
     min-width: 25px; padding-inline: 3px; font-size: 13px; line-height: 20px;
   }
   .stadium-hero .countdown-unit small { font-size: 9px; }
+  .stadium-finale-message { gap: 2px; text-align: center; }
+  .stadium-finale-message strong { font-size: 15px; }
+  .stadium-finale-message span { font-size: 10px; line-height: 1.45; }
   .container { padding: 12px 10px 56px; }
   .pinned-card, .card, .modal-box {
     background: linear-gradient(145deg, rgba(12,43,70,.98), rgba(7,31,53,.98));
@@ -2061,6 +2089,8 @@ code { background: #e6f1f7; color: #294f68; }
     color: #9a6500; box-shadow: 0 2px 5px rgba(108,82,27,.10);
   }
   .stadium-hero .countdown-unit small { color: #7c6c48; }
+  .stadium-finale-message strong { color: #18364d; }
+  .stadium-finale-message span { color: #5d7788; }
   .pinned-card, .card, .modal-box { background: rgba(255,255,255,.97); }
   .city-prayer { background: #fffaf0; }
   .survey-sheet, .comment-sheet { background: #f9fcfe; }
@@ -2075,6 +2105,10 @@ code { background: #e6f1f7; color: #294f68; }
   .chelsea-watch-card { padding: 9px 10px; gap: 6px; }
   .chelsea-watch-copy { font-size: 11.5px; -webkit-line-clamp: 3; }
   .chelsea-watch-more { margin-bottom: 8px; font-size: 10px; }
+  .season-blessing-banner { grid-template-columns: 1fr; gap: 10px; margin-bottom: 7px; padding: 12px; border-radius: 11px; }
+  .season-blessing-title { font-size: 17px; }
+  .season-blessing-text { font-size: 11px; }
+  .season-blessing-action { width: 100%; min-height: 42px; padding-inline: 10px; font-size: 11px; white-space: normal; }
   .departure-heartbreak-banner { padding: 11px 78px 12px 12px; border-radius: 11px; }
   .departure-heartbreak-kicker { margin-bottom: 4px; font-size: 9px; }
   .departure-heartbreak-headline { gap: 1px 5px; font-size: 16px; line-height: 1.3; }

@@ -105,16 +105,17 @@ test('蓝桥雷达排除比赛、伤病、续约、女足和普通离队', () =>
   for (const value of rejected) assert.equal(isChelseaWatchItem(value), false, value);
 });
 
-test('首页预留独立蓝桥雷达数据流，且不混入普通消息筛选', () => {
+test('首页用收官好运互动替换蓝桥雷达，后台雷达抓取仍保留', () => {
   const app = fs.readFileSync('static/app.js', 'utf8');
   const fetchScript = fs.readFileSync('scripts/fetch.js', 'utf8');
   const workflow = fs.readFileSync('.github/workflows/fetch.yml', 'utf8');
   const style = fs.readFileSync('static/style.css', 'utf8');
   assert.match(app, /CHELSEA_WATCH_URL/);
-  assert.match(app, /renderChelseaWatchModule/);
-  assert.match(app, /蓝桥中场雷达/);
-  assert.match(app, /可信白名单：切尔西官方、跟队记者与一线转会记者/);
-  assert.match(app, /renderChelseaWatchModule\(zone\);\s*const banner =/);
+  assert.match(app, /const CHELSEA_WATCH_ENABLED = false/);
+  assert.match(app, /renderSeasonBlessingModule/);
+  assert.match(app, /接住蓝月好运，也给秃然离城加个油 💙/);
+  assert.match(app, /renderSeasonBlessingModule\(zone\);\s*const banner =/);
+  assert.doesNotMatch(app, /renderChelseaWatchModule\(zone\);\s*const banner =/);
   assert.match(fetchScript, /writeFile\(resolve\(DATA_DIR, 'chelsea-watch\.json'\)/);
   assert.match(fetchScript, /chelseaReusableSources = sources\.filter/);
   assert.match(fetchScript, /\[\.\.\.chelseaReusableSources, \.\.\.chelseaWatchTimelineSources\]/);
