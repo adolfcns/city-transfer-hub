@@ -684,6 +684,29 @@ async function saveShareEvent(env, eventId, eventType, targetId, voterId) {
   return { ok: true };
 }
 
+async function readFinaleStats(env) {
+  await ensureSchema(env);
+  const [votes, prayers, reactions, comments, shares] = await env.DB.batch([
+    env.DB.prepare('SELECT COUNT(*) AS n FROM survey_ballots'),
+    env.DB.prepare('SELECT n FROM reactions WHERE id = ? AND emoji = ?').bind(PRAYER_ROW_ID, PRAYER_EMOJI),
+    env.DB.prepare('SELECT COALESCE(SUM(n), 0) AS n FROM reactions WHERE NOT (id = ? AND emoji = ?)').bind(PRAYER_ROW_ID, PRAYER_EMOJI),
+    env.DB.prepare(
+      'SELECT COUNT(*) AS n FROM comments c LEFT JOIN comments p ON p.id = c.parent_id ' +
+        'WHERE c.hidden = 0 AND (c.parent_id IS NULL OR p.hidden = 0)',
+    ),
+    env.DB.prepare("SELECT COUNT(*) AS n FROM share_events WHERE event_type IN ('native_share','copy_link','save_image')"),
+  ]);
+  const count = (result) => Math.max(0, Number(result?.results?.[0]?.n || 0));
+  return {
+    ok: true,
+    votes: count(votes),
+    prayers: count(prayers),
+    reactions: count(reactions),
+    comments: count(comments),
+    shares: count(shares),
+  };
+}
+
 // 用服务端令牌触发 GitHub 抓取任务
 async function triggerGitHub(env) {
   return fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
@@ -713,6 +736,23 @@ export default {
     };
     if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
     const path = new URL(request.url).pathname;
+
+    if (path === '/finale-stats') {
+      if (!originAllowed) {
+        return new Response(JSON.stringify({ ok: false, reason: 'origin' }), { status: 403, headers: cors });
+      }
+      if (!env.DB) {
+        return new Response(JSON.stringify({ ok: false, reason: 'no_db' }), { status: 503, headers: cors });
+      }
+      if (request.method !== 'GET') {
+        return new Response(JSON.stringify({ ok: false, reason: 'method' }), { status: 405, headers: cors });
+      }
+      try {
+        return new Response(JSON.stringify(await readFinaleStats(env)), { headers: cors });
+      } catch {
+        return new Response(JSON.stringify({ ok: false, reason: 'db_error' }), { status: 503, headers: cors });
+      }
+    }
 
     if (path === '/share-events') {
       if (!originAllowed) {

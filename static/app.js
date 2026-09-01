@@ -4561,6 +4561,10 @@ const SHARE_EVENT_ENDPOINTS = [
   'https://city-transfer-hub.pages.dev/share-events',
   `${TRIGGER_ENDPOINT}share-events`,
 ];
+const WINDOW_FINALE_STATS_ENDPOINTS = [
+  'https://city-transfer-hub.pages.dev/finale-stats',
+  `${TRIGGER_ENDPOINT}finale-stats`,
+];
 
 function newShareEventId() {
   try {
@@ -4660,7 +4664,31 @@ function showWindowFinaleNotice() {
   document.body.classList.add('finale-open');
   try { localStorage.setItem(WINDOW_FINALE_NOTICE_KEY, String(Date.now())); }
   catch { /* 禁用本机存储时仍可正常关闭 */ }
+  void loadWindowFinaleInteractionStats();
   setTimeout(() => $('#window-finale-ok')?.focus(), 0);
+}
+
+async function loadWindowFinaleInteractionStats() {
+  for (const endpoint of WINDOW_FINALE_STATS_ENDPOINTS) {
+    try {
+      const response = await fetch(endpoint, { cache: 'no-store' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.ok !== true) continue;
+      const fields = {
+        votes: '#window-finale-votes',
+        prayers: '#window-finale-prayers',
+        reactions: '#window-finale-reactions',
+        comments: '#window-finale-comments',
+        shares: '#window-finale-shares',
+      };
+      for (const [field, selector] of Object.entries(fields)) {
+        const node = $(selector);
+        const value = Number(data[field]);
+        if (node && Number.isFinite(value)) node.textContent = Math.max(0, value).toLocaleString('zh-CN');
+      }
+      return;
+    } catch { /* 尝试备用互动接口 */ }
+  }
 }
 
 function scheduleWindowFinaleNotice(delay = null) {

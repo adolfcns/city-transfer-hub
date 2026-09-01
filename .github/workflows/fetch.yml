@@ -228,6 +228,7 @@ jobs:
           const departureSurveyUrl = 'https://city-transfer-hub.pages.dev/surveys?poll=summer_departure_heartbreak_2026&voter=api_smoke_voter_2026';
           const reservationsUrl = 'https://city-transfer-hub.pages.dev/reservations?feature=loan_watch_2026&voter=api_smoke_voter_2026';
           const shareEventsUrl = 'https://city-transfer-hub.pages.dev/share-events';
+          const finaleStatsUrl = 'https://city-transfer-hub.pages.dev/finale-stats';
           const origin = 'https://adolfcns.github.io';
           for (let attempt = 1; attempt <= 10; attempt += 1) {
             try {
@@ -269,6 +270,9 @@ jobs:
               });
               const shareEventsBody = await shareEventsResponse.json();
               const shareEventsCors = shareEventsResponse.headers.get('access-control-allow-origin');
+              const finaleStatsResponse = await fetch(finaleStatsUrl, { headers: { Origin: origin } });
+              const finaleStatsBody = await finaleStatsResponse.json();
+              const finaleStatsCors = finaleStatsResponse.headers.get('access-control-allow-origin');
               const reactionsReady = reactionsResponse.ok && reactionsBody.ok === true
                 && reactionsBody.counts && reactionsBody.counts.api_smoke_read
                 && reactionsCors === origin;
@@ -299,8 +303,11 @@ jobs:
                 && Number.isInteger(reservationsBody.count) && reservationsBody.count >= 120
                 && typeof reservationsBody.reserved === 'boolean' && reservationsCors === origin;
               const shareEventsReady = shareEventsResponse.ok && shareEventsBody.ok === true && shareEventsCors === origin;
-              if (response.ok && body.ok === true && Number.isInteger(body.count) && cors === origin && reactionsReady && commentsReady && surveyReady && coachSurveyReady && departureSurveyReady && reservationsReady && shareEventsReady) {
-                console.log(`Direct interactions ready: prayer=${body.count}, reactions=ok, comments=ok, surveys=ok, reservations=ok, share-events=ok`);
+              const finaleStatsReady = finaleStatsResponse.ok && finaleStatsBody.ok === true
+                && ['votes', 'prayers', 'reactions', 'comments', 'shares'].every((key) => Number.isInteger(finaleStatsBody[key]))
+                && finaleStatsCors === origin;
+              if (response.ok && body.ok === true && Number.isInteger(body.count) && cors === origin && reactionsReady && commentsReady && surveyReady && coachSurveyReady && departureSurveyReady && reservationsReady && shareEventsReady && finaleStatsReady) {
+                console.log(`Direct interactions ready: prayer=${body.count}, reactions=ok, comments=ok, surveys=ok, reservations=ok, share-events=ok, finale-stats=ok`);
                 process.exit(0);
               }
               console.log(`Attempt ${attempt}: HTTP ${response.status}, CORS ${cors}`, body);

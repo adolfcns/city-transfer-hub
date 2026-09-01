@@ -684,10 +684,33 @@ async function saveShareEvent(env, eventId, eventType, targetId, voterId) {
   return { ok: true };
 }
 
+async function readFinaleStats(env) {
+  await ensureSchema(env);
+  const [votes, prayers, reactions, comments, shares] = await env.DB.batch([
+    env.DB.prepare('SELECT COUNT(*) AS n FROM survey_ballots'),
+    env.DB.prepare('SELECT n FROM reactions WHERE id = ? AND emoji = ?').bind(PRAYER_ROW_ID, PRAYER_EMOJI),
+    env.DB.prepare('SELECT COALESCE(SUM(n), 0) AS n FROM reactions WHERE NOT (id = ? AND emoji = ?)').bind(PRAYER_ROW_ID, PRAYER_EMOJI),
+    env.DB.prepare(
+      'SELECT COUNT(*) AS n FROM comments c LEFT JOIN comments p ON p.id = c.parent_id ' +
+        'WHERE c.hidden = 0 AND (c.parent_id IS NULL OR p.hidden = 0)',
+    ),
+    env.DB.prepare("SELECT COUNT(*) AS n FROM share_events WHERE event_type IN ('native_share','copy_link','save_image')"),
+  ]);
+  const count = (result) => Math.max(0, Number(result?.results?.[0]?.n || 0));
+  return {
+    ok: true,
+    votes: count(votes),
+    prayers: count(prayers),
+    reactions: count(reactions),
+    comments: count(comments),
+    shares: count(shares),
+  };
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (!['/prayer', '/reactions', '/comments', '/surveys', '/reservations', '/share-events'].includes(url.pathname)) return env.ASSETS.fetch(request);
+    if (!['/prayer', '/reactions', '/comments', '/surveys', '/reservations', '/share-events', '/finale-stats'].includes(url.pathname)) return env.ASSETS.fetch(request);
 
     const origin = request.headers.get('Origin') || '';
     const headers = responseHeaders(origin);
@@ -696,6 +719,11 @@ export default {
     if (!env.DB) return json({ ok: false, reason: 'no_db' }, headers, 503);
 
     try {
+      if (url.pathname === '/finale-stats') {
+        if (request.method !== 'GET') return json({ ok: false, reason: 'method' }, headers, 405);
+        return json(await readFinaleStats(env), headers);
+      }
+
       if (url.pathname === '/share-events') {
         if (request.method !== 'POST') return json({ ok: false, reason: 'method' }, headers, 405);
         const body = await request.json().catch(() => ({}));

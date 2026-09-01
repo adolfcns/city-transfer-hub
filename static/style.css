@@ -2128,7 +2128,17 @@ body.finale-open { overflow: hidden; }
 .window-finale-stats strong { color: #ffd36e; font-size: 24px; font-weight: 950; line-height: 1; font-variant-numeric: tabular-nums; }
 .window-finale-stats span { color: #f8e6b9; font-size: 11px; font-weight: 850; }
 .window-finale-stats small { grid-column: 1 / -1; margin-top: 6px; color: #b8d4e2; font-size: 10px; font-weight: 750; }
-.window-finale-copy { margin-top: 16px; }
+.window-finale-interactions {
+  margin-top: 10px; padding: 10px 11px 8px; border: 1px solid rgba(156,213,239,.20);
+  border-radius: 11px; background: rgba(3,20,33,.20);
+}
+.window-finale-interactions-title { display: block; margin-bottom: 7px; color: #cce7f3; font-size: 11px; font-weight: 900; }
+.window-finale-interaction-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+.window-finale-interaction-grid > span { min-width: 0; display: grid; justify-items: center; gap: 2px; }
+.window-finale-interaction-grid b { color: #8bd5f2; font-size: 17px; font-weight: 950; font-variant-numeric: tabular-nums; }
+.window-finale-interaction-grid small { color: #b8d4e2; font-size: 9px; font-weight: 750; white-space: nowrap; }
+.window-finale-interactions-note { display: block; margin-top: 7px; color: #88aabd; font-size: 8.5px; line-height: 1.45; }
+.window-finale-copy { margin-top: 13px; }
 .window-finale-copy p { margin: 8px 0 0; color: #d8eaf3; font-size: 13px; font-weight: 650; line-height: 1.72; }
 .window-finale-copy .window-finale-answer { color: #ffe7aa; font-weight: 900; }
 .window-finale-copy .window-finale-outro { margin-top: 13px; color: #fff; font-size: 14px; font-weight: 900; }
@@ -2152,7 +2162,13 @@ body.finale-open { overflow: hidden; }
   .window-finale-stats strong { font-size: 18px; }
   .window-finale-stats span { font-size: 9px; }
   .window-finale-stats small { margin-top: 4px; font-size: 8px; }
-  .window-finale-copy { margin-top: 12px; }
+  .window-finale-interactions { margin-top: 7px; padding: 7px 6px 6px; }
+  .window-finale-interactions-title { margin-bottom: 5px; font-size: 9px; }
+  .window-finale-interaction-grid { gap: 2px; }
+  .window-finale-interaction-grid b { font-size: 14px; }
+  .window-finale-interaction-grid small { font-size: 7.5px; }
+  .window-finale-interactions-note { margin-top: 5px; font-size: 7.5px; }
+  .window-finale-copy { margin-top: 9px; }
   .window-finale-copy p { margin-top: 6px; font-size: 12px; line-height: 1.58; }
   .window-finale-copy .window-finale-outro { margin-top: 9px; font-size: 13px; }
   .window-finale-signature { margin-top: 10px; font-size: 11px; }

@@ -5,6 +5,9 @@ import fs from 'node:fs';
 const html = fs.readFileSync('static/index.html', 'utf8');
 const app = fs.readFileSync('static/app.js', 'utf8');
 const style = fs.readFileSync('static/style.css', 'utf8');
+const pagesWorker = fs.readFileSync('cloudflare/pages-worker.js', 'utf8');
+const triggerWorker = fs.readFileSync('scripts/cloudflare-worker.js', 'utf8');
+const routes = JSON.parse(fs.readFileSync('cloudflare/pages-routes.json', 'utf8'));
 
 test('手机和电脑每台设备每五小时显示夏窗终章', () => {
   assert.match(html, /id="window-finale-notice"/);
@@ -29,4 +32,20 @@ test('关窗后终章自动切换为落幕文案', () => {
   assert.match(app, /Date\.now\(\) >= WINDOWS\[0\]\.ts/);
   assert.match(app, /答案已经写下，夏窗正式落幕/);
   assert.match(app, /夏窗已经落幕/);
+});
+
+test('终章实时汇总投票、好运、表情、评论和分享次数', () => {
+  for (const id of ['votes', 'prayers', 'reactions', 'comments', 'shares']) {
+    assert.match(html, new RegExp(`id="window-finale-${id}"`));
+  }
+  assert.match(app, /WINDOW_FINALE_STATS_ENDPOINTS/);
+  assert.match(app, /loadWindowFinaleInteractionStats\(\)/);
+  assert.match(style, /\.window-finale-interaction-grid/);
+  for (const worker of [pagesWorker, triggerWorker]) {
+    assert.match(worker, /function readFinaleStats\(env\)/);
+    assert.match(worker, /SELECT COUNT\(\*\) AS n FROM survey_ballots/);
+    assert.match(worker, /event_type IN \('native_share','copy_link','save_image'\)/);
+    assert.match(worker, /finale-stats/);
+  }
+  assert.ok(routes.include.includes('/finale-stats'));
 });
