@@ -23,6 +23,8 @@ const COOLDOWN_SECONDS = 90;                        // 访客触发的全局冷�
 const PRAYER_ROW_ID = '0000000000001894';           // 专用行，1894 对应俱乐部成立年份
 const PRAYER_EMOJI = '💙';
 const PRAYER_RATE_SECONDS = 1;
+const SEASON_BLESSING_COUNTER_KEY = 'season_blessing_2026';
+const SEASON_BLESSING_RATE_SECONDS = 1;
 const REACTION_KEYS = ['fire', 'heart', 'watch', 'wild', 'doubt'];
 const ITEM_ID_RE = /^[A-Za-z0-9_-]{1,128}$/;
 const VOTER_ID_RE = /^[A-Za-z0-9_-]{12,80}$/;
@@ -134,6 +136,10 @@ async function ensureSchema(env) {
       'CREATE TABLE IF NOT EXISTS interaction_meta (' +
         'key TEXT PRIMARY KEY, value TEXT NOT NULL)',
     ),
+    env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS site_counters (' +
+        'key TEXT PRIMARY KEY, n INTEGER NOT NULL DEFAULT 0)',
+    ),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_reaction_votes_item ON reaction_votes(item_id)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_reaction_vote_history_item ON reaction_vote_history(item_id)'),
     env.DB.prepare(
@@ -232,6 +238,21 @@ async function incrementPrayerCount(env) {
     'ON CONFLICT(id, emoji) DO UPDATE SET n = n + 1',
   ).bind(PRAYER_ROW_ID, PRAYER_EMOJI).run();
   return readPrayerCount(env);
+}
+
+async function readSiteCounter(env, key) {
+  await ensureSchema(env);
+  const row = await env.DB.prepare('SELECT n FROM site_counters WHERE key = ?').bind(key).first();
+  return Math.max(0, Number(row?.n || 0));
+}
+
+async function incrementSiteCounter(env, key) {
+  await ensureSchema(env);
+  await env.DB.prepare(
+    'INSERT INTO site_counters (key, n) VALUES (?, 1) ' +
+      'ON CONFLICT(key) DO UPDATE SET n = n + 1',
+  ).bind(key).run();
+  return readSiteCounter(env, key);
 }
 
 function blankReactionCounts() {
@@ -736,6 +757,46 @@ export default {
     };
     if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
     const path = new URL(request.url).pathname;
+
+    if (path === '/season-blessing') {
+      if (!originAllowed) {
+        return new Response(JSON.stringify({ ok: false, reason: 'origin' }), { status: 403, headers: cors });
+      }
+      if (!env.DB) {
+        return new Response(JSON.stringify({ ok: false, reason: 'no_db' }), { status: 503, headers: cors });
+      }
+      try {
+        if (request.method === 'GET') {
+          return new Response(JSON.stringify({
+            ok: true,
+            count: await readSiteCounter(env, SEASON_BLESSING_COUNTER_KEY),
+          }), { headers: cors });
+        }
+        if (request.method === 'POST') {
+          const cache = caches.default;
+          const ip = request.headers.get('CF-Connecting-IP') || 'anonymous';
+          const gate = new Request(`https://season-blessing-limit.internal/${encodeURIComponent(ip)}`);
+          if (await cache.match(gate)) {
+            return new Response(JSON.stringify({
+              ok: false,
+              reason: 'slow_down',
+              count: await readSiteCounter(env, SEASON_BLESSING_COUNTER_KEY),
+            }), {
+              status: 429,
+              headers: { ...cors, 'retry-after': String(SEASON_BLESSING_RATE_SECONDS) },
+            });
+          }
+          const count = await incrementSiteCounter(env, SEASON_BLESSING_COUNTER_KEY);
+          await cache.put(gate, new Response('1', {
+            headers: { 'cache-control': `max-age=${SEASON_BLESSING_RATE_SECONDS}` },
+          }));
+          return new Response(JSON.stringify({ ok: true, count }), { headers: cors });
+        }
+        return new Response(JSON.stringify({ ok: false, reason: 'method' }), { status: 405, headers: cors });
+      } catch {
+        return new Response(JSON.stringify({ ok: false, reason: 'db_error' }), { status: 503, headers: cors });
+      }
+    }
 
     if (path === '/finale-stats') {
       if (!originAllowed) {

@@ -220,6 +220,7 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           const url = 'https://city-transfer-hub.pages.dev/prayer';
+          const seasonBlessingUrl = 'https://city-transfer-hub.pages.dev/season-blessing';
           const reactionsUrl = 'https://city-transfer-hub.pages.dev/reactions?ids=api_smoke_read';
           const commentsUrl = 'https://city-transfer-hub.pages.dev/comments?ids=api_smoke_read';
           const commentDetailUrl = 'https://city-transfer-hub.pages.dev/comments?item=api_smoke_read&voter=api_smoke_voter_2026';
@@ -237,6 +238,9 @@ jobs:
               });
               const body = await response.json();
               const cors = response.headers.get('access-control-allow-origin');
+              const seasonBlessingResponse = await fetch(seasonBlessingUrl, { headers: { Origin: origin } });
+              const seasonBlessingBody = await seasonBlessingResponse.json();
+              const seasonBlessingCors = seasonBlessingResponse.headers.get('access-control-allow-origin');
               const reactionsResponse = await fetch(reactionsUrl, { headers: { Origin: origin } });
               const reactionsBody = await reactionsResponse.json();
               const reactionsCors = reactionsResponse.headers.get('access-control-allow-origin');
@@ -306,8 +310,11 @@ jobs:
               const finaleStatsReady = finaleStatsResponse.ok && finaleStatsBody.ok === true
                 && ['votes', 'prayers', 'reactions', 'comments', 'shares'].every((key) => Number.isInteger(finaleStatsBody[key]))
                 && finaleStatsCors === origin;
-              if (response.ok && body.ok === true && Number.isInteger(body.count) && cors === origin && reactionsReady && commentsReady && surveyReady && coachSurveyReady && departureSurveyReady && reservationsReady && shareEventsReady && finaleStatsReady) {
-                console.log(`Direct interactions ready: prayer=${body.count}, reactions=ok, comments=ok, surveys=ok, reservations=ok, share-events=ok, finale-stats=ok`);
+              const seasonBlessingReady = seasonBlessingResponse.ok && seasonBlessingBody.ok === true
+                && Number.isInteger(seasonBlessingBody.count) && seasonBlessingBody.count >= 0
+                && seasonBlessingCors === origin;
+              if (response.ok && body.ok === true && Number.isInteger(body.count) && cors === origin && seasonBlessingReady && reactionsReady && commentsReady && surveyReady && coachSurveyReady && departureSurveyReady && reservationsReady && shareEventsReady && finaleStatsReady) {
+                console.log(`Direct interactions ready: prayer=${body.count}, season-blessing=${seasonBlessingBody.count}, reactions=ok, comments=ok, surveys=ok, reservations=ok, share-events=ok, finale-stats=ok`);
                 process.exit(0);
               }
               console.log(`Attempt ${attempt}: HTTP ${response.status}, CORS ${cors}`, body);

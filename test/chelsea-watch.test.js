@@ -113,7 +113,10 @@ test('首页用收官好运互动替换蓝桥雷达，后台雷达抓取仍保�
   assert.match(app, /CHELSEA_WATCH_URL/);
   assert.match(app, /const CHELSEA_WATCH_ENABLED = false/);
   assert.match(app, /renderSeasonBlessingModule/);
-  assert.match(app, /接住蓝月好运，也给秃然离城加个油 💙/);
+  assert.match(app, /接住蓝月好运，也给秃然离城加个油/);
+  assert.match(app, /season-blessing-action-count', '💙 —'/);
+  assert.match(app, /SEASON_BLESSING_ENDPOINTS/);
+  assert.doesNotMatch(app, /const prayer = \$\('#city-prayer'\)/);
   assert.match(app, /renderSeasonBlessingModule\(zone\);\s*const banner =/);
   assert.doesNotMatch(app, /renderChelseaWatchModule\(zone\);\s*const banner =/);
   assert.match(fetchScript, /writeFile\(resolve\(DATA_DIR, 'chelsea-watch\.json'\)/);

@@ -4323,22 +4323,62 @@ function renderSeasonBlessingModule(zone) {
     el('p', 'season-blessing-text', '夏窗结束了，情报站还会继续。也给一路守到关窗的站长 @秃然离城 加个油。'),
   );
 
-  const defaultLabel = '接住蓝月好运，也给秃然离城加个油 💙';
-  const action = el('button', 'season-blessing-action', defaultLabel);
+  const action = el('button', 'season-blessing-action');
   action.type = 'button';
-  action.onclick = () => {
-    const prayer = $('#city-prayer');
-    if (!prayer || prayer.disabled) return;
-    prayer.click();
+  const actionLabel = el('span', 'season-blessing-action-label', '接住蓝月好运，也给秃然离城加个油');
+  const actionCount = el('span', 'season-blessing-action-count', '💙 —');
+  action.append(actionLabel, actionCount);
+
+  let activeEndpoint = SEASON_BLESSING_ENDPOINTS[0];
+  let requestInFlight = false;
+  const updateCount = (count) => {
+    actionCount.textContent = `💙 ${Number.isSafeInteger(count) && count >= 0 ? count.toLocaleString('zh-CN') : '—'}`;
+    action.setAttribute('aria-label', Number.isSafeInteger(count) && count >= 0
+      ? `接住蓝月好运，也给秃然离城加个油。已有 ${count} 人接住好运。`
+      : '接住蓝月好运，也给秃然离城加个油。计数加载中。');
+  };
+  const requestCounter = async (endpoint, method) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    try {
+      return await fetch(endpoint, { method, cache: 'no-store', signal: controller.signal });
+    } finally { clearTimeout(timer); }
+  };
+
+  (async () => {
+    for (const endpoint of SEASON_BLESSING_ENDPOINTS) {
+      try {
+        const response = await requestCounter(endpoint, 'GET');
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !Number.isSafeInteger(data.count) || data.count < 0) continue;
+        if (!action.isConnected || requestInFlight) return;
+        activeEndpoint = endpoint;
+        updateCount(data.count);
+        return;
+      } catch { /* 读取失败时自动切换备用入口 */ }
+    }
+    if (action.isConnected && !requestInFlight) updateCount(null);
+  })();
+
+  action.onclick = async () => {
+    if (requestInFlight) return;
+    requestInFlight = true;
     action.disabled = true;
     action.classList.add('hit');
-    action.textContent = '好运已接住，你的鼓励站长也收到啦！';
-    setTimeout(() => {
-      if (!action.isConnected) return;
+    try {
+      const response = await requestCounter(activeEndpoint, 'POST');
+      const data = await response.json().catch(() => ({}));
+      if (Number.isSafeInteger(data.count) && data.count >= 0) updateCount(data.count);
+      if (response.ok) toast('好运已接住，你的鼓励站长也收到啦！');
+      else if (response.status === 429) toast('你的好运已经收到，稍等一下再接 💙');
+      else toast('暂时没连上全站计数，请稍后再试');
+    } catch {
+      toast('暂时没连上全站计数，请稍后再试');
+    } finally {
+      requestInFlight = false;
       action.disabled = false;
-      action.classList.remove('hit');
-      action.textContent = defaultLabel;
-    }, 2400);
+      setTimeout(() => action.isConnected && action.classList.remove('hit'), 360);
+    }
   };
 
   section.append(copy, action);
@@ -4576,6 +4616,10 @@ const TRIGGER_ENDPOINT = 'https://city-trigger.shiqie7272.workers.dev/';
 const PRAYER_ENDPOINTS = [
   'https://city-transfer-hub.pages.dev/prayer',
   `${TRIGGER_ENDPOINT}prayer`,
+];
+const SEASON_BLESSING_ENDPOINTS = [
+  'https://city-transfer-hub.pages.dev/season-blessing',
+  `${TRIGGER_ENDPOINT}season-blessing`,
 ];
 const REACTION_ENDPOINTS = [
   'https://city-transfer-hub.pages.dev/reactions',

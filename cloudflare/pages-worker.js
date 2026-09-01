@@ -9,6 +9,8 @@ const ALLOW_ORIGINS = [
 const PRAYER_ROW_ID = '0000000000001894';
 const PRAYER_EMOJI = '💙';
 const PRAYER_RATE_SECONDS = 1;
+const SEASON_BLESSING_COUNTER_KEY = 'season_blessing_2026';
+const SEASON_BLESSING_RATE_SECONDS = 1;
 const REACTION_KEYS = ['fire', 'heart', 'watch', 'wild', 'doubt'];
 const ITEM_ID_RE = /^[A-Za-z0-9_-]{1,128}$/;
 const VOTER_ID_RE = /^[A-Za-z0-9_-]{12,80}$/;
@@ -135,6 +137,10 @@ async function ensureSchema(env) {
       'CREATE TABLE IF NOT EXISTS interaction_meta (' +
         'key TEXT PRIMARY KEY, value TEXT NOT NULL)',
     ),
+    env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS site_counters (' +
+        'key TEXT PRIMARY KEY, n INTEGER NOT NULL DEFAULT 0)',
+    ),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_reaction_votes_item ON reaction_votes(item_id)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_reaction_vote_history_item ON reaction_vote_history(item_id)'),
     env.DB.prepare(
@@ -232,6 +238,21 @@ async function incrementPrayerCount(env) {
       'ON CONFLICT(id, emoji) DO UPDATE SET n = n + 1',
   ).bind(PRAYER_ROW_ID, PRAYER_EMOJI).run();
   return readPrayerCount(env);
+}
+
+async function readSiteCounter(env, key) {
+  await ensureSchema(env);
+  const row = await env.DB.prepare('SELECT n FROM site_counters WHERE key = ?').bind(key).first();
+  return Math.max(0, Number(row?.n || 0));
+}
+
+async function incrementSiteCounter(env, key) {
+  await ensureSchema(env);
+  await env.DB.prepare(
+    'INSERT INTO site_counters (key, n) VALUES (?, 1) ' +
+      'ON CONFLICT(key) DO UPDATE SET n = n + 1',
+  ).bind(key).run();
+  return readSiteCounter(env, key);
 }
 
 function blankReactionCounts() {
@@ -710,7 +731,7 @@ async function readFinaleStats(env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (!['/prayer', '/reactions', '/comments', '/surveys', '/reservations', '/share-events', '/finale-stats'].includes(url.pathname)) return env.ASSETS.fetch(request);
+    if (!['/prayer', '/season-blessing', '/reactions', '/comments', '/surveys', '/reservations', '/share-events', '/finale-stats'].includes(url.pathname)) return env.ASSETS.fetch(request);
 
     const origin = request.headers.get('Origin') || '';
     const headers = responseHeaders(origin);
@@ -719,6 +740,30 @@ export default {
     if (!env.DB) return json({ ok: false, reason: 'no_db' }, headers, 503);
 
     try {
+      if (url.pathname === '/season-blessing') {
+        if (request.method === 'GET') {
+          return json({ ok: true, count: await readSiteCounter(env, SEASON_BLESSING_COUNTER_KEY) }, headers);
+        }
+        if (request.method === 'POST') {
+          const cache = caches.default;
+          const ip = request.headers.get('CF-Connecting-IP') || 'anonymous';
+          const gate = new Request(`https://season-blessing-limit.internal/${encodeURIComponent(ip)}`);
+          if (await cache.match(gate)) {
+            return json({
+              ok: false,
+              reason: 'slow_down',
+              count: await readSiteCounter(env, SEASON_BLESSING_COUNTER_KEY),
+            }, { ...headers, 'retry-after': String(SEASON_BLESSING_RATE_SECONDS) }, 429);
+          }
+          const count = await incrementSiteCounter(env, SEASON_BLESSING_COUNTER_KEY);
+          await cache.put(gate, new Response('1', {
+            headers: { 'cache-control': `max-age=${SEASON_BLESSING_RATE_SECONDS}` },
+          }));
+          return json({ ok: true, count }, headers);
+        }
+        return json({ ok: false, reason: 'method' }, headers, 405);
+      }
+
       if (url.pathname === '/finale-stats') {
         if (request.method !== 'GET') return json({ ok: false, reason: 'method' }, headers, 405);
         return json(await readFinaleStats(env), headers);
