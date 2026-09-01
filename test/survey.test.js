@@ -76,6 +76,8 @@ test('问卷保留手动入口，但不再自动弹出', () => {
   const startup = app.slice(app.lastIndexOf('// ---------------- 启动 ----------------'));
   assert.doesNotMatch(startup, /scheduleSurveyInvite\(\)|scheduleScoutReportInvite\(\)|openSurvey\(DEPARTURE_SURVEY_ID\)/);
   assert.doesNotMatch(app, /SURVEY_POPUP_ID|SURVEY_INVITE_INTERVAL_MS|SCOUT_REPORT_INVITE_INTERVAL_MS/);
+  assert.doesNotMatch(app, /acknowledgeSurveyInvite/);
+  assert.match(app, /async function openSurvey\(pollId\) \{[\s\S]*?document\.body\.appendChild\(overlay\)/);
   assert.match(app, /if \(definition\.announcementOnly\) \{[\s\S]*?renderSurveyIntro\(context\);[\s\S]*?if \(!definition\.reservationFeature\) return;/);
   assert.match(app, /if \(!definition\.entry\) continue;/);
   assert.match(style, /\.survey-preview-grid/);

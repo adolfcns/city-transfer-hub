@@ -4093,7 +4093,6 @@ function renderMidfieldSurveyResults(context) {
 async function openSurvey(pollId) {
   const definition = SURVEY_DEFINITIONS[pollId];
   if (!definition) return;
-  acknowledgeSurveyInvite(pollId);
   closeSurvey();
   activeSurveyId = pollId;
   document.body.classList.add('survey-open');
