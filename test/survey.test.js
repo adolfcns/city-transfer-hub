@@ -32,20 +32,15 @@ test('夏窗调查使用确认后的问题和文案', () => {
   assert.doesNotMatch(positionsBlock, /门将/);
 });
 
-test('意难平横幅下方的专题入口按确认顺序排列并提供蓝月在外预约', () => {
-  assert.match(app, /⚖️ 英超首秀评分/);
-  assert.match(app, /📊 夏窗调查/);
-  assert.match(app, /💬 本站体验/);
-  assert.match(app, /🌍 蓝月在外/);
-  assert.match(app, /const FOCUS_SURVEY_ORDER = Object\.freeze\(\[\s*COACH_SURVEY_ID,\s*'allan_scouting_report_2026',\s*'summer_2026',\s*'loan_watch_preview_2026',\s*'site_experience_2026'/);
-  assert.match(app, /for \(const pollId of FOCUS_SURVEY_ORDER\)/);
-  assert.doesNotMatch(app, /entry: '⚽ 中场投票'/);
-  assert.match(app, /focus-feature-row/);
-  assert.match(style, /\.focus-survey-entries/);
-  assert.match(style, /\.departure-heartbreak-banner/);
-  assert.match(style, /\.survey-entry[\s\S]*?color: var\(--text\); font-size: 14px; font-weight: 800/);
-  assert.match(style, /@media \(max-width: 560px\)[\s\S]*\.focus-feature-row/);
-  assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.survey-entry \{[^}]*font-size: 13px; font-weight: 800/);
+test('蓝月在外主页下方仅保留两个投票入口', () => {
+  const index = fs.readFileSync('static/index.html', 'utf8');
+  const block = app.match(/function renderFocusZone\(\) \{[\s\S]*?\n\}/)?.[0] || '';
+  assert.match(index, /id="loan-watch-home"/);
+  assert.match(app, /const ACTIVE_SURVEY_IDS = new Set\(\['summer_2026', DEPARTURE_SURVEY_ID\]\)/);
+  assert.match(block, /夏窗调查/);
+  assert.match(block, /离队意难平/);
+  assert.doesNotMatch(block, /阿兰球探报告|英超首秀评分|本站体验|FOCUS_SURVEY_ORDER/);
+  assert.match(style, /\.poll-shortcuts/);
 });
 
 test('阿兰球探报告提供四张按需加载图表和固定入口，但不再自动弹出', () => {
@@ -73,13 +68,13 @@ test('问卷保留手动入口，但不再自动弹出', () => {
   assert.match(app, /DEPARTURE_SURVEY_ID = 'summer_departure_heartbreak_2026'/);
   assert.match(app, /title: '夏窗收尾｜谁最让你意难平？'/);
   assert.match(app, /primaryLabel: '选出我的意难平'/);
+  assert.match(app, /const ACTIVE_SURVEY_IDS = new Set\(\['summer_2026', DEPARTURE_SURVEY_ID\]\)/);
   const startup = app.slice(app.lastIndexOf('// ---------------- 启动 ----------------'));
   assert.doesNotMatch(startup, /scheduleSurveyInvite\(\)|scheduleScoutReportInvite\(\)|openSurvey\(DEPARTURE_SURVEY_ID\)/);
   assert.doesNotMatch(app, /SURVEY_POPUP_ID|SURVEY_INVITE_INTERVAL_MS|SCOUT_REPORT_INVITE_INTERVAL_MS/);
   assert.doesNotMatch(app, /acknowledgeSurveyInvite/);
-  assert.match(app, /async function openSurvey\(pollId\) \{[\s\S]*?document\.body\.appendChild\(overlay\)/);
+  assert.match(app, /async function openSurvey\(pollId\) \{[\s\S]*?if \(!ACTIVE_SURVEY_IDS\.has\(pollId\)\) return;[\s\S]*?document\.body\.appendChild\(overlay\)/);
   assert.match(app, /if \(definition\.announcementOnly\) \{[\s\S]*?renderSurveyIntro\(context\);[\s\S]*?if \(!definition\.reservationFeature\) return;/);
-  assert.match(app, /if \(!definition\.entry\) continue;/);
   assert.match(style, /\.survey-preview-grid/);
   assert.match(style, /\.survey-intro-actions\.single/);
 });
@@ -134,26 +129,18 @@ test('投票后用克制的纪念文案和实时同选比例承接分享', () =>
   assert.match(app, /body\.appendChild\(resultGrid\);\s*if \(isDeparture && data\.ballot\) \{[\s\S]*?departureSurveyAffinity\(context\)[\s\S]*?body\.appendChild\(note\)/);
 });
 
-test('蓝月在外从 120 人开始全站预约且同设备只计一次', () => {
-  assert.match(app, /reservationFeature: 'loan_watch_2026'/);
-  assert.match(app, /reservationBase: 120/);
-  assert.match(app, /primaryLabel: '预约关注'/);
-  assert.match(app, /reservedLabel: '✓ 已预约'/);
-  assert.match(app, /全站已有 \$\{count\.toLocaleString\('zh-CN'\)\} 人预约关注/);
-  assert.match(app, /async function featureReservationApi/);
-  assert.match(app, /city-transfer-hub\.pages\.dev\/reservations/);
-  assert.match(style, /\.feature-reservation-status/);
-  for (const worker of [pagesWorker, triggerWorker]) {
-    assert.match(worker, /loan_watch_2026: \{ base: 120 \}/);
-    assert.match(worker, /CREATE TABLE IF NOT EXISTS feature_reservations/);
-    assert.match(worker, /PRIMARY KEY \(feature_id, voter_id\)/);
-    assert.match(worker, /INSERT OR IGNORE INTO feature_reservations/);
-    assert.match(worker, /count: Number\(rule\.base \|\| 0\) \+ Math\.max/);
-    assert.match(worker, /\/reservations/);
-  }
-  assert.ok(routes.include.includes('/reservations'));
-  assert.match(workflow, /reservations\?feature=loan_watch_2026/);
-  assert.match(workflow, /reservations=ok/);
+test('蓝月在外已由预约预告升级为按需加载的赛后数据模块', () => {
+  assert.match(app, /loanWatchOnly: true/);
+  assert.match(app, /const LOAN_WATCH_URL = '\.\/data\/loan-watch\.json'/);
+  assert.match(app, /async function loanWatchApi/);
+  assert.match(app, /function renderLoanWatch\(context\)/);
+  assert.match(app, /本赛季租借后比赛记录/);
+  assert.match(app, /他们离开曼城，不等于离开视线/);
+  assert.match(app, /赛后评分及比赛数据来自 FotMob/);
+  assert.doesNotMatch(app.match(/loan_watch_preview_2026:[\s\S]*?\n  },/)?.[0] || '', /announcementOnly|reservationFeature|previewItems/);
+  assert.match(style, /\.loan-watch-sheet/);
+  assert.match(style, /\.loan-player-card/);
+  assert.match(style, /\.loan-match-history/);
 });
 
 test('马雷斯卡英超首秀调查包含五题和完整统计图', () => {

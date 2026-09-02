@@ -14,19 +14,14 @@ test('重点传闻配置只保留布阿迪', () => {
   assert.equal(targets.has('vinicius'), false);
 });
 
-test('布阿迪重点传闻暂时撤下并换成夏窗意难平投票横幅', () => {
-  assert.match(app, /const FOCUS_RUMOR_STRIP_ENABLED = false/);
-  assert.match(app, /夏窗收尾｜谁最让你意难平？/);
-  assert.match(app, /这个夏天，曼城送走了太多熟悉的面孔。/);
-  assert.doesNotMatch(app, /这个夏天，曼城送走了太多熟悉的面孔。最多选 3 人。/);
-  assert.match(app, /departure-heartbreak-banner/);
-  assert.match(app, /banner\.onclick = \(\) => openSurvey\(DEPARTURE_SURVEY_ID\)/);
-  assert.doesNotMatch(app, /销售冠军终于进货了！/);
-  assert.doesNotMatch(app, /布阿迪入城！/);
-  assert.match(app, /featureRow\.appendChild\(surveyEntries\)/);
-  assert.match(app, /FOCUS_RUMOR_STRIP_ENABLED[\s\S]*?&& items\.length > 0/);
-  assert.doesNotMatch(app, /key === 'vinicius'/);
-  assert.doesNotMatch(app, /el\('h2', 'focus-strip-title', '📌 重点传闻'\)/);
-  assert.match(index, /冬窗见 💙/);
-  assert.doesNotMatch(index, /重点绯闻/);
+test('首页焦点区只保留夏窗评分和离队意难平两项投票', () => {
+  const block = app.match(/function renderFocusZone\(\) \{[\s\S]*?\n\}/)?.[0] || '';
+  assert.match(app, /const ACTIVE_SURVEY_IDS = new Set\(\['summer_2026', DEPARTURE_SURVEY_ID\]\)/);
+  assert.match(block, /夏窗调查/);
+  assert.match(block, /离队意难平/);
+  assert.match(block, /openSurvey\('summer_2026'\)/);
+  assert.match(block, /openSurvey\(DEPARTURE_SURVEY_ID\)/);
+  assert.doesNotMatch(block, /renderChelseaWatchModule|renderSeasonBlessingModule|阿兰球探报告|英超首秀评分/);
+  assert.match(index, /id="loan-watch-home"/);
+  assert.doesNotMatch(index, /重点绯闻|冬窗见 💙/);
 });

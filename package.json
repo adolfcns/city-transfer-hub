@@ -8,7 +8,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "fetch": "node scripts/fetch.js",
+    "fetch": "node scripts/fetch-loan-watch.js",
+    "fetch:loans": "node scripts/fetch-loan-watch.js",
     "test": "node --test",
     "serve": "node scripts/serve.js"
   },

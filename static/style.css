@@ -445,6 +445,82 @@ body.survey-open { overflow: hidden; }
   color: var(--text-dim); font-size: 11px; line-height: 1.55;
 }
 .scout-report-note strong { color: var(--text); }
+.loan-watch-sheet { width: min(1040px, 100%); height: min(860px, calc(100dvh - 28px)); }
+.loan-watch { display: grid; gap: 14px; }
+.loan-watch-intro {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 17px 18px;
+  border: 1px solid var(--line-strong); border-radius: 14px;
+  background: linear-gradient(130deg, rgba(108,171,221,.20), rgba(245,200,91,.10));
+}
+.loan-watch-kicker { color: var(--burgundy); font-size: 10px; font-weight: 900; letter-spacing: .12em; }
+.loan-watch-intro h3 { margin: 4px 0 0; color: var(--text); font-size: 21px; line-height: 1.3; }
+.loan-watch-intro p { margin: 6px 0 0; color: var(--text-dim); font-size: 12px; line-height: 1.55; }
+.loan-watch-overview { flex: 0 0 auto; display: grid; grid-template-columns: repeat(3, 74px); gap: 7px; }
+.loan-summary-stat {
+  min-width: 0; padding: 7px 5px; display: grid; justify-items: center; gap: 1px;
+  border: 1px solid var(--line); border-radius: 9px; background: rgba(255,255,255,.62);
+  font-variant-numeric: tabular-nums;
+}
+.loan-summary-stat strong { color: var(--text); font-size: 16px; font-weight: 900; line-height: 1.15; }
+.loan-summary-stat small { color: var(--text-dim); font-size: 9px; font-weight: 700; line-height: 1.25; }
+.loan-summary-stat.rating strong { color: var(--burgundy); }
+.loan-watch-filters {
+  position: sticky; top: -18px; z-index: 5; margin: 0 -20px; padding: 9px 20px;
+  display: flex; gap: 7px; overflow-x: auto; background: rgba(249,252,254,.96); border-bottom: 1px solid var(--line);
+  scrollbar-width: none; backdrop-filter: blur(10px);
+}
+.loan-watch-filters::-webkit-scrollbar { display: none; }
+.loan-watch-filter {
+  flex: 0 0 auto; min-height: 34px; padding: 6px 13px; border: 1px solid var(--line-strong); border-radius: 999px;
+  background: var(--card); color: var(--text-dim); font-size: 12px; font-weight: 800;
+}
+.loan-watch-filter:hover, .loan-watch-filter.active { border-color: var(--accent); background: rgba(108,171,221,.20); color: var(--t1); }
+.loan-player-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 11px; }
+.loan-player-card {
+  min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: var(--card);
+  box-shadow: 0 7px 20px rgba(35,67,84,.07);
+}
+.loan-player-card.priority { border-color: rgba(43,136,184,.48); box-shadow: inset 3px 0 0 var(--accent), 0 7px 20px rgba(35,67,84,.08); }
+.loan-player-head { display: flex; align-items: flex-start; gap: 9px; }
+.loan-player-identity { min-width: 0; }
+.loan-player-identity h3 { margin: 0; color: var(--text); font-size: 17px; line-height: 1.25; }
+.loan-player-identity span { display: block; margin-top: 3px; color: var(--text-dim); font-size: 10px; line-height: 1.35; }
+.loan-player-status {
+  flex: 0 0 auto; margin-left: auto; padding: 4px 8px; border-radius: 999px;
+  background: #e7f4fa; color: #24769d; font-size: 10px; font-weight: 900;
+}
+.loan-player-status.future { background: #fff3d0; color: #94630b; }
+.loan-player-status.pending { background: #f4ecf1; color: var(--burgundy); }
+.loan-player-destination { margin-top: 10px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; border-radius: 9px; background: rgba(108,171,221,.10); }
+.loan-player-destination span { color: var(--text-dim); font-size: 10px; font-weight: 700; }
+.loan-player-destination strong { color: var(--t1); font-size: 12px; line-height: 1.35; }
+.loan-season-summary { margin-top: 10px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+.loan-season-summary .loan-summary-stat { padding: 6px 2px; background: rgba(108,171,221,.05); }
+.loan-season-summary .loan-summary-stat strong { font-size: 14px; }
+.loan-match-history { margin-top: 10px; border-top: 1px solid var(--line); }
+.loan-match-history > summary {
+  padding: 10px 1px 1px; color: var(--t1); font-size: 11px; font-weight: 900; cursor: pointer; list-style-position: inside;
+}
+.loan-match-list { margin-top: 8px; display: grid; gap: 7px; }
+.loan-match-row { padding: 9px; border: 1px solid var(--line); border-radius: 9px; background: rgba(108,171,221,.04); }
+.loan-match-headline { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 6px; }
+.loan-match-headline time { color: var(--text-dim); font-size: 9px; }
+.loan-match-headline strong { min-width: 0; overflow: hidden; color: var(--text); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.loan-match-headline b { color: var(--text); font-size: 12px; font-variant-numeric: tabular-nums; }
+.loan-match-outcome { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; background: #edf2f5; color: var(--text-dim); font-size: 9px; font-weight: 900; }
+.loan-match-outcome.win { background: #e2f4ea; color: #247451; }
+.loan-match-outcome.loss { background: #f7e8eb; color: var(--burgundy); }
+.loan-match-outcome.draw { background: #fff3d7; color: #93620b; }
+.loan-match-meta { margin-top: 2px; color: var(--text-dim); font-size: 9px; }
+.loan-match-stats { margin-top: 7px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.loan-match-stats .loan-summary-stat { padding: 5px 2px; background: var(--card); }
+.loan-match-stats .loan-summary-stat strong { font-size: 12px; }
+.loan-match-stats .loan-summary-stat small { font-size: 8px; }
+.loan-match-source { display: inline-block; margin-top: 7px; color: var(--accent); font-size: 9px; font-weight: 700; }
+.loan-no-match { margin: 8px 0 0; color: var(--text-dim); font-size: 10px; line-height: 1.55; }
+.loan-watch-note { padding: 11px 13px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 11px; border: 1px dashed var(--line-strong); border-radius: 10px; color: var(--text-dim); font-size: 10px; line-height: 1.5; }
+.loan-watch-note strong { color: var(--text); }
+.loan-watch-note a { margin-left: auto; color: var(--accent); font-weight: 800; }
 .survey-primary, .survey-secondary, .survey-submit, .survey-back, .survey-edit {
   min-height: 42px; border-radius: 8px; font-size: 13px; font-weight: 700;
 }
@@ -1519,6 +1595,20 @@ body.comments-open { overflow: hidden; }
   .scout-report-figure h3 { margin: 1px 3px 8px; font-size: 14px; }
   .scout-report-figure figcaption { margin: 7px 3px 2px; font-size: 11px; }
   .scout-report-note { padding: 10px 11px; }
+  .loan-watch-sheet { height: 94dvh; }
+  .loan-watch { gap: 10px; }
+  .loan-watch-intro { display: grid; gap: 12px; padding: 13px; }
+  .loan-watch-intro h3 { font-size: 18px; }
+  .loan-watch-intro p { font-size: 11px; }
+  .loan-watch-overview { width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .loan-watch-filters { top: -13px; margin-inline: -12px; padding: 7px 12px; }
+  .loan-watch-filter { min-height: 32px; padding-inline: 11px; font-size: 11px; }
+  .loan-player-list { grid-template-columns: 1fr; gap: 8px; }
+  .loan-player-card { padding: 12px; }
+  .loan-player-identity h3 { font-size: 16px; }
+  .loan-match-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .loan-watch-note { display: grid; }
+  .loan-watch-note a { margin-left: 0; }
   .survey-question { padding: 11px 10px; }
   .survey-question legend { font-size: 13px; }
   .survey-options { gap: 5px; }
@@ -2207,4 +2297,99 @@ body.finale-open { overflow: hidden; }
   .window-finale-copy .window-finale-outro { margin-top: 9px; font-size: 13px; }
   .window-finale-signature { margin-top: 10px; font-size: 11px; }
   .window-finale-ok { min-height: 44px; margin-top: 11px; font-size: 14px; }
+}
+
+/* ============ 蓝月在外主页 ============ */
+.container { max-width: 1120px; }
+.loan-watch-home { min-height: 360px; }
+.loan-watch-home > .survey-loading { padding: 90px 12px; }
+.loan-watch.home { gap: 16px; }
+.loan-watch.home .loan-watch-intro { padding: 20px 22px; }
+.loan-watch.home .loan-player-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.winter-window-card {
+  width: min(720px, calc(100% - 24px)); padding: 17px 20px; display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto; align-items: center; gap: 8px 24px;
+  border: 1px solid rgba(91,199,247,.40); border-radius: 15px;
+  background: rgba(3,18,33,.84); color: #f4fbff; box-shadow: 0 16px 40px rgba(0,5,12,.36);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.winter-window-kicker { grid-column: 1 / -1; color: #78cff4; font-size: 10px; font-weight: 950; letter-spacing: .13em; }
+.winter-window-copy { min-width: 0; display: grid; gap: 3px; }
+.winter-window-copy strong { color: #fff; font-size: 22px; font-weight: 950; line-height: 1.25; }
+.winter-window-copy span { color: #b8d3e1; font-size: 11px; font-weight: 700; }
+.winter-window-countdown { display: flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.winter-countdown-unit { min-width: 56px; padding: 7px 7px 6px; display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 3px; border: 1px solid rgba(245,200,91,.44); border-radius: 9px; background: rgba(245,200,91,.12); }
+.winter-countdown-unit strong { color: #ffd16b; font-size: 22px; font-weight: 950; line-height: 1; }
+.winter-countdown-unit small { color: #d7c793; font-size: 9px; font-weight: 800; }
+
+.poll-only-zone { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.poll-shortcuts-heading { margin-bottom: 9px; display: flex; align-items: baseline; gap: 8px; color: var(--text-dim); font-size: 11px; }
+.poll-shortcuts-heading strong { color: var(--text); font-size: 13px; }
+.poll-shortcuts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.poll-shortcut {
+  min-width: 0; min-height: 88px; padding: 13px 15px; display: grid; grid-template-columns: 1fr auto; align-content: center; gap: 2px 12px;
+  border: 1px solid var(--line-strong); border-radius: 13px; background: var(--card); color: var(--text); text-align: left;
+  box-shadow: 0 7px 20px rgba(35,67,84,.07);
+}
+.poll-shortcut:hover { border-color: var(--accent); background: #eef8fc; transform: translateY(-1px); }
+.poll-shortcut span { grid-column: 1 / -1; color: var(--t1); font-size: 11px; font-weight: 900; }
+.poll-shortcut strong { min-width: 0; font-size: 15px; line-height: 1.35; }
+.poll-shortcut i { color: var(--accent); font-size: 10px; font-style: normal; font-weight: 900; white-space: nowrap; }
+.poll-shortcut.departure span { color: var(--burgundy); }
+.loan-upcoming-schedule { padding: 13px 14px; border: 1px solid var(--line-strong); border-radius: 13px; background: #f7fbfd; }
+.loan-upcoming-schedule > summary { color: var(--text); font-size: 14px; font-weight: 950; cursor: pointer; }
+.loan-schedule-note { margin: 5px 0 9px; color: var(--text-dim); font-size: 10px; line-height: 1.45; }
+.loan-schedule-rows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.loan-schedule-row {
+  min-width: 0; padding: 8px 9px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1px 8px;
+  border: 1px solid var(--line); border-radius: 9px; background: #fff;
+}
+.loan-schedule-row time { color: #9a6500; font-size: 10px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.loan-schedule-row strong { min-width: 0; overflow: hidden; color: var(--text); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.loan-schedule-row span { color: var(--t1); font-size: 10px; font-weight: 800; }
+.loan-schedule-row small { overflow: hidden; color: var(--text-dim); font-size: 8px; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 560px) {
+  .topbar {
+    background: rgba(242, 249, 254, .96);
+    border-bottom-color: rgba(108, 171, 221, .55);
+    box-shadow: 0 8px 24px rgba(38, 78, 100, .10);
+  }
+  .topbar .brand h1 { color: #18364d; }
+  .topbar .brand-sub, .topbar .site-url { color: #607b8d; }
+  .topbar .brand-slogan { color: #28799f; }
+  .topbar .fav-btn { background: #fff8e7; border-color: #d9bd72; color: #8d6500; }
+  .topbar .icon-btn { background: #f7fbfd; color: #18364d; border-color: #9fc8dc; box-shadow: none; }
+  .container { padding: 10px 8px 42px; }
+  .stadium-hero { min-height: 0; background: none; }
+  .stadium-hero::before {
+    content: ""; display: block; height: 116px;
+    background:
+      linear-gradient(90deg, rgba(2,14,27,.50), rgba(2,14,27,.05) 72%, rgba(2,14,27,.18)),
+      url("assets/etihad-night-hero.webp") 69% 52% / cover no-repeat;
+  }
+  .stadium-hero-inner { width: 100%; min-height: 0; display: block; }
+  .winter-window-card {
+    width: 100%; padding: 10px 9px 11px; grid-template-columns: 1fr; gap: 7px;
+    border: 0; border-top: 1px solid #b8d8e7; border-radius: 0; background: #f7fbfd; color: #18364d;
+    box-shadow: 0 6px 18px rgba(38,78,100,.09); backdrop-filter: none;
+  }
+  .winter-window-kicker { text-align: center; color: #28799f; font-size: 8px; }
+  .winter-window-copy { justify-items: center; text-align: center; }
+  .winter-window-copy strong { color: #18364d; font-size: 15px; }
+  .winter-window-copy span { color: #607b8d; font-size: 9px; }
+  .winter-window-countdown { width: 100%; justify-content: center; gap: 4px; }
+  .winter-countdown-unit { min-width: 0; width: 66px; padding: 6px 5px; border-color: #d9bd72; background: linear-gradient(180deg, #fff7df, #f6ebc9); }
+  .winter-countdown-unit strong { color: #9a6500; font-size: 18px; }
+  .winter-countdown-unit small { color: #7c6c48; font-size: 8px; }
+  .loan-watch-home { min-height: 300px; }
+  .loan-watch.home .loan-watch-intro { padding: 13px; }
+  .loan-watch.home .loan-player-list { grid-template-columns: 1fr; }
+  .loan-upcoming-schedule { padding: 10px; }
+  .loan-schedule-rows { grid-template-columns: 1fr; }
+  .poll-only-zone { margin-top: 13px; padding-top: 12px; }
+  .poll-shortcuts-heading { display: grid; gap: 1px; margin-inline: 3px; }
+  .poll-shortcuts { grid-template-columns: 1fr; gap: 7px; }
+  .poll-shortcut { min-height: 75px; padding: 10px 12px; }
 }

@@ -7,18 +7,20 @@ const workflowText = fs.readFileSync('.github/workflows/fetch.yml', 'utf8');
 const workflow = YAML.parse(workflowText);
 const workerConfig = fs.readFileSync('cloudflare/wrangler.toml', 'utf8');
 
-test('Cloudflare 主定时每 15 分钟运行，GitHub 只做每小时兜底', () => {
-  assert.match(workerConfig, /crons\s*=\s*\["\*\/15 \* \* \* \*"\]/);
-  assert.deepEqual(workflow.on.schedule, [{ cron: '9 * * * *' }]);
+test('Cloudflare 与 GitHub 每小时检查一次到期赛程', () => {
+  assert.match(workerConfig, /crons\s*=\s*\["15 \* \* \* \*"\]/);
+  assert.deepEqual(workflow.on.schedule, [{ cron: '29 * * * *' }]);
   assert.equal(workflow.concurrency['cancel-in-progress'], true);
 });
 
-test('GitHub 小时任务先检查新鲜度，定时抓取不重复部署互动 Worker', () => {
+test('GitHub 小时任务检查蓝月在外快照新鲜度，定时抓取不重复部署互动 Worker', () => {
   assert.equal(
     workflow.jobs['fetch-deploy'].if,
     "${{ needs.freshness-check.outputs.should_run == 'true' }}",
   );
-  assert.match(workflowText, /age < 25 \* 60 \* 1000/);
+  assert.match(workflowText, /age < 90 \* 60 \* 1000/);
+  assert.match(workflowText, /Update loan schedule and post-match data/);
+  assert.doesNotMatch(workflowText, /Fetch all sources|node scripts\/fetch\.js/);
   const deployWorker = workflow.jobs['fetch-deploy'].steps
     .find((step) => step.name === 'Deploy Cloudflare Worker');
   const verifyApis = workflow.jobs['fetch-deploy'].steps

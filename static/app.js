@@ -6,6 +6,7 @@ const DATA_URL = './data/items-latest.json';
 const DATA_FALLBACK_URL = './data/items.json';
 const STATUS_URL = './data/status.json';
 const CHELSEA_WATCH_URL = './data/chelsea-watch.json';
+const LOAN_WATCH_URL = './data/loan-watch.json';
 const CHELSEA_WATCH_ENABLED = false;
 const REFRESH_MS = 90 * 1000;
 // 转会窗关闭时间（到点自动切到下一个）
@@ -13,6 +14,8 @@ const WINDOWS = [
   { label: '夏窗关闭', ts: Date.parse('2026-09-01T22:00:00Z') },
   { label: '冬窗关闭', ts: Date.parse('2027-02-02T22:00:00Z') },
 ];
+// 冬窗开启倒计时按英国时间 2027 年 1 月 1 日 00:00 计算。
+const WINTER_WINDOW_OPENS_AT = Date.parse('2027-01-01T00:00:00Z');
 const TIER_CLASS = { T0: 't0', T1: 't1', T2: 't2', ITK: 'itk' };
 const BADGE_ZH = {
   HERE_WE_GO: 'HERE WE GO!',
@@ -36,6 +39,7 @@ const SURVEY_PROFILE_KEY = 'cth_survey_profile_v1';
 const SHARE_ATTRIBUTION_KEY = 'departure_poll_share';
 const COACH_SURVEY_ID = 'maresca_league_debut_2026';
 const DEPARTURE_SURVEY_ID = 'summer_departure_heartbreak_2026';
+const ACTIVE_SURVEY_IDS = new Set(['summer_2026', DEPARTURE_SURVEY_ID]);
 const WINDOW_FINALE_NOTICE_KEY = 'cth_window_finale_20260901_5h_v1';
 const WINDOW_FINALE_NOTICE_INTERVAL_MS = 5 * 60 * 60 * 1000;
 const WINDOW_FINALE_NOTICE_DELAY_MS = 1500;
@@ -43,11 +47,7 @@ const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
 // 布阿迪交易已进入 Here we go 阶段，暂时撤下重点传闻卡片；保留数据与逻辑，方便后续恢复。
 const FOCUS_RUMOR_STRIP_ENABLED = false;
 const FOCUS_SURVEY_ORDER = Object.freeze([
-  COACH_SURVEY_ID,
-  'allan_scouting_report_2026',
   'summer_2026',
-  'loan_watch_preview_2026',
-  'site_experience_2026',
 ]);
 const REACTION_SNAPSHOT_URL = './data/reactions.json';
 const REACTION_DEFS = Object.freeze([
@@ -116,16 +116,10 @@ const SURVEY_DEFINITIONS = Object.freeze({
   loan_watch_preview_2026: {
     entry: '🌍 蓝月在外',
     icon: '🌍',
-    title: '蓝月在外 · 新功能预告',
+    title: '蓝月在外',
     introHeadline: '他们离开曼城，不等于离开视线',
-    intro: '新赛季开始后，本站将追踪所有曼城外租球员（含 U21），以及今夏转会、离队球员的每场表现。',
-    announcementOnly: true,
-    previewItems: ['⭐ 专业评分 7.4', '⏱ 出场 82 分钟', '⚽ 进球 1', '🅰️ 助攻 1'],
-    previewNote: '以上为展示示例 · 实际数据将在每场赛后更新',
-    reservationFeature: 'loan_watch_2026',
-    reservationBase: 120,
-    primaryLabel: '预约关注',
-    reservedLabel: '✓ 已预约',
+    intro: '追踪本赛季外租球员的赛后评分、出场时间与分位置关键数据。',
+    loanWatchOnly: true,
   },
   maresca_league_debut_2026: {
     entry: '⚖️ 英超首秀评分',
@@ -2751,6 +2745,14 @@ async function surveyApi(pollId, method = 'GET', answers = null) {
   throw lastError || new Error('survey_unavailable');
 }
 
+async function loanWatchApi() {
+  const response = await fetch(`${LOAN_WATCH_URL}?t=${Date.now()}`, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  if (!Array.isArray(data.players)) throw new Error('bad_loan_watch_data');
+  return data;
+}
+
 async function featureReservationApi(featureId, method = 'GET') {
   const endpoints = [...new Set([
     state.featureReservationEndpoint,
@@ -3506,6 +3508,278 @@ function renderScoutReport(context) {
   body.scrollTop = 0;
 }
 
+const LOAN_WATCH_FILTERS = Object.freeze([
+  { key: 'priority', label: '重点' },
+  { key: 'all', label: '全部' },
+  { key: 'keeper', label: '门将' },
+  { key: 'defender', label: '后卫' },
+  { key: 'midfielder', label: '中场' },
+  { key: 'attacker', label: '前锋' },
+]);
+
+function loanWatchStatus(player) {
+  if (player.status === 'future_city') return { label: '未来蓝月', cls: 'future' };
+  if (player.status === 'loan_pending') return { label: '待确认', cls: 'pending' };
+  return { label: '外租', cls: 'loan' };
+}
+
+function loanWatchDate(value, withTime = false) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return '时间待更新';
+  const base = `${date.getMonth() + 1}月${date.getDate()}日`;
+  return withTime ? `${base} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}` : base;
+}
+
+function loanWatchKickoff(value) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return '待定';
+  return `${date.getMonth() + 1}月${date.getDate()}日 ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+function loanWatchSummaryStat(value, label, cls = '') {
+  const item = el('span', `loan-summary-stat${cls ? ` ${cls}` : ''}`);
+  item.append(el('strong', null, value), el('small', null, label));
+  return item;
+}
+
+function loanWatchMatchRow(match) {
+  const row = el('article', 'loan-match-row');
+  const headline = el('div', 'loan-match-headline');
+  const outcome = el('span', `loan-match-outcome ${match.outcome === '胜' ? 'win' : match.outcome === '负' ? 'loss' : 'draw'}`, match.outcome || '赛果');
+  headline.append(
+    el('time', null, loanWatchDate(match.date)),
+    outcome,
+    el('strong', null, `${match.is_home ? '主场' : '客场'} vs ${match.opponent || '对手待更新'}`),
+    el('b', null, match.score || '—'),
+  );
+  const meta = el('div', 'loan-match-meta', match.competition || '赛事待更新');
+  const stats = el('div', 'loan-match-stats');
+  stats.append(
+    loanWatchSummaryStat(match.rating ? Number(match.rating).toFixed(1) : '—', '评分', 'rating'),
+    loanWatchSummaryStat(String(match.minutes || 0), '分钟'),
+    loanWatchSummaryStat(String(match.goals || 0), '进球'),
+    loanWatchSummaryStat(String(match.assists || 0), '助攻'),
+  );
+  for (const metric of match.metrics || []) {
+    stats.appendChild(loanWatchSummaryStat(String(metric.value), metric.label));
+  }
+  const source = el('a', 'loan-match-source', '查看 FotMob 比赛页 ↗');
+  source.href = match.url || 'https://www.fotmob.com';
+  source.target = '_blank';
+  source.rel = 'noopener';
+  row.append(headline, meta, stats, source);
+  return row;
+}
+
+function loanWatchPlayerCard(player) {
+  const card = el('article', `loan-player-card${player.priority ? ' priority' : ''}`);
+  const head = el('div', 'loan-player-head');
+  const identity = el('div', 'loan-player-identity');
+  identity.append(
+    el('h3', null, player.name_zh),
+    el('span', null, `${player.name_en} · ${player.age ?? '—'}岁 · ${player.position_zh}`),
+  );
+  const status = loanWatchStatus(player);
+  head.append(identity, el('span', `loan-player-status ${status.cls}`, status.label));
+
+  const destination = el('div', 'loan-player-destination');
+  destination.append(
+    el('span', null, player.status === 'future_city' ? '现效力' : '本季去向'),
+    el('strong', null, `${player.club_zh} · ${player.club_en}`),
+  );
+
+  const season = player.summary || {};
+  const summary = el('div', 'loan-season-summary');
+  summary.append(
+    loanWatchSummaryStat(String(season.appearances || 0), '出场'),
+    loanWatchSummaryStat(String(season.minutes || 0), '分钟'),
+    loanWatchSummaryStat(String(season.goals || 0), '进球'),
+    loanWatchSummaryStat(String(season.assists || 0), '助攻'),
+    loanWatchSummaryStat(season.average_rating ? Number(season.average_rating).toFixed(2) : '—', '均分', 'rating'),
+  );
+
+  const history = document.createElement('details');
+  history.className = 'loan-match-history';
+  const historyTitle = document.createElement('summary');
+  const appearances = Number(season.appearances || 0);
+  historyTitle.textContent = appearances ? `本赛季租借后比赛记录（${appearances}场）` : '租借生效后暂无出场记录';
+  history.appendChild(historyTitle);
+  if (appearances) {
+    const rows = el('div', 'loan-match-list');
+    for (const match of player.matches || []) rows.appendChild(loanWatchMatchRow(match));
+    history.appendChild(rows);
+  } else {
+    history.appendChild(el('p', 'loan-no-match', '一旦完成首场比赛，赛后评分和关键数据会自动出现在这里。'));
+  }
+  card.append(head, destination, summary, history);
+  return card;
+}
+
+function renderLoanWatch(context) {
+  const { body } = context;
+  const data = context.data.loanWatch;
+  body.textContent = '';
+  body.dataset.surveyView = 'loan-watch';
+  if (!data?.players) {
+    const error = el('div', 'survey-loading error', '蓝月在外数据暂时没有加载成功');
+    const retry = el('button', 'survey-primary', '重新加载');
+    retry.type = 'button';
+    retry.onclick = () => loadLoanWatch(context);
+    error.appendChild(retry);
+    body.appendChild(error);
+    return;
+  }
+
+  const root = el('section', `loan-watch${context.home ? ' home' : ''}`);
+  const intro = el('header', 'loan-watch-intro');
+  const introCopy = el('div');
+  introCopy.append(
+    el('span', 'loan-watch-kicker', 'CITY ON LOAN · 2026/27'),
+    el('h3', null, '他们离开曼城，不等于离开视线'),
+    el('p', null, '只统计本赛季租借生效后的比赛；首页不直接请求第三方，赛后数据由后台统一更新。'),
+  );
+  const overview = el('div', 'loan-watch-overview');
+  overview.append(
+    loanWatchSummaryStat(String(data.total || data.players.length), '追踪球员'),
+    loanWatchSummaryStat(String(data.priority_count || 0), '重点关注'),
+    loanWatchSummaryStat(String(data.players.reduce((sum, player) => sum + Number(player.summary?.appearances || 0), 0)), '赛后记录'),
+  );
+  intro.append(introCopy, overview);
+
+  const controls = el('nav', 'loan-watch-filters');
+  controls.setAttribute('aria-label', '筛选蓝月在外球员');
+  const activeFilter = context.data.loanFilter || 'priority';
+  for (const filter of LOAN_WATCH_FILTERS) {
+    const count = filter.key === 'priority'
+      ? data.players.filter((player) => player.priority).length
+      : filter.key === 'all'
+        ? data.players.length
+        : data.players.filter((player) => player.position_group === filter.key).length;
+    const button = el('button', `loan-watch-filter${activeFilter === filter.key ? ' active' : ''}`, `${filter.label} ${count}`);
+    button.type = 'button';
+    button.onclick = () => {
+      context.data.loanFilter = filter.key;
+      renderLoanWatch(context);
+    };
+    controls.appendChild(button);
+  }
+
+  const filteredPlayers = data.players.filter((player) => (
+    activeFilter === 'all'
+    || (activeFilter === 'priority' && player.priority)
+    || player.position_group === activeFilter
+  ));
+  const upcoming = filteredPlayers
+    .filter((player) => player.next_match?.date)
+    .sort((a, b) => String(a.next_match.date).localeCompare(String(b.next_match.date)));
+  let upcomingSchedule = null;
+  if (upcoming.length) {
+    upcomingSchedule = document.createElement('details');
+    upcomingSchedule.className = 'loan-upcoming-schedule';
+    if (context.home && !window.matchMedia('(max-width: 560px)').matches) upcomingSchedule.open = true;
+    const scheduleTitle = document.createElement('summary');
+    scheduleTitle.textContent = `接下来谁出场？赛程表（${upcoming.length}场）`;
+    upcomingSchedule.appendChild(scheduleTitle);
+    upcomingSchedule.appendChild(el('p', 'loan-schedule-note', '按赛程自动等待，预计完赛 1 小时后抓取；以下均为你的本地时间。'));
+    const scheduleRows = el('div', 'loan-schedule-rows');
+    for (const player of upcoming) {
+      const fixture = player.next_match;
+      const row = el('div', 'loan-schedule-row');
+      row.append(
+        el('time', null, loanWatchKickoff(fixture.date)),
+        el('strong', null, player.name_zh),
+        el('span', null, `${fixture.is_home ? '主场' : '客场'} vs ${fixture.opponent}`),
+        el('small', null, fixture.competition || ''),
+      );
+      scheduleRows.appendChild(row);
+    }
+    upcomingSchedule.appendChild(scheduleRows);
+  }
+  const list = el('div', 'loan-player-list');
+  for (const player of filteredPlayers) list.appendChild(loanWatchPlayerCard(player));
+
+  const note = el('footer', 'loan-watch-note');
+  note.append(
+    el('strong', null, `更新于 ${loanWatchDate(data.generated_at, true)}`),
+    el('span', null, data.provider?.note || '赛后评分及比赛数据来自 FotMob；以赛事官方记录为准。'),
+  );
+  const provider = el('a', null, '数据源：FotMob ↗');
+  provider.href = data.provider?.url || 'https://www.fotmob.com';
+  provider.target = '_blank';
+  provider.rel = 'noopener';
+  note.appendChild(provider);
+  root.append(intro, controls);
+  if (upcomingSchedule) root.appendChild(upcomingSchedule);
+  root.append(list, note);
+  body.appendChild(root);
+  if (context.home) {
+    const updated = $('#updated-at');
+    if (updated) updated.textContent = `外租数据更新于 ${loanWatchDate(data.generated_at, true)}`;
+  } else {
+    body.scrollTop = 0;
+  }
+}
+
+async function loadLoanWatch(context) {
+  const { body } = context;
+  body.textContent = '';
+  body.dataset.surveyView = 'loan-watch-loading';
+  body.appendChild(el('div', 'survey-loading', '正在读取本赛季外租球员赛后数据…'));
+  try {
+    const loanWatch = await loanWatchApi();
+    if (!context.home && activeSurveyId !== context.pollId) return;
+    context.data = { ...context.data, loanWatch, loanFilter: context.data.loanFilter || 'priority' };
+    renderLoanWatch(context);
+  } catch {
+    if (!context.home && activeSurveyId !== context.pollId) return;
+    context.data = { ...context.data, loanWatch: null };
+    renderLoanWatch(context);
+  }
+}
+
+let loanWatchHomeContext = null;
+
+function loadLoanWatchHome() {
+  const body = $('#loan-watch-home');
+  if (!body) return Promise.resolve();
+  loanWatchHomeContext = loanWatchHomeContext || {
+    home: true,
+    pollId: 'loan_watch_home_2026',
+    definition: SURVEY_DEFINITIONS.loan_watch_preview_2026,
+    body,
+    data: { loanFilter: 'priority', loanWatch: null },
+  };
+  return loadLoanWatch(loanWatchHomeContext);
+}
+
+function updateWinterWindowCountdown() {
+  const countdown = $('#winter-window-countdown');
+  const copy = $('#winter-window-copy');
+  if (!countdown) return;
+  const remaining = WINTER_WINDOW_OPENS_AT - Date.now();
+  if (remaining <= 0) {
+    countdown.textContent = '冬窗已经开启';
+    if (copy) copy.textContent = '新的窗口已经到来。';
+    return;
+  }
+  const totalSeconds = Math.floor(remaining / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const values = [days, hours, minutes, seconds];
+  const units = ['天', '时', '分', '秒'];
+  countdown.textContent = '';
+  values.forEach((value, index) => {
+    const unit = el('span', 'winter-countdown-unit');
+    unit.append(
+      el('strong', null, String(value).padStart(index ? 2 : 1, '0')),
+      el('small', null, units[index]),
+    );
+    countdown.appendChild(unit);
+  });
+}
+
 function renderSurveyIntro(context) {
   const { body, definition, data } = context;
   body.textContent = '';
@@ -4094,13 +4368,14 @@ function renderMidfieldSurveyResults(context) {
 }
 
 async function openSurvey(pollId) {
+  if (!ACTIVE_SURVEY_IDS.has(pollId)) return;
   const definition = SURVEY_DEFINITIONS[pollId];
   if (!definition) return;
   closeSurvey();
   activeSurveyId = pollId;
   document.body.classList.add('survey-open');
   const overlay = el('div', 'survey-overlay');
-  const sheet = el('section', `survey-sheet${definition.reportOnly ? ' scout-report-sheet' : ''}`);
+  const sheet = el('section', `survey-sheet${definition.reportOnly ? ' scout-report-sheet' : ''}${definition.loanWatchOnly ? ' loan-watch-sheet' : ''}`);
   sheet.setAttribute('role', 'dialog');
   sheet.setAttribute('aria-modal', 'true');
   sheet.setAttribute('aria-label', definition.title);
@@ -4108,7 +4383,7 @@ async function openSurvey(pollId) {
   head.appendChild(el('h2', null, definition.title));
   const close = el('button', 'survey-close', '×');
   close.type = 'button';
-  close.setAttribute('aria-label', definition.reportOnly ? '关闭阿兰球探报告' : '关闭调查');
+  close.setAttribute('aria-label', definition.reportOnly ? '关闭阿兰球探报告' : definition.loanWatchOnly ? '关闭蓝月在外' : '关闭调查');
   close.onclick = closeSurvey;
   head.appendChild(close);
   const body = el('div', 'survey-body');
@@ -4129,6 +4404,10 @@ async function openSurvey(pollId) {
       loading: true,
     },
   };
+  if (definition.loanWatchOnly) {
+    await loadLoanWatch(context);
+    return;
+  }
   if (definition.reportOnly) {
     context.data = { ...context.data, loading: false };
     renderSurveyIntro(context);
@@ -4390,37 +4669,30 @@ function renderFocusZone() {
   clearEngagementWatchers(zone);
   zone.textContent = '';
   zone.hidden = false;
-
-  renderSeasonBlessingModule(zone);
-
-  const banner = el('button', 'departure-heartbreak-banner');
-  banner.type = 'button';
-  banner.setAttribute('aria-label', '打开夏窗离队意难平投票');
-  banner.onclick = () => openSurvey(DEPARTURE_SURVEY_ID);
-  banner.appendChild(el('span', 'departure-heartbreak-kicker', '💔 夏窗收尾 · 蓝月告别'));
-  const headline = el('h2', 'departure-heartbreak-headline', '夏窗收尾｜谁最让你意难平？');
-  banner.append(
-    headline,
-    el('p', 'departure-heartbreak-question', '这个夏天，曼城送走了太多熟悉的面孔。'),
-    el('span', 'departure-heartbreak-cta', '去投票 →'),
+  const heading = el('div', 'poll-shortcuts-heading');
+  heading.append(
+    el('span', null, '夏窗已经落幕'),
+    el('strong', null, '两份蓝月球迷的答案，继续保留。'),
   );
-  zone.appendChild(banner);
-
-  const featureRow = el('div', 'focus-feature-row');
-  featureRow.setAttribute('aria-label', '专题与调查');
-  const surveyEntries = el('div', 'focus-survey-entries');
-  for (const pollId of FOCUS_SURVEY_ORDER) {
-    const definition = SURVEY_DEFINITIONS[pollId];
-    if (!definition.entry) continue;
-    const entry = el('button', 'survey-entry', definition.entry);
-    entry.type = 'button';
-    entry.dataset.pollId = pollId;
-    entry.setAttribute('aria-label', `打开${definition.title}`);
-    entry.onclick = () => openSurvey(pollId);
-    surveyEntries.appendChild(entry);
-  }
-  featureRow.appendChild(surveyEntries);
-  zone.appendChild(featureRow);
+  const shortcuts = el('div', 'poll-shortcuts');
+  const summer = el('button', 'poll-shortcut summer');
+  summer.type = 'button';
+  summer.onclick = () => openSurvey('summer_2026');
+  summer.append(
+    el('span', null, '📊 夏窗调查'),
+    el('strong', null, '查看最终评分与球迷判断'),
+    el('i', null, '查看结果 →'),
+  );
+  const departures = el('button', 'poll-shortcut departure');
+  departures.type = 'button';
+  departures.onclick = () => openSurvey(DEPARTURE_SURVEY_ID);
+  departures.append(
+    el('span', null, '💔 离队意难平'),
+    el('strong', null, '谁最让蓝月球迷放不下？'),
+    el('i', null, '查看结果 →'),
+  );
+  shortcuts.append(summer, departures);
+  zone.append(heading, shortcuts);
 }
 
 function renderCard(it) {
@@ -4925,7 +5197,7 @@ function bind() {
     if (state.filters.libraryView === 'unread') renderFeed();
     else syncAllRenderedItems();
   };
-  $('#btn-refresh').onclick = () => loadData(true);
+  $('#btn-refresh').onclick = () => loadLoanWatchHome();
   $('#btn-trigger').onclick = triggerCloudFetch;
   // 一键收藏：复制网址 + 按设备给出最短收藏路径（浏览器不允许网页直接写书签）
   $('#btn-fav').onclick = async () => {
@@ -4965,8 +5237,7 @@ function bind() {
     }, 6000);
   };
   // 手机切后台再回来时，浏览器会冻结定时器 → 恢复可见时立即刷新一次
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) loadData(true); });
-  bindPrayer();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) loadLoanWatchHome(); });
   updateSrcBtn();
 }
 
@@ -4990,12 +5261,10 @@ function mockItems() {
 // ---------------- 启动 ----------------
 bind();
 recordRequestedShareVisit();
-loadData(false).finally(() => {
-  scheduleDeferredReactionSnapshot();
+renderFocusZone();
+updateWinterWindowCountdown();
+setInterval(updateWinterWindowCountdown, 1000);
+loadLoanWatchHome().finally(() => {
   const surveyId = requestedSurveyId();
-  if (surveyId) {
-    openSurvey(surveyId);
-  }
-  scheduleWindowFinaleNotice();
+  if (surveyId) openSurvey(surveyId);
 });
-setInterval(() => loadData(true), REFRESH_MS);

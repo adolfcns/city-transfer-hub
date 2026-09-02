@@ -17,17 +17,17 @@ test('雾蓝日间版使用低刺激背景、深色正文和曼城天蓝强调',
   assert.match(css, /\.countdown-value \{[\s\S]*?color:\s*var\(--gold\)/);
 });
 
-test('报头接入本地球场横幅并在手机端保持紧凑', () => {
+test('报头接入本地球场横幅与冬窗倒计时并在手机端上下排列', () => {
   assert.match(index, /<section class="stadium-hero"/);
-  assert.match(index, /class="stadium-finale-message"/);
-  assert.match(index, /尘埃落定。/);
+  assert.match(index, /class="winter-window-card"/);
+  assert.match(index, /距离冬窗开启，还有/);
   assert.match(css, /url\("assets\/etihad-night-hero\.webp"\)/);
   assert.match(css, /@media \(max-width: 560px\) \{[\s\S]*?\.topbar-right \.icon-btn \{[\s\S]*?width:\s*32px;\s*height:\s*32px/);
   assert.match(css, /\.brand-sub \{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/);
   assert.match(css, /@media \(max-width: 560px\) \{[\s\S]*?\.topbar \{[\s\S]*?url\("assets\/etihad-night-hero\.webp"\)/);
-  assert.match(css, /\.stadium-hero::before \{ display:\s*none; \}/);
-  assert.match(css, /\.stadium-countdown-card \{[\s\S]*?width:\s*100%;[\s\S]*?border-radius:\s*0/);
-  assert.match(css, /\.stadium-kicker \{ display:\s*block; font-size:\s*12px/);
+  assert.match(css, /\.stadium-hero::before \{[\s\S]*?background:[\s\S]*?etihad-night-hero\.webp/);
+  assert.match(css, /\.winter-window-card \{[\s\S]*?grid-template-columns:\s*1fr auto/);
+  assert.match(css, /@media \(max-width: 560px\)[\s\S]*?\.winter-window-card \{[\s\S]*?display:\s*flex/);
   assert.equal(fs.existsSync('static/assets/etihad-night-hero.webp'), true);
 });
 

@@ -2,7 +2,7 @@ name: fetch-and-deploy
 
 on:
   schedule:
-    - cron: '9 * * * *'       # 每小时检查一次，仅在 Cloudflare 主定时失联时兜底
+    - cron: '29 * * * *'      # 每小时检查一次，仅在 Cloudflare 赛程任务失联时兜底
   workflow_dispatch: {}       # 手动触发按钮
   push:
     branches: [main]
@@ -26,7 +26,7 @@ jobs:
       - name: Decide whether the hourly backup is needed
         id: decide
         env:
-          LIVE_DATA_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data/items.json
+          LIVE_DATA_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data/loan-watch.json
         run: |
           if [ "$GITHUB_EVENT_NAME" != "schedule" ]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
@@ -41,10 +41,10 @@ jobs:
             });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
-            const age = Date.now() - new Date(data.generated_at).getTime();
-            const fresh = Number.isFinite(age) && age >= 0 && age < 25 * 60 * 1000;
+            const age = Date.now() - new Date(data.checked_at || data.generated_at).getTime();
+            const fresh = Number.isFinite(age) && age >= 0 && age < 90 * 60 * 1000;
             console.log(fresh ? 'false' : 'true');
-            console.error(`Live data age: ${Number.isFinite(age) ? Math.round(age / 60000) : 'unknown'} minutes`);
+            console.error(`Loan-watch data age: ${Number.isFinite(age) ? Math.round(age / 60000) : 'unknown'} minutes`);
           } catch (error) {
             console.error(`Freshness check failed: ${error.message}; run the backup`);
             console.log('true');
@@ -53,7 +53,7 @@ jobs:
           )"
           echo "should_run=$DECISION" >> "$GITHUB_OUTPUT"
           if [ "$DECISION" = "true" ]; then
-            echo "Cloudflare main schedule looks stale; run the hourly backup"
+            echo "Cloudflare loan schedule looks stale; run the hourly backup"
           else
             echo "Cloudflare main schedule is healthy; skip the redundant hourly fetch"
           fi
@@ -67,7 +67,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url }}
     env:
-      TWITTER_AUTH_TOKEN: ${{ secrets.TWITTER_AUTH_TOKEN }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -79,49 +78,12 @@ jobs:
       - name: Install deps
         run: npm ci --no-audit --no-fund
 
-      # 只有配置了 TWITTER_AUTH_TOKEN 才启动 RSSHub（推文通道）
-      - name: Start RSSHub
-        if: ${{ env.TWITTER_AUTH_TOKEN != '' }}
-        run: |
-          IMG=ghcr.io/diygod/rsshub:latest
-          docker pull -q "$IMG" || IMG=docker.io/diygod/rsshub:latest
-          docker run -d --name rsshub -p 1200:1200 \
-            -e NODE_ENV=production \
-            -e LOGGER_LEVEL=error \
-            -e CACHE_TYPE= \
-            -e TWITTER_AUTH_TOKEN="$TWITTER_AUTH_TOKEN" \
-            "$IMG"
-          ok=""
-          for i in $(seq 1 45); do
-            if curl -sf http://127.0.0.1:1200/healthz > /dev/null 2>&1; then ok=1; break; fi
-            sleep 2
-          done
-          if [ -n "$ok" ]; then
-            echo "RSSHub ready"
-            echo "RSSHUB_URL=http://127.0.0.1:1200" >> "$GITHUB_ENV"
-          else
-            echo "::warning::RSSHub 启动失败，本次跳过推文通道"
-            docker logs rsshub | tail -20 || true
-          fi
-
-      - name: Fetch all sources
-        env:
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      - name: Update loan schedule and post-match data
         run: |
           REPO_NAME="${GITHUB_REPOSITORY#*/}"
           BASE="https://${GITHUB_REPOSITORY_OWNER}.github.io/${REPO_NAME}"
-          export PREV_DATA_URL="${BASE}/data/items.json"
-          export PREV_STATUS_URL="${BASE}/data/status.json"
-          export PREV_CHELSEA_WATCH_URL="${BASE}/data/chelsea-watch.json"
-          node scripts/fetch.js
-
-      - name: Snapshot item reactions
-        run: |
-          REPO_NAME="${GITHUB_REPOSITORY#*/}"
-          BASE="https://${GITHUB_REPOSITORY_OWNER}.github.io/${REPO_NAME}"
-          export REACTIONS_ENDPOINT="https://city-transfer-hub.pages.dev/reactions"
-          export PREV_REACTIONS_URL="${BASE}/data/reactions.json"
-          node scripts/snapshot-reactions.js
+          export PREV_LOAN_WATCH_URL="${BASE}/data/loan-watch.json"
+          node scripts/fetch-loan-watch.js
 
       - name: Assemble site
         id: assemble

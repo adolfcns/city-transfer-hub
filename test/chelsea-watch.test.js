@@ -105,28 +105,18 @@ test('蓝桥雷达排除比赛、伤病、续约、女足和普通离队', () =>
   for (const value of rejected) assert.equal(isChelseaWatchItem(value), false, value);
 });
 
-test('首页用收官好运互动替换蓝桥雷达，后台雷达抓取仍保留', () => {
+test('首页切换为蓝月在外并停止转会新闻抓取', () => {
   const app = fs.readFileSync('static/app.js', 'utf8');
-  const fetchScript = fs.readFileSync('scripts/fetch.js', 'utf8');
+  const index = fs.readFileSync('static/index.html', 'utf8');
   const workflow = fs.readFileSync('.github/workflows/fetch.yml', 'utf8');
-  const style = fs.readFileSync('static/style.css', 'utf8');
-  assert.match(app, /CHELSEA_WATCH_URL/);
-  assert.match(app, /const CHELSEA_WATCH_ENABLED = false/);
-  assert.match(app, /renderSeasonBlessingModule/);
-  assert.match(app, /接住蓝月好运，也给秃然离城加个油/);
-  assert.match(app, /season-blessing-action-count', '💙 —'/);
-  assert.match(app, /SEASON_BLESSING_ENDPOINTS/);
-  assert.doesNotMatch(app, /const prayer = \$\('#city-prayer'\)/);
-  assert.match(app, /renderSeasonBlessingModule\(zone\);\s*const banner =/);
-  assert.doesNotMatch(app, /renderChelseaWatchModule\(zone\);\s*const banner =/);
-  assert.match(fetchScript, /writeFile\(resolve\(DATA_DIR, 'chelsea-watch\.json'\)/);
-  assert.match(fetchScript, /chelseaReusableSources = sources\.filter/);
-  assert.match(fetchScript, /\[\.\.\.chelseaReusableSources, \.\.\.chelseaWatchTimelineSources\]/);
-  assert.match(fetchScript, /chelseaDomainMap = buildDomainMap\(chelseaWatchSources\.filter/);
-  assert.match(fetchScript, /allowsChelseaWatchSource\(source\.key, watchType\)/);
-  assert.match(workflow, /PREV_CHELSEA_WATCH_URL/);
-  assert.match(style, /\.chelsea-watch-grid/);
-  assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.chelsea-watch:not\(\.is-open\) \.chelsea-watch-card:nth-child\(n\+2\)/);
+  const startup = app.slice(app.lastIndexOf('// ---------------- 启动 ----------------'));
+  assert.match(index, /id="loan-watch-home"/);
+  assert.match(index, /id="feed"[^>]*hidden/);
+  assert.match(app, /const ACTIVE_SURVEY_IDS = new Set\(\['summer_2026', DEPARTURE_SURVEY_ID\]\)/);
+  assert.match(startup, /loadLoanWatchHome\(\)/);
+  assert.doesNotMatch(startup, /loadData\(\)|renderChelseaWatchModule\(|renderSeasonBlessingModule\(/);
+  assert.match(workflow, /node scripts\/fetch-loan-watch\.js/);
+  assert.doesNotMatch(workflow, /node scripts\/fetch\.js|PREV_CHELSEA_WATCH_URL/);
 });
 
 test('科内识别罗马马努，不混入同姓球员；两条重点都接纳辟谣', () => {

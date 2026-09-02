@@ -1,6 +1,6 @@
 // 触发代理 + 定时器（Cloudflare Worker）
 // 作用一：网页访客点 ⚡ → 请求本 Worker → Worker 用藏在服务端的令牌触发 GitHub 抓取。
-// 作用二：Cloudflare 定时器（Cron Trigger）每 30 分钟自动触发一次抓取，不依赖 GitHub 自己的定时器。
+// 作用二：Cloudflare 定时器（Cron Trigger）每小时自动触发一次赛程检查，不依赖 GitHub 自己的定时器。
 // 令牌永不暴露给访客。
 //
 // 部署步骤（免费）：
@@ -8,7 +8,7 @@
 //   2. Worker → Settings → Variables and Secrets → Add：
 //        Type: Secret   Name: GH_PAT   Value: （fine-grained 令牌，只授本仓库 Actions 读写）
 //   3. Worker → Settings → Triggers（或 Trigger Events）→ Cron Triggers → Add Cron Trigger
-//        填： */30 * * * *   （每 30 分钟）→ Add / Deploy
+//        填： 15 * * * *   （每小时 15 分）→ Add / Deploy
 //   4. 把 Worker 地址填进 static/app.js 的 TRIGGER_ENDPOINT（已填）
 
 const REPO = 'adolfcns/city-transfer-hub';
