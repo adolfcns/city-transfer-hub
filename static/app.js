@@ -45,6 +45,9 @@ const ACTIVE_SURVEY_IDS = new Set(['summer_2026', DEPARTURE_SURVEY_ID]);
 const WINDOW_FINALE_NOTICE_KEY = 'cth_window_finale_20260901_5h_v1';
 const WINDOW_FINALE_NOTICE_INTERVAL_MS = 5 * 60 * 60 * 1000;
 const WINDOW_FINALE_NOTICE_DELAY_MS = 1500;
+const BIG6_SPEND_NOTICE_KEY = 'cth_big6_spend_20260902_12h_v1';
+const BIG6_SPEND_NOTICE_INTERVAL_MS = 12 * 60 * 60 * 1000;
+const BIG6_SPEND_NOTICE_DELAY_MS = 2400;
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
 // 布阿迪交易已进入 Here we go 阶段，暂时撤下重点传闻卡片；保留数据与逻辑，方便后续恢复。
 const FOCUS_RUMOR_STRIP_ENABLED = false;
@@ -3959,6 +3962,13 @@ function renderLoanWatch(context) {
     };
     controls.appendChild(button);
   }
+  const big6Button = el('button', 'big6-spend-trigger');
+  big6Button.type = 'button';
+  big6Button.setAttribute('aria-haspopup', 'dialog');
+  big6Button.setAttribute('aria-controls', 'big6-spend-notice');
+  big6Button.innerHTML = '<span aria-hidden="true">£</span> BIG 6账本';
+  big6Button.onclick = showBig6SpendNotice;
+  controls.appendChild(big6Button);
 
   const filteredPlayers = sortLoanWatchPlayers(data.players.filter((player) => (
     activeFilter === 'all'
@@ -5369,6 +5379,51 @@ function dismissWindowFinaleNotice() {
   scheduleWindowFinaleNotice();
 }
 
+let big6SpendNoticeTimer = null;
+
+function big6SpendNoticeWait() {
+  try {
+    const lastShownAt = Number(localStorage.getItem(BIG6_SPEND_NOTICE_KEY) || 0);
+    if (Number.isFinite(lastShownAt) && lastShownAt > 0) {
+      return Math.max(0, BIG6_SPEND_NOTICE_INTERVAL_MS - (Date.now() - lastShownAt));
+    }
+  } catch { /* 禁用本机存储时，本次访问仍可展示 */ }
+  return BIG6_SPEND_NOTICE_DELAY_MS;
+}
+
+function showBig6SpendNotice() {
+  const notice = $('#big6-spend-notice');
+  if (!notice) return;
+  clearTimeout(big6SpendNoticeTimer);
+  notice.hidden = false;
+  document.body.classList.add('big6-spend-open');
+  try { localStorage.setItem(BIG6_SPEND_NOTICE_KEY, String(Date.now())); }
+  catch { /* 禁用本机存储时仍可正常关闭 */ }
+  setTimeout(() => $('#big6-spend-ok')?.focus(), 0);
+}
+
+function scheduleBig6SpendNotice(delay = null) {
+  clearTimeout(big6SpendNoticeTimer);
+  const wait = delay === null ? big6SpendNoticeWait() : delay;
+  big6SpendNoticeTimer = setTimeout(() => {
+    if (document.hidden || document.querySelector('.modal:not([hidden]), .comment-overlay, .survey-overlay')) {
+      scheduleBig6SpendNotice(15000);
+      return;
+    }
+    showBig6SpendNotice();
+  }, wait);
+}
+
+function dismissBig6SpendNotice() {
+  const notice = $('#big6-spend-notice');
+  if (!notice) return;
+  notice.hidden = true;
+  document.body.classList.remove('big6-spend-open');
+  try { localStorage.setItem(BIG6_SPEND_NOTICE_KEY, String(Date.now())); }
+  catch { /* 禁用本机存储时仍可正常关闭 */ }
+  scheduleBig6SpendNotice();
+}
+
 async function triggerCloudFetch() {
   const pat = localStorage.getItem('cth_pat');
   if (!pat && !TRIGGER_ENDPOINT) { $('#trigger-panel').hidden = false; return; }
@@ -5470,6 +5525,7 @@ function bind() {
     if (event.key === 'Escape' && document.querySelector('.comment-overlay')) closeComments();
     if (event.key === 'Escape' && document.querySelector('.survey-overlay')) closeSurvey();
     if (event.key === 'Escape' && !$('#window-finale-notice')?.hidden) dismissWindowFinaleNotice();
+    if (event.key === 'Escape' && !$('#big6-spend-notice')?.hidden) dismissBig6SpendNotice();
     if (event.key === 'Escape' && !$('#recovery-notice')?.hidden) dismissRecoveryNotice();
   });
   document.querySelectorAll('#lang-seg button').forEach((button) => {
@@ -5526,6 +5582,11 @@ function bind() {
   $('#window-finale-notice').addEventListener('click', (event) => {
     if (event.target === $('#window-finale-notice')) dismissWindowFinaleNotice();
   });
+  $('#big6-spend-close').onclick = dismissBig6SpendNotice;
+  $('#big6-spend-ok').onclick = dismissBig6SpendNotice;
+  $('#big6-spend-notice').addEventListener('click', (event) => {
+    if (event.target === $('#big6-spend-notice')) dismissBig6SpendNotice();
+  });
   $('#pat-save').onclick = savePat;
   $('#btn-status').onclick = openStatus;
   $('#btn-status-close').onclick = closeStatus;
@@ -5570,6 +5631,7 @@ recordRequestedShareVisit();
 renderFocusZone();
 updateWinterWindowCountdown();
 setInterval(updateWinterWindowCountdown, 1000);
+scheduleBig6SpendNotice();
 loadLoanWatchHome().finally(() => {
   const surveyId = requestedSurveyId();
   if (surveyId) openSurvey(surveyId);

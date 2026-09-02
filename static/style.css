@@ -478,6 +478,14 @@ body.survey-open { overflow: hidden; }
   background: var(--card); color: var(--text-dim); font-size: 12px; font-weight: 800;
 }
 .loan-watch-filter:hover, .loan-watch-filter.active { border-color: var(--accent); background: rgba(108,171,221,.20); color: var(--t1); }
+.big6-spend-trigger {
+  flex: 0 0 auto; min-height: 34px; margin-left: auto; padding: 6px 13px;
+  border: 1px solid #d7a72f; border-radius: 999px; background: linear-gradient(135deg, #fff8df, #f4d67e);
+  color: #76520a; font-size: 11px; font-weight: 950; white-space: nowrap; cursor: pointer;
+  box-shadow: 0 3px 10px rgba(132,92,13,.12);
+}
+.big6-spend-trigger:hover { filter: brightness(1.03); }
+.big6-spend-trigger:focus-visible { outline: 3px solid rgba(43,136,184,.28); outline-offset: 2px; }
 .loan-player-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 11px; }
 .loan-player-card {
   min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: var(--card);
@@ -2312,6 +2320,48 @@ body.finale-open { overflow: hidden; }
 .window-finale-ok:hover { filter: brightness(1.06); }
 .window-finale-ok:focus-visible, .window-finale-close:focus-visible { outline: 3px solid rgba(255,220,138,.46); outline-offset: 3px; }
 
+/* ============ BIG 6 夏窗账本 ============ */
+body.big6-spend-open { overflow: hidden; }
+.big6-spend-notice { z-index: 134; background: rgba(7,27,42,.66); backdrop-filter: blur(5px); }
+.big6-spend-box {
+  position: relative; width: min(630px, 100%); max-height: min(92vh, 760px); padding: 24px;
+  border: 1px solid rgba(68,158,202,.44); border-radius: 20px;
+  background: radial-gradient(circle at 100% 0%, rgba(247,198,79,.19), transparent 31%), linear-gradient(145deg, #f9fcfe, #eaf5fa);
+  color: var(--text); box-shadow: 0 28px 80px rgba(3,19,31,.34);
+}
+.big6-spend-close {
+  position: absolute; top: 12px; right: 13px; width: 34px; height: 34px;
+  border: 1px solid var(--line-strong); border-radius: 50%; background: rgba(255,255,255,.72);
+  color: var(--text-dim); font-size: 23px; line-height: 1; cursor: pointer;
+}
+.big6-spend-kicker {
+  display: inline-flex; min-height: 25px; align-items: center; padding: 3px 10px;
+  border: 1px solid rgba(195,142,22,.42); border-radius: 999px; background: #fff5d5;
+  color: #8e620a; font-size: 10px; font-weight: 950; letter-spacing: .08em;
+}
+.big6-spend-box h2 { margin: 10px 40px 4px 0; color: var(--text); font-size: 26px; font-weight: 950; letter-spacing: -.03em; }
+.big6-spend-subtitle { margin: 0 0 13px; color: var(--text-dim); font-size: 12px; font-weight: 750; }
+.big6-spend-subtitle span { margin-left: 6px; color: #8c681b; }
+.big6-spend-table { overflow: hidden; border: 1px solid var(--line-strong); border-radius: 12px; background: rgba(255,255,255,.76); }
+.big6-spend-row { display: grid; grid-template-columns: 1.3fr repeat(3, minmax(0, 1fr)); align-items: center; min-height: 39px; border-top: 1px solid var(--line); }
+.big6-spend-row:first-child { border-top: 0; }
+.big6-spend-row > * { min-width: 0; padding: 7px 9px; text-align: right; font-size: 12px; font-variant-numeric: tabular-nums; }
+.big6-spend-row > :first-child { text-align: left; }
+.big6-spend-row strong { color: var(--text); font-weight: 900; }
+.big6-spend-row b { color: #1b7ea9; font-weight: 950; }
+.big6-spend-row b small { display: block; color: #a46f08; font-size: 9px; font-weight: 950; line-height: 1.2; }
+.big6-spend-head { min-height: 34px; background: #dceff7; }
+.big6-spend-head > * { color: #47697a; font-size: 10px; font-weight: 900; }
+.big6-spend-row.man-city { background: linear-gradient(90deg, rgba(108,171,221,.16), rgba(248,208,108,.13)); box-shadow: inset 3px 0 0 var(--accent); }
+.big6-spend-row.profit b { color: #20805c; }
+.big6-spend-city-note { margin: 12px 0 0; padding: 10px 11px; border-radius: 10px; background: #fff4cf; color: #6f5419; font-size: 11px; font-weight: 700; line-height: 1.55; }
+.big6-spend-city-note strong { color: #163d55; }
+.big6-spend-method { margin: 8px 1px 0; color: var(--text-dim); font-size: 9px; line-height: 1.5; }
+.big6-spend-actions { margin-top: 13px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.big6-spend-actions a { color: var(--t1); font-size: 11px; font-weight: 850; }
+.big6-spend-actions button { min-width: 112px; min-height: 39px; padding: 7px 18px; border: 1px solid #2288b8; border-radius: 10px; background: #2288b8; color: #fff; font-size: 12px; font-weight: 900; cursor: pointer; }
+.big6-spend-close:focus-visible, .big6-spend-actions button:focus-visible { outline: 3px solid rgba(43,136,184,.28); outline-offset: 2px; }
+
 @media (max-width: 560px) {
   .window-finale-notice { padding: 10px; align-items: center; }
   .window-finale-box { max-height: calc(100dvh - 20px); padding: 19px 15px 16px; border-radius: 16px; }
@@ -2333,6 +2383,22 @@ body.finale-open { overflow: hidden; }
   .window-finale-copy .window-finale-outro { margin-top: 9px; font-size: 13px; }
   .window-finale-signature { margin-top: 10px; font-size: 11px; }
   .window-finale-ok { min-height: 44px; margin-top: 11px; font-size: 14px; }
+  .big6-spend-notice { padding: 9px; }
+  .big6-spend-box { max-height: calc(100dvh - 18px); padding: 17px 12px 13px; border-radius: 16px; }
+  .big6-spend-close { top: 8px; right: 8px; width: 31px; height: 31px; }
+  .big6-spend-kicker { min-height: 21px; padding: 2px 7px; font-size: 8px; }
+  .big6-spend-box h2 { margin: 7px 34px 3px 0; font-size: 20px; }
+  .big6-spend-subtitle { margin-bottom: 9px; font-size: 9px; }
+  .big6-spend-row { grid-template-columns: 1.18fr repeat(3, minmax(0, 1fr)); min-height: 34px; }
+  .big6-spend-row > * { padding: 6px 5px; font-size: 10px; }
+  .big6-spend-head { min-height: 29px; }
+  .big6-spend-head > * { font-size: 8px; }
+  .big6-spend-row b small { font-size: 7px; }
+  .big6-spend-city-note { margin-top: 9px; padding: 8px 9px; font-size: 9px; }
+  .big6-spend-method { margin-top: 6px; font-size: 7.5px; }
+  .big6-spend-actions { margin-top: 9px; }
+  .big6-spend-actions a { font-size: 9px; }
+  .big6-spend-actions button { min-width: 88px; min-height: 34px; padding: 5px 12px; font-size: 10px; }
 }
 
 /* ============ 蓝月在外主页 ============ */
@@ -2487,6 +2553,10 @@ body.finale-open { overflow: hidden; }
   .loan-watch.home .loan-match-emotion-key small { max-width: 100%; overflow: hidden; font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
   .loan-watch.home .loan-watch-filters { top: -8px; margin: 0 -8px; padding: 3px 8px; gap: 4px; }
   .loan-watch.home .loan-watch-filter { min-height: 25px; padding: 3px 8px; font-size: 8px; }
+  .loan-watch.home .big6-spend-trigger {
+    position: sticky; right: 0; min-height: 25px; margin-left: auto; padding: 3px 7px;
+    border-radius: 999px; font-size: 7.5px; box-shadow: -8px 0 10px rgba(249,252,254,.96), 0 2px 6px rgba(132,92,13,.12);
+  }
   .loan-watch.home .loan-player-list { grid-template-columns: 1fr; }
   .loan-player-reaction-summary {
     margin-top: 6px; padding: 5px 6px; display: grid; grid-template-columns: auto minmax(0, 1fr);
