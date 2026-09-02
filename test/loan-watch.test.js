@@ -124,12 +124,13 @@ test('手机版球场图并入顶部背景且冬窗倒计时压缩为单行', ()
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.stadium-hero::before \{[\s\S]*?display: none/);
   assert.match(style, /\.winter-window-kicker, \.winter-window-copy span \{ display: none; \}/);
   assert.match(style, /\.winter-window-card \{[\s\S]*?min-height: 32px;[\s\S]*?display: flex/);
-  assert.match(style, /\.loan-watch\.home \.loan-watch-overview \{[\s\S]*?grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(style, /\.loan-watch\.home \.loan-match-emotion-key \{[\s\S]*?grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/);
 });
 
-test('所有窄屏手机把留言移到标题右侧并压缩概览和表情', () => {
+test('所有窄屏手机把留言移到标题右侧并用横向表情说明替换概览数字', () => {
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.loan-watch\.home \.loan-watch-intro \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\) minmax\(160px, 1\.05fr\)/);
-  assert.match(style, /\.loan-watch\.home \.loan-watch-overview \{[\s\S]*?grid-column: 1 \/ -1/);
+  assert.match(style, /\.loan-watch\.home \.loan-match-emotion-key \{[\s\S]*?grid-column: 1 \/ -1/);
+  assert.doesNotMatch(app, /const overview = el\('div', 'loan-watch-overview'\)/);
   assert.match(style, /\.loan-request-board \{ min-width: 0; padding: 6px/);
   assert.match(style, /\.loan-match-reaction-bar\.compact \.reaction-btn \{ min-height: 29px/);
   assert.match(style, /\.loan-watch\.home \.loan-watch-filter \{ min-height: 25px/);

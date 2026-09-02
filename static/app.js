@@ -3939,15 +3939,8 @@ function renderLoanWatch(context) {
     el('span', 'loan-watch-kicker', 'CITY ON LOAN · 2026/27'),
     el('h3', null, '他们离开曼城，不等于离开视线'),
     el('p', null, '只统计本赛季租借生效后的比赛。'),
-    loanMatchReactionLegend(),
   );
-  const overview = el('div', 'loan-watch-overview');
-  overview.append(
-    loanWatchSummaryStat(String(data.total || data.players.length), '追踪球员'),
-    loanWatchSummaryStat(String(data.priority_count || 0), '重点关注'),
-    loanWatchSummaryStat(String(data.players.reduce((sum, player) => sum + Number(player.summary?.appearances || 0), 0)), '赛后记录'),
-  );
-  intro.append(introCopy, loanRequestBoard(), overview);
+  intro.append(introCopy, loanRequestBoard(), loanMatchReactionLegend());
 
   const controls = el('nav', 'loan-watch-filters');
   controls.setAttribute('aria-label', '筛选蓝月在外球员');
