@@ -8,6 +8,7 @@ const CONFIG_PATH = resolve(ROOT, 'config', 'loan-watch-players.json');
 const OUTPUT_PATH = resolve(ROOT, 'data', 'loan-watch.json');
 const FOTMOB_API = 'https://www.fotmob.com/api/data';
 const USER_AGENT = 'Mozilla/5.0 (compatible; CityTransferHub/1.0; +https://adolfcns.github.io/city-transfer-hub/)';
+const DATA_VERSION = 2;
 
 const METRIC_KEYS = Object.freeze({
   keeper: [
@@ -163,10 +164,28 @@ function baseMatch(match) {
     goals: Number(match.goals || 0),
     assists: Number(match.assists || 0),
     rating: Number(match?.ratingProps?.rating ?? match.rating ?? 0) || null,
+    appearance_status: match.playedInMatch
+      ? (match.lineupPositionId === undefined || match.lineupPositionId === null ? 'subbed_on' : 'starter')
+      : (match.onBench ? 'unused_sub' : (match.appearance_status || null)),
     url: match.matchPageUrl
       ? `https://www.fotmob.com${match.matchPageUrl}`
       : (match.url || `https://www.fotmob.com/matches/x#${match.id}`),
   };
+}
+
+export function lineupAppearanceStatus(details, player) {
+  const lineup = details?.content?.lineup;
+  if (!lineup) return null;
+  const team = [lineup.homeTeam, lineup.awayTeam].find((item) => Number(item?.id) === Number(player.fotmob_team_id));
+  if (!team || !Array.isArray(team.starters) || !Array.isArray(team.subs)) return null;
+  if (team.starters.some((item) => Number(item?.id) === Number(player.fotmob_id))) return 'starter';
+  const substitute = team.subs.find((item) => Number(item?.id) === Number(player.fotmob_id));
+  if (!substitute) return 'not_in_squad';
+  const stats = details?.content?.playerStats?.[String(player.fotmob_id)];
+  const flattened = stats ? flattenPlayerStats(stats) : {};
+  const minutes = Number(flattened.minutes_played?.value || 0);
+  const cameOn = (substitute?.performance?.substitutionEvents || []).some((event) => event?.type === 'subIn');
+  return minutes > 0 || cameOn ? 'subbed_on' : 'unused_sub';
 }
 
 export function summarizeMatches(matches) {
@@ -311,6 +330,7 @@ async function buildPlayer(configPlayer, previousPlayer, config, now, matchDetai
       const flattened = flattenPlayerStats(stats);
       match.metrics = selectPositionMetrics(flattened, configPlayer.position_group);
       match.details_loaded = true;
+      match.appearance_status = lineupAppearanceStatus(details, configPlayer) || match.appearance_status || 'played';
       match.rating = Number(flattened.rating_title?.value ?? match.rating) || null;
       match.minutes = Number(flattened.minutes_played?.value ?? match.minutes ?? 0);
       match.goals = Number(flattened.goals?.value ?? match.goals ?? 0);
@@ -390,11 +410,11 @@ function scheduledFixture(fixture, player, config, previousSchedule = null) {
 }
 
 function matchFromDetails(details, schedule, player) {
+  const appearanceStatus = lineupAppearanceStatus(details, player);
+  if (!appearanceStatus) return null;
   const playerStats = details?.content?.playerStats?.[String(player.fotmob_id)];
-  if (!playerStats) return null;
-  const flattened = flattenPlayerStats(playerStats);
+  const flattened = playerStats ? flattenPlayerStats(playerStats) : {};
   const minutes = Number(flattened.minutes_played?.value || 0);
-  if (minutes <= 0) return null;
   const teams = details?.header?.teams || [];
   const home = teams[0] || {};
   const away = teams[1] || {};
@@ -415,8 +435,9 @@ function matchFromDetails(details, schedule, player) {
     goals: Number(flattened.goals?.value || 0),
     assists: Number(flattened.assists?.value || 0),
     rating: Number(flattened.rating_title?.value || 0) || null,
+    appearance_status: appearanceStatus,
     url: schedule.url,
-    metrics: selectPositionMetrics(flattened, player.position_group),
+    metrics: minutes > 0 ? selectPositionMetrics(flattened, player.position_group) : [],
     details_loaded: true,
   };
 }
@@ -457,6 +478,42 @@ export async function buildLoanWatchData({ now = new Date(), force = false } = {
   let players = configPlayers.map((player) => configuredPlayer(player, previousPlayers.get(player.key), now));
   const budget = createProviderBudget(previous, config, now);
   const matchDetailsCache = new Map();
+
+  // 旧快照升级时，用球员近期比赛中的 onBench 字段补齐既有出场的首发/替补身份；每名球员只需一次请求。
+  if (Number(previous?.version || 1) < DATA_VERSION) {
+    await mapLimit(players, 2, async (player, index) => {
+      try {
+        const profile = await fetchFotmob(`playerData?id=${encodeURIComponent(player.fotmob_id)}`, budget);
+        const recent = new Map((profile?.recentMatches || []).map((match) => [String(match.id), match]));
+        const matches = new Map((player.matches || []).map((match) => [String(match.id), match]));
+        for (const source of profile?.recentMatches || []) {
+          const time = new Date(source?.matchDate?.utcTime || source?.date).getTime();
+          const start = new Date(configPlayers[index]?.tracking_from || config.season_start).getTime();
+          if (!sameTrackedTeam(source, configPlayers[index]) || !Number.isFinite(time) || time < start || time > now.getTime()) continue;
+          if (!source.playedInMatch && source.onBench && !matches.has(String(source.id))) {
+            matches.set(String(source.id), { ...baseMatch(source), details_loaded: true });
+          }
+        }
+        player.matches = [...matches.values()].map((match) => {
+          if (match.appearance_status) return match;
+          const source = recent.get(String(match.id));
+          if (!source?.playedInMatch) return { ...match, appearance_status: 'played' };
+          return {
+            ...match,
+            appearance_status: source.lineupPositionId === undefined || source.lineupPositionId === null ? 'subbed_on' : 'starter',
+          };
+        }).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 60);
+      } catch {
+        player.matches = (player.matches || []).map((match) => ({ ...match, appearance_status: match.appearance_status || 'played' }));
+      }
+      const configPlayer = configPlayers[index];
+      player.summary = summarizeMatches(player.matches);
+      if (!player.birth_date && configPlayer?.birth_date) {
+        player.birth_date = configPlayer.birth_date;
+        player.age = calculateAge(configPlayer.birth_date, now);
+      }
+    });
+  }
 
   // 新增的“球迷点将”无需等下一场比赛：首次入选时补齐本赛季已有出场，之后仍按赛程逐场更新。
   await mapLimit(players, 2, async (player, index) => {
@@ -537,7 +594,7 @@ export async function buildLoanWatchData({ now = new Date(), force = false } = {
   }
   const available = players.filter((player) => !player.schedule_error).length;
   return {
-    version: 1,
+    version: DATA_VERSION,
     generated_at: now.toISOString(),
     checked_at: now.toISOString(),
     season_start: config.season_start,
@@ -580,7 +637,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
         ...(config.fan_picks || []).map((player) => ({ ...player, fan_pick: true })),
       ];
       const fallback = {
-        version: 1,
+        version: Number(previous?.version || 1),
         generated_at: previous?.generated_at || now.toISOString(),
         checked_at: now.toISOString(),
         season_start: config.season_start,

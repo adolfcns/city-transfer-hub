@@ -3604,6 +3604,50 @@ function loanMatchReactionItem(player, match) {
   return { id: `loanmatch_${player.key}_${safeMatchId}` };
 }
 
+function loanAppearanceStatus(match) {
+  const definitions = {
+    starter: { label: '首发', cls: 'starter' },
+    subbed_on: { label: '替补登场', cls: 'subbed-on' },
+    unused_sub: { label: '替补未登场', cls: 'unused-sub' },
+    not_in_squad: { label: '未进名单', cls: 'not-in-squad' },
+    played: { label: '已出场', cls: 'played' },
+  };
+  return definitions[match?.appearance_status] || (Number(match?.minutes || 0) > 0 ? definitions.played : null);
+}
+
+function loanPlayerFiveMatchTrend(player) {
+  const recent = [...(player.matches || [])]
+    .filter((match) => match?.date)
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+    .slice(0, 5)
+    .reverse();
+  if (!recent.length) return null;
+  const strip = el('section', 'loan-five-match-trend');
+  const rated = recent.filter((match) => Number(match.rating) > 0);
+  let verdict = '样本积累中';
+  let direction = 'steady';
+  if (rated.length >= 2) {
+    const latest = Number(rated[rated.length - 1].rating);
+    const earlier = rated.slice(0, -1).reduce((sum, match) => sum + Number(match.rating), 0) / (rated.length - 1);
+    const delta = latest - earlier;
+    if (delta >= 0.25) { verdict = '状态回升'; direction = 'up'; }
+    else if (delta <= -0.25) { verdict = '近期回落'; direction = 'down'; }
+    else verdict = '表现稳定';
+  }
+  const heading = el('strong', `loan-five-match-label ${direction}`, `近5场 ${direction === 'up' ? '↗' : direction === 'down' ? '↘' : '→'} ${verdict}`);
+  const bars = el('span', 'loan-five-match-bars');
+  for (const match of recent) {
+    const status = loanAppearanceStatus(match);
+    const rating = Number(match.rating || 0);
+    const bar = el('i', `loan-five-match-bar${rating ? '' : ' no-rating'}`);
+    bar.style.setProperty('--loan-trend-height', `${rating ? Math.max(28, Math.min(100, (rating - 5) * 22 + 28)) : 18}%`);
+    bar.title = `${loanWatchDate(match.date)} · ${status?.label || '状态待确认'}${rating ? ` · 评分 ${rating.toFixed(1)}` : ''}`;
+    bars.appendChild(bar);
+  }
+  strip.append(heading, bars);
+  return strip;
+}
+
 function loanMatchReactionLegend() {
   const legend = el('div', 'loan-match-emotion-key');
   legend.setAttribute('aria-label', '赛后表情说明');
@@ -3618,7 +3662,7 @@ function loanMatchReactionLegend() {
 
 function loanPlayerReactionTotals(player) {
   const totals = blankItemReactionCounts();
-  for (const match of player.matches || []) {
+  for (const match of (player.matches || []).filter((item) => Number(item.minutes || 0) > 0)) {
     const counts = itemReactionCounts(itemId(loanMatchReactionItem(player, match)));
     for (const def of LOAN_MATCH_REACTION_DEFS) totals[def.key] += Number(counts[def.key] || 0);
   }
@@ -3674,7 +3718,19 @@ function loanWatchMatchRow(match, player) {
     el('strong', null, `${match.is_home ? '主场' : '客场'} vs ${match.opponent || '对手待更新'}`),
     el('b', null, match.score || '—'),
   );
-  const meta = el('div', 'loan-match-meta', match.competition || '赛事待更新');
+  const meta = el('div', 'loan-match-meta');
+  meta.appendChild(el('span', null, match.competition || '赛事待更新'));
+  const appearance = loanAppearanceStatus(match);
+  if (appearance) meta.appendChild(el('strong', `loan-appearance-status ${appearance.cls}`, appearance.label));
+  const source = el('a', 'loan-match-source', '查看 FotMob 比赛页 ↗');
+  source.href = match.url || 'https://www.fotmob.com';
+  source.target = '_blank';
+  source.rel = 'noopener';
+  if (Number(match.minutes || 0) <= 0) {
+    row.classList.add('no-appearance');
+    row.append(headline, meta, el('p', 'loan-match-no-appearance', appearance?.label === '替补未登场' ? '进入替补席，本场没有获得出场时间。' : '本场未进入比赛名单。'), source);
+    return row;
+  }
   const stats = el('div', 'loan-match-stats');
   stats.append(
     loanWatchSummaryStat(match.rating ? Number(match.rating).toFixed(1) : '—', '评分', 'rating'),
@@ -3685,10 +3741,6 @@ function loanWatchMatchRow(match, player) {
   for (const metric of match.metrics || []) {
     stats.appendChild(loanWatchSummaryStat(String(metric.value), metric.label));
   }
-  const source = el('a', 'loan-match-source', '查看 FotMob 比赛页 ↗');
-  source.href = match.url || 'https://www.fotmob.com';
-  source.target = '_blank';
-  source.rel = 'noopener';
   row.append(headline, meta, stats, source, buildReactionBar(reactionItem, true, 'loan-match'));
   return row;
 }
@@ -3725,11 +3777,12 @@ function loanWatchPlayerCard(player) {
   history.className = 'loan-match-history';
   const historyTitle = document.createElement('summary');
   const appearances = Number(season.appearances || 0);
+  const records = (player.matches || []).length;
   const historyScope = player.fan_pick ? '本赛季比赛记录' : '本赛季租借后比赛记录';
-  historyTitle.textContent = appearances ? `逐场比赛明细｜${historyScope}（${appearances}场）` : `逐场比赛明细｜${player.fan_pick ? '本赛季' : '租借后'}暂无出场`;
+  historyTitle.textContent = records ? `逐场比赛明细｜${historyScope}（${records}场记录）` : `逐场比赛明细｜${player.fan_pick ? '本赛季' : '租借后'}暂无记录`;
   history.appendChild(historyTitle);
   const historyBody = el('div', 'loan-match-history-body');
-  if (appearances) {
+  if (records) {
     historyBody.appendChild(el('p', 'loan-match-history-label', player.fan_pick ? '以下是球迷点将球员本赛季的逐场数据' : '以下是该球员本赛季租借生效后的逐场数据'));
     const rows = el('div', 'loan-match-list');
     for (const match of player.matches || []) rows.appendChild(loanWatchMatchRow(match, player));
@@ -3738,9 +3791,70 @@ function loanWatchPlayerCard(player) {
     historyBody.appendChild(el('p', 'loan-no-match', '一旦完成首场比赛，赛后评分和关键数据会自动出现在这里。'));
   }
   history.appendChild(historyBody);
-  card.append(head, destination, summary, loanPlayerReactionSummary(player), history);
-  queueReactionCounts((player.matches || []).map((match) => loanMatchReactionItem(player, match)));
+  const trend = loanPlayerFiveMatchTrend(player);
+  card.append(head, destination, summary);
+  if (trend) card.appendChild(trend);
+  card.append(loanPlayerReactionSummary(player), history);
+  queueReactionCounts((player.matches || []).filter((match) => Number(match.minutes || 0) > 0).map((match) => loanMatchReactionItem(player, match)));
   return card;
+}
+
+function weeklyLoanLeaders(data, now = new Date()) {
+  const weekStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  weekStart.setUTCDate(weekStart.getUTCDate() - ((weekStart.getUTCDay() + 6) % 7));
+  return data.players
+    .filter((player) => !player.fan_pick)
+    .map((player) => {
+      const matches = (player.matches || []).filter((match) => (
+        Number(match.minutes || 0) > 0
+        && Number(match.rating || 0) > 0
+        && new Date(match.date).getTime() >= weekStart.getTime()
+        && new Date(match.date).getTime() <= now.getTime()
+      ));
+      const minutes = matches.reduce((sum, match) => sum + Number(match.minutes || 0), 0);
+      if (!matches.length || minutes < 30) return null;
+      const rating = matches.reduce((sum, match) => sum + Number(match.rating) * Number(match.minutes || 0), 0) / minutes;
+      return {
+        player,
+        matches,
+        minutes,
+        rating,
+        goals: matches.reduce((sum, match) => sum + Number(match.goals || 0), 0),
+        assists: matches.reduce((sum, match) => sum + Number(match.assists || 0), 0),
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.rating - a.rating || b.goals - a.goals || b.assists - a.assists || b.minutes - a.minutes)
+    .slice(0, 3);
+}
+
+function weeklyLoanAward(data, context) {
+  const leaders = weeklyLoanLeaders(data);
+  if (!leaders.length) return null;
+  const award = el('section', 'loan-weekly-award');
+  const copy = el('div', 'loan-weekly-award-copy');
+  copy.append(el('span', null, '🏆 每周蓝月在外'), el('strong', null, '本周最佳球员'));
+  const podium = el('div', 'loan-weekly-podium');
+  leaders.forEach((entry, index) => {
+    const button = el('button', `loan-weekly-player rank-${index + 1}`);
+    button.type = 'button';
+    button.dataset.playerKey = entry.player.key;
+    button.title = `查看${entry.player.name_zh}的本周比赛记录`;
+    const contribution = [entry.goals ? `${entry.goals}球` : '', entry.assists ? `${entry.assists}助` : ''].filter(Boolean).join(' · ');
+    button.append(
+      el('i', null, ['🥇', '🥈', '🥉'][index]),
+      el('strong', null, entry.player.name_zh),
+      el('small', null, `${entry.rating.toFixed(1)}${contribution ? ` · ${contribution}` : ''}`),
+    );
+    button.onclick = () => {
+      context.data.loanFilter = entry.player.priority ? 'priority' : 'all';
+      renderLoanWatch(context);
+      requestAnimationFrame(() => document.querySelector(`[data-loan-player-key="${entry.player.key}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    };
+    podium.appendChild(button);
+  });
+  award.append(copy, podium, el('small', 'loan-weekly-rule', '按本周出场至少30分钟球员的加权平均评分生成'));
+  return award;
 }
 
 function loanRequestNickname() {
@@ -4024,6 +4138,8 @@ function renderLoanWatch(context) {
   note.appendChild(provider);
   root.append(intro, controls);
   if (upcomingSchedule) root.appendChild(upcomingSchedule);
+  const weeklyAward = weeklyLoanAward(data, context);
+  if (weeklyAward) root.appendChild(weeklyAward);
   root.append(list, note);
   body.appendChild(root);
   if (context.home) {

@@ -1,15 +1,15 @@
 {
-  "version": 1,
-  "generated_at": "2026-09-02T09:44:14.105Z",
-  "checked_at": "2026-09-02T09:44:14.105Z",
+  "version": 2,
+  "generated_at": "2026-09-02T09:59:31.383Z",
+  "checked_at": "2026-09-02T09:59:31.383Z",
   "season_start": "2026-07-01T00:00:00.000Z",
-  "schedule_updated_at": "2026-09-02T09:44:14.105Z",
+  "schedule_updated_at": "2026-09-02T09:45:19.443Z",
   "schedule_refresh_hours": 24,
   "estimated_match_duration_hours": 2,
   "post_match_fetch_delay_hours": 1,
   "provider_usage": {
     "date": "2026-09-02",
-    "requests": 71,
+    "requests": 93,
     "limit": 95
   },
   "provider": {
@@ -246,7 +246,25 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "负"
+          "outcome": "负",
+          "appearance_status": "starter"
+        },
+        {
+          "id": "6005653",
+          "date": "2026-08-26T18:45:00.000Z",
+          "competition": "EFL Cup",
+          "team": "Burnley",
+          "opponent": "Bradford City",
+          "is_home": false,
+          "score": "0-0",
+          "outcome": "平",
+          "minutes": 0,
+          "goals": 0,
+          "assists": 0,
+          "rating": null,
+          "appearance_status": "unused_sub",
+          "url": "https://www.fotmob.com/matches/burnley-vs-bradford-city/2as7iy#6005653",
+          "details_loaded": true
         },
         {
           "id": "5836775",
@@ -284,7 +302,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "负"
+          "outcome": "负",
+          "appearance_status": "starter"
         },
         {
           "id": "5836764",
@@ -322,7 +341,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "平"
+          "outcome": "平",
+          "appearance_status": "starter"
         }
       ],
       "schedule": [
@@ -658,7 +678,25 @@
         "assists": 0,
         "average_rating": null
       },
-      "matches": [],
+      "matches": [
+        {
+          "id": "5837111",
+          "date": "2026-08-30T13:00:00.000Z",
+          "competition": "League One",
+          "team": "Wigan Athletic",
+          "opponent": "AFC Wimbledon",
+          "is_home": false,
+          "score": "1-0",
+          "outcome": "负",
+          "minutes": 0,
+          "goals": 0,
+          "assists": 0,
+          "rating": null,
+          "appearance_status": "unused_sub",
+          "url": "https://www.fotmob.com/matches/wigan-athletic-vs-afc-wimbledon/6e71lrk#5837111",
+          "details_loaded": true
+        }
+      ],
       "schedule": [
         {
           "id": "5837132",
@@ -862,7 +900,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "subbed_on"
         }
       ],
       "schedule": [
@@ -1068,7 +1107,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         },
         {
           "id": "5811727",
@@ -1106,7 +1146,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "负"
+          "outcome": "负",
+          "appearance_status": "subbed_on"
         },
         {
           "id": "5811713",
@@ -1144,7 +1185,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "平"
+          "outcome": "平",
+          "appearance_status": "starter"
         }
       ],
       "schedule": [
@@ -1350,7 +1392,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         },
         {
           "id": "5836787",
@@ -1388,7 +1431,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "平"
+          "outcome": "平",
+          "appearance_status": "starter"
         },
         {
           "id": "6005661",
@@ -1426,7 +1470,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         },
         {
           "id": "5836776",
@@ -1464,7 +1509,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "负"
+          "outcome": "负",
+          "appearance_status": "subbed_on"
         }
       ],
       "schedule": [
@@ -1660,7 +1706,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "subbed_on"
         },
         {
           "id": "5988081",
@@ -1698,7 +1745,25 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "subbed_on"
+        },
+        {
+          "id": "5802902",
+          "date": "2026-08-23T15:15:00.000Z",
+          "competition": "Ligue 1",
+          "team": "Monaco",
+          "opponent": "Le Havre",
+          "is_home": false,
+          "score": "0-1",
+          "outcome": "胜",
+          "minutes": 0,
+          "goals": 0,
+          "assists": 0,
+          "rating": null,
+          "appearance_status": "unused_sub",
+          "url": "https://www.fotmob.com/matches/le-havre-vs-monaco/362v61#5802902",
+          "details_loaded": true
         },
         {
           "id": "5988057",
@@ -1731,7 +1796,25 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
+        },
+        {
+          "id": "5973929",
+          "date": "2026-08-14T18:30:00.000Z",
+          "competition": "Club Friendlies",
+          "team": "Monaco",
+          "opponent": "Coventry City",
+          "is_home": false,
+          "score": "2-0",
+          "outcome": "负",
+          "minutes": 0,
+          "goals": 0,
+          "assists": 0,
+          "rating": null,
+          "appearance_status": "unused_sub",
+          "url": "https://www.fotmob.com/matches/coventry-city-vs-monaco/2tvf2g#5973929",
+          "details_loaded": true
         },
         {
           "id": "5765326",
@@ -1764,7 +1847,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         }
       ],
       "schedule": [
@@ -1970,7 +2054,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "平"
+          "outcome": "平",
+          "appearance_status": "subbed_on"
         },
         {
           "id": "5836786",
@@ -2008,7 +2093,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "subbed_on"
         },
         {
           "id": "6005661",
@@ -2046,7 +2132,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "负"
+          "outcome": "负",
+          "appearance_status": "starter"
         },
         {
           "id": "5836773",
@@ -2084,7 +2171,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "subbed_on"
         },
         {
           "id": "5836763",
@@ -2112,7 +2200,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "负"
+          "outcome": "负",
+          "appearance_status": "subbed_on"
         }
       ],
       "schedule": [
@@ -2485,7 +2574,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         },
         {
           "id": "5071297",
@@ -2523,7 +2613,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "平"
+          "outcome": "平",
+          "appearance_status": "starter"
         },
         {
           "id": "5071281",
@@ -2561,7 +2652,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "平"
+          "outcome": "平",
+          "appearance_status": "starter"
         },
         {
           "id": "5071274",
@@ -2599,7 +2691,25 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
+        },
+        {
+          "id": "5844871",
+          "date": "2026-08-13T23:00:00.000Z",
+          "competition": "Leagues Cup",
+          "team": "Philadelphia Union",
+          "opponent": "Santos Laguna",
+          "is_home": true,
+          "score": "0-2",
+          "outcome": "负",
+          "minutes": 0,
+          "goals": 0,
+          "assists": 0,
+          "rating": null,
+          "appearance_status": "unused_sub",
+          "url": "https://www.fotmob.com/matches/santos-laguna-vs-philadelphia-union/95cr93s#5844871",
+          "details_loaded": true
         },
         {
           "id": "5844852",
@@ -2637,7 +2747,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         },
         {
           "id": "5844835",
@@ -2675,7 +2786,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "负"
+          "outcome": "负",
+          "appearance_status": "starter"
         },
         {
           "id": "5071252",
@@ -2713,7 +2825,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         },
         {
           "id": "5071238",
@@ -2751,7 +2864,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         },
         {
           "id": "5071220",
@@ -2789,7 +2903,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         }
       ],
       "schedule": [
@@ -3329,7 +3444,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "负"
+          "outcome": "负",
+          "appearance_status": "starter"
         }
       ],
       "schedule": [
@@ -3535,7 +3651,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "subbed_on"
         },
         {
           "id": "5836781",
@@ -3573,7 +3690,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "平"
+          "outcome": "平",
+          "appearance_status": "subbed_on"
         },
         {
           "id": "6005646",
@@ -3611,7 +3729,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "subbed_on"
         }
       ],
       "schedule": [
@@ -3817,7 +3936,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         },
         {
           "id": "5837115",
@@ -3855,7 +3975,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "平"
+          "outcome": "平",
+          "appearance_status": "starter"
         },
         {
           "id": "6005656",
@@ -3893,7 +4014,42 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "负"
+          "outcome": "负",
+          "appearance_status": "starter"
+        },
+        {
+          "id": "5837102",
+          "date": "2026-08-22T14:00:00.000Z",
+          "competition": "League One",
+          "team": "Leicester City",
+          "opponent": "Burton Albion",
+          "is_home": true,
+          "score": "1-2",
+          "outcome": "负",
+          "minutes": 0,
+          "goals": 0,
+          "assists": 0,
+          "rating": null,
+          "appearance_status": "unused_sub",
+          "url": "https://www.fotmob.com/matches/leicester-city-vs-burton-albion/2ocdrj#5837102",
+          "details_loaded": true
+        },
+        {
+          "id": "5837087",
+          "date": "2026-08-15T11:30:00.000Z",
+          "competition": "League One",
+          "team": "Leicester City",
+          "opponent": "Notts County",
+          "is_home": false,
+          "score": "1-1",
+          "outcome": "平",
+          "minutes": 0,
+          "goals": 0,
+          "assists": 0,
+          "rating": null,
+          "appearance_status": "unused_sub",
+          "url": "https://www.fotmob.com/matches/leicester-city-vs-notts-county/2omsuj#5837087",
+          "details_loaded": true
         }
       ],
       "schedule": [
@@ -4099,7 +4255,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "平"
+          "outcome": "平",
+          "appearance_status": "starter"
         },
         {
           "id": "5837894",
@@ -4137,7 +4294,25 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "负"
+          "outcome": "负",
+          "appearance_status": "subbed_on"
+        },
+        {
+          "id": "5837874",
+          "date": "2026-08-22T14:00:00.000Z",
+          "competition": "League Two",
+          "team": "Exeter City",
+          "opponent": "Accrington Stanley",
+          "is_home": true,
+          "score": "2-0",
+          "outcome": "胜",
+          "minutes": 0,
+          "goals": 0,
+          "assists": 0,
+          "rating": null,
+          "appearance_status": "unused_sub",
+          "url": "https://www.fotmob.com/matches/accrington-stanley-vs-exeter-city/2txsq5#5837874",
+          "details_loaded": true
         },
         {
           "id": "5837867",
@@ -4175,7 +4350,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "负"
+          "outcome": "负",
+          "appearance_status": "subbed_on"
         }
       ],
       "schedule": [
@@ -4381,7 +4557,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "负"
+          "outcome": "负",
+          "appearance_status": "starter"
         },
         {
           "id": "6005665",
@@ -4414,7 +4591,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "负"
+          "outcome": "负",
+          "appearance_status": "starter"
         },
         {
           "id": "5837103",
@@ -4442,7 +4620,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "平"
+          "outcome": "平",
+          "appearance_status": "starter"
         },
         {
           "id": "5837089",
@@ -4470,7 +4649,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         }
       ],
       "schedule": [
@@ -4676,7 +4856,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         },
         {
           "id": "5836772",
@@ -4709,7 +4890,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "平"
+          "outcome": "平",
+          "appearance_status": "starter"
         },
         {
           "id": "5836760",
@@ -4747,7 +4929,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         },
         {
           "id": "5840303",
@@ -4785,7 +4968,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "平"
+          "outcome": "平",
+          "appearance_status": "starter"
         }
       ],
       "schedule": [
@@ -4991,7 +5175,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         },
         {
           "id": "5837108",
@@ -5029,7 +5214,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "负"
+          "outcome": "负",
+          "appearance_status": "starter"
         },
         {
           "id": "5837098",
@@ -5067,7 +5253,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         },
         {
           "id": "5840290",
@@ -5105,7 +5292,8 @@
             }
           ],
           "details_loaded": true,
-          "outcome": "平"
+          "outcome": "平",
+          "appearance_status": "starter"
         }
       ],
       "schedule": [
@@ -5288,7 +5476,8 @@
           "assists": 0,
           "rating": null,
           "url": "https://www.fotmob.com/matches/sutton-united-vs-wealdstone/njfqogk#5906413",
-          "outcome": "负"
+          "outcome": "负",
+          "appearance_status": "starter"
         },
         {
           "id": "5906398",
@@ -5303,7 +5492,8 @@
           "assists": 0,
           "rating": null,
           "url": "https://www.fotmob.com/matches/gateshead-fc-vs-sutton-united/67s125u#5906398",
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         },
         {
           "id": "5906389",
@@ -5318,7 +5508,25 @@
           "assists": 0,
           "rating": null,
           "url": "https://www.fotmob.com/matches/hartlepool-united-vs-sutton-united/6e2rum2#5906389",
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
+        },
+        {
+          "id": "6000923",
+          "date": "2026-08-18T18:00:00.000Z",
+          "competition": "National League Cup",
+          "team": "Sutton United",
+          "opponent": "Leicester City U21",
+          "is_home": true,
+          "score": "0-0",
+          "outcome": "平",
+          "minutes": 0,
+          "goals": 0,
+          "assists": 0,
+          "rating": null,
+          "appearance_status": "unused_sub",
+          "url": "https://www.fotmob.com/matches/sutton-united-vs-leicester-city-u21/5ji3l1fb#6000923",
+          "details_loaded": true
         },
         {
           "id": "5906376",
@@ -5333,7 +5541,8 @@
           "assists": 0,
           "rating": null,
           "url": "https://www.fotmob.com/matches/altrincham-vs-sutton-united/6i13ih3#5906376",
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         },
         {
           "id": "5906368",
@@ -5348,7 +5557,8 @@
           "assists": 0,
           "rating": null,
           "url": "https://www.fotmob.com/matches/woking-vs-sutton-united/6dokt9k#5906368",
-          "outcome": "胜"
+          "outcome": "胜",
+          "appearance_status": "starter"
         }
       ],
       "schedule": [
@@ -5556,7 +5766,8 @@
               "value": "2"
             }
           ],
-          "details_loaded": true
+          "details_loaded": true,
+          "appearance_status": "starter"
         },
         {
           "id": "5881145",
@@ -5594,7 +5805,8 @@
               "value": "42/47"
             }
           ],
-          "details_loaded": true
+          "details_loaded": true,
+          "appearance_status": "starter"
         },
         {
           "id": "5801099",
@@ -5632,7 +5844,8 @@
               "value": "1/2"
             }
           ],
-          "details_loaded": true
+          "details_loaded": true,
+          "appearance_status": "starter"
         },
         {
           "id": "5765423",
@@ -5670,7 +5883,8 @@
               "value": "1"
             }
           ],
-          "details_loaded": true
+          "details_loaded": true,
+          "appearance_status": "starter"
         },
         {
           "id": "5898653",
@@ -5708,7 +5922,8 @@
               "value": "2"
             }
           ],
-          "details_loaded": true
+          "details_loaded": true,
+          "appearance_status": "starter"
         },
         {
           "id": "5765422",
@@ -5746,7 +5961,8 @@
               "value": "3"
             }
           ],
-          "details_loaded": true
+          "details_loaded": true,
+          "appearance_status": "starter"
         }
       ],
       "schedule": [

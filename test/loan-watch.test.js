@@ -5,6 +5,7 @@ import {
   calculateAge,
   flattenPlayerStats,
   isTrackedAppearance,
+  lineupAppearanceStatus,
   selectPositionMetrics,
   summarizeMatches,
 } from '../scripts/fetch-loan-watch.js';
@@ -179,6 +180,49 @@ test('同一场比赛只请求一次并更新所有相关球员', () => {
   assert.match(fetcher, /dueMatches\.get\(fixture\.id\)\.push\(\{ player, fixture \}\)/);
   assert.match(fetcher, /fetchFotmob\(`matchDetails\?matchId=\$\{encodeURIComponent\(matchId\)\}`/);
   assert.match(fetcher, /for \(const \{ player, fixture \} of entries\)/);
+});
+
+test('赛后阵容区分首发、替补登场、替补未登场和未进名单', () => {
+  const player = { fotmob_id: 9, fotmob_team_id: 100 };
+  const details = {
+    content: {
+      lineup: {
+        homeTeam: {
+          id: 100,
+          starters: [{ id: 9 }],
+          subs: [{ id: 10, performance: { substitutionEvents: [{ type: 'subIn' }] } }, { id: 11 }],
+        },
+        awayTeam: { id: 200, starters: [], subs: [] },
+      },
+      playerStats: {},
+    },
+  };
+  assert.equal(lineupAppearanceStatus(details, player), 'starter');
+  details.content.lineup.homeTeam.starters = [];
+  player.fotmob_id = 10;
+  assert.equal(lineupAppearanceStatus(details, player), 'subbed_on');
+  player.fotmob_id = 11;
+  assert.equal(lineupAppearanceStatus(details, player), 'unused_sub');
+  player.fotmob_id = 12;
+  assert.equal(lineupAppearanceStatus(details, player), 'not_in_squad');
+  assert.match(app, /starter: \{ label: '首发'/);
+  assert.match(app, /subbed_on: \{ label: '替补登场'/);
+  assert.match(app, /unused_sub: \{ label: '替补未登场'/);
+  assert.match(app, /not_in_squad: \{ label: '未进名单'/);
+  assert.match(style, /\.loan-appearance-status\.unused-sub/);
+});
+
+test('球员卡片提供极简近五场走势和每周最佳榜单', () => {
+  assert.match(app, /function loanPlayerFiveMatchTrend\(player\)/);
+  assert.match(app, /slice\(0, 5\)/);
+  assert.match(app, /状态回升/);
+  assert.match(app, /表现稳定/);
+  assert.match(app, /近期回落/);
+  assert.match(app, /function weeklyLoanLeaders\(data, now = new Date\(\)\)/);
+  assert.match(app, /本周最佳球员/);
+  assert.match(app, /出场至少30分钟/);
+  assert.match(style, /\.loan-five-match-bars/);
+  assert.match(style, /\.loan-weekly-award/);
 });
 
 test('每场外租比赛提供五项球迷评价并在球员卡片汇总', () => {

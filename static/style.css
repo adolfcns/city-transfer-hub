@@ -514,6 +514,16 @@ body.survey-open { overflow: hidden; }
 .loan-season-summary .loan-summary-stat { min-height: 48px; padding: 5px 2px; background: #f1f8fb; }
 .loan-season-summary .loan-summary-stat small { font-size: 12px; }
 .loan-season-summary .loan-summary-stat strong { margin-top: 1px; font-size: 10px; }
+.loan-five-match-trend {
+  margin-top: 6px; padding: 4px 7px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  border: 1px solid #d7e7ee; border-radius: 8px; background: #f8fbfc;
+}
+.loan-five-match-label { color: #557487; font-size: 8px; font-weight: 900; white-space: nowrap; }
+.loan-five-match-label.up { color: #23805a; }
+.loan-five-match-label.down { color: #a64d5a; }
+.loan-five-match-bars { width: 48px; height: 18px; display: flex; align-items: end; justify-content: flex-end; gap: 3px; }
+.loan-five-match-bar { width: 6px; height: var(--loan-trend-height); border-radius: 4px 4px 2px 2px; background: #43a0ca; }
+.loan-five-match-bar.no-rating { background: #cad6dc; }
 .loan-match-history { margin-top: 10px; border-radius: 10px; }
 .loan-match-history > summary {
   padding: 8px 10px; display: flex; align-items: center; gap: 6px;
@@ -539,7 +549,13 @@ body.survey-open { overflow: hidden; }
 .loan-match-outcome.win { background: #e2f4ea; color: #247451; }
 .loan-match-outcome.loss { background: #f7e8eb; color: var(--burgundy); }
 .loan-match-outcome.draw { background: #fff3d7; color: #93620b; }
-.loan-match-meta { margin-top: 2px; color: var(--text-dim); font-size: 9px; font-weight: 700; }
+.loan-match-meta { margin-top: 3px; display: flex; align-items: center; gap: 6px; color: var(--text-dim); font-size: 9px; font-weight: 700; }
+.loan-appearance-status { padding: 2px 5px; border-radius: 999px; background: #e5f4eb; color: #247451; font-size: 8px; font-weight: 950; }
+.loan-appearance-status.subbed-on { background: #e5f2fa; color: #20749b; }
+.loan-appearance-status.unused-sub { background: #fff2d8; color: #8b5c07; }
+.loan-appearance-status.not-in-squad { background: #eef1f3; color: #697d88; }
+.loan-match-row.no-appearance { border-left-color: #aebdc5; background: #f8fafb; box-shadow: none; }
+.loan-match-no-appearance { margin: 7px 0 0; color: #49687b; font-size: 10px; font-weight: 850; }
 .loan-match-stats { margin-top: 7px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
 .loan-match-stats .loan-summary-stat { min-height: 42px; padding: 4px 2px; border-color: #d3e2e9; background: #f8fbfc; }
 .loan-match-stats .loan-summary-stat strong { margin-top: 1px; font-size: 9px; }
@@ -567,6 +583,20 @@ body.survey-open { overflow: hidden; }
 .loan-watch-note { padding: 11px 13px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 11px; border: 1px dashed var(--line-strong); border-radius: 10px; color: var(--text-dim); font-size: 10px; line-height: 1.5; }
 .loan-watch-note strong { color: var(--text); }
 .loan-watch-note a { margin-left: auto; color: var(--accent); font-weight: 800; }
+.loan-weekly-award {
+  padding: 9px 11px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px;
+  border: 1px solid #d8b252; border-radius: 11px; background: linear-gradient(120deg, #fffaf0, #f5fbfd);
+}
+.loan-weekly-award-copy { display: grid; gap: 1px; }
+.loan-weekly-award-copy span { color: #87610e; font-size: 8px; font-weight: 900; }
+.loan-weekly-award-copy strong { color: var(--text); font-size: 13px; font-weight: 950; }
+.loan-weekly-podium { min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+.loan-weekly-player { min-width: 0; padding: 5px 7px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 4px; border: 1px solid #d7e7ee; border-radius: 8px; background: rgba(255,255,255,.82); color: var(--text); }
+.loan-weekly-player i { font-size: 11px; font-style: normal; }
+.loan-weekly-player strong { overflow: hidden; font-size: 10px; font-weight: 950; text-overflow: ellipsis; white-space: nowrap; }
+.loan-weekly-player small { color: #6a7f8b; font-size: 7px; font-weight: 800; white-space: nowrap; }
+.loan-weekly-player:hover { border-color: var(--accent); background: #fff; }
+.loan-weekly-rule { color: #7b8f9a; font-size: 7px; white-space: nowrap; }
 .survey-primary, .survey-secondary, .survey-submit, .survey-back, .survey-edit {
   min-height: 42px; border-radius: 8px; font-size: 13px; font-weight: 700;
 }
@@ -2570,6 +2600,10 @@ body.big6-spend-open { overflow: hidden; }
   .loan-match-stats .loan-summary-stat { min-height: 36px; padding: 3px 1px; }
   .loan-match-stats .loan-summary-stat small { font-size: 9.5px; }
   .loan-match-stats .loan-summary-stat strong { font-size: 8px; }
+  .loan-five-match-trend { margin-top: 4px; padding: 3px 6px; }
+  .loan-five-match-label { font-size: 7px; }
+  .loan-five-match-bars { width: 42px; height: 14px; gap: 2px; }
+  .loan-five-match-bar { width: 5px; }
   .loan-player-reaction-summary {
     margin-top: 4px; padding: 3px 5px; gap: 3px;
   }
@@ -2605,6 +2639,15 @@ body.big6-spend-open { overflow: hidden; }
   .loan-match-history > summary { padding: 7px 8px; font-size: 11px; }
   .loan-match-history-body { padding: 7px; }
   .loan-match-history-label { margin-bottom: 6px; font-size: 10px; }
+  .loan-weekly-award { padding: 6px 7px; grid-template-columns: auto minmax(0, 1fr); gap: 6px; }
+  .loan-weekly-award-copy span { font-size: 6px; }
+  .loan-weekly-award-copy strong { font-size: 9px; }
+  .loan-weekly-podium { gap: 3px; }
+  .loan-weekly-player { padding: 3px 4px; grid-template-columns: auto minmax(0, 1fr); gap: 2px; }
+  .loan-weekly-player i { font-size: 8px; }
+  .loan-weekly-player strong { font-size: 7px; }
+  .loan-weekly-player small { display: none; }
+  .loan-weekly-rule { display: none; }
   .poll-only-zone { margin-top: 13px; padding-top: 12px; }
   .poll-shortcuts-heading { display: grid; gap: 1px; margin-inline: 3px; }
   .poll-shortcuts { grid-template-columns: 1fr; gap: 7px; }
