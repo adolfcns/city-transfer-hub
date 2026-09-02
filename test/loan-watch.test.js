@@ -132,7 +132,7 @@ test('所有窄屏手机把留言移到标题右侧并用横向表情说明替�
   assert.match(style, /\.loan-watch\.home \.loan-match-emotion-key \{[\s\S]*?grid-column: 1 \/ -1/);
   assert.doesNotMatch(app, /const overview = el\('div', 'loan-watch-overview'\)/);
   assert.match(style, /\.loan-request-board \{ min-width: 0; padding: 6px/);
-  assert.match(style, /\.loan-match-reaction-bar\.compact \.reaction-btn \{ min-height: 29px/);
+  assert.match(style, /\.loan-match-reaction-bar\.reaction-bar\.compact \.reaction-btn \{ min-height: 21px/);
   assert.match(style, /\.loan-watch\.home \.loan-watch-filter \{ min-height: 25px/);
 });
 
@@ -156,9 +156,19 @@ test('每场外租比赛提供五项球迷评价并在球员卡片汇总', () =>
   assert.match(app, /球迷表情/);
   assert.match(app, /逐场比赛明细｜本赛季租借后比赛记录/);
   assert.match(style, /\.loan-match-history-body \{/);
-  assert.match(style, /\.loan-match-row \{[^}]*border-left: 3px solid/);
+  assert.match(style, /\.loan-match-row \{[^}]*border-left: 4px solid/);
   assert.match(style, /\.loan-player-reaction-totals \{[^}]*grid-template-columns: repeat\(5/);
-  assert.match(style, /\.loan-match-reaction-bar\.compact \.reaction-btn \{[\s\S]*?flex-direction: row/);
+  assert.match(style, /\.loan-match-reaction-bar\.reaction-bar\.compact \.reaction-btn \{[\s\S]*?flex-direction: row/);
+});
+
+test('球员卡片突出中文指标并弱化数字和表情', () => {
+  assert.match(app, /item\.classList\.add\('is-zero'\)/);
+  assert.match(style, /\.loan-summary-stat strong \{[^}]*grid-row: 2;[^}]*font-size: 10px/);
+  assert.match(style, /\.loan-summary-stat small \{[^}]*grid-row: 1;[^}]*font-size: 11px;[^}]*font-weight: 950/);
+  assert.match(style, /\.loan-match-stats \.loan-summary-stat small \{ font-size: 10\.5px/);
+  assert.match(style, /\.loan-match-reaction-bar\.reaction-bar\.compact \.reaction-emoji \{ font-size: 10px/);
+  assert.match(style, /\.loan-player-reaction-total i \{ font-size: 10px/);
+  assert.match(style, /\.loan-match-history-label \{[^}]*font-size: 11px;[^}]*font-weight: 950/);
 });
 
 test('首页简介加入免注册球员提名榜并按赞成人数排序', () => {

@@ -3592,6 +3592,7 @@ function loanWatchKickoff(value) {
 
 function loanWatchSummaryStat(value, label, cls = '') {
   const item = el('span', `loan-summary-stat${cls ? ` ${cls}` : ''}`);
+  if (/^0(?:\.0+)?$/.test(String(value).trim())) item.classList.add('is-zero');
   item.append(el('strong', null, value), el('small', null, label));
   return item;
 }
