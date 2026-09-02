@@ -8,6 +8,7 @@ const style = fs.readFileSync('static/style.css', 'utf8');
 
 test('BIG 6账本包含统一口径的支出、收入和净支出', () => {
   assert.match(html, /id="big6-spend-notice"/);
+  assert.match(html, /给无知的人科普一下 BIG 6 净支出吧/);
   assert.match(html, /支出、收入与净支出对比/);
   for (const team of ['利物浦', '热刺', '阿森纳', '曼城', '曼联', '切尔西']) assert.match(html, new RegExp(team));
   for (const value of ['250.1', '219.4', '334.0', '176.0', '198.5', '136.6', '440.3', '314.9', '125.4', '163.0', '118.0', '342.4', '409.7', '-67.3']) {
