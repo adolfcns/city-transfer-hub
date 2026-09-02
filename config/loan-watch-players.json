@@ -320,5 +320,25 @@
       "status": "loan",
       "priority": false
     }
+  ],
+  "fan_picks": [
+    {
+      "key": "felix_nmecha",
+      "fotmob_id": 966019,
+      "fotmob_team_id": 9789,
+      "birth_date": "2000-10-10T00:00:00.000Z",
+      "tracking_from": "2026-07-01T00:00:00.000Z",
+      "name_zh": "菲利克斯·恩梅加",
+      "name_en": "Felix Nmecha",
+      "club_zh": "多特蒙德",
+      "club_en": "Borussia Dortmund",
+      "team_names": ["Borussia Dortmund"],
+      "position_zh": "中场",
+      "position_group": "midfielder",
+      "status": "fan_pick",
+      "priority": false,
+      "fan_pick": true,
+      "relation_zh": "曼城青训旧将"
+    }
   ]
 }

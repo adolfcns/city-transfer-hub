@@ -36,8 +36,24 @@ test('用户点名的十二名球员严格置顶，其余球员随后排列', ()
   assert.equal(config.players.find((player) => player.key === 'cavan_sullivan')?.status, 'future_city');
 });
 
+test('球迷点将与曼城外租名单分栏，首位关注菲利克斯恩梅加', () => {
+  assert.equal(config.fan_picks.length, 1);
+  const pick = config.fan_picks[0];
+  assert.equal(pick.key, 'felix_nmecha');
+  assert.equal(pick.fotmob_id, 966019);
+  assert.equal(pick.fotmob_team_id, 9789);
+  assert.equal(pick.status, 'fan_pick');
+  assert.equal(pick.fan_pick, true);
+  assert.equal(pick.relation_zh, '曼城青训旧将');
+  assert.match(app, /\{ key: 'fan_pick', label: '球迷点将' \}/);
+  assert.match(app, /activeFilter === 'fan_pick' && player\.fan_pick/);
+  assert.match(app, /const loanPlayers = data\.players\.filter\(\(player\) => !player\.fan_pick\)/);
+  assert.match(app, /player\.fan_pick \? '本赛季比赛记录' : '本赛季租借后比赛记录'/);
+  assert.match(style, /\.loan-watch-filter\.fan-pick/);
+});
+
 test('球员简介含年龄、去向、位置并按比赛位置分类', () => {
-  for (const player of config.players) {
+  for (const player of [...config.players, ...config.fan_picks]) {
     assert.ok(player.fotmob_id, `${player.name_zh} 缺少数据源 ID`);
     assert.ok(player.fotmob_team_id, `${player.name_zh} 缺少赛程球队 ID`);
     assert.ok(player.birth_date, `${player.name_zh} 缺少出生日期`);
@@ -79,11 +95,32 @@ test('按位置提取赛后关键指标并累计本赛季历史比赛', () => {
   });
   assert.equal(flattened.tackles.value, 2);
   assert.deepEqual(selectPositionMetrics(flattened, 'midfielder', 4), [
-    { key: 'accurate_passes', label: '传球', value: '37/42' },
     { key: 'chances_created', label: '创造机会', value: '3' },
+    { key: 'accurate_passes', label: '传球', value: '37/42' },
     { key: 'recoveries', label: '夺回球权', value: '6' },
     { key: 'tackles', label: '抢断', value: '2' },
   ]);
+  const advanced = flattenPlayerStats({
+    stats: [{
+      stats: {
+        xg: { key: 'expected_goals', stat: { value: 0.42, type: 'decimal' } },
+        xa: { key: 'expected_assists', stat: { value: 0.18, type: 'decimal' } },
+        shots: { key: 'total_shots', stat: { value: 4, type: 'integer' } },
+        shotsOnTarget: { key: 'ShotsOnTarget', stat: { value: 2, type: 'integer' } },
+        actions: { key: 'defensive_actions', stat: { value: 11, type: 'integer' } },
+        recoveries: { key: 'recoveries', stat: { value: 7, type: 'integer' } },
+        tackles: { key: 'tackles', stat: { value: 3, type: 'integer' } },
+        interceptions: { key: 'interceptions', stat: { value: 2, type: 'integer' } },
+        saves: { key: 'saves', stat: { value: 5, type: 'integer' } },
+        prevented: { key: 'goals_prevented', stat: { value: 1.24, type: 'decimal' } },
+        xgot: { key: 'expected_goals_on_target_faced', stat: { value: 2.24, type: 'decimal' } },
+        boxSaves: { key: 'saves_inside_box', stat: { value: 4, type: 'integer' } },
+      },
+    }],
+  });
+  assert.deepEqual(selectPositionMetrics(advanced, 'attacker', 4).map((metric) => metric.label), ['预期进球', '预期助攻', '射门', '射正']);
+  assert.deepEqual(selectPositionMetrics(advanced, 'defender', 4).map((metric) => metric.label), ['防守贡献', '夺回球权', '抢断', '拦截']);
+  assert.deepEqual(selectPositionMetrics(advanced, 'keeper', 4).map((metric) => metric.label), ['扑救', '阻止失球', '预期失球', '禁区内扑救']);
   assert.deepEqual(summarizeMatches([
     { minutes: 90, goals: 1, assists: 0, rating: 7.5 },
     { minutes: 30, goals: 0, assists: 1, rating: 6.5 },
@@ -154,7 +191,7 @@ test('每场外租比赛提供五项球迷评价并在球员卡片汇总', () =>
   assert.match(app, /syncLoanPlayerReactionSummaries\(id\)/);
   assert.match(app, /function loanMatchReactionLegend\(\)/);
   assert.match(app, /球迷表情/);
-  assert.match(app, /逐场比赛明细｜本赛季租借后比赛记录/);
+  assert.match(app, /player\.fan_pick \? '本赛季比赛记录' : '本赛季租借后比赛记录'/);
   assert.match(style, /\.loan-match-history-body \{/);
   assert.match(style, /\.loan-match-row \{[^}]*border-left: 4px solid/);
   assert.match(style, /\.loan-player-reaction-totals \{[^}]*grid-template-columns: repeat\(5/);

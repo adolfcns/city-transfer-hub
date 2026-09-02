@@ -12,31 +12,34 @@ const USER_AGENT = 'Mozilla/5.0 (compatible; CityTransferHub/1.0; +https://adolf
 const METRIC_KEYS = Object.freeze({
   keeper: [
     ['saves', '扑救'],
-    ['goals_conceded', '失球'],
+    ['goals_prevented', '阻止失球'],
     ['expected_goals_on_target_faced', '预期失球'],
+    ['saves_inside_box', '禁区内扑救'],
     ['high_claim', '摘高球'],
     ['accurate_passes', '传球'],
   ],
   defender: [
     ['defensive_actions', '防守贡献'],
-    ['clearances', '解围'],
-    ['interceptions', '拦截'],
-    ['tackles', '抢断'],
-    ['aerials_won', '争顶'],
     ['recoveries', '夺回球权'],
+    ['tackles', '抢断'],
+    ['interceptions', '拦截'],
+    ['clearances', '解围'],
+    ['aerials_won', '争顶'],
   ],
   midfielder: [
-    ['accurate_passes', '传球'],
+    ['expected_assists', '预期助攻'],
     ['chances_created', '创造机会'],
-    ['dribbles_succeeded', '成功过人'],
+    ['passes_into_final_third', '进入三区'],
+    ['accurate_passes', '传球'],
     ['recoveries', '夺回球权'],
     ['ground_duels_won', '地面对抗'],
     ['tackles', '抢断'],
   ],
   attacker: [
+    ['expected_goals', '预期进球'],
+    ['expected_assists', '预期助攻'],
     ['total_shots', '射门'],
     ['shots_on_target', '射正'],
-    ['expected_goals', '预期进球'],
     ['chances_created', '创造机会'],
     ['dribbles_succeeded', '成功过人'],
     ['touches_opp_box', '禁区触球'],
@@ -48,6 +51,8 @@ const KEY_ALIASES = Object.freeze({
   'keeper_saves': 'saves',
   'keeper_goals_conceded': 'goals_conceded',
   'expected_goals_on_target_conceded': 'expected_goals_on_target_faced',
+  'ShotsOnTarget': 'shots_on_target',
+  'keeper_high_claim': 'high_claim',
 });
 
 function wait(ms) {
@@ -251,6 +256,8 @@ function playerFallback(configPlayer, previousPlayer, now, error = null) {
     position_group: configPlayer.position_group,
     status: configPlayer.status,
     priority: Boolean(configPlayer.priority),
+    ...(configPlayer.fan_pick ? { fan_pick: true } : {}),
+    ...(configPlayer.relation_zh ? { relation_zh: configPlayer.relation_zh } : {}),
     birth_date: previousPlayer?.birth_date || null,
     age: previousPlayer?.birth_date ? calculateAge(previousPlayer.birth_date, now) : (previousPlayer?.age ?? null),
     summary: summarizeMatches(matches),
@@ -261,10 +268,12 @@ function playerFallback(configPlayer, previousPlayer, now, error = null) {
   };
 }
 
-async function buildPlayer(configPlayer, previousPlayer, config, now, matchDetailsCache) {
+async function buildPlayer(configPlayer, previousPlayer, config, now, matchDetailsCache, budget = null) {
   let profile;
   try {
-    profile = await fetchJson(`${FOTMOB_API}/playerData?id=${encodeURIComponent(configPlayer.fotmob_id)}`);
+    profile = budget
+      ? await fetchFotmob(`playerData?id=${encodeURIComponent(configPlayer.fotmob_id)}`, budget)
+      : await fetchJson(`${FOTMOB_API}/playerData?id=${encodeURIComponent(configPlayer.fotmob_id)}`);
   } catch (error) {
     return playerFallback(configPlayer, previousPlayer, now, error.message);
   }
@@ -291,7 +300,9 @@ async function buildPlayer(configPlayer, previousPlayer, config, now, matchDetai
     try {
       let detailsPromise = matchDetailsCache.get(match.id);
       if (!detailsPromise) {
-        detailsPromise = fetchJson(`${FOTMOB_API}/matchDetails?matchId=${encodeURIComponent(match.id)}`);
+        detailsPromise = budget
+          ? fetchFotmob(`matchDetails?matchId=${encodeURIComponent(match.id)}`, budget)
+          : fetchJson(`${FOTMOB_API}/matchDetails?matchId=${encodeURIComponent(match.id)}`);
         matchDetailsCache.set(match.id, detailsPromise);
       }
       const details = await detailsPromise;
@@ -321,6 +332,8 @@ async function buildPlayer(configPlayer, previousPlayer, config, now, matchDetai
     position_group: configPlayer.position_group,
     status: configPlayer.status,
     priority: Boolean(configPlayer.priority),
+    ...(configPlayer.fan_pick ? { fan_pick: true } : {}),
+    ...(configPlayer.relation_zh ? { relation_zh: configPlayer.relation_zh } : {}),
     birth_date: birthDate,
     age: birthDate ? calculateAge(birthDate, now) : null,
     summary: summarizeMatches(matches),
@@ -423,6 +436,8 @@ function configuredPlayer(configPlayer, previousPlayer, now) {
     position_group: configPlayer.position_group,
     status: configPlayer.status,
     priority: Boolean(configPlayer.priority),
+    ...(configPlayer.fan_pick ? { fan_pick: true } : {}),
+    ...(configPlayer.relation_zh ? { relation_zh: configPlayer.relation_zh } : {}),
     birth_date: configPlayer.birth_date || previousPlayer?.birth_date || null,
     age: calculateAge(configPlayer.birth_date || previousPlayer?.birth_date, now),
     summary: summarizeMatches(matches),
@@ -435,8 +450,20 @@ export async function buildLoanWatchData({ now = new Date(), force = false } = {
   const config = JSON.parse(await readFile(CONFIG_PATH, 'utf8'));
   const previous = await loadPrevious();
   const previousPlayers = new Map((previous?.players || []).map((player) => [player.key, player]));
-  const players = config.players.map((player) => configuredPlayer(player, previousPlayers.get(player.key), now));
+  const configPlayers = [
+    ...(config.players || []).map((player) => ({ ...player, fan_pick: false })),
+    ...(config.fan_picks || []).map((player) => ({ ...player, fan_pick: true })),
+  ];
+  let players = configPlayers.map((player) => configuredPlayer(player, previousPlayers.get(player.key), now));
   const budget = createProviderBudget(previous, config, now);
+  const matchDetailsCache = new Map();
+
+  // 新增的“球迷点将”无需等下一场比赛：首次入选时补齐本赛季已有出场，之后仍按赛程逐场更新。
+  await mapLimit(players, 2, async (player, index) => {
+    if (previousPlayers.has(player.key)) return;
+    const hydrated = await buildPlayer(configPlayers[index], null, config, now, matchDetailsCache, budget);
+    players[index] = { ...player, ...hydrated, schedule: player.schedule || [] };
+  });
   const refreshMs = Number(config.schedule_refresh_hours || 24) * 60 * 60 * 1000;
   const scheduleAge = now.getTime() - new Date(previous?.schedule_updated_at || 0).getTime();
   const refreshSchedule = force || !Number.isFinite(scheduleAge) || scheduleAge >= refreshMs || previous?.players?.length !== players.length;
@@ -444,7 +471,7 @@ export async function buildLoanWatchData({ now = new Date(), force = false } = {
 
   if (refreshSchedule) {
     await mapLimit(players, 4, async (player, index) => {
-      const configPlayer = config.players[index];
+      const configPlayer = configPlayers[index];
       const priorSchedule = new Map((player.schedule || []).map((fixture) => [String(fixture.id), fixture]));
       const playedIds = new Set((player.matches || []).map((match) => String(match.id)));
       try {
@@ -524,8 +551,9 @@ export async function buildLoanWatchData({ now = new Date(), force = false } = {
       url: 'https://www.fotmob.com',
       note: '每天刷新一次赛程；预计完赛一小时后抓取评分与比赛数据。免费数据源可能存在延迟，以赛事官方记录为准。',
     },
-    priority_count: players.filter((player) => player.priority).length,
-    total: players.length,
+    priority_count: players.filter((player) => player.priority && !player.fan_pick).length,
+    fan_pick_count: players.filter((player) => player.fan_pick).length,
+    total: players.filter((player) => !player.fan_pick).length,
     available,
     players,
   };
@@ -547,6 +575,10 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
     if (config?.players?.length) {
       const previous = await loadPrevious();
       const now = new Date();
+      const configPlayers = [
+        ...(config.players || []).map((player) => ({ ...player, fan_pick: false })),
+        ...(config.fan_picks || []).map((player) => ({ ...player, fan_pick: true })),
+      ];
       const fallback = {
         version: 1,
         generated_at: previous?.generated_at || now.toISOString(),
@@ -567,10 +599,11 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
           note: '赛后评分及比赛数据来自 FotMob；免费数据源可能存在延迟，以赛事官方记录为准。',
         },
         priority_count: config.players.filter((player) => player.priority).length,
+        fan_pick_count: (config.fan_picks || []).length,
         total: config.players.length,
         available: Number(previous?.available || 0),
         stale: true,
-        players: config.players.map((player) => playerFallback(
+        players: configPlayers.map((player) => playerFallback(
           player,
           previous?.players?.find((item) => item.key === player.key),
           now,

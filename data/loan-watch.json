@@ -1,15 +1,15 @@
 {
   "version": 1,
-  "generated_at": "2026-09-02T02:47:10.797Z",
-  "checked_at": "2026-09-02T02:47:10.797Z",
+  "generated_at": "2026-09-02T09:44:14.105Z",
+  "checked_at": "2026-09-02T09:44:14.105Z",
   "season_start": "2026-07-01T00:00:00.000Z",
-  "schedule_updated_at": "2026-09-02T02:47:10.797Z",
+  "schedule_updated_at": "2026-09-02T09:44:14.105Z",
   "schedule_refresh_hours": 24,
   "estimated_match_duration_hours": 2,
   "post_match_fetch_delay_hours": 1,
   "provider_usage": {
     "date": "2026-09-02",
-    "requests": 42,
+    "requests": 71,
     "limit": 95
   },
   "provider": {
@@ -18,8 +18,9 @@
     "note": "每天刷新一次赛程；预计完赛一小时后抓取评分与比赛数据。免费数据源可能存在延迟，以赛事官方记录为准。"
   },
   "priority_count": 12,
+  "fan_pick_count": 1,
   "total": 21,
-  "available": 21,
+  "available": 22,
   "players": [
     {
       "key": "juma_bah",
@@ -5492,6 +5493,404 @@
         "is_home": false,
         "url": "https://www.fotmob.com/matches/barrow-vs-sutton-united/687t0jh#5906420",
         "fetch_after": "2026-09-05T17:00:00.000Z",
+        "checked": false,
+        "checked_at": null
+      }
+    },
+    {
+      "key": "felix_nmecha",
+      "fotmob_id": 966019,
+      "name_zh": "菲利克斯·恩梅加",
+      "name_en": "Felix Nmecha",
+      "club_zh": "多特蒙德",
+      "club_en": "Borussia Dortmund",
+      "position_zh": "中场",
+      "position_group": "midfielder",
+      "status": "fan_pick",
+      "priority": false,
+      "fan_pick": true,
+      "relation_zh": "曼城青训旧将",
+      "birth_date": "2000-10-10T00:00:00.000Z",
+      "age": 25,
+      "summary": {
+        "appearances": 6,
+        "minutes": 359,
+        "goals": 0,
+        "assists": 1,
+        "average_rating": 6.87
+      },
+      "matches": [
+        {
+          "id": "5750701",
+          "date": "2026-09-01T18:45:00.000Z",
+          "competition": "DFB Pokal",
+          "team": "Borussia Dortmund",
+          "opponent": "HEBC Hamburg",
+          "is_home": false,
+          "score": "0-5",
+          "outcome": "胜",
+          "minutes": 45,
+          "goals": 0,
+          "assists": 0,
+          "rating": 6.6,
+          "url": "https://www.fotmob.com/matches/borussia-dortmund-vs-hebc-hamburg/5tyvltb7#5750701",
+          "metrics": [
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.09"
+            },
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "1"
+            },
+            {
+              "key": "accurate_passes",
+              "label": "传球",
+              "value": "14/16"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "2"
+            }
+          ],
+          "details_loaded": true
+        },
+        {
+          "id": "5881145",
+          "date": "2026-08-29T16:30:00.000Z",
+          "competition": "Bundesliga",
+          "team": "Borussia Dortmund",
+          "opponent": "Hamburger SV",
+          "is_home": true,
+          "score": "2-0",
+          "outcome": "胜",
+          "minutes": 74,
+          "goals": 0,
+          "assists": 0,
+          "rating": 7.18,
+          "url": "https://www.fotmob.com/matches/borussia-dortmund-vs-hamburger-sv/364jk8#5881145",
+          "metrics": [
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.04"
+            },
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "1"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "4"
+            },
+            {
+              "key": "accurate_passes",
+              "label": "传球",
+              "value": "42/47"
+            }
+          ],
+          "details_loaded": true
+        },
+        {
+          "id": "5801099",
+          "date": "2026-08-22T18:30:00.000Z",
+          "competition": "Super Cup",
+          "team": "Borussia Dortmund",
+          "opponent": "Bayern München",
+          "is_home": true,
+          "score": "1-2",
+          "outcome": "负",
+          "minutes": 63,
+          "goals": 0,
+          "assists": 0,
+          "rating": 5.92,
+          "url": "https://www.fotmob.com/matches/borussia-dortmund-vs-bayern-munchen/36iek5#5801099",
+          "metrics": [
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "0"
+            },
+            {
+              "key": "accurate_passes",
+              "label": "传球",
+              "value": "17/18"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "3"
+            },
+            {
+              "key": "ground_duels_won",
+              "label": "地面对抗",
+              "value": "1/2"
+            }
+          ],
+          "details_loaded": true
+        },
+        {
+          "id": "5765423",
+          "date": "2026-08-15T15:30:00.000Z",
+          "competition": "Club Friendlies",
+          "team": "Borussia Dortmund",
+          "opponent": "Roma",
+          "is_home": true,
+          "score": "2-2",
+          "outcome": "平",
+          "minutes": 72,
+          "goals": 0,
+          "assists": 0,
+          "rating": 7.01,
+          "url": "https://www.fotmob.com/matches/roma-vs-borussia-dortmund/2tmay7#5765423",
+          "metrics": [
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "1"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "4"
+            },
+            {
+              "key": "accurate_passes",
+              "label": "传球",
+              "value": "28/33"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "1"
+            }
+          ],
+          "details_loaded": true
+        },
+        {
+          "id": "5898653",
+          "date": "2026-08-09T13:00:00.000Z",
+          "competition": "Club Friendlies",
+          "team": "Borussia Dortmund",
+          "opponent": "Arsenal",
+          "is_home": false,
+          "score": "2-3",
+          "outcome": "胜",
+          "minutes": 60,
+          "goals": 0,
+          "assists": 1,
+          "rating": 7.72,
+          "url": "https://www.fotmob.com/matches/borussia-dortmund-vs-arsenal/36j8tu#5898653",
+          "metrics": [
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "1"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "4"
+            },
+            {
+              "key": "accurate_passes",
+              "label": "传球",
+              "value": "27/31"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "2"
+            }
+          ],
+          "details_loaded": true
+        },
+        {
+          "id": "5765422",
+          "date": "2026-08-01T10:00:00.000Z",
+          "competition": "Club Friendlies",
+          "team": "Borussia Dortmund",
+          "opponent": "FC Tokyo",
+          "is_home": false,
+          "score": "0-1",
+          "outcome": "胜",
+          "minutes": 45,
+          "goals": 0,
+          "assists": 0,
+          "rating": 6.81,
+          "url": "https://www.fotmob.com/matches/fc-tokyo-vs-borussia-dortmund/1nxmt7#5765422",
+          "metrics": [
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "0"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "6"
+            },
+            {
+              "key": "accurate_passes",
+              "label": "传球",
+              "value": "41/44"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "3"
+            }
+          ],
+          "details_loaded": true
+        }
+      ],
+      "schedule": [
+        {
+          "id": "5881156",
+          "date": "2026-09-05T13:30:00.000Z",
+          "opponent": "Hoffenheim",
+          "competition": "Bundesliga",
+          "is_home": false,
+          "url": "https://www.fotmob.com/matches/hoffenheim-vs-borussia-dortmund/2omex9#5881156",
+          "fetch_after": "2026-09-05T16:30:00.000Z",
+          "checked": false,
+          "checked_at": null
+        },
+        {
+          "id": "6106272",
+          "date": "2026-09-08T19:00:00.000Z",
+          "opponent": "Villarreal",
+          "competition": "Champions League",
+          "is_home": true,
+          "url": "https://www.fotmob.com/matches/borussia-dortmund-vs-villarreal/3b0joc#6106272",
+          "fetch_after": "2026-09-08T22:00:00.000Z",
+          "checked": false,
+          "checked_at": null
+        },
+        {
+          "id": "5881162",
+          "date": "2026-09-12T13:30:00.000Z",
+          "opponent": "Paderborn",
+          "competition": "Bundesliga",
+          "is_home": true,
+          "url": "https://www.fotmob.com/matches/paderborn-vs-borussia-dortmund/2r5cui#5881162",
+          "fetch_after": "2026-09-12T16:30:00.000Z",
+          "checked": false,
+          "checked_at": null
+        },
+        {
+          "id": "5881177",
+          "date": "2026-09-19T16:30:00.000Z",
+          "opponent": "VfB Stuttgart",
+          "competition": "Bundesliga",
+          "is_home": false,
+          "url": "https://www.fotmob.com/matches/borussia-dortmund-vs-vfb-stuttgart/3bs0n0#5881177",
+          "fetch_after": "2026-09-19T19:30:00.000Z",
+          "checked": false,
+          "checked_at": null
+        },
+        {
+          "id": "5881180",
+          "date": "2026-10-10T13:30:00.000Z",
+          "opponent": "Werder Bremen",
+          "competition": "Bundesliga",
+          "is_home": true,
+          "url": "https://www.fotmob.com/matches/werder-bremen-vs-borussia-dortmund/2tqnt6#5881180",
+          "fetch_after": "2026-10-10T16:30:00.000Z",
+          "checked": false,
+          "checked_at": null
+        },
+        {
+          "id": "6106315",
+          "date": "2026-10-14T19:00:00.000Z",
+          "opponent": "Bodø/Glimt",
+          "competition": "Champions League",
+          "is_home": false,
+          "url": "https://www.fotmob.com/matches/bodoglimt-vs-borussia-dortmund/2qipf9#6106315",
+          "fetch_after": "2026-10-14T22:00:00.000Z",
+          "checked": false,
+          "checked_at": null
+        },
+        {
+          "id": "5881195",
+          "date": "2026-10-17T13:30:00.000Z",
+          "opponent": "Union Berlin",
+          "competition": "Bundesliga",
+          "is_home": false,
+          "url": "https://www.fotmob.com/matches/union-berlin-vs-borussia-dortmund/2nsqug#5881195",
+          "fetch_after": "2026-10-17T16:30:00.000Z",
+          "checked": false,
+          "checked_at": null
+        },
+        {
+          "id": "6106422",
+          "date": "2026-10-20T16:45:00.000Z",
+          "opponent": "Sabah FK",
+          "competition": "Champions League",
+          "is_home": false,
+          "url": "https://www.fotmob.com/matches/borussia-dortmund-vs-sabah-fk/5wfix3jc#6106422",
+          "fetch_after": "2026-10-20T19:45:00.000Z",
+          "checked": false,
+          "checked_at": null
+        },
+        {
+          "id": "5881198",
+          "date": "2026-10-24T13:30:00.000Z",
+          "opponent": "Frankfurt",
+          "competition": "Bundesliga",
+          "is_home": true,
+          "url": "https://www.fotmob.com/matches/borussia-dortmund-vs-eintracht-frankfurt/36cxvu#5881198",
+          "fetch_after": "2026-10-24T16:30:00.000Z",
+          "checked": false,
+          "checked_at": null
+        },
+        {
+          "id": "5881208",
+          "date": "2026-10-31T14:30:00.000Z",
+          "opponent": "Bayern München",
+          "competition": "Bundesliga",
+          "is_home": false,
+          "url": "https://www.fotmob.com/matches/borussia-dortmund-vs-bayern-munchen/36iek5#5881208",
+          "fetch_after": "2026-10-31T17:30:00.000Z",
+          "checked": false,
+          "checked_at": null
+        },
+        {
+          "id": "6106271",
+          "date": "2026-11-04T20:00:00.000Z",
+          "opponent": "Real Betis",
+          "competition": "Champions League",
+          "is_home": true,
+          "url": "https://www.fotmob.com/matches/real-betis-vs-borussia-dortmund/2spidl#6106271",
+          "fetch_after": "2026-11-04T23:00:00.000Z",
+          "checked": false,
+          "checked_at": null
+        },
+        {
+          "id": "5881215",
+          "date": "2026-11-07T14:30:00.000Z",
+          "opponent": "Elversberg",
+          "competition": "Bundesliga",
+          "is_home": true,
+          "url": "https://www.fotmob.com/matches/elversberg-vs-borussia-dortmund/2ooqcc#5881215",
+          "fetch_after": "2026-11-07T17:30:00.000Z",
+          "checked": false,
+          "checked_at": null
+        }
+      ],
+      "next_match": {
+        "id": "5881156",
+        "date": "2026-09-05T13:30:00.000Z",
+        "opponent": "Hoffenheim",
+        "competition": "Bundesliga",
+        "is_home": false,
+        "url": "https://www.fotmob.com/matches/hoffenheim-vs-borussia-dortmund/2omex9#5881156",
+        "fetch_after": "2026-09-05T16:30:00.000Z",
         "checked": false,
         "checked_at": null
       }

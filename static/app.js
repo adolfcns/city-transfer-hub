@@ -3555,6 +3555,7 @@ const LOAN_WATCH_FILTERS = Object.freeze([
   { key: 'defender', label: '后卫' },
   { key: 'midfielder', label: '中场' },
   { key: 'attacker', label: '前锋' },
+  { key: 'fan_pick', label: '球迷点将' },
 ]);
 
 const LOAN_WATCH_POSITION_ORDER = Object.freeze({
@@ -3572,6 +3573,7 @@ function sortLoanWatchPlayers(players) {
 }
 
 function loanWatchStatus(player) {
+  if (player.fan_pick || player.status === 'fan_pick') return { label: '球迷点将', cls: 'fan-pick' };
   if (player.status === 'future_city') return { label: '未来蓝月', cls: 'future' };
   if (player.status === 'loan_pending') return { label: '待确认', cls: 'pending' };
   return { label: '外租', cls: 'loan' };
@@ -3692,20 +3694,20 @@ function loanWatchMatchRow(match, player) {
 }
 
 function loanWatchPlayerCard(player) {
-  const card = el('article', `loan-player-card${player.priority ? ' priority' : ''}`);
+  const card = el('article', `loan-player-card${player.priority ? ' priority' : ''}${player.fan_pick ? ' fan-pick' : ''}`);
   card.dataset.loanPlayerKey = player.key;
   const head = el('div', 'loan-player-head');
   const identity = el('div', 'loan-player-identity');
   identity.append(
     el('h3', null, player.name_zh),
-    el('span', null, `${player.name_en} · ${player.age ?? '—'}岁 · ${player.position_zh}`),
+    el('span', null, `${player.name_en} · ${player.age ?? '—'}岁 · ${player.position_zh}${player.relation_zh ? ` · ${player.relation_zh}` : ''}`),
   );
   const status = loanWatchStatus(player);
   head.append(identity, el('span', `loan-player-status ${status.cls}`, status.label));
 
   const destination = el('div', 'loan-player-destination');
   destination.append(
-    el('span', null, player.status === 'future_city' ? '现效力' : '本季去向'),
+    el('span', null, (player.status === 'future_city' || player.fan_pick) ? '现效力' : '本季去向'),
     el('strong', null, `${player.club_zh} · ${player.club_en}`),
   );
 
@@ -3723,11 +3725,12 @@ function loanWatchPlayerCard(player) {
   history.className = 'loan-match-history';
   const historyTitle = document.createElement('summary');
   const appearances = Number(season.appearances || 0);
-  historyTitle.textContent = appearances ? `逐场比赛明细｜本赛季租借后比赛记录（${appearances}场）` : '逐场比赛明细｜租借后暂无出场';
+  const historyScope = player.fan_pick ? '本赛季比赛记录' : '本赛季租借后比赛记录';
+  historyTitle.textContent = appearances ? `逐场比赛明细｜${historyScope}（${appearances}场）` : `逐场比赛明细｜${player.fan_pick ? '本赛季' : '租借后'}暂无出场`;
   history.appendChild(historyTitle);
   const historyBody = el('div', 'loan-match-history-body');
   if (appearances) {
-    historyBody.appendChild(el('p', 'loan-match-history-label', '以下是该球员本赛季租借生效后的逐场数据'));
+    historyBody.appendChild(el('p', 'loan-match-history-label', player.fan_pick ? '以下是球迷点将球员本赛季的逐场数据' : '以下是该球员本赛季租借生效后的逐场数据'));
     const rows = el('div', 'loan-match-list');
     for (const match of player.matches || []) rows.appendChild(loanWatchMatchRow(match, player));
     historyBody.appendChild(rows);
@@ -3949,13 +3952,16 @@ function renderLoanWatch(context) {
   const controls = el('nav', 'loan-watch-filters');
   controls.setAttribute('aria-label', '筛选蓝月在外球员');
   const activeFilter = context.data.loanFilter || 'priority';
+  const loanPlayers = data.players.filter((player) => !player.fan_pick);
   for (const filter of LOAN_WATCH_FILTERS) {
     const count = filter.key === 'priority'
-      ? data.players.filter((player) => player.priority).length
+      ? loanPlayers.filter((player) => player.priority).length
       : filter.key === 'all'
-        ? data.players.length
-        : data.players.filter((player) => player.position_group === filter.key).length;
-    const button = el('button', `loan-watch-filter${activeFilter === filter.key ? ' active' : ''}`, `${filter.label} ${count}`);
+        ? loanPlayers.length
+        : filter.key === 'fan_pick'
+          ? data.players.filter((player) => player.fan_pick).length
+          : loanPlayers.filter((player) => player.position_group === filter.key).length;
+    const button = el('button', `loan-watch-filter${filter.key === 'fan_pick' ? ' fan-pick' : ''}${activeFilter === filter.key ? ' active' : ''}`, `${filter.label} ${count}`);
     button.type = 'button';
     button.onclick = () => {
       context.data.loanFilter = filter.key;
@@ -3972,9 +3978,10 @@ function renderLoanWatch(context) {
   controls.appendChild(big6Button);
 
   const filteredPlayers = sortLoanWatchPlayers(data.players.filter((player) => (
-    activeFilter === 'all'
-    || (activeFilter === 'priority' && player.priority)
-    || player.position_group === activeFilter
+    (activeFilter === 'all' && !player.fan_pick)
+    || (activeFilter === 'priority' && player.priority && !player.fan_pick)
+    || (activeFilter === 'fan_pick' && player.fan_pick)
+    || (!player.fan_pick && player.position_group === activeFilter)
   )));
   const upcoming = filteredPlayers
     .filter((player) => player.next_match?.date)

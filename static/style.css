@@ -479,6 +479,8 @@ body.survey-open { overflow: hidden; }
   background: var(--card); color: var(--text-dim); font-size: 12px; font-weight: 800;
 }
 .loan-watch-filter:hover, .loan-watch-filter.active { border-color: var(--accent); background: rgba(108,171,221,.20); color: var(--t1); }
+.loan-watch-filter.fan-pick { border-color: #d8b252; background: #fff9e9; color: #76520a; }
+.loan-watch-filter.fan-pick:hover, .loan-watch-filter.fan-pick.active { border-color: #c99312; background: #f8e6ad; color: #624300; }
 .big6-spend-trigger {
   flex: 0 0 auto; min-height: 34px; margin-left: auto; padding: 6px 13px;
   border: 1px solid #d7a72f; border-radius: 999px; background: linear-gradient(135deg, #fff8df, #f4d67e);
@@ -493,6 +495,7 @@ body.survey-open { overflow: hidden; }
   box-shadow: 0 7px 20px rgba(35,67,84,.07);
 }
 .loan-player-card.priority { border-color: rgba(43,136,184,.48); box-shadow: inset 3px 0 0 var(--accent), 0 7px 20px rgba(35,67,84,.08); }
+.loan-player-card.fan-pick { border-color: rgba(216,178,82,.72); box-shadow: inset 3px 0 0 #d8b252, 0 7px 20px rgba(87,66,14,.08); }
 .loan-player-head { display: flex; align-items: flex-start; gap: 9px; }
 .loan-player-identity { min-width: 0; }
 .loan-player-identity h3 { margin: 0; color: var(--text); font-size: 19px; font-weight: 950; line-height: 1.22; }
@@ -503,6 +506,7 @@ body.survey-open { overflow: hidden; }
 }
 .loan-player-status.future { background: #fff3d0; color: #94630b; }
 .loan-player-status.pending { background: #f4ecf1; color: var(--burgundy); }
+.loan-player-status.fan-pick { background: #fff1bd; color: #7b5607; }
 .loan-player-destination { margin-top: 10px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; border-radius: 9px; background: rgba(108,171,221,.10); }
 .loan-player-destination span { color: #49687b; font-size: 11px; font-weight: 950; }
 .loan-player-destination strong { color: var(--t1); font-size: 13px; font-weight: 950; line-height: 1.35; }
