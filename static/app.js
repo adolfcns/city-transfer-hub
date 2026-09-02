@@ -3521,6 +3521,20 @@ const LOAN_WATCH_FILTERS = Object.freeze([
   { key: 'attacker', label: '前锋' },
 ]);
 
+const LOAN_WATCH_POSITION_ORDER = Object.freeze({
+  midfielder: 0,
+  attacker: 1,
+  defender: 2,
+  keeper: 3,
+});
+
+function sortLoanWatchPlayers(players) {
+  return [...players].sort((a, b) => (
+    (LOAN_WATCH_POSITION_ORDER[a.position_group] ?? 9)
+    - (LOAN_WATCH_POSITION_ORDER[b.position_group] ?? 9)
+  ));
+}
+
 function loanWatchStatus(player) {
   if (player.status === 'future_city') return { label: '未来蓝月', cls: 'future' };
   if (player.status === 'loan_pending') return { label: '待确认', cls: 'pending' };
@@ -3849,11 +3863,11 @@ function renderLoanWatch(context) {
     controls.appendChild(button);
   }
 
-  const filteredPlayers = data.players.filter((player) => (
+  const filteredPlayers = sortLoanWatchPlayers(data.players.filter((player) => (
     activeFilter === 'all'
     || (activeFilter === 'priority' && player.priority)
     || player.position_group === activeFilter
-  ));
+  )));
   const upcoming = filteredPlayers
     .filter((player) => player.next_match?.date)
     .sort((a, b) => String(a.next_match.date).localeCompare(String(b.next_match.date)));

@@ -107,6 +107,19 @@ test('按赛程驱动赛后抓取并设置每日安全额度', () => {
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.loan-player-list \{ grid-template-columns: 1fr/);
 });
 
+test('球员卡片按中场、前锋、后卫、门将排列', () => {
+  assert.match(app, /const LOAN_WATCH_POSITION_ORDER = Object\.freeze\(\{[\s\S]*?midfielder: 0,[\s\S]*?attacker: 1,[\s\S]*?defender: 2,[\s\S]*?keeper: 3/);
+  assert.match(app, /const filteredPlayers = sortLoanWatchPlayers\(data\.players\.filter/);
+});
+
+test('同一场比赛只请求一次并更新所有相关球员', () => {
+  const fetcher = fs.readFileSync('scripts/fetch-loan-watch.js', 'utf8');
+  assert.match(fetcher, /const dueMatches = new Map\(\)/);
+  assert.match(fetcher, /dueMatches\.get\(fixture\.id\)\.push\(\{ player, fixture \}\)/);
+  assert.match(fetcher, /fetchFotmob\(`matchDetails\?matchId=\$\{encodeURIComponent\(matchId\)\}`/);
+  assert.match(fetcher, /for \(const \{ player, fixture \} of entries\)/);
+});
+
 test('首页简介加入免注册球员提名榜并按赞成人数排序', () => {
   const pagesWorker = fs.readFileSync('cloudflare/pages-worker.js', 'utf8');
   const triggerWorker = fs.readFileSync('scripts/cloudflare-worker.js', 'utf8');
