@@ -588,15 +588,15 @@ body.survey-open { overflow: hidden; }
   border: 1px solid #d8b252; border-radius: 11px; background: linear-gradient(120deg, #fffaf0, #f5fbfd);
 }
 .loan-weekly-award-copy { display: grid; gap: 1px; }
-.loan-weekly-award-copy span { color: #87610e; font-size: 8px; font-weight: 900; }
-.loan-weekly-award-copy strong { color: var(--text); font-size: 13px; font-weight: 950; }
+.loan-weekly-award-copy span { color: #755109; font-size: 10px; font-weight: 950; }
+.loan-weekly-award-copy strong { color: #17384e; font-size: 15px; font-weight: 950; }
 .loan-weekly-podium { min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
 .loan-weekly-player { min-width: 0; padding: 5px 7px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 4px; border: 1px solid #d7e7ee; border-radius: 8px; background: rgba(255,255,255,.82); color: var(--text); }
 .loan-weekly-player i { font-size: 11px; font-style: normal; }
-.loan-weekly-player strong { overflow: hidden; font-size: 10px; font-weight: 950; text-overflow: ellipsis; white-space: nowrap; }
-.loan-weekly-player small { color: #6a7f8b; font-size: 7px; font-weight: 800; white-space: nowrap; }
+.loan-weekly-player strong { overflow: hidden; color: #17384e; font-size: 12px; font-weight: 950; text-overflow: ellipsis; white-space: nowrap; }
+.loan-weekly-player small { padding: 2px 5px; border-radius: 5px; background: #e2f4fb; color: #075985; font-size: 12.5px; font-weight: 950; white-space: nowrap; }
 .loan-weekly-player:hover { border-color: var(--accent); background: #fff; }
-.loan-weekly-rule { color: #7b8f9a; font-size: 7px; white-space: nowrap; }
+.loan-weekly-rule { color: #314d5e; font-size: 10px; font-weight: 850; white-space: nowrap; }
 .survey-primary, .survey-secondary, .survey-submit, .survey-back, .survey-edit {
   min-height: 42px; border-radius: 8px; font-size: 13px; font-weight: 700;
 }
@@ -2640,13 +2640,12 @@ body.big6-spend-open { overflow: hidden; }
   .loan-match-history-body { padding: 7px; }
   .loan-match-history-label { margin-bottom: 6px; font-size: 10px; }
   .loan-weekly-award { padding: 6px 7px; grid-template-columns: auto minmax(0, 1fr); gap: 6px; }
-  .loan-weekly-award-copy span { font-size: 6px; }
-  .loan-weekly-award-copy strong { font-size: 9px; }
+  .loan-weekly-award-copy span { font-size: 7.5px; }
+  .loan-weekly-award-copy strong { font-size: 10.5px; }
   .loan-weekly-podium { gap: 3px; }
-  .loan-weekly-player { padding: 3px 4px; grid-template-columns: auto minmax(0, 1fr); gap: 2px; }
-  .loan-weekly-player i { font-size: 8px; }
-  .loan-weekly-player strong { font-size: 7px; }
-  .loan-weekly-player small { display: none; }
+  .loan-weekly-player { padding: 4px 5px; display: block; }
+  .loan-weekly-player i, .loan-weekly-player small { display: none; }
+  .loan-weekly-player strong { display: block; color: #17384e; font-size: 8.5px; text-align: center; }
   .loan-weekly-rule { display: none; }
   .poll-only-zone { margin-top: 13px; padding-top: 12px; }
   .poll-shortcuts-heading { display: grid; gap: 1px; margin-inline: 3px; }

@@ -223,6 +223,10 @@ test('球员卡片提供极简近五场走势和每周最佳榜单', () => {
   assert.match(app, /出场至少30分钟/);
   assert.match(style, /\.loan-five-match-bars/);
   assert.match(style, /\.loan-weekly-award/);
+  assert.match(style, /\.loan-weekly-player small \{[^}]*background: #e2f4fb; color: #075985; font-size: 12\.5px; font-weight: 950/);
+  assert.match(style, /\.loan-weekly-rule \{ color: #314d5e; font-size: 10px; font-weight: 850/);
+  assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.loan-weekly-player i, \.loan-weekly-player small \{ display: none; \}/);
+  assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.loan-weekly-player strong \{ display: block;[^}]*font-size: 8\.5px;[^}]*text-align: center; \}/);
 });
 
 test('每场外租比赛提供五项球迷评价并在球员卡片汇总', () => {
