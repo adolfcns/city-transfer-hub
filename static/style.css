@@ -2399,7 +2399,9 @@ body.finale-open { overflow: hidden; }
 
 @media (max-width: 560px) {
   .topbar {
-    background: rgba(242, 249, 254, .96);
+    background:
+      linear-gradient(90deg, rgba(242,249,254,.99) 0%, rgba(242,249,254,.96) 48%, rgba(242,249,254,.52) 100%),
+      url("assets/etihad-night-hero.webp") 69% 52% / cover no-repeat;
     border-bottom-color: rgba(108, 171, 221, .55);
     box-shadow: 0 8px 24px rgba(38, 78, 100, .10);
   }
@@ -2409,29 +2411,36 @@ body.finale-open { overflow: hidden; }
   .topbar .fav-btn { background: #fff8e7; border-color: #d9bd72; color: #8d6500; }
   .topbar .icon-btn { background: #f7fbfd; color: #18364d; border-color: #9fc8dc; box-shadow: none; }
   .container { padding: 10px 8px 42px; }
-  .stadium-hero { min-height: 0; background: none; }
+  .stadium-hero { min-height: 0; background: none; box-shadow: none; }
   .stadium-hero::before {
-    content: ""; display: block; height: 116px;
-    background:
-      linear-gradient(90deg, rgba(2,14,27,.50), rgba(2,14,27,.05) 72%, rgba(2,14,27,.18)),
-      url("assets/etihad-night-hero.webp") 69% 52% / cover no-repeat;
+    display: none;
   }
   .stadium-hero-inner { width: 100%; min-height: 0; display: block; }
   .winter-window-card {
-    width: 100%; padding: 10px 9px 11px; grid-template-columns: 1fr; gap: 7px;
-    border: 0; border-top: 1px solid #b8d8e7; border-radius: 0; background: #f7fbfd; color: #18364d;
-    box-shadow: 0 6px 18px rgba(38,78,100,.09); backdrop-filter: none;
+    width: 100%; min-height: 32px; padding: 4px 8px; display: flex; align-items: center;
+    justify-content: center; gap: 6px; border: 0; border-bottom: 1px solid #c8dde7;
+    border-radius: 0; background: rgba(247,251,253,.96); color: #18364d;
+    box-shadow: none; backdrop-filter: none;
   }
-  .winter-window-kicker { text-align: center; color: #28799f; font-size: 8px; }
-  .winter-window-copy { justify-items: center; text-align: center; }
-  .winter-window-copy strong { color: #18364d; font-size: 15px; }
-  .winter-window-copy span { color: #607b8d; font-size: 9px; }
-  .winter-window-countdown { width: 100%; justify-content: center; gap: 4px; }
-  .winter-countdown-unit { min-width: 0; width: 66px; padding: 6px 5px; border-color: #d9bd72; background: linear-gradient(180deg, #fff7df, #f6ebc9); }
-  .winter-countdown-unit strong { color: #9a6500; font-size: 18px; }
-  .winter-countdown-unit small { color: #7c6c48; font-size: 8px; }
+  .winter-window-kicker, .winter-window-copy span { display: none; }
+  .winter-window-copy { display: block; flex: none; text-align: left; }
+  .winter-window-copy strong { color: #38566b; font-size: 10px; line-height: 1; white-space: nowrap; }
+  .winter-window-countdown { width: auto; justify-content: flex-start; gap: 2px; }
+  .winter-countdown-unit {
+    min-width: 0; width: auto; padding: 2px 3px; display: flex; align-items: baseline; gap: 1px;
+    border: 0; border-radius: 4px; background: #fff6dc;
+  }
+  .winter-countdown-unit strong { color: #9a6500; font-size: 11px; }
+  .winter-countdown-unit small { color: #7c6c48; font-size: 7px; }
   .loan-watch-home { min-height: 300px; }
-  .loan-watch.home .loan-watch-intro { padding: 13px; grid-template-columns: 1fr; align-items: stretch; }
+  .loan-watch-home > .survey-loading { padding: 38px 10px; }
+  .loan-watch.home, .loan-watch.home .loan-watch-intro {
+    width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;
+  }
+  .loan-watch.home .loan-watch-intro { padding: 13px; grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+  .loan-watch.home .loan-watch-overview {
+    width: 100%; max-width: 100%; min-width: 0; grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
   .loan-watch.home .loan-player-list { grid-template-columns: 1fr; }
   .loan-request-board { padding: 9px; }
   .loan-request-head strong { font-size: 13px; }

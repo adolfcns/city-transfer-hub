@@ -7,6 +7,7 @@ const DATA_FALLBACK_URL = './data/items.json';
 const STATUS_URL = './data/status.json';
 const CHELSEA_WATCH_URL = './data/chelsea-watch.json';
 const LOAN_WATCH_URL = './data/loan-watch.json';
+const LOAN_WATCH_CACHE_KEY = 'cth_loan_watch_cache_v1';
 const CHELSEA_WATCH_ENABLED = false;
 const REFRESH_MS = 90 * 1000;
 // 转会窗关闭时间（到点自动切到下一个）
@@ -2749,11 +2750,27 @@ async function surveyApi(pollId, method = 'GET', answers = null) {
   throw lastError || new Error('survey_unavailable');
 }
 
+function readLoanWatchCache() {
+  try {
+    const data = JSON.parse(localStorage.getItem(LOAN_WATCH_CACHE_KEY) || 'null');
+    return Array.isArray(data?.players) ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeLoanWatchCache(data) {
+  try {
+    localStorage.setItem(LOAN_WATCH_CACHE_KEY, JSON.stringify(data));
+  } catch { /* 隐私模式或空间不足时继续使用在线数据 */ }
+}
+
 async function loanWatchApi() {
   const response = await fetch(`${LOAN_WATCH_URL}?t=${Date.now()}`, { cache: 'no-store' });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const data = await response.json();
   if (!Array.isArray(data.players)) throw new Error('bad_loan_watch_data');
+  writeLoanWatchCache(data);
   return data;
 }
 
@@ -3921,18 +3938,27 @@ function renderLoanWatch(context) {
 
 async function loadLoanWatch(context) {
   const { body } = context;
-  body.textContent = '';
-  body.dataset.surveyView = 'loan-watch-loading';
-  body.appendChild(el('div', 'survey-loading', '正在读取本赛季外租球员赛后数据…'));
+  const visibleData = context.data.loanWatch || readLoanWatchCache();
+  const alreadyRendered = Boolean(context.data.loanWatch && body.dataset.surveyView === 'loan-watch');
+  if (visibleData && !alreadyRendered) {
+    context.data = { ...context.data, loanWatch: visibleData, loanFilter: context.data.loanFilter || 'priority' };
+    renderLoanWatch(context);
+  } else if (!visibleData) {
+    body.textContent = '';
+    body.dataset.surveyView = 'loan-watch-loading';
+    body.appendChild(el('div', 'survey-loading', '正在读取本赛季外租球员赛后数据…'));
+  }
   try {
     const loanWatch = await loanWatchApi();
     if (!context.home && activeSurveyId !== context.pollId) return;
     context.data = { ...context.data, loanWatch, loanFilter: context.data.loanFilter || 'priority' };
-    renderLoanWatch(context);
+    if (!visibleData || loanWatch.generated_at !== visibleData.generated_at) renderLoanWatch(context);
   } catch {
     if (!context.home && activeSurveyId !== context.pollId) return;
-    context.data = { ...context.data, loanWatch: null };
-    renderLoanWatch(context);
+    if (!visibleData) {
+      context.data = { ...context.data, loanWatch: null };
+      renderLoanWatch(context);
+    }
   }
 }
 

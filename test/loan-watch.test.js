@@ -112,6 +112,21 @@ test('球员卡片按中场、前锋、后卫、门将排列', () => {
   assert.match(app, /const filteredPlayers = sortLoanWatchPlayers\(data\.players\.filter/);
 });
 
+test('蓝月在外先显示本机快照并在后台静默更新', () => {
+  assert.match(app, /const LOAN_WATCH_CACHE_KEY = 'cth_loan_watch_cache_v1'/);
+  assert.match(app, /const visibleData = context\.data\.loanWatch \|\| readLoanWatchCache\(\)/);
+  assert.match(app, /if \(visibleData && !alreadyRendered\)/);
+  assert.match(app, /if \(!visibleData \|\| loanWatch\.generated_at !== visibleData\.generated_at\) renderLoanWatch\(context\)/);
+});
+
+test('手机版球场图并入顶部背景且冬窗倒计时压缩为单行', () => {
+  assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.topbar \{[\s\S]*?url\("assets\/etihad-night-hero\.webp"\)/);
+  assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.stadium-hero::before \{[\s\S]*?display: none/);
+  assert.match(style, /\.winter-window-kicker, \.winter-window-copy span \{ display: none; \}/);
+  assert.match(style, /\.winter-window-card \{[\s\S]*?min-height: 32px;[\s\S]*?display: flex/);
+  assert.match(style, /\.loan-watch\.home \.loan-watch-overview \{[\s\S]*?grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
+});
+
 test('同一场比赛只请求一次并更新所有相关球员', () => {
   const fetcher = fs.readFileSync('scripts/fetch-loan-watch.js', 'utf8');
   assert.match(fetcher, /const dueMatches = new Map\(\)/);
