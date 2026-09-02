@@ -518,6 +518,26 @@ body.survey-open { overflow: hidden; }
 .loan-match-stats .loan-summary-stat small { font-size: 8px; }
 .loan-match-source { display: inline-block; margin-top: 7px; color: var(--accent); font-size: 9px; font-weight: 700; }
 .loan-no-match { margin: 8px 0 0; color: var(--text-dim); font-size: 10px; line-height: 1.55; }
+.loan-player-reaction-summary {
+  margin-top: 9px; padding: 8px 9px; border: 1px solid var(--line); border-radius: 9px;
+  background: rgba(108,171,221,.055);
+}
+.loan-player-reaction-title { display: block; margin-bottom: 6px; color: var(--text-dim); font-size: 9px; font-weight: 900; }
+.loan-player-reaction-totals { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.loan-player-reaction-total {
+  min-width: 0; display: grid; justify-items: center; gap: 1px; color: var(--text-dim); text-align: center;
+}
+.loan-player-reaction-total i { font-size: 14px; font-style: normal; line-height: 1; }
+.loan-player-reaction-total small { overflow: hidden; max-width: 100%; font-size: 8px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.loan-player-reaction-total b { color: var(--t1); font-size: 10px; font-variant-numeric: tabular-nums; }
+.loan-match-reaction-bar { margin-top: 8px; padding-top: 8px; }
+.loan-match-reaction-bar .reaction-hint { color: var(--t1); font-weight: 850; }
+.loan-match-reaction-bar.compact .reaction-btn {
+  min-height: 48px; padding: 4px 2px; flex-direction: column; gap: 2px; border-radius: 7px;
+}
+.loan-match-reaction-bar.compact .reaction-emoji { font-size: 16px; }
+.loan-match-reaction-bar .reaction-label { color: inherit; font-size: 8px; font-weight: 850; line-height: 1.1; white-space: nowrap; }
+.loan-match-reaction-bar.compact .reaction-count { font-size: 9px; }
 .loan-watch-note { padding: 11px 13px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 11px; border: 1px dashed var(--line-strong); border-radius: 10px; color: var(--text-dim); font-size: 10px; line-height: 1.5; }
 .loan-watch-note strong { color: var(--text); }
 .loan-watch-note a { margin-left: auto; color: var(--accent); font-weight: 800; }
@@ -2442,6 +2462,13 @@ body.finale-open { overflow: hidden; }
     width: 100%; max-width: 100%; min-width: 0; grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .loan-watch.home .loan-player-list { grid-template-columns: 1fr; }
+  .loan-player-reaction-summary { padding: 7px 6px; }
+  .loan-player-reaction-totals { gap: 2px; }
+  .loan-player-reaction-total i { font-size: 13px; }
+  .loan-player-reaction-total small { font-size: 7px; }
+  .loan-match-reaction-bar.compact { gap: 3px; }
+  .loan-match-reaction-bar.compact .reaction-btn { min-height: 45px; padding-inline: 1px; }
+  .loan-match-reaction-bar .reaction-label { font-size: 7px; }
   .loan-request-board { padding: 9px; }
   .loan-request-head strong { font-size: 13px; }
   .loan-request-form { margin-top: 6px; }

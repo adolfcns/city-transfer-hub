@@ -60,6 +60,13 @@ const REACTION_DEFS = Object.freeze([
   { key: 'wild', emoji: '😂', label: '什么鬼' },
   { key: 'doubt', emoji: '🤨', label: '不可能！绝对不可能！' },
 ]);
+const LOAN_MATCH_REACTION_DEFS = Object.freeze([
+  { key: 'fire', emoji: '🔥', label: '夯爆了' },
+  { key: 'heart', emoji: '🌱', label: '未来可期' },
+  { key: 'doubt', emoji: '🫠', label: '拉完了' },
+  { key: 'wild', emoji: '🧱', label: '砸手里了' },
+  { key: 'watch', emoji: '👀', label: '再看几场' },
+]);
 const REACTION_KEYS = new Set(REACTION_DEFS.map((item) => item.key));
 const SURVEY_DEFINITIONS = Object.freeze({
   summer_departure_heartbreak_2026: {
@@ -1557,8 +1564,9 @@ function syncReactionBars(id) {
   document.querySelectorAll('article[data-item-id]').forEach((article) => {
     if (article.dataset.itemId !== id) return;
     article.querySelectorAll('.reaction-bar').forEach((bar) => {
+      const definitions = bar.dataset.reactionScope === 'loan-match' ? LOAN_MATCH_REACTION_DEFS : REACTION_DEFS;
       bar.querySelectorAll('.reaction-btn').forEach((button) => {
-        const def = REACTION_DEFS.find((item) => item.key === button.dataset.reaction);
+        const def = definitions.find((item) => item.key === button.dataset.reaction);
         if (!def) return;
         const count = counts[def.key] || 0;
         const active = selected === def.key;
@@ -1569,11 +1577,11 @@ function syncReactionBars(id) {
         button.title = `${def.label} · 全站 ${count} 次`;
         const countNode = button.querySelector('.reaction-count');
         if (countNode) {
-          countNode.hidden = count === 0;
-          countNode.textContent = count > 0 ? compactReactionCount(count) : '';
+          countNode.hidden = bar.dataset.reactionScope !== 'loan-match' && count === 0;
+          countNode.textContent = compactReactionCount(count);
         }
       });
-      const total = REACTION_DEFS.reduce((sum, def) => sum + (counts[def.key] || 0), 0);
+      const total = definitions.reduce((sum, def) => sum + (counts[def.key] || 0), 0);
       const hint = bar.querySelector('.reaction-hint');
       if (hint) {
         hint.textContent = total === 0 ? hint.dataset.emptyText : hint.dataset.activeText;
@@ -1581,6 +1589,7 @@ function syncReactionBars(id) {
       }
     });
   });
+  syncLoanPlayerReactionSummaries(id);
 }
 
 function syncAllReactionBars() {
@@ -1590,19 +1599,25 @@ function syncAllReactionBars() {
 
 function buildReactionBar(it, compact = false, context = 'feed') {
   const id = itemId(it);
+  const definitions = context === 'loan-match' ? LOAN_MATCH_REACTION_DEFS : REACTION_DEFS;
   const counts = itemReactionCounts(id);
   const selected = state.reactionPrefs.votes[id] || null;
-  const bar = el('div', `reaction-bar${compact ? ' compact' : ''}`);
+  const bar = el('div', `reaction-bar${compact ? ' compact' : ''}${context === 'loan-match' ? ' loan-match-reaction-bar' : ''}`);
+  bar.dataset.reactionScope = context;
   bar.setAttribute('role', 'group');
-  bar.setAttribute('aria-label', '给这条消息选择一个表情');
-  const total = REACTION_DEFS.reduce((sum, def) => sum + (counts[def.key] || 0), 0);
+  bar.setAttribute('aria-label', context === 'loan-match' ? '评价这场比赛的球员表现' : '给这条消息选择一个表情');
+  const total = definitions.reduce((sum, def) => sum + (counts[def.key] || 0), 0);
   const hint = el('span', 'reaction-hint');
-  hint.dataset.emptyText = context === 'pinned' ? '你怎么看？ · 抢先表态' : '抢先表态';
-  hint.dataset.activeText = context === 'pinned' ? '你怎么看？' : '';
+  hint.dataset.emptyText = context === 'loan-match'
+    ? '这场表现，你怎么看？'
+    : context === 'pinned' ? '你怎么看？ · 抢先表态' : '抢先表态';
+  hint.dataset.activeText = context === 'loan-match'
+    ? '球迷赛后评价'
+    : context === 'pinned' ? '你怎么看？' : '';
   hint.textContent = total === 0 ? hint.dataset.emptyText : hint.dataset.activeText;
   hint.hidden = !hint.textContent;
   bar.appendChild(hint);
-  for (const def of REACTION_DEFS) {
+  for (const def of definitions) {
     const active = selected === def.key;
     const count = counts[def.key] || 0;
     const button = el('button', `reaction-btn${active ? ' selected' : ''}`);
@@ -1613,10 +1628,13 @@ function buildReactionBar(it, compact = false, context = 'feed') {
     button.title = `${def.label} · 全站 ${count} 次`;
     const emoji = el('span', 'reaction-emoji', def.emoji);
     emoji.setAttribute('aria-hidden', 'true');
-    const countNode = el('span', 'reaction-count', count > 0 ? compactReactionCount(count) : '');
-    countNode.hidden = count === 0;
-    button.append(emoji, countNode);
-    button.onclick = () => chooseItemReaction(it, def.key);
+    const label = el('span', 'reaction-label', def.label);
+    const countNode = el('span', 'reaction-count', compactReactionCount(count));
+    countNode.hidden = context !== 'loan-match' && count === 0;
+    button.append(emoji);
+    if (context === 'loan-match') button.appendChild(label);
+    button.appendChild(countNode);
+    button.onclick = () => chooseItemReaction(it, def.key, definitions);
     bar.appendChild(button);
   }
   return bar;
@@ -1708,9 +1726,9 @@ async function sendItemReaction(id, reaction, silent = false) {
   }
 }
 
-function chooseItemReaction(it, reaction) {
+function chooseItemReaction(it, reaction, definitions = REACTION_DEFS) {
   const id = itemId(it);
-  const def = REACTION_DEFS.find((item) => item.key === reaction);
+  const def = definitions.find((item) => item.key === reaction);
   if (!def) return;
   const previous = state.reactionPrefs.votes[id] || null;
   if (previous === reaction) {
@@ -3577,8 +3595,60 @@ function loanWatchSummaryStat(value, label, cls = '') {
   return item;
 }
 
-function loanWatchMatchRow(match) {
+function loanMatchReactionItem(player, match) {
+  const safeMatchId = String(match.id || '').replace(/[^A-Za-z0-9_-]/g, '_');
+  return { id: `loanmatch_${player.key}_${safeMatchId}` };
+}
+
+function loanPlayerReactionTotals(player) {
+  const totals = blankItemReactionCounts();
+  for (const match of player.matches || []) {
+    const counts = itemReactionCounts(itemId(loanMatchReactionItem(player, match)));
+    for (const def of LOAN_MATCH_REACTION_DEFS) totals[def.key] += Number(counts[def.key] || 0);
+  }
+  return totals;
+}
+
+function loanPlayerReactionSummary(player) {
+  const summary = el('section', 'loan-player-reaction-summary');
+  summary.dataset.loanPlayerKey = player.key;
+  summary.appendChild(el('strong', 'loan-player-reaction-title', '球迷赛后评价汇总'));
+  const totals = loanPlayerReactionTotals(player);
+  const grid = el('div', 'loan-player-reaction-totals');
+  for (const def of LOAN_MATCH_REACTION_DEFS) {
+    const item = el('span', 'loan-player-reaction-total');
+    item.append(
+      el('i', null, def.emoji),
+      el('small', null, def.label),
+      el('b', null, compactReactionCount(totals[def.key])),
+    );
+    item.querySelector('b').dataset.loanReactionTotal = def.key;
+    grid.appendChild(item);
+  }
+  summary.appendChild(grid);
+  return summary;
+}
+
+function syncLoanPlayerReactionSummaries(changedItemId = '') {
+  document.querySelectorAll('.loan-player-card[data-loan-player-key]').forEach((card) => {
+    const matchRows = [...card.querySelectorAll('.loan-match-row[data-item-id]')];
+    if (changedItemId && !matchRows.some((row) => row.dataset.itemId === changedItemId)) return;
+    const totals = blankItemReactionCounts();
+    for (const row of matchRows) {
+      const counts = itemReactionCounts(row.dataset.itemId);
+      for (const def of LOAN_MATCH_REACTION_DEFS) totals[def.key] += Number(counts[def.key] || 0);
+    }
+    for (const def of LOAN_MATCH_REACTION_DEFS) {
+      const node = card.querySelector(`[data-loan-reaction-total="${def.key}"]`);
+      if (node) node.textContent = compactReactionCount(totals[def.key]);
+    }
+  });
+}
+
+function loanWatchMatchRow(match, player) {
   const row = el('article', 'loan-match-row');
+  const reactionItem = loanMatchReactionItem(player, match);
+  row.dataset.itemId = itemId(reactionItem);
   const headline = el('div', 'loan-match-headline');
   const outcome = el('span', `loan-match-outcome ${match.outcome === '胜' ? 'win' : match.outcome === '负' ? 'loss' : 'draw'}`, match.outcome || '赛果');
   headline.append(
@@ -3602,12 +3672,13 @@ function loanWatchMatchRow(match) {
   source.href = match.url || 'https://www.fotmob.com';
   source.target = '_blank';
   source.rel = 'noopener';
-  row.append(headline, meta, stats, source);
+  row.append(headline, meta, stats, source, buildReactionBar(reactionItem, true, 'loan-match'));
   return row;
 }
 
 function loanWatchPlayerCard(player) {
   const card = el('article', `loan-player-card${player.priority ? ' priority' : ''}`);
+  card.dataset.loanPlayerKey = player.key;
   const head = el('div', 'loan-player-head');
   const identity = el('div', 'loan-player-identity');
   identity.append(
@@ -3641,12 +3712,13 @@ function loanWatchPlayerCard(player) {
   history.appendChild(historyTitle);
   if (appearances) {
     const rows = el('div', 'loan-match-list');
-    for (const match of player.matches || []) rows.appendChild(loanWatchMatchRow(match));
+    for (const match of player.matches || []) rows.appendChild(loanWatchMatchRow(match, player));
     history.appendChild(rows);
   } else {
     history.appendChild(el('p', 'loan-no-match', '一旦完成首场比赛，赛后评分和关键数据会自动出现在这里。'));
   }
-  card.append(head, destination, summary, history);
+  card.append(head, destination, summary, loanPlayerReactionSummary(player), history);
+  queueReactionCounts((player.matches || []).map((match) => loanMatchReactionItem(player, match)));
   return card;
 }
 

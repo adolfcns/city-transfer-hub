@@ -135,6 +135,19 @@ test('同一场比赛只请求一次并更新所有相关球员', () => {
   assert.match(fetcher, /for \(const \{ player, fixture \} of entries\)/);
 });
 
+test('每场外租比赛提供五项球迷评价并在球员卡片汇总', () => {
+  for (const label of ['夯爆了', '未来可期', '拉完了', '砸手里了', '再看几场']) {
+    assert.match(app, new RegExp(label));
+  }
+  assert.match(app, /return \{ id: `loanmatch_\$\{player\.key\}_\$\{safeMatchId\}` \}/);
+  assert.match(app, /buildReactionBar\(reactionItem, true, 'loan-match'\)/);
+  assert.match(app, /function loanPlayerReactionTotals\(player\)/);
+  assert.match(app, /syncLoanPlayerReactionSummaries\(id\)/);
+  assert.match(app, /球迷赛后评价汇总/);
+  assert.match(style, /\.loan-player-reaction-totals \{[^}]*grid-template-columns: repeat\(5/);
+  assert.match(style, /\.loan-match-reaction-bar\.compact \.reaction-btn \{[\s\S]*?flex-direction: column/);
+});
+
 test('首页简介加入免注册球员提名榜并按赞成人数排序', () => {
   const pagesWorker = fs.readFileSync('cloudflare/pages-worker.js', 'utf8');
   const triggerWorker = fs.readFileSync('scripts/cloudflare-worker.js', 'utf8');
