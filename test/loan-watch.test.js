@@ -127,6 +127,14 @@ test('手机版球场图并入顶部背景且冬窗倒计时压缩为单行', ()
   assert.match(style, /\.loan-watch\.home \.loan-watch-overview \{[\s\S]*?grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
 });
 
+test('所有窄屏手机把留言移到标题右侧并压缩概览和表情', () => {
+  assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.loan-watch\.home \.loan-watch-intro \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\) minmax\(160px, 1\.05fr\)/);
+  assert.match(style, /\.loan-watch\.home \.loan-watch-overview \{[\s\S]*?grid-column: 1 \/ -1/);
+  assert.match(style, /\.loan-request-board \{ min-width: 0; padding: 6px/);
+  assert.match(style, /\.loan-match-reaction-bar\.compact \.reaction-btn \{ min-height: 29px/);
+  assert.match(style, /\.loan-watch\.home \.loan-watch-filter \{ min-height: 25px/);
+});
+
 test('同一场比赛只请求一次并更新所有相关球员', () => {
   const fetcher = fs.readFileSync('scripts/fetch-loan-watch.js', 'utf8');
   assert.match(fetcher, /const dueMatches = new Map\(\)/);
@@ -143,9 +151,13 @@ test('每场外租比赛提供五项球迷评价并在球员卡片汇总', () =>
   assert.match(app, /buildReactionBar\(reactionItem, true, 'loan-match'\)/);
   assert.match(app, /function loanPlayerReactionTotals\(player\)/);
   assert.match(app, /syncLoanPlayerReactionSummaries\(id\)/);
-  assert.match(app, /球迷赛后评价汇总/);
+  assert.match(app, /function loanMatchReactionLegend\(\)/);
+  assert.match(app, /球迷表情/);
+  assert.match(app, /逐场比赛明细｜本赛季租借后比赛记录/);
+  assert.match(style, /\.loan-match-history-body \{/);
+  assert.match(style, /\.loan-match-row \{[^}]*border-left: 3px solid/);
   assert.match(style, /\.loan-player-reaction-totals \{[^}]*grid-template-columns: repeat\(5/);
-  assert.match(style, /\.loan-match-reaction-bar\.compact \.reaction-btn \{[\s\S]*?flex-direction: column/);
+  assert.match(style, /\.loan-match-reaction-bar\.compact \.reaction-btn \{[\s\S]*?flex-direction: row/);
 });
 
 test('首页简介加入免注册球员提名榜并按赞成人数排序', () => {

@@ -1616,7 +1616,7 @@ function buildReactionBar(it, compact = false, context = 'feed') {
     : context === 'pinned' ? '你怎么看？' : '';
   hint.textContent = total === 0 ? hint.dataset.emptyText : hint.dataset.activeText;
   hint.hidden = !hint.textContent;
-  bar.appendChild(hint);
+  if (context !== 'loan-match') bar.appendChild(hint);
   for (const def of definitions) {
     const active = selected === def.key;
     const count = counts[def.key] || 0;
@@ -1628,11 +1628,9 @@ function buildReactionBar(it, compact = false, context = 'feed') {
     button.title = `${def.label} · 全站 ${count} 次`;
     const emoji = el('span', 'reaction-emoji', def.emoji);
     emoji.setAttribute('aria-hidden', 'true');
-    const label = el('span', 'reaction-label', def.label);
     const countNode = el('span', 'reaction-count', compactReactionCount(count));
     countNode.hidden = context !== 'loan-match' && count === 0;
     button.append(emoji);
-    if (context === 'loan-match') button.appendChild(label);
     button.appendChild(countNode);
     button.onclick = () => chooseItemReaction(it, def.key, definitions);
     bar.appendChild(button);
@@ -3600,6 +3598,18 @@ function loanMatchReactionItem(player, match) {
   return { id: `loanmatch_${player.key}_${safeMatchId}` };
 }
 
+function loanMatchReactionLegend() {
+  const legend = el('div', 'loan-match-emotion-key');
+  legend.setAttribute('aria-label', '赛后表情说明');
+  for (const def of LOAN_MATCH_REACTION_DEFS) {
+    const item = el('span', null);
+    item.title = def.label;
+    item.append(el('i', null, def.emoji), el('small', null, def.label));
+    legend.appendChild(item);
+  }
+  return legend;
+}
+
 function loanPlayerReactionTotals(player) {
   const totals = blankItemReactionCounts();
   for (const match of player.matches || []) {
@@ -3612,14 +3622,15 @@ function loanPlayerReactionTotals(player) {
 function loanPlayerReactionSummary(player) {
   const summary = el('section', 'loan-player-reaction-summary');
   summary.dataset.loanPlayerKey = player.key;
-  summary.appendChild(el('strong', 'loan-player-reaction-title', '球迷赛后评价汇总'));
+  summary.appendChild(el('strong', 'loan-player-reaction-title', '球迷表情'));
   const totals = loanPlayerReactionTotals(player);
   const grid = el('div', 'loan-player-reaction-totals');
   for (const def of LOAN_MATCH_REACTION_DEFS) {
     const item = el('span', 'loan-player-reaction-total');
+    item.title = `${def.label} · ${compactReactionCount(totals[def.key])}`;
+    item.setAttribute('aria-label', `${def.label}，全站 ${compactReactionCount(totals[def.key])} 次`);
     item.append(
       el('i', null, def.emoji),
-      el('small', null, def.label),
       el('b', null, compactReactionCount(totals[def.key])),
     );
     item.querySelector('b').dataset.loanReactionTotal = def.key;
@@ -3708,15 +3719,18 @@ function loanWatchPlayerCard(player) {
   history.className = 'loan-match-history';
   const historyTitle = document.createElement('summary');
   const appearances = Number(season.appearances || 0);
-  historyTitle.textContent = appearances ? `本赛季租借后比赛记录（${appearances}场）` : '租借生效后暂无出场记录';
+  historyTitle.textContent = appearances ? `逐场比赛明细｜本赛季租借后比赛记录（${appearances}场）` : '逐场比赛明细｜租借后暂无出场';
   history.appendChild(historyTitle);
+  const historyBody = el('div', 'loan-match-history-body');
   if (appearances) {
+    historyBody.appendChild(el('p', 'loan-match-history-label', '以下是该球员本赛季租借生效后的逐场数据'));
     const rows = el('div', 'loan-match-list');
     for (const match of player.matches || []) rows.appendChild(loanWatchMatchRow(match, player));
-    history.appendChild(rows);
+    historyBody.appendChild(rows);
   } else {
-    history.appendChild(el('p', 'loan-no-match', '一旦完成首场比赛，赛后评分和关键数据会自动出现在这里。'));
+    historyBody.appendChild(el('p', 'loan-no-match', '一旦完成首场比赛，赛后评分和关键数据会自动出现在这里。'));
   }
+  history.appendChild(historyBody);
   card.append(head, destination, summary, loanPlayerReactionSummary(player), history);
   queueReactionCounts((player.matches || []).map((match) => loanMatchReactionItem(player, match)));
   return card;
@@ -3925,6 +3939,7 @@ function renderLoanWatch(context) {
     el('span', 'loan-watch-kicker', 'CITY ON LOAN · 2026/27'),
     el('h3', null, '他们离开曼城，不等于离开视线'),
     el('p', null, '只统计本赛季租借生效后的比赛。'),
+    loanMatchReactionLegend(),
   );
   const overview = el('div', 'loan-watch-overview');
   overview.append(
