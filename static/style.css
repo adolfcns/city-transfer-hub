@@ -1157,13 +1157,17 @@ body.comments-open { overflow: hidden; }
 .city-prayer {
   position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 65;
   width: auto; max-width: calc(100vw - 24px);
-  display: flex; align-items: center;
+  display: flex; align-items: center; gap: 9px;
   border: 1.5px solid var(--burgundy); border-radius: 14px;
   background: rgba(255, 250, 240, .97); color: #2f2225;
-  padding: 8px 12px;
+  padding: 7px 12px 7px 7px;
   box-shadow: 0 10px 28px rgba(91, 46, 38, .16);
   transition: transform .15s, box-shadow .15s, border-color .15s;
   touch-action: manipulation; text-align: left;
+}
+.prayer-mascot {
+  width: 64px; height: 64px; flex: 0 0 64px; display: block; object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(34, 63, 82, .13)); pointer-events: none;
 }
 .city-prayer:hover {
   transform: translateY(-2px); border-color: #50101f;
@@ -1542,9 +1546,10 @@ body.comments-open { overflow: hidden; }
   .reaction-bar.compact .reaction-btn { min-height: 30px; }
   .city-prayer {
     right: 8px; bottom: calc(9px + env(safe-area-inset-bottom));
-    width: auto; max-width: calc(100vw - 18px); min-height: 0; padding: 6px 9px;
+    width: auto; max-width: calc(100vw - 18px); min-height: 0; padding: 5px 8px 5px 5px; gap: 6px;
     border-radius: 12px;
   }
+  .prayer-mascot { width: 50px; height: 50px; flex-basis: 50px; }
   .prayer-copy strong { font-size: 12px; }
   .prayer-cta { font-size: 11px; }
   .prayer-copy small { display: flex; font-size: 10.5px; }
@@ -2304,8 +2309,50 @@ body.finale-open { overflow: hidden; }
 .loan-watch-home { min-height: 360px; }
 .loan-watch-home > .survey-loading { padding: 90px 12px; }
 .loan-watch.home { gap: 16px; }
-.loan-watch.home .loan-watch-intro { padding: 20px 22px; }
+.loan-watch.home .loan-watch-intro {
+  padding: 18px 20px; display: grid;
+  grid-template-columns: minmax(280px, 1.15fr) minmax(290px, .9fr) auto;
+  align-items: center; gap: 14px 18px;
+}
 .loan-watch.home .loan-player-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.loan-request-board {
+  min-width: 0; padding: 10px; border: 1px solid #a9d1e3; border-radius: 12px;
+  background: rgba(255,255,255,.72); box-shadow: 0 6px 18px rgba(39,82,105,.07);
+}
+.loan-request-head { display: flex; align-items: start; justify-content: space-between; gap: 8px; }
+.loan-request-head > div { min-width: 0; display: grid; gap: 1px; }
+.loan-request-head strong { color: var(--text); font-size: 12px; font-weight: 950; line-height: 1.3; }
+.loan-request-head small, .loan-request-count { color: var(--text-dim); font-size: 8.5px; font-weight: 700; white-space: nowrap; }
+.loan-request-count { flex: none; color: var(--t1); }
+.loan-request-form { margin-top: 7px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 5px; }
+.loan-request-input {
+  min-width: 0; height: 31px; padding: 5px 8px; border: 1px solid var(--line-strong); border-radius: 8px;
+  background: #fff; color: var(--text); font: inherit; font-size: 10px; outline: 0;
+}
+.loan-request-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(43,136,184,.10); }
+.loan-request-submit {
+  min-width: 49px; height: 31px; padding: 4px 8px; border: 1px solid #3c94bd; border-radius: 8px;
+  background: #dff2fa; color: #176b95; font-size: 10px; font-weight: 950;
+}
+.loan-request-submit:hover { background: #cceaf6; }
+.loan-request-submit:disabled { cursor: wait; opacity: .7; }
+.loan-request-list { max-height: 94px; margin-top: 6px; display: grid; gap: 4px; overflow-y: auto; scrollbar-width: thin; }
+.loan-request-row {
+  min-width: 0; padding: 5px 5px 5px 7px; display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center; gap: 7px; border-radius: 7px; background: rgba(108,171,221,.09);
+}
+.loan-request-row-copy { min-width: 0; display: grid; }
+.loan-request-row-copy strong { overflow: hidden; color: var(--text); font-size: 10px; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+.loan-request-row-copy small { overflow: hidden; color: var(--text-dim); font-size: 7.5px; text-overflow: ellipsis; white-space: nowrap; }
+.loan-request-support {
+  min-width: 54px; min-height: 27px; padding: 3px 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  border: 1px solid #a9ccdc; border-radius: 999px; background: #fff; color: #28779e; font-size: 8.5px; font-weight: 900;
+}
+.loan-request-support.selected { border-color: #4ba5cf; background: #dff2fa; color: #176b95; }
+.loan-request-support b { font-size: 10px; font-variant-numeric: tabular-nums; }
+.loan-request-empty { padding: 5px 2px; color: var(--text-dim); font-size: 9px; line-height: 1.4; }
+.loan-request-empty.error { color: #a64d5a; }
 
 .winter-window-card {
   width: min(720px, calc(100% - 24px)); padding: 17px 20px; display: grid;
@@ -2384,8 +2431,13 @@ body.finale-open { overflow: hidden; }
   .winter-countdown-unit strong { color: #9a6500; font-size: 18px; }
   .winter-countdown-unit small { color: #7c6c48; font-size: 8px; }
   .loan-watch-home { min-height: 300px; }
-  .loan-watch.home .loan-watch-intro { padding: 13px; }
+  .loan-watch.home .loan-watch-intro { padding: 13px; grid-template-columns: 1fr; align-items: stretch; }
   .loan-watch.home .loan-player-list { grid-template-columns: 1fr; }
+  .loan-request-board { padding: 9px; }
+  .loan-request-head strong { font-size: 13px; }
+  .loan-request-form { margin-top: 6px; }
+  .loan-request-input, .loan-request-submit { height: 35px; font-size: 11px; }
+  .loan-request-list { max-height: 112px; }
   .loan-upcoming-schedule { padding: 10px; }
   .loan-schedule-rows { grid-template-columns: 1fr; }
   .poll-only-zone { margin-top: 13px; padding-top: 12px; }

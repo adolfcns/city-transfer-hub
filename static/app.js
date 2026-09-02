@@ -35,6 +35,7 @@ const PRAYER_GOAL_STEP = 500;
 const ITEM_REACTIONS_KEY = 'cth_item_reactions_v1';
 const PLAYER_FOLLOWS_KEY = 'cth_player_follows_v1';
 const COMMENT_PROFILE_KEY = 'cth_comment_profile_v1';
+const LOAN_REQUEST_ITEM_ID = 'loan_watch_requests_2026';
 const SURVEY_PROFILE_KEY = 'cth_survey_profile_v1';
 const SHARE_ATTRIBUTION_KEY = 'departure_poll_share';
 const COACH_SURVEY_ID = 'maresca_league_debut_2026';
@@ -343,6 +344,9 @@ let commentReadTimer = null;
 let activeCommentItem = null;
 let activeReplyTarget = null;
 let commentRequestInFlight = false;
+let loanRequestComments = [];
+let loanRequestLoadPromise = null;
+let loanRequestPostInFlight = false;
 let shareCardInFlight = false;
 let sharedMessageRevealed = false;
 
@@ -1453,12 +1457,12 @@ function renderPrayerCount(localCount, globalCount = null, syncState = 'loading'
     totalLine.append('全站已汇集 ', el('b', 'prayer-count-number', `${compactCount(globalCount)} 次`), '蓝月好运');
     const goalLine = el('span', 'prayer-goal');
     goalLine.append('距 ', el('b', '', `${compactCount(goal)} 次`), '还差 ', el('b', '', `${compactCount(remaining)} 次`));
-    accessible = `点击为曼城添一次好运。全站已汇集 ${globalCount} 次蓝月好运。距离 ${goal} 次还差 ${remaining} 次。`;
+    accessible = `为曼城九月全胜敲个木鱼。全站已汇集 ${globalCount} 次蓝月好运。距离 ${goal} 次还差 ${remaining} 次。`;
     countNode.replaceChildren(totalLine, goalLine);
   } else {
     const status = syncState === 'error' ? '全站同步暂不可用' : '全站次数加载中';
     countNode.textContent = status;
-    accessible = `点击为曼城添一次好运。${syncState === 'error' ? '全站同步暂不可用。' : '全站次数加载中。'}`;
+    accessible = `为曼城九月全胜敲个木鱼。${syncState === 'error' ? '全站同步暂不可用。' : '全站次数加载中。'}`;
   }
   button.title = accessible;
   button.setAttribute('aria-label', accessible);
@@ -1512,7 +1516,7 @@ function bindPrayer() {
     requestAnimationFrame(() => button.classList.add('hit'));
     setTimeout(() => button.classList.remove('hit'), 360);
     try { navigator.vibrate?.(30); } catch { /* 部分浏览器不支持轻触震动 */ }
-    toast('咚！正在送出你的蓝月好运…');
+    toast('咚！正在为九月全胜送出蓝月好运…');
     try {
       // 写入只请求已成功读取的同一个入口，网络超时时不跨入口重试，避免重复 +1。
       const res = await fetchPrayer(activeEndpoint, 'POST');
@@ -1527,7 +1531,7 @@ function bindPrayer() {
         const achieved = globalCount > 0 && globalCount % step === 0;
         toast(achieved
           ? `蓝月好运突破 ${globalCount.toLocaleString('zh-CN')} 次！💙`
-          : `收到！你送出了全站第 ${globalCount.toLocaleString('zh-CN')} 次蓝月好运 💙`);
+          : `收到！这是全站第 ${globalCount.toLocaleString('zh-CN')} 声九月全胜木鱼 💙`);
       } else if (res.status === 429) toast('好运收到啦，稍慢一点再敲 💙');
       else {
         syncState = 'error';
@@ -3615,6 +3619,187 @@ function loanWatchPlayerCard(player) {
   return card;
 }
 
+function loanRequestNickname() {
+  if (!state.commentProfile.nickname) {
+    state.commentProfile.nickname = randomGuestNickname();
+    state.commentProfile.nicknameUpdatedAt = Date.now();
+    saveCommentProfile();
+  }
+  return state.commentProfile.nickname;
+}
+
+function sortedLoanRequests() {
+  return loanRequestComments
+    .filter((comment) => !comment.parent_id)
+    .sort((a, b) => (
+      Number(b.like_count || 0) - Number(a.like_count || 0)
+      || Number(b.created_at || 0) - Number(a.created_at || 0)
+    ));
+}
+
+function renderLoanRequestComments() {
+  const board = document.querySelector('.loan-request-board');
+  const list = board?.querySelector('.loan-request-list');
+  if (!list) return;
+  list.textContent = '';
+  const comments = sortedLoanRequests();
+  const count = board.querySelector('.loan-request-count');
+  if (count) count.textContent = comments.length ? `${comments.length} 条提名` : '等你第一个提名';
+  if (!comments.length) {
+    list.appendChild(el('p', 'loan-request-empty', '写下球员名字，看看有多少蓝月球迷赞成。'));
+    return;
+  }
+  for (const comment of comments.slice(0, 8)) {
+    const row = el('article', 'loan-request-row');
+    const copy = el('div', 'loan-request-row-copy');
+    copy.append(
+      el('strong', null, comment.body),
+      el('small', null, `${comment.nickname} · ${relTime(new Date(Number(comment.created_at)).toISOString())}`),
+    );
+    const support = el('button', `loan-request-support${comment.liked_by_me ? ' selected' : ''}`);
+    support.type = 'button';
+    support.dataset.commentId = comment.id;
+    support.setAttribute('aria-pressed', comment.liked_by_me ? 'true' : 'false');
+    support.setAttribute('aria-label', `${comment.liked_by_me ? '取消赞成' : '赞成'}这条提名，当前 ${Number(comment.like_count || 0)} 人支持`);
+    support.append(el('span', null, '赞成'), el('b', null, String(Number(comment.like_count || 0))));
+    support.onclick = () => supportLoanRequest(comment.id, support);
+    row.append(copy, support);
+    list.appendChild(row);
+  }
+}
+
+async function loadLoanRequestBoard() {
+  if (loanRequestLoadPromise) return loanRequestLoadPromise;
+  const list = document.querySelector('.loan-request-list');
+  if (list && !loanRequestComments.length) list.innerHTML = '<p class="loan-request-empty">正在加载提名榜…</p>';
+  loanRequestLoadPromise = (async () => {
+    for (const endpoint of COMMENT_ENDPOINTS) {
+      try {
+        const response = await fetchReactionEndpoint(
+          `${endpoint}?item=${encodeURIComponent(LOAN_REQUEST_ITEM_ID)}&voter=${encodeURIComponent(state.commentProfile.voter)}`,
+        );
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.ok !== true || !Array.isArray(data.comments)) continue;
+        state.commentEndpoint = endpoint;
+        loanRequestComments = data.comments;
+        renderLoanRequestComments();
+        return true;
+      } catch { /* 尝试备用入口 */ }
+    }
+    const current = document.querySelector('.loan-request-list');
+    if (current) current.innerHTML = '<p class="loan-request-empty error">提名榜暂时连接不上，请稍后刷新。</p>';
+    return false;
+  })().finally(() => { loanRequestLoadPromise = null; });
+  return loanRequestLoadPromise;
+}
+
+async function supportLoanRequest(commentId, button) {
+  if (!button || button.disabled) return;
+  const comment = loanRequestComments.find((item) => item.id === commentId);
+  if (!comment) return;
+  const desired = !comment.liked_by_me;
+  button.disabled = true;
+  const endpoints = state.commentEndpoint
+    ? [state.commentEndpoint, ...COMMENT_ENDPOINTS.filter((item) => item !== state.commentEndpoint)]
+    : COMMENT_ENDPOINTS;
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetchReactionEndpoint(endpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          action: 'like', comment_id: commentId, voter: state.commentProfile.voter, liked: desired,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.ok !== true) continue;
+      state.commentEndpoint = endpoint;
+      comment.liked_by_me = Boolean(data.liked);
+      comment.like_count = Math.max(0, Number(data.like_count || 0));
+      renderLoanRequestComments();
+      toast(comment.liked_by_me ? '已赞成，提名榜重新排序 ✓' : '已取消赞成');
+      return;
+    } catch { /* 尝试备用入口 */ }
+  }
+  button.disabled = false;
+  toast('暂时没能提交，请稍后再试', 'err');
+}
+
+async function submitLoanRequest(form) {
+  if (loanRequestPostInFlight) return;
+  const input = form?.querySelector('.loan-request-input');
+  const submit = form?.querySelector('.loan-request-submit');
+  const body = String(input?.value || '').normalize('NFKC').trim();
+  const message = commentBodyError(body);
+  if (message) { toast(message, 'err'); input?.focus(); return; }
+  const nickname = loanRequestNickname();
+  loanRequestPostInFlight = true;
+  if (submit) { submit.disabled = true; submit.textContent = '发布中'; }
+  let reason = 'network';
+  let retryAt = 0;
+  const endpoints = state.commentEndpoint
+    ? [state.commentEndpoint, ...COMMENT_ENDPOINTS.filter((item) => item !== state.commentEndpoint)]
+    : COMMENT_ENDPOINTS;
+  try {
+    for (const endpoint of endpoints) {
+      try {
+        const response = await fetchReactionEndpoint(endpoint, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            id: LOAN_REQUEST_ITEM_ID,
+            voter: state.commentProfile.voter,
+            nickname,
+            comment: body,
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (response.ok && data.ok === true) {
+          state.commentEndpoint = endpoint;
+          if (input) input.value = '';
+          await loadLoanRequestBoard();
+          toast('留言已发布，所有蓝月球迷都能看到 ✓');
+          return;
+        }
+        reason = data.reason || 'network';
+        retryAt = Number(data.retry_at || 0);
+        if ([400, 409, 429].includes(response.status)) break;
+      } catch { /* 尝试备用入口 */ }
+    }
+    toast(commentReasonText(reason, retryAt), 'err');
+  } finally {
+    loanRequestPostInFlight = false;
+    if (submit) { submit.disabled = false; submit.textContent = '留言'; }
+  }
+}
+
+function loanRequestBoard() {
+  const board = el('section', 'loan-request-board');
+  board.setAttribute('aria-label', '想关注的球员提名区');
+  const head = el('div', 'loan-request-head');
+  const title = el('div');
+  title.append(el('strong', null, '还想关注谁？请留言'), el('small', null, '无需注册 · 大家都能看到'));
+  head.append(title, el('span', 'loan-request-count', '正在加载'));
+  const form = el('form', 'loan-request-form');
+  const input = document.createElement('input');
+  input.className = 'loan-request-input';
+  input.type = 'text';
+  input.maxLength = 60;
+  input.autocomplete = 'off';
+  input.placeholder = '球员名字，或一句推荐理由';
+  const submit = el('button', 'loan-request-submit', '留言');
+  submit.type = 'submit';
+  form.append(input, submit);
+  form.onsubmit = (event) => { event.preventDefault(); submitLoanRequest(form); };
+  const list = el('div', 'loan-request-list');
+  board.append(head, form, list);
+  setTimeout(() => {
+    renderLoanRequestComments();
+    loadLoanRequestBoard();
+  }, 0);
+  return board;
+}
+
 function renderLoanWatch(context) {
   const { body } = context;
   const data = context.data.loanWatch;
@@ -3636,7 +3821,7 @@ function renderLoanWatch(context) {
   introCopy.append(
     el('span', 'loan-watch-kicker', 'CITY ON LOAN · 2026/27'),
     el('h3', null, '他们离开曼城，不等于离开视线'),
-    el('p', null, '只统计本赛季租借生效后的比赛；首页不直接请求第三方，赛后数据由后台统一更新。'),
+    el('p', null, '只统计本赛季租借生效后的比赛。'),
   );
   const overview = el('div', 'loan-watch-overview');
   overview.append(
@@ -3644,7 +3829,7 @@ function renderLoanWatch(context) {
     loanWatchSummaryStat(String(data.priority_count || 0), '重点关注'),
     loanWatchSummaryStat(String(data.players.reduce((sum, player) => sum + Number(player.summary?.appearances || 0), 0)), '赛后记录'),
   );
-  intro.append(introCopy, overview);
+  intro.append(introCopy, loanRequestBoard(), overview);
 
   const controls = el('nav', 'loan-watch-filters');
   controls.setAttribute('aria-label', '筛选蓝月在外球员');
@@ -5260,6 +5445,7 @@ function mockItems() {
 
 // ---------------- 启动 ----------------
 bind();
+bindPrayer();
 recordRequestedShareVisit();
 renderFocusZone();
 updateWinterWindowCountdown();

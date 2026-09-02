@@ -99,10 +99,28 @@ test('按赛程驱动赛后抓取并设置每日安全额度', () => {
   assert.match(workflow, /node scripts\/fetch-loan-watch\.js/);
   assert.doesNotMatch(workflow, /node scripts\/fetch\.js/);
   assert.match(workflow, /cron: '29 \* \* \* \*'/);
-  assert.match(app, /首页不直接请求第三方，赛后数据由后台统一更新/);
+  assert.match(app, /只统计本赛季租借生效后的比赛。/);
   assert.match(app, /预计完赛 1 小时后抓取/);
   assert.match(app, /接下来谁出场？赛程表/);
   assert.match(app, /context\.home && !window\.matchMedia\('\(max-width: 560px\)'\)\.matches/);
   assert.match(style, /\.loan-player-list \{[^}]*grid-template-columns: repeat\(2/);
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.loan-player-list \{ grid-template-columns: 1fr/);
+});
+
+test('首页简介加入免注册球员提名榜并按赞成人数排序', () => {
+  const pagesWorker = fs.readFileSync('cloudflare/pages-worker.js', 'utf8');
+  const triggerWorker = fs.readFileSync('scripts/cloudflare-worker.js', 'utf8');
+  assert.doesNotMatch(app, /首页不直接请求第三方，赛后数据由后台统一更新/);
+  assert.match(app, /还想关注谁？请留言/);
+  assert.match(app, /无需注册 · 大家都能看到/);
+  assert.match(app, /LOAN_REQUEST_ITEM_ID = 'loan_watch_requests_2026'/);
+  assert.match(app, /Number\(b\.like_count \|\| 0\) - Number\(a\.like_count \|\| 0\)/);
+  assert.match(app, /action: 'like', comment_id: commentId/);
+  assert.match(app, /已赞成，提名榜重新排序/);
+  assert.match(style, /\.loan-request-board/);
+  assert.match(style, /\.loan-request-support\.selected/);
+  for (const worker of [pagesWorker, triggerWorker]) {
+    assert.match(worker, /CREATE TABLE IF NOT EXISTS comment_likes/);
+    assert.match(worker, /if \(body\.action === 'like'\)/);
+  }
 });
