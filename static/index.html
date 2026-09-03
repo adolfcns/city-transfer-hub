@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#eaf3f8">
-  <title>蓝月在外｜曼城外租球员追踪</title>
+  <title>曼城社媒｜City Xtra 与曼城跟队动态</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%236CABDD'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%230b1a2a' font-family='Arial' font-weight='bold'>C</text></svg>">
   <link rel="stylesheet" href="style.css?v=__BUILD_VERSION__">
   <!-- 百度统计（tongji.baidu.com 官方代码，勿改动） -->
@@ -24,24 +24,25 @@
     <div class="topbar-inner">
       <div class="brand">
         <img class="brand-logo" src="assets/man-city-crest.svg" alt="曼城队徽">
-        <h1>蓝月在外</h1>
+        <h1 id="site-title">曼城社媒</h1>
       </div>
       <div class="topbar-right">
-        <span class="updated-at" id="updated-at">正在加载外租数据…</span>
+        <span class="updated-at" id="updated-at">正在加载社媒动态…</span>
+        <a class="page-switch" id="page-switch" href="./?view=loans">蓝月在外 →</a>
         <button class="icon-btn" id="btn-status" title="旧版信源状态" hidden>📡</button>
         <button class="icon-btn" id="btn-trigger" title="旧版转会抓取" hidden>⚡</button>
-        <button class="icon-btn" id="btn-refresh" title="刷新蓝月在外数据">⟳</button>
+        <button class="icon-btn" id="btn-refresh" title="刷新当前页面数据">⟳</button>
       </div>
       <p class="brand-sub">
         <a class="site-url" href="https://adolfcns.github.io/city-transfer-hub/">adolfcns.github.io/city-transfer-hub</a>
         <span class="brand-sub-separator">·</span>
         <a class="site-url" href="https://city-transfer-hub.pages.dev/">备用站 city-transfer-hub.pages.dev</a>
       </p>
-      <p class="brand-slogan">追踪每一次出场，记录每一段成长 💙 <button id="btn-fav" class="fav-btn">⭐ 一键收藏</button></p>
+      <p class="brand-slogan"><span id="brand-slogan-copy">只看 City Xtra 与三名曼城跟队，杂音更少 💙</span> <button id="btn-fav" class="fav-btn">⭐ 一键收藏</button></p>
     </div>
   </header>
 
-  <section class="stadium-hero" aria-label="伊蒂哈德夜景与冬窗开启倒计时">
+  <section class="stadium-hero" id="stadium-hero" aria-label="伊蒂哈德夜景与冬窗开启倒计时" hidden>
     <div class="stadium-hero-inner">
       <div class="winter-window-card">
         <span class="winter-window-kicker">WINTER WINDOW · 2027</span>
@@ -55,24 +56,38 @@
   </section>
 
   <div class="demo-banner" id="demo-banner" hidden>
-    ⚠ 当前显示演示数据 —— 抓取任务尚未产出真实数据（data/items.json 不存在）
+    ⚠ 社媒抓取尚未产出真实数据，当前显示页面示例
   </div>
   <div class="demo-banner warn" id="twitter-banner" hidden>
-    ℹ 推文通道未启用：需在 GitHub 仓库 Secrets 配置 <code>TWITTER_AUTH_TOKEN</code>，当前仅显示 RSS / Google News 文章
+    ℹ X 时间线暂未连接，页面会保留上一版动态并等待下次更新
   </div>
   <div class="demo-banner warn" id="translate-banner" hidden>
     🈚 中文翻译未启用：需在 GitHub 仓库 Secrets 配置 <code>DEEPSEEK_API_KEY</code>（README 有步骤），暂显示英文原文
   </div>
 
   <main class="container">
-    <section class="loan-watch-home" id="loan-watch-home" aria-label="蓝月在外球员赛后数据"></section>
+    <section class="social-home-intro" id="social-home-intro" aria-label="曼城社媒信源说明">
+      <div>
+        <span class="social-home-kicker">MCFC SOCIAL WATCH</span>
+        <h2>曼城社媒 · 跟队观察</h2>
+        <p>按时间汇总，只保留一个曼城资讯聚合号与三名跟队记者。</p>
+      </div>
+      <div class="social-source-chips" aria-label="当前社媒信源">
+        <span>City Xtra</span>
+        <span>Simon Bajkowski</span>
+        <span>Sam Lee</span>
+        <span>Jack Gaughan</span>
+      </div>
+    </section>
+
+    <section class="loan-watch-home" id="loan-watch-home" aria-label="蓝月在外球员赛后数据" hidden></section>
 
     <!-- 只保留夏窗调查和离队意难平 -->
     <section class="focus-zone poll-only-zone" id="focus-zone" hidden></section>
 
     <!-- 筛选栏 -->
-    <section class="filterbar" hidden>
-      <input type="search" id="search" placeholder="搜索球员 / 关键词…" autocomplete="off">
+    <section class="filterbar">
+      <input type="search" id="search" placeholder="搜索动态 / 关键词…" autocomplete="off">
       <div class="src-select" id="src-select">
         <button class="src-btn" id="src-btn">全部信源 ▾</button>
         <div class="src-menu" id="src-menu" hidden></div>
@@ -85,7 +100,7 @@
     </section>
 
     <!-- 本机收藏 / 已读状态 -->
-    <section class="librarybar" aria-label="消息状态筛选" hidden>
+    <section class="librarybar" aria-label="消息状态筛选">
       <div class="library-seg" id="library-seg">
         <button type="button" class="active" data-library-view="all" aria-pressed="true">全部 <span id="count-all">0</span></button>
         <button type="button" data-library-view="unread" aria-pressed="false">未读 <span id="count-unread">0</span></button>
@@ -95,8 +110,8 @@
     </section>
 
     <!-- 时间线 -->
-    <section id="feed" class="feed" hidden>
-      <div class="loading" id="loading">正在加载情报…</div>
+    <section id="feed" class="feed">
+      <div class="loading" id="loading">正在加载曼城社媒…</div>
     </section>
   </main>
 
@@ -250,8 +265,8 @@
   <div class="scrim" id="scrim" hidden></div>
 
   <footer class="foot">
-    <p>赛后评分及比赛数据来自 FotMob；免费数据源可能存在延迟，以赛事官方记录为准。</p>
-    <p>蓝月在外 · 记录曼城外租球员的每一次出场与成长</p>
+    <p id="footer-primary">动态来自公开 X 时间线；中文为自动翻译，请以原帖为准。</p>
+    <p id="footer-secondary">曼城社媒 · City Xtra、Simon Bajkowski、Sam Lee、Jack Gaughan</p>
   </footer>
 
   <script src="app.js?v=__BUILD_VERSION__"></script>

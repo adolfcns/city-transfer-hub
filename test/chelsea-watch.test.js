@@ -105,17 +105,22 @@ test('蓝桥雷达排除比赛、伤病、续约、女足和普通离队', () =>
   for (const value of rejected) assert.equal(isChelseaWatchItem(value), false, value);
 });
 
-test('首页切换为蓝月在外并停止转会新闻抓取', () => {
+test('首页切换为四源曼城社媒，蓝月在外保留独立入口', () => {
   const app = fs.readFileSync('static/app.js', 'utf8');
   const index = fs.readFileSync('static/index.html', 'utf8');
   const workflow = fs.readFileSync('.github/workflows/fetch.yml', 'utf8');
   const startup = app.slice(app.lastIndexOf('// ---------------- 启动 ----------------'));
-  assert.match(index, /id="loan-watch-home"/);
-  assert.match(index, /id="feed"[^>]*hidden/);
+  assert.match(index, /id="social-home-intro"/);
+  assert.match(index, /id="page-switch" href="\.\/\?view=loans">蓝月在外/);
+  assert.match(index, /id="loan-watch-home"[^>]*hidden/);
+  assert.match(index, /id="feed" class="feed">/);
   assert.match(app, /const ACTIVE_SURVEY_IDS = new Set\(\['summer_2026', DEPARTURE_SURVEY_ID\]\)/);
+  assert.match(app, /const IS_LOAN_PAGE = PAGE_VIEW === 'loans'/);
   assert.match(startup, /loadLoanWatchHome\(\)/);
-  assert.doesNotMatch(startup, /loadData\(\)|renderChelseaWatchModule\(|renderSeasonBlessingModule\(/);
+  assert.match(startup, /loadData\(false\)/);
+  assert.doesNotMatch(startup, /renderChelseaWatchModule\(|renderSeasonBlessingModule\(/);
   assert.match(workflow, /node scripts\/fetch-loan-watch\.js/);
+  assert.match(workflow, /node scripts\/fetch-social-feed\.js/);
   assert.doesNotMatch(workflow, /node scripts\/fetch\.js|PREV_CHELSEA_WATCH_URL/);
 });
 

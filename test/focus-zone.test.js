@@ -14,7 +14,7 @@ test('重点传闻配置只保留布阿迪', () => {
   assert.equal(targets.has('vinicius'), false);
 });
 
-test('首页焦点区只保留夏窗评分和离队意难平两项投票', () => {
+test('蓝月在外页面只保留夏窗评分和离队意难平两项投票', () => {
   const block = app.match(/function renderFocusZone\(\) \{[\s\S]*?\n\}/)?.[0] || '';
   assert.match(app, /const ACTIVE_SURVEY_IDS = new Set\(\['summer_2026', DEPARTURE_SURVEY_ID\]\)/);
   assert.match(block, /夏窗调查/);
@@ -22,6 +22,7 @@ test('首页焦点区只保留夏窗评分和离队意难平两项投票', () =>
   assert.match(block, /openSurvey\('summer_2026'\)/);
   assert.match(block, /openSurvey\(DEPARTURE_SURVEY_ID\)/);
   assert.doesNotMatch(block, /renderChelseaWatchModule|renderSeasonBlessingModule|阿兰球探报告|英超首秀评分/);
+  assert.match(block, /if \(!IS_LOAN_PAGE\)/);
   assert.match(index, /id="loan-watch-home"/);
   assert.doesNotMatch(index, /重点绯闻|冬窗见 💙/);
 });

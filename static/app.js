@@ -2,9 +2,18 @@
 'use strict';
 
 // ---------------- 配置 ----------------
-const DATA_URL = './data/items-latest.json';
+const PAGE_VIEW = new URLSearchParams(window.location.search).get('view') === 'loans' ? 'loans' : 'social';
+const IS_LOAN_PAGE = PAGE_VIEW === 'loans';
+const SOCIAL_SOURCE_KEYS = new Set(['city_xtra', 'bajkowski', 'samlee', 'gaughan']);
+const SOCIAL_SOURCE_LABELS = Object.freeze({
+  city_xtra: 'City Xtra',
+  bajkowski: 'Simon Bajkowski',
+  samlee: 'Sam Lee',
+  gaughan: 'Jack Gaughan',
+});
+const DATA_URL = './data/social-feed.json';
 const DATA_FALLBACK_URL = './data/items.json';
-const STATUS_URL = './data/status.json';
+const STATUS_URL = './data/social-status.json';
 const CHELSEA_WATCH_URL = './data/chelsea-watch.json';
 const LOAN_WATCH_URL = './data/loan-watch.json';
 const LOAN_WATCH_CACHE_KEY = 'cth_loan_watch_cache_v1';
@@ -1761,6 +1770,69 @@ function el(tag, cls, text) {
   if (text != null) n.textContent = text;
   return n;
 }
+
+function configurePageMode() {
+  document.body.dataset.page = PAGE_VIEW;
+  const socialHome = $('#social-home-intro');
+  const loanHome = $('#loan-watch-home');
+  const stadium = $('#stadium-hero');
+  const focusZone = $('#focus-zone');
+  const filterbar = $('.filterbar');
+  const librarybar = $('.librarybar');
+  const feed = $('#feed');
+  const switcher = $('#page-switch');
+  const title = $('#site-title');
+  const slogan = $('#brand-slogan-copy');
+
+  if (IS_LOAN_PAGE) {
+    document.title = '蓝月在外｜曼城外租球员追踪';
+    title.textContent = '蓝月在外';
+    slogan.textContent = '追踪每一次出场，记录每一段成长 💙';
+    switcher.textContent = '← 曼城社媒';
+    switcher.href = './';
+    switcher.setAttribute('aria-label', '返回曼城社媒首页');
+    $('#updated-at').textContent = '正在加载外租数据…';
+    $('#btn-refresh').title = '刷新蓝月在外数据';
+    socialHome.hidden = true;
+    loanHome.hidden = false;
+    stadium.hidden = false;
+    focusZone.hidden = true;
+    filterbar.hidden = true;
+    librarybar.hidden = true;
+    feed.hidden = true;
+    $('#footer-primary').textContent = '赛后评分及比赛数据来自 FotMob；免费数据源可能存在延迟，以赛事官方记录为准。';
+    $('#footer-secondary').textContent = '蓝月在外 · 记录曼城外租球员的每一次出场与成长';
+    return;
+  }
+
+  document.title = '曼城社媒｜City Xtra 与曼城跟队动态';
+  title.textContent = '曼城社媒';
+  slogan.textContent = '只看 City Xtra 与三名曼城跟队，杂音更少 💙';
+  switcher.textContent = '蓝月在外 →';
+  switcher.href = './?view=loans';
+  switcher.setAttribute('aria-label', '进入蓝月在外球员追踪');
+  socialHome.hidden = false;
+  loanHome.hidden = true;
+  stadium.hidden = true;
+  focusZone.hidden = true;
+  filterbar.hidden = false;
+  librarybar.hidden = false;
+  feed.hidden = false;
+  $('#footer-primary').textContent = '动态来自公开 X 时间线；中文为自动翻译，请以原帖为准。';
+  $('#footer-secondary').textContent = '曼城社媒 · City Xtra、Simon Bajkowski、Sam Lee、Jack Gaughan';
+}
+
+function socialSourceRole(sourceKey) {
+  return sourceKey === 'city_xtra' ? '聚合' : '跟队';
+}
+
+function normalizeSocialItem(item) {
+  return {
+    ...item,
+    source_name_zh: SOCIAL_SOURCE_LABELS[item.source_key] || item.source_name_zh || item.source_name,
+    note_zh: socialSourceRole(item.source_key) === '聚合' ? '曼城资讯聚合' : '曼城跟队记者',
+  };
+}
 function relTime(iso) {
   const t = new Date(iso).getTime();
   const diff = Date.now() - t;
@@ -2422,7 +2494,9 @@ async function loadData(isRefresh = false) {
   $('#demo-banner').hidden = !state.isDemo;
   $('#twitter-banner').hidden = state.isDemo || data.twitter_enabled !== false;
 
-  const incomingItems = data.items || [];
+  const incomingItems = (data.items || [])
+    .filter((item) => SOCIAL_SOURCE_KEYS.has(item.source_key))
+    .map(normalizeSocialItem);
   const hadSeenItems = state.seenIds.size > 0;
   const freshItems = incomingItems.filter((it) => !state.seenIds.has(it.id));
   const freshIds = freshItems.map((it) => it.id);
@@ -2434,17 +2508,18 @@ async function loadData(isRefresh = false) {
   for (const it of incomingItems) state.seenIds.add(it.id);
 
   state.items = incomingItems;
-  state.totalItems = Math.max(incomingItems.length, Number(data.total_items || incomingItems.length));
-  state.archiveFiles = Array.isArray(data.archive_files)
-    ? data.archive_files.filter((file) => /^items-archive-\d+\.json$/.test(String(file)))
-    : [];
+  state.totalItems = incomingItems.length;
+  // 社媒首页只保留四个账号近十天内容，不再加载旧转会窗的分页档案。
+  state.archiveFiles = [];
   state.loadedArchiveFiles = new Set();
   state.archiveLoading = false;
   if (isRefresh) reactionLiveLoaded.clear();
   state.generatedAt = data.generated_at;
   state.twitterEnabled = data.twitter_enabled;
-  state.focusTargets = data.focus_targets || [];
-  state.sourceCatalog = data.sources || [];
+  state.focusTargets = [];
+  state.sourceCatalog = (data.sources || [])
+    .filter((source) => SOCIAL_SOURCE_KEYS.has(source.key))
+    .map((source) => ({ ...source, name_zh: SOCIAL_SOURCE_LABELS[source.key] || source.name_zh || source.name }));
   if (isRefresh && freshItems.length > 0 && hadSeenItems) notifyFollowedPlayers(freshItems);
   prepareRequestedMessageView();
   $('#updated-at').textContent = `更新于 ${relTime(data.generated_at)}`;
@@ -2475,7 +2550,12 @@ async function loadData(isRefresh = false) {
   }
 
   const applyStatus = (s) => {
-    state.status = s;
+    state.status = {
+      ...s,
+      sources: (s.sources || [])
+        .filter((source) => SOCIAL_SOURCE_KEYS.has(source.key))
+        .map((source) => ({ ...source, name_zh: SOCIAL_SOURCE_LABELS[source.key] || source.name_zh || source.name })),
+    };
     buildSourceMenu();
     updateSrcBtn();
     renderStatusDot();
@@ -2486,10 +2566,12 @@ async function loadData(isRefresh = false) {
 
 // ---------------- 筛选 ----------------
 function currentSourceKeys() {
-  const byKey = new Map(state.items.map((it) => [it.source_key, it]));
+  const byKey = new Map(state.items
+    .filter((item) => SOCIAL_SOURCE_KEYS.has(item.source_key))
+    .map((it) => [it.source_key, it]));
   const configuredSources = [...(state.sourceCatalog || []), ...(state.status?.sources || [])];
   for (const src of configuredSources) {
-    if (!TIER_CLASS[src.tier] || byKey.has(src.key)) continue;
+    if (!SOCIAL_SOURCE_KEYS.has(src.key) || !TIER_CLASS[src.tier] || byKey.has(src.key)) continue;
     byKey.set(src.key, {
       source_key: src.key,
       source_name: src.name,
@@ -5106,6 +5188,11 @@ function renderSeasonBlessingModule(zone) {
 function renderFocusZone() {
   const zone = $('#focus-zone');
   clearEngagementWatchers(zone);
+  if (!IS_LOAN_PAGE) {
+    zone.hidden = true;
+    zone.textContent = '';
+    return;
+  }
   zone.textContent = '';
   zone.hidden = false;
   const heading = el('div', 'poll-shortcuts-heading');
@@ -5147,7 +5234,7 @@ function renderCard(it) {
   av.style.background = `hsl(${hueOf(it.source_key)}, 45%, 40%)`;
   head.appendChild(av);
   head.appendChild(el('span', 'src-name', it.source_name_zh || it.source_name));
-  const tierBadge = el('span', `badge-tier ${TIER_CLASS[it.tier]}`, it.tier);
+  const tierBadge = el('span', `badge-tier ${TIER_CLASS[it.tier]}`, socialSourceRole(it.source_key));
   head.appendChild(tierBadge);
   if (it.note_zh) head.appendChild(el('span', 'src-note', it.note_zh));
   if ((it.focus || []).length) {
@@ -5262,7 +5349,7 @@ function buildSourceMenu() {
       saveFilters(); render(); updateSrcBtn();
     };
     label.appendChild(cb);
-    label.appendChild(el('span', `badge-tier ${TIER_CLASS[it.tier]}`, it.tier));
+    label.appendChild(el('span', `badge-tier ${TIER_CLASS[it.tier]}`, socialSourceRole(it.source_key)));
     label.appendChild(el('span', null, it.source_name_zh || it.source_name));
     menu.appendChild(label);
   }
@@ -5682,11 +5769,11 @@ function bind() {
     if (state.filters.libraryView === 'unread') renderFeed();
     else syncAllRenderedItems();
   };
-  $('#btn-refresh').onclick = () => loadLoanWatchHome();
+  $('#btn-refresh').onclick = () => (IS_LOAN_PAGE ? loadLoanWatchHome() : loadData(true));
   $('#btn-trigger').onclick = triggerCloudFetch;
   // 一键收藏：复制网址 + 按设备给出最短收藏路径（浏览器不允许网页直接写书签）
   $('#btn-fav').onclick = async () => {
-    try { await navigator.clipboard.writeText('https://adolfcns.github.io/city-transfer-hub/'); } catch { /* 剪贴板不可用则只提示 */ }
+    try { await navigator.clipboard.writeText(window.location.href.split('#')[0]); } catch { /* 剪贴板不可用则只提示 */ }
     const ua = navigator.userAgent;
     let msg;
     if (/iPhone|iPad|iPod/i.test(ua)) msg = '网址已复制 ✓ iPhone：点浏览器"分享"按钮 → 添加到主屏幕或收藏';
@@ -5727,7 +5814,9 @@ function bind() {
     }, 6000);
   };
   // 手机切后台再回来时，浏览器会冻结定时器 → 恢复可见时立即刷新一次
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) loadLoanWatchHome(); });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) (IS_LOAN_PAGE ? loadLoanWatchHome() : loadData(true));
+  });
   updateSrcBtn();
 }
 
@@ -5749,14 +5838,23 @@ function mockItems() {
 }
 
 // ---------------- 启动 ----------------
+configurePageMode();
 bind();
 bindPrayer();
 recordRequestedShareVisit();
 renderFocusZone();
-updateWinterWindowCountdown();
-setInterval(updateWinterWindowCountdown, 1000);
-scheduleBig6SpendNotice();
-loadLoanWatchHome().finally(() => {
-  const surveyId = requestedSurveyId();
-  if (surveyId) openSurvey(surveyId);
-});
+if (IS_LOAN_PAGE) {
+  updateWinterWindowCountdown();
+  setInterval(updateWinterWindowCountdown, 1000);
+  scheduleBig6SpendNotice();
+  loadLoanWatchHome().finally(() => {
+    const surveyId = requestedSurveyId();
+    if (surveyId) openSurvey(surveyId);
+  });
+} else {
+  loadData(false).finally(() => {
+    const surveyId = requestedSurveyId();
+    if (surveyId) openSurvey(surveyId);
+  });
+  setInterval(() => loadData(true), REFRESH_MS);
+}

@@ -16,13 +16,12 @@ test('刷新先检查小状态文件，版本未变时不重建消息流', () =>
   assert.match(app, /状态检查失败时继续读取完整数据/);
 });
 
-test('首次只加载最新消息，滚动或搜索时再加载十天内历史包', () => {
-  assert.match(sources, /initial_items:\s*100\b/);
-  assert.match(sources, /archive_chunk_size:\s*100\b/);
-  assert.match(app, /const DATA_URL = '\.\/data\/items-latest\.json'/);
+test('社媒首页只读独立四源数据，不再混入转会窗历史包', () => {
+  assert.match(app, /const DATA_URL = '\.\/data\/social-feed\.json'/);
   assert.match(app, /const DATA_FALLBACK_URL = '\.\/data\/items\.json'/);
-  assert.match(app, /function appendArchiveControl\(\)/);
-  assert.match(app, /if \(query && hasMoreArchives\(\)\) await loadAllArchives\(\)/);
+  assert.match(app, /const SOCIAL_SOURCE_KEYS = new Set\(\['city_xtra', 'bajkowski', 'samlee', 'gaughan'\]\)/);
+  assert.match(app, /state\.archiveFiles = \[\]/);
+  assert.match(app, /filter\(\(item\) => SOCIAL_SOURCE_KEYS\.has\(item\.source_key\)\)/);
 });
 
 test('分享链接只定位消息，不改变按发布时间排列的消息顺序', () => {

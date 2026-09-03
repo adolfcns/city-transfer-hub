@@ -154,6 +154,49 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
     linear-gradient(118deg, #e7f5fb 0%, #f9fcfe 62%, #eef8fc 100%);
   box-shadow: 0 8px 24px rgba(42,83,106,.08);
 }
+
+/* ============ 双入口：首页社媒 / 蓝月在外 ============ */
+.page-switch {
+  min-height: 34px; padding: 7px 13px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid #438fb8; border-radius: 999px; background: #dff2fa; color: #176b95;
+  font-size: 12px; font-weight: 950; line-height: 1; white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(35, 99, 132, .10); transition: .15s;
+}
+.page-switch:hover { background: #caeaf7; border-color: #2782ad; color: #115b7e; text-decoration: none; transform: translateY(-1px); }
+.page-switch:active { transform: translateY(0); }
+
+body[data-page="social"] .container { max-width: 920px; }
+.social-home-intro {
+  margin-bottom: 12px; padding: 15px 17px; display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center; gap: 12px 20px; border: 1px solid #a9d1e3; border-radius: 15px;
+  background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(232,245,251,.92));
+  box-shadow: 0 8px 22px rgba(39,82,105,.08);
+}
+.social-home-kicker { color: #247da8; font-size: 9px; font-weight: 950; letter-spacing: .14em; }
+.social-home-intro h2 { margin-top: 2px; color: #18364d; font-size: 20px; font-weight: 950; line-height: 1.25; }
+.social-home-intro p { margin-top: 3px; color: #647f90; font-size: 11px; line-height: 1.45; }
+.social-source-chips { max-width: 420px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
+.social-source-chips span {
+  padding: 5px 9px; border: 1px solid #b8d7e6; border-radius: 999px; background: rgba(255,255,255,.88);
+  color: #265e7c; font-size: 10px; font-weight: 850; white-space: nowrap;
+}
+body[data-page="social"] .filterbar { margin-bottom: 10px; }
+body[data-page="social"] .librarybar { margin-top: 0; }
+body[data-page="social"] .badge-tier { min-width: 0; padding-inline: 7px; }
+
+@media (max-width: 560px) {
+  .page-switch { min-height: 30px; padding: 6px 9px; font-size: 10px; }
+  .topbar-right { align-self: center; }
+  .social-home-intro {
+    margin-bottom: 9px; padding: 10px; grid-template-columns: 1fr; gap: 7px; border-radius: 11px;
+  }
+  .social-home-intro h2 { font-size: 16px; }
+  .social-home-intro p { font-size: 10px; }
+  .social-source-chips { max-width: none; justify-content: flex-start; gap: 4px; }
+  .social-source-chips span { padding: 4px 7px; font-size: 9px; }
+  body[data-page="social"] .filterbar { margin-bottom: 7px; }
+  body[data-page="social"] .librarybar { margin-bottom: 8px; }
+}
 .season-blessing-copy { min-width: 0; }
 .season-blessing-kicker { color: #7f641d; font-size: 10px; font-weight: 900; letter-spacing: .06em; }
 .season-blessing-title { margin: 4px 0 0; color: #173d58; font-size: 20px; font-weight: 950; line-height: 1.3; }

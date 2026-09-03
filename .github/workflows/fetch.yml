@@ -2,7 +2,7 @@ name: fetch-and-deploy
 
 on:
   schedule:
-    - cron: '29 * * * *'      # 每小时检查一次，仅在 Cloudflare 赛程任务失联时兜底
+    - cron: '29 * * * *'      # 每小时检查外租快照与四源社媒时间线
   workflow_dispatch: {}       # 手动触发按钮
   push:
     branches: [main]
@@ -26,7 +26,8 @@ jobs:
       - name: Decide whether the hourly backup is needed
         id: decide
         env:
-          LIVE_DATA_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data/loan-watch.json
+          LOAN_DATA_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data/loan-watch.json
+          SOCIAL_STATUS_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data/social-status.json
         run: |
           if [ "$GITHUB_EVENT_NAME" != "schedule" ]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
@@ -35,27 +36,34 @@ jobs:
           fi
 
           DECISION="$(node --input-type=module <<'NODE'
-          try {
-            const response = await fetch(`${process.env.LIVE_DATA_URL}?t=${Date.now()}`, {
-              cache: 'no-store',
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const data = await response.json();
-            const age = Date.now() - new Date(data.checked_at || data.generated_at).getTime();
-            const fresh = Number.isFinite(age) && age >= 0 && age < 90 * 60 * 1000;
-            console.log(fresh ? 'false' : 'true');
-            console.error(`Loan-watch data age: ${Number.isFinite(age) ? Math.round(age / 60000) : 'unknown'} minutes`);
-          } catch (error) {
-            console.error(`Freshness check failed: ${error.message}; run the backup`);
-            console.log('true');
+          const checks = [
+            { name: 'Loan-watch', url: process.env.LOAN_DATA_URL, maxAge: 90 * 60 * 1000, fields: ['checked_at', 'generated_at'] },
+            { name: 'Social', url: process.env.SOCIAL_STATUS_URL, maxAge: 50 * 60 * 1000, fields: ['last_success'] },
+          ];
+          let shouldRun = false;
+          for (const check of checks) {
+            try {
+              const response = await fetch(`${check.url}?t=${Date.now()}`, { cache: 'no-store' });
+              if (!response.ok) throw new Error(`HTTP ${response.status}`);
+              const data = await response.json();
+              const stamp = check.fields.map((field) => data[field]).find(Boolean);
+              const age = Date.now() - new Date(stamp).getTime();
+              const fresh = Number.isFinite(age) && age >= 0 && age < check.maxAge;
+              console.error(`${check.name} age: ${Number.isFinite(age) ? Math.round(age / 60000) : 'unknown'} minutes`);
+              if (!fresh) shouldRun = true;
+            } catch (error) {
+              console.error(`${check.name} freshness check failed: ${error.message}; run the backup`);
+              shouldRun = true;
+            }
           }
+          console.log(shouldRun ? 'true' : 'false');
           NODE
           )"
           echo "should_run=$DECISION" >> "$GITHUB_OUTPUT"
           if [ "$DECISION" = "true" ]; then
-            echo "Cloudflare loan schedule looks stale; run the hourly backup"
+            echo "Loan or social data needs an update; run the hourly job"
           else
-            echo "Cloudflare main schedule is healthy; skip the redundant hourly fetch"
+            echo "Loan and social data are fresh; skip the redundant fetch"
           fi
 
   fetch-deploy:
@@ -68,6 +76,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url }}
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      TWITTER_AUTH_TOKEN: ${{ secrets.TWITTER_AUTH_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -78,12 +87,48 @@ jobs:
       - name: Install deps
         run: npm ci --no-audit --no-fund
 
+      # 四个指定 X 信源通过本地 RSSHub 读取，不接入 YouTube、Instagram 或图片流。
+      - name: Start RSSHub for the social feed
+        if: ${{ env.TWITTER_AUTH_TOKEN != '' }}
+        run: |
+          IMG=ghcr.io/diygod/rsshub:latest
+          docker pull -q "$IMG" || IMG=docker.io/diygod/rsshub:latest
+          docker run -d --name rsshub -p 1200:1200 \
+            -e NODE_ENV=production \
+            -e LOGGER_LEVEL=error \
+            -e CACHE_TYPE= \
+            -e TWITTER_AUTH_TOKEN="$TWITTER_AUTH_TOKEN" \
+            "$IMG"
+          ok=""
+          for i in $(seq 1 45); do
+            if curl -sf http://127.0.0.1:1200/healthz > /dev/null 2>&1; then ok=1; break; fi
+            sleep 2
+          done
+          if [ -n "$ok" ]; then
+            echo "RSSHub ready"
+            echo "RSSHUB_URL=http://127.0.0.1:1200" >> "$GITHUB_ENV"
+          else
+            echo "::warning::RSSHub 启动失败，本轮社媒会保留上一版"
+            docker logs rsshub | tail -20 || true
+          fi
+
       - name: Update loan schedule and post-match data
         run: |
           REPO_NAME="${GITHUB_REPOSITORY#*/}"
           BASE="https://${GITHUB_REPOSITORY_OWNER}.github.io/${REPO_NAME}"
           export PREV_LOAN_WATCH_URL="${BASE}/data/loan-watch.json"
           node scripts/fetch-loan-watch.js
+
+      - name: Update the four-source social feed
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          BASE="https://${GITHUB_REPOSITORY_OWNER}.github.io/${REPO_NAME}"
+          export PREV_SOCIAL_FEED_URL="${BASE}/data/social-feed.json"
+          export PREV_SOCIAL_STATUS_URL="${BASE}/data/social-status.json"
+          export PREV_LEGACY_DATA_URL="${BASE}/data/items.json"
+          node scripts/fetch-social-feed.js
 
       - name: Assemble site
         id: assemble

@@ -39,6 +39,7 @@ test('蓝月在外主页下方仅保留两个投票入口', () => {
   assert.match(app, /const ACTIVE_SURVEY_IDS = new Set\(\['summer_2026', DEPARTURE_SURVEY_ID\]\)/);
   assert.match(block, /夏窗调查/);
   assert.match(block, /离队意难平/);
+  assert.match(block, /if \(!IS_LOAN_PAGE\)/);
   assert.doesNotMatch(block, /阿兰球探报告|英超首秀评分|本站体验|FOCUS_SURVEY_ORDER/);
   assert.match(style, /\.poll-shortcuts/);
 });

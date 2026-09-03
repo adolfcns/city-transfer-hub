@@ -13,13 +13,15 @@ test('Cloudflare 与 GitHub 每小时检查一次到期赛程', () => {
   assert.equal(workflow.concurrency['cancel-in-progress'], true);
 });
 
-test('GitHub 小时任务检查蓝月在外快照新鲜度，定时抓取不重复部署互动 Worker', () => {
+test('GitHub 小时任务同时检查外租与社媒新鲜度，定时抓取不重复部署互动 Worker', () => {
   assert.equal(
     workflow.jobs['fetch-deploy'].if,
     "${{ needs.freshness-check.outputs.should_run == 'true' }}",
   );
-  assert.match(workflowText, /age < 90 \* 60 \* 1000/);
+  assert.match(workflowText, /maxAge: 90 \* 60 \* 1000/);
+  assert.match(workflowText, /maxAge: 50 \* 60 \* 1000/);
   assert.match(workflowText, /Update loan schedule and post-match data/);
+  assert.match(workflowText, /Update the four-source social feed/);
   assert.doesNotMatch(workflowText, /Fetch all sources|node scripts\/fetch\.js/);
   const deployWorker = workflow.jobs['fetch-deploy'].steps
     .find((step) => step.name === 'Deploy Cloudflare Worker');
