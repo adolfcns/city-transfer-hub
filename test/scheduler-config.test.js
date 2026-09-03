@@ -21,7 +21,7 @@ test('GitHub 小时任务同时检查外租与社媒新鲜度，定时抓取不�
   assert.match(workflowText, /maxAge: 90 \* 60 \* 1000/);
   assert.match(workflowText, /maxAge: 50 \* 60 \* 1000/);
   assert.match(workflowText, /Update loan schedule and post-match data/);
-  assert.match(workflowText, /Update the four-source social feed/);
+  assert.match(workflowText, /Update the nine-source social feed/);
   assert.doesNotMatch(workflowText, /Fetch all sources|node scripts\/fetch\.js/);
   const deployWorker = workflow.jobs['fetch-deploy'].steps
     .find((step) => step.name === 'Deploy Cloudflare Worker');

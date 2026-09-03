@@ -16,10 +16,10 @@ test('刷新先检查小状态文件，版本未变时不重建消息流', () =>
   assert.match(app, /状态检查失败时继续读取完整数据/);
 });
 
-test('社媒首页只读独立四源数据，不再混入转会窗历史包', () => {
+test('社媒首页只读独立九源数据，不再混入转会窗历史包', () => {
   assert.match(app, /const DATA_URL = '\.\/data\/social-feed\.json'/);
   assert.match(app, /const DATA_FALLBACK_URL = '\.\/data\/items\.json'/);
-  assert.match(app, /const SOCIAL_SOURCE_KEYS = new Set\(\['city_xtra', 'bajkowski', 'samlee', 'gaughan'\]\)/);
+  assert.match(app, /const SOCIAL_SOURCE_KEYS = new Set\(\[[\s\S]*?'fpl_maine_road',[\s\S]*?'tolmie',[\s\S]*?\]\)/);
   assert.match(app, /state\.archiveFiles = \[\]/);
   assert.match(app, /filter\(\(item\) => SOCIAL_SOURCE_KEYS\.has\(item\.source_key\)\)/);
 });

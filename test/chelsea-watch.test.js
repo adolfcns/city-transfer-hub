@@ -105,7 +105,7 @@ test('蓝桥雷达排除比赛、伤病、续约、女足和普通离队', () =>
   for (const value of rejected) assert.equal(isChelseaWatchItem(value), false, value);
 });
 
-test('首页切换为四源曼城社媒，蓝月在外保留独立入口', () => {
+test('首页切换为九源曼城社媒，蓝月在外保留独立入口', () => {
   const app = fs.readFileSync('static/app.js', 'utf8');
   const index = fs.readFileSync('static/index.html', 'utf8');
   const workflow = fs.readFileSync('.github/workflows/fetch.yml', 'utf8');

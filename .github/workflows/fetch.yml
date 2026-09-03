@@ -2,7 +2,7 @@ name: fetch-and-deploy
 
 on:
   schedule:
-    - cron: '29 * * * *'      # 每小时检查外租快照与四源社媒时间线
+    - cron: '29 * * * *'      # 每小时检查外租快照与九源社媒时间线
   workflow_dispatch: {}       # 手动触发按钮
   push:
     branches: [main]
@@ -87,7 +87,7 @@ jobs:
       - name: Install deps
         run: npm ci --no-audit --no-fund
 
-      # 四个指定 X 信源通过本地 RSSHub 读取，不接入 YouTube、Instagram 或图片流。
+      # 九个指定 X 信源通过本地 RSSHub 读取，不接入 YouTube、Instagram 或图片流。
       - name: Start RSSHub for the social feed
         if: ${{ env.TWITTER_AUTH_TOKEN != '' }}
         run: |
@@ -119,7 +119,7 @@ jobs:
           export PREV_LOAN_WATCH_URL="${BASE}/data/loan-watch.json"
           node scripts/fetch-loan-watch.js
 
-      - name: Update the four-source social feed
+      - name: Update the nine-source social feed
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |

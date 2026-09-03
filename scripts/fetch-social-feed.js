@@ -1,10 +1,10 @@
-// 曼城社媒首页：只抓 City Xtra 与三名指定跟队记者。
+// 曼城社媒首页：抓四个既有来源与五个曼城专属消息源。
 //
 // 环境变量：
 //   RSSHUB_URL             RSSHub 地址（X 时间线入口）
 //   PREV_SOCIAL_FEED_URL   上一次 social-feed.json 的线上地址
 //   PREV_SOCIAL_STATUS_URL 上一次 social-status.json 的线上地址
-//   PREV_LEGACY_DATA_URL   首次上线时可从旧 items.json 继承这四个信源的历史
+//   PREV_LEGACY_DATA_URL   首次上线时可从旧 items.json 继承这些信源的历史
 //   DEEPSEEK_API_KEY       中文翻译密钥（失败时仍会尝试免费备用翻译）
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -27,6 +27,11 @@ export const SOCIAL_SOURCE_KEYS = Object.freeze([
   'bajkowski',
   'samlee',
   'gaughan',
+  'fpl_maine_road',
+  'etihad_intel',
+  'mcfcous',
+  'city_report',
+  'tolmie',
 ]);
 
 export const SOCIAL_SOURCE_LABELS = Object.freeze({
@@ -34,6 +39,29 @@ export const SOCIAL_SOURCE_LABELS = Object.freeze({
   bajkowski: 'Simon Bajkowski',
   samlee: 'Sam Lee',
   gaughan: 'Jack Gaughan',
+  fpl_maine_road: 'FPL Maine Road',
+  etihad_intel: 'Etihad Intel',
+  mcfcous: 'mcfcous',
+  city_report: 'City Report',
+  tolmie: "Tolmie's Hairdoo",
+});
+
+const SOCIAL_DEDICATED_CITY_SOURCE_KEYS = new Set([
+  'city_xtra',
+  'fpl_maine_road',
+  'etihad_intel',
+  'mcfcous',
+  'city_report',
+  'tolmie',
+]);
+
+const SOCIAL_SOURCE_NOTES = Object.freeze({
+  city_xtra: '曼城资讯聚合',
+  fpl_maine_road: '曼城阵容与球队动态',
+  etihad_intel: '曼城内幕与转会',
+  mcfcous: '曼城专属消息源',
+  city_report: '曼城资讯聚合',
+  tolmie: '蓝月论坛爆料与暗示',
 });
 
 const wait = (ms) => new Promise((done) => setTimeout(done, ms));
@@ -61,9 +89,9 @@ export function selectSocialSources(config) {
 
 export function isSocialPost(source, text, matchers) {
   if (matchers.isExcluded(text)) return false;
-  // City Xtra 本身就是曼城专号；三名记者还会报道其他球队，需要曼城语义闸门。
+  // 六个曼城专号允许简短爆料和暗示；三名记者还会报道其他球队，需要曼城语义闸门。
   // 除俱乐部名外也认现役球员和教练，避免“哈兰德状态更新”这类未写 MCFC 的帖子漏掉。
-  return source.key === 'city_xtra' || matchers.isCity(text) || matchers.isCurrentMan(text);
+  return SOCIAL_DEDICATED_CITY_SOURCE_KEYS.has(source.key) || matchers.isCity(text) || matchers.isCurrentMan(text);
 }
 
 function normalizeItem(item, sourceByKey) {
@@ -71,7 +99,7 @@ function normalizeItem(item, sourceByKey) {
   return {
     ...item,
     source_name_zh: SOCIAL_SOURCE_LABELS[item.source_key] || item.source_name_zh || item.source_name,
-    note_zh: source?.key === 'city_xtra' ? '曼城资讯聚合' : '曼城跟队记者',
+    note_zh: SOCIAL_SOURCE_NOTES[source?.key] || '曼城跟队记者',
     text: htmlToText(item.text) || item.text,
   };
 }
@@ -151,7 +179,7 @@ export async function buildSocialFeed() {
           url: entry.url,
           published_at: entry.published_at,
           badges: detectBadges(entry.text),
-          note_zh: source.key === 'city_xtra' ? '曼城资讯聚合' : '曼城跟队记者',
+          note_zh: SOCIAL_SOURCE_NOTES[source.key] || '曼城跟队记者',
         });
       }
       const admitted = incoming.length - admittedBefore;

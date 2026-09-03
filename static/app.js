@@ -4,12 +4,36 @@
 // ---------------- 配置 ----------------
 const PAGE_VIEW = new URLSearchParams(window.location.search).get('view') === 'loans' ? 'loans' : 'social';
 const IS_LOAN_PAGE = PAGE_VIEW === 'loans';
-const SOCIAL_SOURCE_KEYS = new Set(['city_xtra', 'bajkowski', 'samlee', 'gaughan']);
+const SOCIAL_SOURCE_KEYS = new Set([
+  'city_xtra', 'bajkowski', 'samlee', 'gaughan', 'fpl_maine_road',
+  'etihad_intel', 'mcfcous', 'city_report', 'tolmie',
+]);
 const SOCIAL_SOURCE_LABELS = Object.freeze({
   city_xtra: 'City Xtra',
   bajkowski: 'Simon Bajkowski',
   samlee: 'Sam Lee',
   gaughan: 'Jack Gaughan',
+  fpl_maine_road: 'FPL Maine Road',
+  etihad_intel: 'Etihad Intel',
+  mcfcous: 'mcfcous',
+  city_report: 'City Report',
+  tolmie: "Tolmie's Hairdoo",
+});
+const SOCIAL_SOURCE_ROLES = Object.freeze({
+  city_xtra: '聚合',
+  city_report: '聚合',
+  fpl_maine_road: '阵容',
+  etihad_intel: 'ITK',
+  mcfcous: 'ITK',
+  tolmie: 'ITK',
+});
+const SOCIAL_SOURCE_NOTES = Object.freeze({
+  city_xtra: '曼城资讯聚合',
+  city_report: '曼城资讯聚合',
+  fpl_maine_road: '曼城阵容与球队动态',
+  etihad_intel: '曼城内幕与转会',
+  mcfcous: '曼城专属消息源',
+  tolmie: '蓝月论坛爆料与暗示',
 });
 const DATA_URL = './data/social-feed.json';
 const DATA_FALLBACK_URL = './data/items.json';
@@ -1813,7 +1837,7 @@ function configurePageMode() {
     return;
   }
 
-  document.title = '曼城社媒｜City Xtra 与曼城跟队动态';
+  document.title = '曼城社媒｜跟队记者与蓝月消息源';
   title.textContent = '曼城社媒';
   slogan.textContent = '点击右侧看外租小将表现';
   socialHome.hidden = false;
@@ -1824,18 +1848,18 @@ function configurePageMode() {
   librarybar.hidden = false;
   feed.hidden = false;
   $('#footer-primary').textContent = '动态来自公开 X 时间线；中文为自动翻译，请以原帖为准。';
-  $('#footer-secondary').textContent = '曼城社媒 · City Xtra、Simon Bajkowski、Sam Lee、Jack Gaughan';
+  $('#footer-secondary').textContent = '曼城社媒 · 跟队记者、资讯聚合与蓝月 ITK';
 }
 
 function socialSourceRole(sourceKey) {
-  return sourceKey === 'city_xtra' ? '聚合' : '跟队';
+  return SOCIAL_SOURCE_ROLES[sourceKey] || '跟队';
 }
 
 function normalizeSocialItem(item) {
   return {
     ...item,
     source_name_zh: SOCIAL_SOURCE_LABELS[item.source_key] || item.source_name_zh || item.source_name,
-    note_zh: socialSourceRole(item.source_key) === '聚合' ? '曼城资讯聚合' : '曼城跟队记者',
+    note_zh: SOCIAL_SOURCE_NOTES[item.source_key] || '曼城跟队记者',
   };
 }
 function relTime(iso) {

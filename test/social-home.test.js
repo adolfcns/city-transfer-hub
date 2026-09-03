@@ -13,7 +13,7 @@ const workflow = fs.readFileSync('.github/workflows/fetch.yml', 'utf8');
 const config = YAML.parse(fs.readFileSync('config/sources.yaml', 'utf8'));
 
 test('社媒首页与蓝月在外使用两个稳定入口', () => {
-  assert.match(html, /<title>曼城社媒｜City Xtra 与曼城跟队动态<\/title>/);
+  assert.match(html, /<title>曼城社媒｜跟队记者与蓝月消息源<\/title>/);
   assert.match(html, /<nav class="page-tabs" id="page-tabs" aria-label="主要页面">/);
   assert.match(html, /id="page-social" href="\.\/" aria-current="page">曼城社媒<\/a>/);
   assert.match(html, /id="page-loans" href="\.\/\?view=loans">蓝月在外<\/a>/);
@@ -30,14 +30,23 @@ test('社媒首页与蓝月在外使用两个稳定入口', () => {
   assert.match(css, /\.loan-page-hero-action/);
 });
 
-test('社媒抓取与前台都严格限定四个指定 X 信源', () => {
-  assert.deepEqual([...SOCIAL_SOURCE_KEYS], ['city_xtra', 'bajkowski', 'samlee', 'gaughan']);
+test('社媒抓取与前台严格限定九个指定 X 信源', () => {
+  assert.deepEqual([...SOCIAL_SOURCE_KEYS], [
+    'city_xtra', 'bajkowski', 'samlee', 'gaughan', 'fpl_maine_road',
+    'etihad_intel', 'mcfcous', 'city_report', 'tolmie',
+  ]);
   assert.deepEqual(selectSocialSources(config).map((source) => source.key), [...SOCIAL_SOURCE_KEYS]);
-  for (const name of ['City Xtra', 'Simon Bajkowski', 'Sam Lee', 'Jack Gaughan']) assert.match(html, new RegExp(name));
+  const shippedSourceCode = `${app}\n${fetcher}`;
+  for (const name of [
+    'City Xtra', 'Simon Bajkowski', 'Sam Lee', 'Jack Gaughan', 'FPL Maine Road',
+    'Etihad Intel', 'mcfcous', 'City Report', "Tolmie's Hairdoo",
+  ]) assert.match(shippedSourceCode, new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   const matchers = makeMatchers(config);
   const cityXtra = selectSocialSources(config).find((source) => source.key === 'city_xtra');
   const samLee = selectSocialSources(config).find((source) => source.key === 'samlee');
+  const tolmie = selectSocialSources(config).find((source) => source.key === 'tolmie');
   assert.equal(isSocialPost(cityXtra, 'A short club update without spelling out MCFC.', matchers), true);
+  assert.equal(isSocialPost(tolmie, 'Something is moving. Soon. 👀', matchers), true);
   assert.equal(isSocialPost(samLee, 'New Erling Haaland fitness update.', matchers), true);
   assert.equal(isSocialPost(samLee, 'Liverpool have made a bid for a winger.', matchers), false);
   assert.match(app, /filter\(\(item\) => SOCIAL_SOURCE_KEYS\.has\(item\.source_key\)\)/);
