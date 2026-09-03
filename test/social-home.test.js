@@ -14,11 +14,14 @@ const config = YAML.parse(fs.readFileSync('config/sources.yaml', 'utf8'));
 
 test('社媒首页与蓝月在外使用两个稳定入口', () => {
   assert.match(html, /<title>曼城社媒｜City Xtra 与曼城跟队动态<\/title>/);
-  assert.match(html, /id="page-switch" href="\.\/\?view=loans">蓝月在外 →<\/a>/);
+  assert.match(html, /<nav class="page-tabs" id="page-tabs" aria-label="主要页面">/);
+  assert.match(html, /id="page-social" href="\.\/" aria-current="page">曼城社媒<\/a>/);
+  assert.match(html, /id="page-loans" href="\.\/\?view=loans">蓝月在外<\/a>/);
   assert.match(app, /PAGE_VIEW = new URLSearchParams\(window\.location\.search\)/);
-  assert.match(app, /switcher\.href = '\.\/'/);
-  assert.match(app, /switcher\.href = '\.\/\?view=loans'/);
-  assert.match(css, /\.page-switch/);
+  assert.match(app, /loansTab\.classList\.toggle\('active', IS_LOAN_PAGE\)/);
+  assert.match(app, /socialTab\.classList\.toggle\('active', !IS_LOAN_PAGE\)/);
+  assert.match(css, /\.page-tabs/);
+  assert.match(css, /\.page-tab\.active/);
   assert.match(css, /\.social-home-intro/);
 });
 

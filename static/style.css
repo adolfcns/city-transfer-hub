@@ -156,14 +156,29 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
 }
 
 /* ============ 双入口：首页社媒 / 蓝月在外 ============ */
-.page-switch {
-  min-height: 34px; padding: 7px 13px; display: inline-flex; align-items: center; justify-content: center;
-  border: 1px solid #438fb8; border-radius: 999px; background: #dff2fa; color: #176b95;
-  font-size: 12px; font-weight: 950; line-height: 1; white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(35, 99, 132, .10); transition: .15s;
+.page-tabs {
+  display: inline-grid; grid-template-columns: repeat(2, minmax(88px, 1fr)); gap: 4px; padding: 3px;
+  border: 1px solid #7db9d6; border-radius: 11px; background: rgba(225, 242, 250, .92);
+  box-shadow: 0 5px 15px rgba(35, 99, 132, .12);
 }
-.page-switch:hover { background: #caeaf7; border-color: #2782ad; color: #115b7e; text-decoration: none; transform: translateY(-1px); }
-.page-switch:active { transform: translateY(0); }
+.page-tab {
+  min-height: 34px; padding: 7px 12px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid transparent; border-radius: 8px; color: #356b86;
+  font-size: 12px; font-weight: 950; line-height: 1; white-space: nowrap; cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s, box-shadow .15s, transform .15s;
+}
+.page-tab::after { content: "↗"; margin-left: 5px; font-size: 10px; opacity: .72; }
+.page-tab:hover {
+  border-color: #68add0; background: #f8fdff; color: #115b7e; text-decoration: none;
+  box-shadow: 0 3px 9px rgba(35, 99, 132, .12); transform: translateY(-1px);
+}
+.page-tab:active { transform: translateY(0); }
+.page-tab.active {
+  border-color: #177dab; background: linear-gradient(135deg, #258fbe, #1474a1); color: #fff;
+  box-shadow: 0 4px 10px rgba(18, 101, 142, .25);
+}
+.page-tab.active::after { content: "●"; font-size: 7px; opacity: .9; }
+.page-tab:focus-visible { outline: 3px solid rgba(37, 143, 190, .25); outline-offset: 2px; }
 
 body[data-page="social"] .container { max-width: 920px; }
 .social-home-intro {
@@ -185,7 +200,9 @@ body[data-page="social"] .librarybar { margin-top: 0; }
 body[data-page="social"] .badge-tier { min-width: 0; padding-inline: 7px; }
 
 @media (max-width: 560px) {
-  .page-switch { min-height: 30px; padding: 6px 9px; font-size: 10px; }
+  .page-tabs { grid-template-columns: repeat(2, minmax(68px, 1fr)); gap: 2px; padding: 2px; border-radius: 9px; }
+  .page-tab { min-height: 30px; padding: 5px 7px; border-radius: 7px; font-size: 10px; }
+  .page-tab::after { margin-left: 3px; font-size: 8px; }
   .topbar-right { align-self: center; }
   .social-home-intro {
     margin-bottom: 9px; padding: 10px; grid-template-columns: 1fr; gap: 7px; border-radius: 11px;

@@ -140,7 +140,8 @@ test('按赛程驱动赛后抓取并设置每日安全额度', () => {
   assert.match(app, /只统计本赛季租借生效后的比赛。/);
   assert.match(app, /预计完赛 1 小时后抓取/);
   assert.match(app, /接下来谁出场？赛程表/);
-  assert.match(app, /context\.home && !window\.matchMedia\('\(max-width: 560px\)'\)\.matches/);
+  assert.match(app, /upcomingSchedule\.open = true/);
+  assert.doesNotMatch(app, /context\.home && !window\.matchMedia\('\(max-width: 560px\)'\)\.matches/);
   assert.match(style, /\.loan-player-list \{[^}]*grid-template-columns: repeat\(2/);
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.loan-player-list \{ grid-template-columns: 1fr/);
 });

@@ -28,7 +28,10 @@
       </div>
       <div class="topbar-right">
         <span class="updated-at" id="updated-at">正在加载社媒动态…</span>
-        <a class="page-switch" id="page-switch" href="./?view=loans">蓝月在外 →</a>
+        <nav class="page-tabs" id="page-tabs" aria-label="主要页面">
+          <a class="page-tab active" id="page-social" href="./" aria-current="page">曼城社媒</a>
+          <a class="page-tab" id="page-loans" href="./?view=loans">蓝月在外</a>
+        </nav>
         <button class="icon-btn" id="btn-status" title="旧版信源状态" hidden>📡</button>
         <button class="icon-btn" id="btn-trigger" title="旧版转会抓取" hidden>⚡</button>
         <button class="icon-btn" id="btn-refresh" title="刷新当前页面数据">⟳</button>

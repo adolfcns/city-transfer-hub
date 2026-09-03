@@ -1780,17 +1780,25 @@ function configurePageMode() {
   const filterbar = $('.filterbar');
   const librarybar = $('.librarybar');
   const feed = $('#feed');
-  const switcher = $('#page-switch');
+  const socialTab = $('#page-social');
+  const loansTab = $('#page-loans');
   const title = $('#site-title');
   const slogan = $('#brand-slogan-copy');
+
+  socialTab.classList.toggle('active', !IS_LOAN_PAGE);
+  loansTab.classList.toggle('active', IS_LOAN_PAGE);
+  if (IS_LOAN_PAGE) {
+    socialTab.removeAttribute('aria-current');
+    loansTab.setAttribute('aria-current', 'page');
+  } else {
+    socialTab.setAttribute('aria-current', 'page');
+    loansTab.removeAttribute('aria-current');
+  }
 
   if (IS_LOAN_PAGE) {
     document.title = '蓝月在外｜曼城外租球员追踪';
     title.textContent = '蓝月在外';
     slogan.textContent = '追踪每一次出场，记录每一段成长 💙';
-    switcher.textContent = '← 曼城社媒';
-    switcher.href = './';
-    switcher.setAttribute('aria-label', '返回曼城社媒首页');
     $('#updated-at').textContent = '正在加载外租数据…';
     $('#btn-refresh').title = '刷新蓝月在外数据';
     socialHome.hidden = true;
@@ -1808,9 +1816,6 @@ function configurePageMode() {
   document.title = '曼城社媒｜City Xtra 与曼城跟队动态';
   title.textContent = '曼城社媒';
   slogan.textContent = '只看 City Xtra 与三名曼城跟队，杂音更少 💙';
-  switcher.textContent = '蓝月在外 →';
-  switcher.href = './?view=loans';
-  switcher.setAttribute('aria-label', '进入蓝月在外球员追踪');
   socialHome.hidden = false;
   loanHome.hidden = true;
   stadium.hidden = true;
@@ -4186,7 +4191,7 @@ function renderLoanWatch(context) {
   if (upcoming.length) {
     upcomingSchedule = document.createElement('details');
     upcomingSchedule.className = 'loan-upcoming-schedule';
-    if (context.home && !window.matchMedia('(max-width: 560px)').matches) upcomingSchedule.open = true;
+    upcomingSchedule.open = true;
     const scheduleTitle = document.createElement('summary');
     scheduleTitle.textContent = `接下来谁出场？赛程表（${upcoming.length}场）`;
     upcomingSchedule.appendChild(scheduleTitle);

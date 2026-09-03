@@ -111,7 +111,8 @@ test('首页切换为四源曼城社媒，蓝月在外保留独立入口', () =>
   const workflow = fs.readFileSync('.github/workflows/fetch.yml', 'utf8');
   const startup = app.slice(app.lastIndexOf('// ---------------- 启动 ----------------'));
   assert.match(index, /id="social-home-intro"/);
-  assert.match(index, /id="page-switch" href="\.\/\?view=loans">蓝月在外/);
+  assert.match(index, /id="page-social" href="\.\/" aria-current="page">曼城社媒<\/a>/);
+  assert.match(index, /id="page-loans" href="\.\/\?view=loans">蓝月在外<\/a>/);
   assert.match(index, /id="loan-watch-home"[^>]*hidden/);
   assert.match(index, /id="feed" class="feed">/);
   assert.match(app, /const ACTIVE_SURVEY_IDS = new Set\(\['summer_2026', DEPARTURE_SURVEY_ID\]\)/);
