@@ -1815,7 +1815,7 @@ function configurePageMode() {
 
   document.title = '曼城社媒｜City Xtra 与曼城跟队动态';
   title.textContent = '曼城社媒';
-  slogan.textContent = '只看 City Xtra 与三名曼城跟队，杂音更少 💙';
+  slogan.textContent = '点击右侧看外租小将表现';
   socialHome.hidden = false;
   loanHome.hidden = true;
   stadium.hidden = true;

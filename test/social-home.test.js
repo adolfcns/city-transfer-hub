@@ -17,9 +17,11 @@ test('社媒首页与蓝月在外使用两个稳定入口', () => {
   assert.match(html, /<nav class="page-tabs" id="page-tabs" aria-label="主要页面">/);
   assert.match(html, /id="page-social" href="\.\/" aria-current="page">曼城社媒<\/a>/);
   assert.match(html, /id="page-loans" href="\.\/\?view=loans">蓝月在外<\/a>/);
+  assert.match(html, /id="brand-slogan-copy">点击右侧看外租小将表现<\/span>/);
   assert.match(app, /PAGE_VIEW = new URLSearchParams\(window\.location\.search\)/);
   assert.match(app, /loansTab\.classList\.toggle\('active', IS_LOAN_PAGE\)/);
   assert.match(app, /socialTab\.classList\.toggle\('active', !IS_LOAN_PAGE\)/);
+  assert.match(app, /slogan\.textContent = '点击右侧看外租小将表现'/);
   assert.match(css, /\.page-tabs/);
   assert.match(css, /\.page-tab\.active/);
   assert.match(css, /\.social-home-intro/);
