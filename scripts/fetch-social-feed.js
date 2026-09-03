@@ -13,7 +13,7 @@ import YAML from 'yaml';
 import { initHttp, httpGet } from './lib/http.js';
 import { fetchSource } from './lib/sources.js';
 import { htmlToText } from './lib/rss.js';
-import { makeMatchers, passFilter, detectBadges, makeId, mergeItems } from './lib/pipeline.js';
+import { makeMatchers, detectBadges, makeId, mergeItems } from './lib/pipeline.js';
 import { translateNew } from './lib/translate.js';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -59,9 +59,11 @@ export function selectSocialSources(config) {
   return SOCIAL_SOURCE_KEYS.map((key) => sourceByKey.get(key)).filter(Boolean);
 }
 
-function socialFilterMode(source) {
-  // City Xtra 本身就是曼城专号；三名记者还会报道其他球队，需要曼城关键词闸门。
-  return source.key === 'city_xtra' ? 'none' : 'city';
+export function isSocialPost(source, text, matchers) {
+  if (matchers.isExcluded(text)) return false;
+  // City Xtra 本身就是曼城专号；三名记者还会报道其他球队，需要曼城语义闸门。
+  // 除俱乐部名外也认现役球员和教练，避免“哈兰德状态更新”这类未写 MCFC 的帖子漏掉。
+  return source.key === 'city_xtra' || matchers.isCity(text) || matchers.isCurrentMan(text);
 }
 
 function normalizeItem(item, sourceByKey) {
@@ -107,7 +109,7 @@ export async function buildSocialFeed() {
     .filter((item) => Date.parse(item.published_at) >= cutoff)
     .map((item) => normalizeItem(item, sourceByKey))
     .filter((item) => item.url && item.text && !/^RT[ :@]/i.test(item.text))
-    .filter((item) => passFilter(socialFilterMode(sourceByKey.get(item.source_key)), item.text, matchers));
+    .filter((item) => isSocialPost(sourceByKey.get(item.source_key), item.text, matchers));
   const knownIds = new Set(kept.map((item) => item.id));
   const rsshubUrl = process.env.RSSHUB_URL || '';
   const context = {
@@ -134,7 +136,7 @@ export async function buildSocialFeed() {
       const admittedBefore = incoming.length;
       for (const entry of entries) {
         if (!entry?.url || !entry?.text || Date.parse(entry.published_at) < cutoff) continue;
-        if (!passFilter(socialFilterMode(source), entry.text, matchers)) continue;
+        if (!isSocialPost(source, entry.text, matchers)) continue;
         const id = makeId(entry.url);
         if (knownIds.has(id) || incoming.some((item) => item.id === id)) continue;
         incoming.push({

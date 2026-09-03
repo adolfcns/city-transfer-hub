@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import YAML from 'yaml';
-import { SOCIAL_SOURCE_KEYS, selectSocialSources } from '../scripts/fetch-social-feed.js';
+import { SOCIAL_SOURCE_KEYS, selectSocialSources, isSocialPost } from '../scripts/fetch-social-feed.js';
+import { makeMatchers } from '../scripts/lib/pipeline.js';
 
 const html = fs.readFileSync('static/index.html', 'utf8');
 const app = fs.readFileSync('static/app.js', 'utf8');
@@ -25,7 +26,12 @@ test('社媒抓取与前台都严格限定四个指定 X 信源', () => {
   assert.deepEqual([...SOCIAL_SOURCE_KEYS], ['city_xtra', 'bajkowski', 'samlee', 'gaughan']);
   assert.deepEqual(selectSocialSources(config).map((source) => source.key), [...SOCIAL_SOURCE_KEYS]);
   for (const name of ['City Xtra', 'Simon Bajkowski', 'Sam Lee', 'Jack Gaughan']) assert.match(html, new RegExp(name));
-  assert.match(fetcher, /source\.key === 'city_xtra' \? 'none' : 'city'/);
+  const matchers = makeMatchers(config);
+  const cityXtra = selectSocialSources(config).find((source) => source.key === 'city_xtra');
+  const samLee = selectSocialSources(config).find((source) => source.key === 'samlee');
+  assert.equal(isSocialPost(cityXtra, 'A short club update without spelling out MCFC.', matchers), true);
+  assert.equal(isSocialPost(samLee, 'New Erling Haaland fitness update.', matchers), true);
+  assert.equal(isSocialPost(samLee, 'Liverpool have made a bid for a winger.', matchers), false);
   assert.match(app, /filter\(\(item\) => SOCIAL_SOURCE_KEYS\.has\(item\.source_key\)\)/);
   assert.match(workflow, /TWITTER_AUTH_TOKEN/);
   assert.match(workflow, /node scripts\/fetch-social-feed\.js/);
