@@ -25,6 +25,9 @@ test('社媒首页与蓝月在外使用两个稳定入口', () => {
   assert.match(css, /\.page-tabs/);
   assert.match(css, /\.page-tab\.active/);
   assert.match(css, /\.social-home-intro/);
+  assert.match(html, /class="loan-page-hero-link" href="\.\/\?view=loans"/);
+  assert.match(html, /<h2>外租小将入口<\/h2>/);
+  assert.match(css, /\.loan-page-hero-action/);
 });
 
 test('社媒抓取与前台都严格限定四个指定 X 信源', () => {
