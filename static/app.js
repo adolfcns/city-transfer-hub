@@ -96,13 +96,6 @@ const REACTION_DEFS = Object.freeze([
   { key: 'wild', emoji: '😂', label: '什么鬼' },
   { key: 'doubt', emoji: '🤨', label: '不可能！绝对不可能！' },
 ]);
-const LOAN_MATCH_REACTION_DEFS = Object.freeze([
-  { key: 'fire', emoji: '🔥', label: '夯爆了' },
-  { key: 'heart', emoji: '🌱', label: '未来可期' },
-  { key: 'doubt', emoji: '🫠', label: '拉完了' },
-  { key: 'wild', emoji: '🧱', label: '砸手里了' },
-  { key: 'watch', emoji: '👀', label: '再看几场' },
-]);
 const REACTION_KEYS = new Set(REACTION_DEFS.map((item) => item.key));
 const SURVEY_DEFINITIONS = Object.freeze({
   summer_departure_heartbreak_2026: {
@@ -1600,7 +1593,7 @@ function syncReactionBars(id) {
   document.querySelectorAll('article[data-item-id]').forEach((article) => {
     if (article.dataset.itemId !== id) return;
     article.querySelectorAll('.reaction-bar').forEach((bar) => {
-      const definitions = bar.dataset.reactionScope === 'loan-match' ? LOAN_MATCH_REACTION_DEFS : REACTION_DEFS;
+      const definitions = REACTION_DEFS;
       bar.querySelectorAll('.reaction-btn').forEach((button) => {
         const def = definitions.find((item) => item.key === button.dataset.reaction);
         if (!def) return;
@@ -1613,7 +1606,7 @@ function syncReactionBars(id) {
         button.title = `${def.label} · 全站 ${count} 次`;
         const countNode = button.querySelector('.reaction-count');
         if (countNode) {
-          countNode.hidden = bar.dataset.reactionScope !== 'loan-match' && count === 0;
+          countNode.hidden = count === 0;
           countNode.textContent = compactReactionCount(count);
         }
       });
@@ -1625,7 +1618,6 @@ function syncReactionBars(id) {
       }
     });
   });
-  syncLoanPlayerReactionSummaries(id);
 }
 
 function syncAllReactionBars() {
@@ -1635,24 +1627,20 @@ function syncAllReactionBars() {
 
 function buildReactionBar(it, compact = false, context = 'feed') {
   const id = itemId(it);
-  const definitions = context === 'loan-match' ? LOAN_MATCH_REACTION_DEFS : REACTION_DEFS;
+  const definitions = REACTION_DEFS;
   const counts = itemReactionCounts(id);
   const selected = state.reactionPrefs.votes[id] || null;
-  const bar = el('div', `reaction-bar${compact ? ' compact' : ''}${context === 'loan-match' ? ' loan-match-reaction-bar' : ''}`);
+  const bar = el('div', `reaction-bar${compact ? ' compact' : ''}`);
   bar.dataset.reactionScope = context;
   bar.setAttribute('role', 'group');
-  bar.setAttribute('aria-label', context === 'loan-match' ? '评价这场比赛的球员表现' : '给这条消息选择一个表情');
+  bar.setAttribute('aria-label', '给这条消息选择一个表情');
   const total = definitions.reduce((sum, def) => sum + (counts[def.key] || 0), 0);
   const hint = el('span', 'reaction-hint');
-  hint.dataset.emptyText = context === 'loan-match'
-    ? '这场表现，你怎么看？'
-    : context === 'pinned' ? '你怎么看？ · 抢先表态' : '抢先表态';
-  hint.dataset.activeText = context === 'loan-match'
-    ? '球迷赛后评价'
-    : context === 'pinned' ? '你怎么看？' : '';
+  hint.dataset.emptyText = context === 'pinned' ? '你怎么看？ · 抢先表态' : '抢先表态';
+  hint.dataset.activeText = context === 'pinned' ? '你怎么看？' : '';
   hint.textContent = total === 0 ? hint.dataset.emptyText : hint.dataset.activeText;
   hint.hidden = !hint.textContent;
-  if (context !== 'loan-match') bar.appendChild(hint);
+  bar.appendChild(hint);
   for (const def of definitions) {
     const active = selected === def.key;
     const count = counts[def.key] || 0;
@@ -3703,16 +3691,22 @@ function loanWatchKickoff(value) {
   return `${date.getMonth() + 1}月${date.getDate()}日 ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
+function chinaBroadcastForCompetition(competition) {
+  const name = String(competition || '').trim();
+  if (/^Premier League$/i.test(name)) {
+    return { name: '咪咕', url: 'https://m.miguvideo.com/' };
+  }
+  if (/^(?:UEFA )?(?:Champions League|Europa League)$/i.test(name)) {
+    return { name: '爱奇艺体育', url: 'https://sports.iqiyi.com/' };
+  }
+  return null;
+}
+
 function loanWatchSummaryStat(value, label, cls = '') {
   const item = el('span', `loan-summary-stat${cls ? ` ${cls}` : ''}`);
   if (/^0(?:\.0+)?$/.test(String(value).trim())) item.classList.add('is-zero');
   item.append(el('strong', null, value), el('small', null, label));
   return item;
-}
-
-function loanMatchReactionItem(player, match) {
-  const safeMatchId = String(match.id || '').replace(/[^A-Za-z0-9_-]/g, '_');
-  return { id: `loanmatch_${player.key}_${safeMatchId}` };
 }
 
 function loanAppearanceStatus(match) {
@@ -3757,64 +3751,6 @@ function loanPlayerFiveMatchTrend(player) {
   }
   strip.append(heading, bars);
   return strip;
-}
-
-function loanMatchReactionLegend() {
-  const legend = el('div', 'loan-match-emotion-key');
-  legend.setAttribute('aria-label', '赛后表情说明');
-  for (const def of LOAN_MATCH_REACTION_DEFS) {
-    const item = el('span', null);
-    item.title = def.label;
-    item.append(el('i', null, def.emoji), el('small', null, def.label));
-    legend.appendChild(item);
-  }
-  return legend;
-}
-
-function loanPlayerReactionTotals(player) {
-  const totals = blankItemReactionCounts();
-  for (const match of (player.matches || []).filter((item) => Number(item.minutes || 0) > 0)) {
-    const counts = itemReactionCounts(itemId(loanMatchReactionItem(player, match)));
-    for (const def of LOAN_MATCH_REACTION_DEFS) totals[def.key] += Number(counts[def.key] || 0);
-  }
-  return totals;
-}
-
-function loanPlayerReactionSummary(player) {
-  const summary = el('section', 'loan-player-reaction-summary');
-  summary.dataset.loanPlayerKey = player.key;
-  summary.appendChild(el('strong', 'loan-player-reaction-title', '球迷表情'));
-  const totals = loanPlayerReactionTotals(player);
-  const grid = el('div', 'loan-player-reaction-totals');
-  for (const def of LOAN_MATCH_REACTION_DEFS) {
-    const item = el('span', 'loan-player-reaction-total');
-    item.title = `${def.label} · ${compactReactionCount(totals[def.key])}`;
-    item.setAttribute('aria-label', `${def.label}，全站 ${compactReactionCount(totals[def.key])} 次`);
-    item.append(
-      el('i', null, def.emoji),
-      el('b', null, compactReactionCount(totals[def.key])),
-    );
-    item.querySelector('b').dataset.loanReactionTotal = def.key;
-    grid.appendChild(item);
-  }
-  summary.appendChild(grid);
-  return summary;
-}
-
-function syncLoanPlayerReactionSummaries(changedItemId = '') {
-  document.querySelectorAll('.loan-player-card[data-loan-player-key]').forEach((card) => {
-    const matchRows = [...card.querySelectorAll('.loan-match-row[data-item-id]')];
-    if (changedItemId && !matchRows.some((row) => row.dataset.itemId === changedItemId)) return;
-    const totals = blankItemReactionCounts();
-    for (const row of matchRows) {
-      const counts = itemReactionCounts(row.dataset.itemId);
-      for (const def of LOAN_MATCH_REACTION_DEFS) totals[def.key] += Number(counts[def.key] || 0);
-    }
-    for (const def of LOAN_MATCH_REACTION_DEFS) {
-      const node = card.querySelector(`[data-loan-reaction-total="${def.key}"]`);
-      if (node) node.textContent = compactReactionCount(totals[def.key]);
-    }
-  });
 }
 
 function loanWatchPlayerAnchorId(key) {
@@ -4100,8 +4036,6 @@ function loanPostMatchAnalysisSection(data) {
 
 function loanWatchMatchRow(match, player) {
   const row = el('article', 'loan-match-row');
-  const reactionItem = loanMatchReactionItem(player, match);
-  row.dataset.itemId = itemId(reactionItem);
   const headline = el('div', 'loan-match-headline');
   const outcome = el('span', `loan-match-outcome ${match.outcome === '胜' ? 'win' : match.outcome === '负' ? 'loss' : 'draw'}`, match.outcome || '赛果');
   headline.append(
@@ -4138,7 +4072,7 @@ function loanWatchMatchRow(match, player) {
     el('strong', null, '蓝月赛后分析'),
     el('p', null, loanMatchAnalysisText(match, player)),
   );
-  row.append(headline, meta, stats, analysis, source, buildReactionBar(reactionItem, true, 'loan-match'));
+  row.append(headline, meta, stats, analysis, source);
   return row;
 }
 
@@ -4197,8 +4131,7 @@ function loanWatchPlayerCard(player) {
   const trend = loanPlayerFiveMatchTrend(player);
   card.append(head, destination, summary);
   if (trend) card.appendChild(trend);
-  card.append(loanPlayerReactionSummary(player), history);
-  queueReactionCounts((player.matches || []).filter((match) => Number(match.minutes || 0) > 0).map((match) => loanMatchReactionItem(player, match)));
+  card.append(history);
   return card;
 }
 
@@ -4464,7 +4397,7 @@ function renderLoanWatch(context) {
     el('h3', null, '他们离开曼城，不等于离开视线'),
     el('p', null, '只统计本赛季租借生效后的比赛。'),
   );
-  intro.append(introCopy, loanRequestBoard(), loanMatchReactionLegend());
+  intro.append(introCopy, loanRequestBoard());
 
   const controls = el('nav', 'loan-watch-filters');
   controls.setAttribute('aria-label', '筛选蓝月在外球员');
@@ -4511,10 +4444,11 @@ function renderLoanWatch(context) {
     const scheduleTitle = document.createElement('summary');
     scheduleTitle.textContent = `接下来谁出场？赛程表（${upcoming.length}场）`;
     upcomingSchedule.appendChild(scheduleTitle);
-    upcomingSchedule.appendChild(el('p', 'loan-schedule-note', '按赛程自动等待，预计完赛 1 小时后抓取；以下均为你的本地时间。'));
+    upcomingSchedule.appendChild(el('p', 'loan-schedule-note', '按赛程自动等待，预计完赛 1 小时后抓取；以下均为你的本地时间。中国大陆观赛入口仅在已核实转播平台时显示，具体场次、会员和地区限制以平台当日节目单为准。'));
     const scheduleRows = el('div', 'loan-schedule-rows');
     for (const player of upcoming) {
       const fixture = player.next_match;
+      const scheduleItem = el('div', 'loan-schedule-item');
       const row = el('button', 'loan-schedule-row');
       row.type = 'button';
       row.title = `查看${player.name_zh}的赛后数据`;
@@ -4526,7 +4460,17 @@ function renderLoanWatch(context) {
         el('span', null, `${fixture.is_home ? '主场' : '客场'} vs ${fixture.opponent}`),
         el('small', null, `${fixture.competition || ''}　查看球员 ↓`),
       );
-      scheduleRows.appendChild(row);
+      scheduleItem.appendChild(row);
+      const broadcast = chinaBroadcastForCompetition(fixture.competition);
+      if (broadcast) {
+        const link = el('a', 'loan-schedule-broadcast', `中国大陆：${broadcast.name} ↗`);
+        link.href = broadcast.url;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.title = `前往${broadcast.name}查看当日节目单`;
+        scheduleItem.appendChild(link);
+      }
+      scheduleRows.appendChild(scheduleItem);
     }
     upcomingSchedule.appendChild(scheduleRows);
   }

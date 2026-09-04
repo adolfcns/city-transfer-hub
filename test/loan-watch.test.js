@@ -164,15 +164,12 @@ test('手机版球场图并入顶部背景且冬窗倒计时压缩为单行', ()
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.stadium-hero::before \{[\s\S]*?display: none/);
   assert.match(style, /\.winter-window-kicker, \.winter-window-copy span \{ display: none; \}/);
   assert.match(style, /\.winter-window-card \{[\s\S]*?min-height: 32px;[\s\S]*?display: flex/);
-  assert.match(style, /\.loan-watch\.home \.loan-match-emotion-key \{[\s\S]*?grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/);
 });
 
-test('所有窄屏手机把留言移到标题右侧并用横向表情说明替换概览数字', () => {
+test('所有窄屏手机把留言移到标题右侧并压缩概览区', () => {
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.loan-watch\.home \.loan-watch-intro \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\) minmax\(160px, 1\.05fr\)/);
-  assert.match(style, /\.loan-watch\.home \.loan-match-emotion-key \{[\s\S]*?grid-column: 1 \/ -1/);
   assert.doesNotMatch(app, /const overview = el\('div', 'loan-watch-overview'\)/);
   assert.match(style, /\.loan-request-board \{ min-width: 0; padding: 6px/);
-  assert.match(style, /\.loan-match-reaction-bar\.reaction-bar\.compact \.reaction-btn \{ min-height: 21px/);
   assert.match(style, /\.loan-watch\.home \.loan-watch-filter \{ min-height: 25px/);
 });
 
@@ -251,6 +248,18 @@ test('赛程可点击定位球员卡片且逐场记录提供数据分析', () =>
   assert.match(style, /\.loan-player-card\.schedule-target/);
 });
 
+test('未开赛赛程仅在已核实时显示中国大陆正规观赛入口', () => {
+  assert.match(app, /function chinaBroadcastForCompetition\(competition\)/);
+  assert.match(app, /\^Premier League\$/);
+  assert.match(app, /m\.miguvideo\.com/);
+  assert.match(app, /Champions League\|Europa League/);
+  assert.match(app, /sports\.iqiyi\.com/);
+  assert.match(app, /中国大陆观赛入口仅在已核实转播平台时显示/);
+  assert.match(app, /const scheduleItem = el\('div', 'loan-schedule-item'\)/);
+  assert.match(app, /const link = el\('a', 'loan-schedule-broadcast'/);
+  assert.match(style, /\.loan-schedule-broadcast/);
+});
+
 test('蓝月赛后分析默认展示最新三场并可下载带网址的分享图', () => {
   assert.match(app, /function loanPostMatchAnalysisEntries\(data\)/);
   assert.match(app, /function loanPostMatchAnalysisSection\(data\)/);
@@ -289,30 +298,25 @@ test('球员卡片提供极简近五场走势和每周最佳榜单', () => {
   assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.loan-weekly-player small \{ display: block;[^}]*font-size: 8px;[^}]*text-align: center; \}/);
 });
 
-test('每场外租比赛提供五项球迷评价并在球员卡片汇总', () => {
-  for (const label of ['夯爆了', '未来可期', '拉完了', '砸手里了', '再看几场']) {
-    assert.match(app, new RegExp(label));
-  }
-  assert.match(app, /return \{ id: `loanmatch_\$\{player\.key\}_\$\{safeMatchId\}` \}/);
-  assert.match(app, /buildReactionBar\(reactionItem, true, 'loan-match'\)/);
-  assert.match(app, /function loanPlayerReactionTotals\(player\)/);
-  assert.match(app, /syncLoanPlayerReactionSummaries\(id\)/);
-  assert.match(app, /function loanMatchReactionLegend\(\)/);
-  assert.match(app, /球迷表情/);
+test('蓝月在外撤下所有逐场和球员表情互动，仅保留右下角木鱼', () => {
+  assert.doesNotMatch(app, /LOAN_MATCH_REACTION_DEFS/);
+  assert.doesNotMatch(app, /loanMatchReactionItem/);
+  assert.doesNotMatch(app, /loanMatchReactionLegend/);
+  assert.doesNotMatch(app, /loanPlayerReactionSummary/);
+  assert.doesNotMatch(app, /buildReactionBar\([^\n]*loan-match/);
+  assert.doesNotMatch(style, /loan-match-emotion-key|loan-player-reaction|loan-match-reaction-bar/);
+  assert.match(app, /const PRAYER_KEY = 'cth_city_prayer_v1'/);
+  assert.match(style, /\.city-prayer/);
   assert.match(app, /player\.fan_pick \? '本赛季比赛记录' : '本赛季租借后比赛记录'/);
   assert.match(style, /\.loan-match-history-body \{/);
   assert.match(style, /\.loan-match-row \{[^}]*border-left: 4px solid/);
-  assert.match(style, /\.loan-player-reaction-totals \{[^}]*grid-template-columns: repeat\(5/);
-  assert.match(style, /\.loan-match-reaction-bar\.reaction-bar\.compact \.reaction-btn \{[\s\S]*?flex-direction: row/);
 });
 
-test('球员卡片突出中文指标并弱化数字和表情', () => {
+test('球员卡片突出中文指标并弱化数字', () => {
   assert.match(app, /item\.classList\.add\('is-zero'\)/);
   assert.match(style, /\.loan-summary-stat strong \{[^}]*grid-row: 2;[^}]*font-size: 10px/);
   assert.match(style, /\.loan-summary-stat small \{[^}]*grid-row: 1;[^}]*font-size: 11px;[^}]*font-weight: 950/);
   assert.match(style, /\.loan-match-stats \.loan-summary-stat small \{ font-size: 10\.5px/);
-  assert.match(style, /\.loan-match-reaction-bar\.reaction-bar\.compact \.reaction-emoji \{ font-size: 10px/);
-  assert.match(style, /\.loan-player-reaction-total i \{ font-size: 10px/);
   assert.match(style, /\.loan-match-history-label \{[^}]*font-size: 11px;[^}]*font-weight: 950/);
 });
 
