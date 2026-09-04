@@ -6,6 +6,7 @@ import {
   flattenPlayerStats,
   isTrackedAppearance,
   lineupAppearanceStatus,
+  matchFromDetails,
   selectPositionMetrics,
   summarizeMatches,
 } from '../scripts/fetch-loan-watch.js';
@@ -211,6 +212,43 @@ test('赛后阵容区分首发、替补登场、替补未登场和未进名单',
   assert.match(app, /unused_sub: \{ label: '替补未登场'/);
   assert.match(app, /not_in_squad: \{ label: '未进名单'/);
   assert.match(style, /\.loan-appearance-status\.unused-sub/);
+});
+
+test('未出场球员没有 playerStats 时仍写入比赛记录并可自动补抓旧漏项', () => {
+  const player = { fotmob_id: 9, fotmob_team_id: 100, club_en: 'Test City', position_group: 'midfielder' };
+  const details = {
+    general: { matchTimeUTCDate: '2026-09-03T19:00:00Z', leagueName: 'League' },
+    header: { teams: [{ id: 100, name: 'Test City', score: 1 }, { id: 200, name: 'Visitors', score: 0 }] },
+    content: {
+      lineup: {
+        homeTeam: { id: 100, starters: [], subs: [{ id: 9 }] },
+        awayTeam: { id: 200, starters: [], subs: [] },
+      },
+      playerStats: {},
+    },
+  };
+  const result = matchFromDetails(details, { id: 'fixture-1', date: '2026-09-03T19:00:00Z', url: 'https://example.com' }, player);
+  assert.equal(result.appearance_status, 'unused_sub');
+  assert.equal(result.is_home, true);
+  assert.equal(result.opponent, 'Visitors');
+  assert.equal(result.minutes, 0);
+  const fetcher = fs.readFileSync('scripts/fetch-loan-watch.js', 'utf8');
+  assert.match(fetcher, /fixture\.checked && !recordedIds\.has/);
+  assert.match(fetcher, /fixture\.checked = false/);
+  assert.ok((fetcher.match(/fotmob_team_id: configPlayer\.fotmob_team_id/g) || []).length >= 3);
+});
+
+test('赛程可点击定位球员卡片且逐场记录提供数据分析', () => {
+  assert.match(app, /function loanWatchPlayerAnchorId\(key\)/);
+  assert.match(app, /card\.id = loanWatchPlayerAnchorId\(player\.key\)/);
+  assert.match(app, /const row = el\('button', 'loan-schedule-row'\)/);
+  assert.match(app, /row\.onclick = \(\) => focusLoanWatchPlayer\(player\.key\)/);
+  assert.match(app, /scrollIntoView\(\{ behavior: 'smooth', block: 'start' \}\)/);
+  assert.match(app, /function loanMatchAnalysisText\(match, player\)/);
+  assert.match(app, /赛后数据解读/);
+  assert.match(app, /并非 Opta 官方数据/);
+  assert.match(style, /\.loan-match-analysis/);
+  assert.match(style, /\.loan-player-card\.schedule-target/);
 });
 
 test('球员卡片提供极简近五场走势和每周最佳榜单', () => {

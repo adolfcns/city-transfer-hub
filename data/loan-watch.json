@@ -1,15 +1,15 @@
 {
   "version": 2,
-  "generated_at": "2026-09-02T09:59:31.383Z",
-  "checked_at": "2026-09-02T09:59:31.383Z",
+  "generated_at": "2026-09-04T08:16:05.740Z",
+  "checked_at": "2026-09-04T08:16:05.740Z",
   "season_start": "2026-07-01T00:00:00.000Z",
-  "schedule_updated_at": "2026-09-02T09:45:19.443Z",
+  "schedule_updated_at": "2026-09-04T08:14:02.310Z",
   "schedule_refresh_hours": 24,
   "estimated_match_duration_hours": 2,
   "post_match_fetch_delay_hours": 1,
   "provider_usage": {
-    "date": "2026-09-02",
-    "requests": 93,
+    "date": "2026-09-04",
+    "requests": 34,
     "limit": 95
   },
   "provider": {
@@ -25,6 +25,10 @@
     {
       "key": "juma_bah",
       "fotmob_id": 1539619,
+      "fotmob_team_id": 8406,
+      "team_names": [
+        "Augsburg"
+      ],
       "name_zh": "朱马·巴",
       "name_en": "Juma Bah",
       "club_zh": "奥格斯堡",
@@ -192,6 +196,10 @@
     {
       "key": "max_alleyne",
       "fotmob_id": 1414691,
+      "fotmob_team_id": 8191,
+      "team_names": [
+        "Burnley"
+      ],
       "name_zh": "马克斯·阿莱恩",
       "name_en": "Max Alleyne",
       "club_zh": "伯恩利",
@@ -203,13 +211,52 @@
       "birth_date": "2005-07-21T00:00:00.000Z",
       "age": 21,
       "summary": {
-        "appearances": 3,
-        "minutes": 270,
+        "appearances": 4,
+        "minutes": 315,
         "goals": 0,
         "assists": 1,
-        "average_rating": 6.4
+        "average_rating": 6.46
       },
       "matches": [
+        {
+          "id": "5836798",
+          "date": "2026-09-02T19:00:00.000Z",
+          "competition": "Championship",
+          "team": "Burnley",
+          "opponent": "Middlesbrough",
+          "is_home": true,
+          "score": "1-1",
+          "outcome": "平",
+          "minutes": 45,
+          "goals": 0,
+          "assists": 0,
+          "rating": 6.63,
+          "appearance_status": "subbed_on",
+          "url": "https://www.fotmob.com/matches/burnley-vs-middlesbrough/2bfhjz#5836798",
+          "metrics": [
+            {
+              "key": "defensive_actions",
+              "label": "防守贡献",
+              "value": "2"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "6"
+            },
+            {
+              "key": "tackles",
+              "label": "抢断",
+              "value": "1"
+            },
+            {
+              "key": "interceptions",
+              "label": "拦截",
+              "value": "0"
+            }
+          ],
+          "details_loaded": true
+        },
         {
           "id": "5836785",
           "date": "2026-08-29T14:00:00.000Z",
@@ -353,9 +400,9 @@
           "competition": "Championship",
           "is_home": true,
           "url": "https://www.fotmob.com/matches/burnley-vs-middlesbrough/2bfhjz#5836798",
-          "fetch_after": "2026-09-02T22:00:00.000Z",
-          "checked": false,
-          "checked_at": null
+          "fetch_after": "2026-09-04T08:16:05.740Z",
+          "checked": true,
+          "checked_at": "2026-09-04T08:16:05.740Z"
         },
         {
           "id": "5836803",
@@ -480,13 +527,13 @@
         }
       ],
       "next_match": {
-        "id": "5836798",
-        "date": "2026-09-02T19:00:00.000Z",
-        "opponent": "Middlesbrough",
+        "id": "5836803",
+        "date": "2026-09-05T14:00:00.000Z",
+        "opponent": "Bristol City",
         "competition": "Championship",
         "is_home": true,
-        "url": "https://www.fotmob.com/matches/burnley-vs-middlesbrough/2bfhjz#5836798",
-        "fetch_after": "2026-09-02T22:00:00.000Z",
+        "url": "https://www.fotmob.com/matches/burnley-vs-bristol-city/2a7vbm#5836803",
+        "fetch_after": "2026-09-05T17:00:00.000Z",
         "checked": false,
         "checked_at": null
       }
@@ -494,6 +541,10 @@
     {
       "key": "stephen_mfuni",
       "fotmob_id": 1613300,
+      "fotmob_team_id": 8669,
+      "team_names": [
+        "Coventry City"
+      ],
       "name_zh": "斯蒂芬·姆富尼",
       "name_en": "Stephen Mfuni",
       "club_zh": "考文垂",
@@ -661,6 +712,10 @@
     {
       "key": "charlie_gray",
       "fotmob_id": 1451118,
+      "fotmob_team_id": 8528,
+      "team_names": [
+        "Wigan Athletic"
+      ],
       "name_zh": "查理·格雷",
       "name_en": "Charlie Gray",
       "club_zh": "维冈竞技",
@@ -672,13 +727,52 @@
       "birth_date": "2006-02-22T00:00:00.000Z",
       "age": 20,
       "summary": {
-        "appearances": 0,
-        "minutes": 0,
+        "appearances": 1,
+        "minutes": 66,
         "goals": 0,
         "assists": 0,
-        "average_rating": null
+        "average_rating": 7.42
       },
       "matches": [
+        {
+          "id": "5837132",
+          "date": "2026-09-02T18:45:00.000Z",
+          "competition": "League One",
+          "team": "Wigan Athletic",
+          "opponent": "Milton Keynes Dons",
+          "is_home": true,
+          "score": "3-1",
+          "outcome": "胜",
+          "minutes": 66,
+          "goals": 0,
+          "assists": 0,
+          "rating": 7.42,
+          "appearance_status": "starter",
+          "url": "https://www.fotmob.com/matches/wigan-athletic-vs-milton-keynes-dons/2fsv1o#5837132",
+          "metrics": [
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.14"
+            },
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "1"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "6"
+            },
+            {
+              "key": "accurate_passes",
+              "label": "传球",
+              "value": "18/24"
+            }
+          ],
+          "details_loaded": true
+        },
         {
           "id": "5837111",
           "date": "2026-08-30T13:00:00.000Z",
@@ -705,9 +799,9 @@
           "competition": "League One",
           "is_home": true,
           "url": "https://www.fotmob.com/matches/wigan-athletic-vs-milton-keynes-dons/2fsv1o#5837132",
-          "fetch_after": "2026-09-02T21:45:00.000Z",
-          "checked": false,
-          "checked_at": null
+          "fetch_after": "2026-09-04T08:16:05.740Z",
+          "checked": true,
+          "checked_at": "2026-09-04T08:16:05.740Z"
         },
         {
           "id": "5837145",
@@ -832,13 +926,13 @@
         }
       ],
       "next_match": {
-        "id": "5837132",
-        "date": "2026-09-02T18:45:00.000Z",
-        "opponent": "MK Dons",
+        "id": "5837145",
+        "date": "2026-09-05T11:30:00.000Z",
+        "opponent": "Stockport County",
         "competition": "League One",
         "is_home": true,
-        "url": "https://www.fotmob.com/matches/wigan-athletic-vs-milton-keynes-dons/2fsv1o#5837132",
-        "fetch_after": "2026-09-02T21:45:00.000Z",
+        "url": "https://www.fotmob.com/matches/wigan-athletic-vs-stockport-county/2ua2po#5837145",
+        "fetch_after": "2026-09-05T14:30:00.000Z",
         "checked": false,
         "checked_at": null
       }
@@ -846,6 +940,10 @@
     {
       "key": "jaden_heskey",
       "fotmob_id": 1406475,
+      "fotmob_team_id": 10163,
+      "team_names": [
+        "Sheffield Wednesday"
+      ],
       "name_zh": "贾登·赫斯基",
       "name_en": "Jaden Heskey",
       "club_zh": "谢周三",
@@ -1053,6 +1151,10 @@
     {
       "key": "sverre_nypan",
       "fotmob_id": 1355509,
+      "fotmob_team_id": 6702,
+      "team_names": [
+        "Lommel"
+      ],
       "name_zh": "斯韦雷·尼潘",
       "name_en": "Sverre Nypan",
       "club_zh": "洛默尔",
@@ -1338,6 +1440,10 @@
     {
       "key": "divine_mukasa",
       "fotmob_id": 1463282,
+      "fotmob_team_id": 8654,
+      "team_names": [
+        "West Ham United"
+      ],
       "name_zh": "迪万·穆卡萨",
       "name_en": "Divine Mukasa",
       "club_zh": "西汉姆联",
@@ -1662,6 +1768,11 @@
     {
       "key": "mathys_detourbet",
       "fotmob_id": 1709473,
+      "fotmob_team_id": 9829,
+      "team_names": [
+        "Monaco",
+        "Monaco II"
+      ],
       "name_zh": "马蒂斯·德图尔贝",
       "name_en": "Mathys Detourbet",
       "club_zh": "摩纳哥",
@@ -2000,6 +2111,10 @@
     {
       "key": "divin_mubama",
       "fotmob_id": 1203658,
+      "fotmob_team_id": 8466,
+      "team_names": [
+        "Southampton"
+      ],
       "name_zh": "迪万·穆巴马",
       "name_en": "Divin Mubama",
       "club_zh": "南安普顿",
@@ -2353,6 +2468,10 @@
     {
       "key": "jeremy_monga",
       "fotmob_id": 1677188,
+      "fotmob_team_id": 10003,
+      "team_names": [
+        "Swansea City"
+      ],
       "name_zh": "杰里米·蒙加",
       "name_en": "Jeremy Monga",
       "club_zh": "斯旺西",
@@ -2520,6 +2639,11 @@
     {
       "key": "cavan_sullivan",
       "fotmob_id": 1630736,
+      "fotmob_team_id": 191716,
+      "team_names": [
+        "Philadelphia Union",
+        "Philadelphia Union II"
+      ],
       "name_zh": "卡万·沙利文",
       "name_en": "Cavan Sullivan",
       "club_zh": "费城联合",
@@ -3056,6 +3180,11 @@
     {
       "key": "claudio_echeverri",
       "fotmob_id": 1486264,
+      "fotmob_team_id": 9772,
+      "team_names": [
+        "Benfica",
+        "Benfica B"
+      ],
       "name_zh": "克劳迪奥·埃切维里",
       "name_en": "Claudio Echeverri",
       "club_zh": "本菲卡",
@@ -3223,6 +3352,10 @@
     {
       "key": "jack_grealish",
       "fotmob_id": 312765,
+      "fotmob_team_id": 8668,
+      "team_names": [
+        "Everton"
+      ],
       "name_zh": "杰克·格拉利什",
       "name_en": "Jack Grealish",
       "club_zh": "埃弗顿",
@@ -3390,6 +3523,10 @@
     {
       "key": "omar_marmoush",
       "fotmob_id": 839204,
+      "fotmob_team_id": 8586,
+      "team_names": [
+        "Tottenham Hotspur"
+      ],
       "name_zh": "奥马尔·马尔穆什",
       "name_en": "Omar Marmoush",
       "club_zh": "托特纳姆热刺",
@@ -3597,6 +3734,10 @@
     {
       "key": "kalvin_phillips",
       "fotmob_id": 609755,
+      "fotmob_team_id": 8657,
+      "team_names": [
+        "Sheffield United"
+      ],
       "name_zh": "卡尔温·菲利普斯",
       "name_en": "Kalvin Phillips",
       "club_zh": "谢菲尔德联",
@@ -3882,6 +4023,10 @@
     {
       "key": "christian_mcfarlane",
       "fotmob_id": 1339595,
+      "fotmob_team_id": 8197,
+      "team_names": [
+        "Leicester City"
+      ],
       "name_zh": "克里斯蒂安·麦克法兰",
       "name_en": "Christian McFarlane",
       "club_zh": "莱斯特城",
@@ -4201,6 +4346,10 @@
     {
       "key": "lakyle_samuel",
       "fotmob_id": 1426978,
+      "fotmob_team_id": 9833,
+      "team_names": [
+        "Exeter City"
+      ],
       "name_zh": "拉凯尔·萨缪尔",
       "name_en": "Lakyle Samuel",
       "club_zh": "埃克塞特城",
@@ -4503,6 +4652,10 @@
     {
       "key": "emilio_lawrence",
       "fotmob_id": 1254229,
+      "fotmob_team_id": 8346,
+      "team_names": [
+        "Luton Town"
+      ],
       "name_zh": "埃米利奥·劳伦斯",
       "name_en": "Emilio Lawrence",
       "club_zh": "卢顿",
@@ -4521,6 +4674,24 @@
         "average_rating": 6.17
       },
       "matches": [
+        {
+          "id": "5837130",
+          "date": "2026-09-02T18:45:00.000Z",
+          "competition": "League One",
+          "team": "Luton Town",
+          "opponent": "Stockport County",
+          "is_home": true,
+          "score": "2-0",
+          "outcome": "胜",
+          "minutes": 0,
+          "goals": 0,
+          "assists": 0,
+          "rating": null,
+          "appearance_status": "not_in_squad",
+          "url": "https://www.fotmob.com/matches/luton-town-vs-stockport-county/2sa4df#5837130",
+          "metrics": [],
+          "details_loaded": true
+        },
         {
           "id": "5837116",
           "date": "2026-08-30T14:00:00.000Z",
@@ -4661,9 +4832,9 @@
           "competition": "League One",
           "is_home": true,
           "url": "https://www.fotmob.com/matches/luton-town-vs-stockport-county/2sa4df#5837130",
-          "fetch_after": "2026-09-02T21:45:00.000Z",
-          "checked": false,
-          "checked_at": null
+          "fetch_after": "2026-09-04T08:16:05.740Z",
+          "checked": true,
+          "checked_at": "2026-09-04T08:16:05.740Z"
         },
         {
           "id": "5837142",
@@ -4788,13 +4959,13 @@
         }
       ],
       "next_match": {
-        "id": "5837130",
-        "date": "2026-09-02T18:45:00.000Z",
-        "opponent": "Stockport County",
+        "id": "5837142",
+        "date": "2026-09-05T14:00:00.000Z",
+        "opponent": "Leyton Orient",
         "competition": "League One",
         "is_home": true,
-        "url": "https://www.fotmob.com/matches/luton-town-vs-stockport-county/2sa4df#5837130",
-        "fetch_after": "2026-09-02T21:45:00.000Z",
+        "url": "https://www.fotmob.com/matches/luton-town-vs-leyton-orient/2b02ok#5837142",
+        "fetch_after": "2026-09-05T17:00:00.000Z",
         "checked": false,
         "checked_at": null
       }
@@ -4802,6 +4973,10 @@
     {
       "key": "pierce_charles",
       "fotmob_id": 1420144,
+      "fotmob_team_id": 10172,
+      "team_names": [
+        "Queens Park Rangers"
+      ],
       "name_zh": "皮尔斯·查尔斯",
       "name_en": "Pierce Charles",
       "club_zh": "女王公园巡游者",
@@ -4813,13 +4988,52 @@
       "birth_date": "2005-07-21T00:00:00.000Z",
       "age": 21,
       "summary": {
-        "appearances": 4,
-        "minutes": 360,
+        "appearances": 5,
+        "minutes": 450,
         "goals": 0,
         "assists": 0,
-        "average_rating": 6.92
+        "average_rating": 6.98
       },
       "matches": [
+        {
+          "id": "5836800",
+          "date": "2026-09-02T18:45:00.000Z",
+          "competition": "Championship",
+          "team": "Queens Park Rangers",
+          "opponent": "Cardiff City",
+          "is_home": true,
+          "score": "2-1",
+          "outcome": "胜",
+          "minutes": 90,
+          "goals": 0,
+          "assists": 0,
+          "rating": 7.21,
+          "appearance_status": "starter",
+          "url": "https://www.fotmob.com/matches/cardiff-city-vs-queens-park-rangers/2u2iyy#5836800",
+          "metrics": [
+            {
+              "key": "saves",
+              "label": "扑救",
+              "value": "2"
+            },
+            {
+              "key": "goals_prevented",
+              "label": "阻止失球",
+              "value": "0.13"
+            },
+            {
+              "key": "expected_goals_on_target_faced",
+              "label": "预期失球",
+              "value": "1.13"
+            },
+            {
+              "key": "saves_inside_box",
+              "label": "禁区内扑救",
+              "value": "0"
+            }
+          ],
+          "details_loaded": true
+        },
         {
           "id": "5836778",
           "date": "2026-08-29T14:00:00.000Z",
@@ -4980,9 +5194,9 @@
           "competition": "Championship",
           "is_home": true,
           "url": "https://www.fotmob.com/matches/cardiff-city-vs-queens-park-rangers/2u2iyy#5836800",
-          "fetch_after": "2026-09-02T21:45:00.000Z",
-          "checked": false,
-          "checked_at": null
+          "fetch_after": "2026-09-04T08:16:05.740Z",
+          "checked": true,
+          "checked_at": "2026-09-04T08:16:05.740Z"
         },
         {
           "id": "5836808",
@@ -5107,13 +5321,13 @@
         }
       ],
       "next_match": {
-        "id": "5836800",
-        "date": "2026-09-02T18:45:00.000Z",
-        "opponent": "Cardiff",
+        "id": "5836808",
+        "date": "2026-09-05T14:00:00.000Z",
+        "opponent": "Middlesbrough",
         "competition": "Championship",
         "is_home": true,
-        "url": "https://www.fotmob.com/matches/cardiff-city-vs-queens-park-rangers/2u2iyy#5836800",
-        "fetch_after": "2026-09-02T21:45:00.000Z",
+        "url": "https://www.fotmob.com/matches/middlesbrough-vs-queens-park-rangers/2wcc9i#5836808",
+        "fetch_after": "2026-09-05T17:00:00.000Z",
         "checked": false,
         "checked_at": null
       }
@@ -5121,6 +5335,10 @@
     {
       "key": "oliver_whatmuff",
       "fotmob_id": 1683842,
+      "fotmob_team_id": 10007,
+      "team_names": [
+        "Stockport County"
+      ],
       "name_zh": "奥利弗·沃特默夫",
       "name_en": "Oliver Whatmuff",
       "club_zh": "斯托克港",
@@ -5132,13 +5350,52 @@
       "birth_date": "2007-11-06T00:00:00.000Z",
       "age": 18,
       "summary": {
-        "appearances": 4,
-        "minutes": 360,
+        "appearances": 5,
+        "minutes": 450,
         "goals": 0,
         "assists": 0,
-        "average_rating": 6.83
+        "average_rating": 6.84
       },
       "matches": [
+        {
+          "id": "5837130",
+          "date": "2026-09-02T18:45:00.000Z",
+          "competition": "League One",
+          "team": "Stockport County",
+          "opponent": "Luton Town",
+          "is_home": false,
+          "score": "2-0",
+          "outcome": "负",
+          "minutes": 90,
+          "goals": 0,
+          "assists": 0,
+          "rating": 6.88,
+          "appearance_status": "starter",
+          "url": "https://www.fotmob.com/matches/luton-town-vs-stockport-county/2sa4df#5837130",
+          "metrics": [
+            {
+              "key": "saves",
+              "label": "扑救",
+              "value": "3"
+            },
+            {
+              "key": "goals_prevented",
+              "label": "阻止失球",
+              "value": "0.43"
+            },
+            {
+              "key": "expected_goals_on_target_faced",
+              "label": "预期失球",
+              "value": "2.43"
+            },
+            {
+              "key": "saves_inside_box",
+              "label": "禁区内扑救",
+              "value": "3"
+            }
+          ],
+          "details_loaded": true
+        },
         {
           "id": "5837122",
           "date": "2026-08-29T14:00:00.000Z",
@@ -5304,9 +5561,9 @@
           "competition": "League One",
           "is_home": false,
           "url": "https://www.fotmob.com/matches/luton-town-vs-stockport-county/2sa4df#5837130",
-          "fetch_after": "2026-09-02T21:45:00.000Z",
-          "checked": false,
-          "checked_at": null
+          "fetch_after": "2026-09-04T08:16:05.740Z",
+          "checked": true,
+          "checked_at": "2026-09-04T08:16:05.740Z"
         },
         {
           "id": "5837145",
@@ -5431,13 +5688,13 @@
         }
       ],
       "next_match": {
-        "id": "5837130",
-        "date": "2026-09-02T18:45:00.000Z",
-        "opponent": "Luton",
+        "id": "5837145",
+        "date": "2026-09-05T11:30:00.000Z",
+        "opponent": "Wigan",
         "competition": "League One",
         "is_home": false,
-        "url": "https://www.fotmob.com/matches/luton-town-vs-stockport-county/2sa4df#5837130",
-        "fetch_after": "2026-09-02T21:45:00.000Z",
+        "url": "https://www.fotmob.com/matches/wigan-athletic-vs-stockport-county/2ua2po#5837145",
+        "fetch_after": "2026-09-05T14:30:00.000Z",
         "checked": false,
         "checked_at": null
       }
@@ -5445,6 +5702,10 @@
     {
       "key": "spike_brits",
       "fotmob_id": 1683840,
+      "fotmob_team_id": 158316,
+      "team_names": [
+        "Sutton United"
+      ],
       "name_zh": "斯派克·布里茨",
       "name_en": "Spike Brits",
       "club_zh": "萨顿联",
@@ -5710,6 +5971,10 @@
     {
       "key": "felix_nmecha",
       "fotmob_id": 966019,
+      "fotmob_team_id": 9789,
+      "team_names": [
+        "Borussia Dortmund"
+      ],
       "name_zh": "菲利克斯·恩梅加",
       "name_en": "Felix Nmecha",
       "club_zh": "多特蒙德",

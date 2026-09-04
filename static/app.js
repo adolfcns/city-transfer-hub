@@ -3817,6 +3817,48 @@ function syncLoanPlayerReactionSummaries(changedItemId = '') {
   });
 }
 
+function loanWatchPlayerAnchorId(key) {
+  return `loan-player-${String(key || '').replace(/[^a-z0-9_-]/gi, '-')}`;
+}
+
+function focusLoanWatchPlayer(playerKey) {
+  const card = document.getElementById(loanWatchPlayerAnchorId(playerKey));
+  if (!card) return;
+  card.classList.remove('schedule-target');
+  void card.offsetWidth;
+  card.classList.add('schedule-target');
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  window.setTimeout(() => card.classList.remove('schedule-target'), 2200);
+}
+
+function loanMatchAnalysisText(match, player) {
+  const minutes = Number(match.minutes || 0);
+  if (minutes <= 0) return '';
+  const rating = Number(match.rating || 0);
+  const verdict = rating >= 8.5
+    ? '本场表现非常突出'
+    : rating >= 7.5
+      ? '本场发挥亮眼'
+      : rating >= 7
+        ? '本场发挥稳健'
+        : rating >= 6.5
+          ? '本场表现中规中矩'
+          : rating > 0
+            ? '本场数据表现偏弱'
+            : '本场评分暂缺';
+  const contributions = [];
+  if (Number(match.goals || 0)) contributions.push(`${Number(match.goals)}球`);
+  if (Number(match.assists || 0)) contributions.push(`${Number(match.assists)}次助攻`);
+  const metrics = (match.metrics || []).slice(0, 3).map((metric) => `${metric.label}${metric.value}`);
+  const focus = {
+    keeper: '门将数据',
+    defender: '防守数据',
+    midfielder: '中场数据',
+    attacker: '进攻数据',
+  }[player.position_group] || '关键数据';
+  return `${verdict}，出场${minutes}分钟${contributions.length ? `，贡献${contributions.join('、')}` : ''}。${metrics.length ? `${focus}：${metrics.join('、')}。` : ''}`;
+}
+
 function loanWatchMatchRow(match, player) {
   const row = el('article', 'loan-match-row');
   const reactionItem = loanMatchReactionItem(player, match);
@@ -3852,12 +3894,18 @@ function loanWatchMatchRow(match, player) {
   for (const metric of match.metrics || []) {
     stats.appendChild(loanWatchSummaryStat(String(metric.value), metric.label));
   }
-  row.append(headline, meta, stats, source, buildReactionBar(reactionItem, true, 'loan-match'));
+  const analysis = el('section', 'loan-match-analysis');
+  analysis.append(
+    el('strong', null, '赛后数据解读'),
+    el('p', null, loanMatchAnalysisText(match, player)),
+  );
+  row.append(headline, meta, stats, analysis, source, buildReactionBar(reactionItem, true, 'loan-match'));
   return row;
 }
 
 function loanWatchPlayerCard(player) {
   const card = el('article', `loan-player-card${player.priority ? ' priority' : ''}${player.fan_pick ? ' fan-pick' : ''}`);
+  card.id = loanWatchPlayerAnchorId(player.key);
   card.dataset.loanPlayerKey = player.key;
   const head = el('div', 'loan-player-head');
   const identity = el('div', 'loan-player-identity');
@@ -3894,7 +3942,12 @@ function loanWatchPlayerCard(player) {
   history.appendChild(historyTitle);
   const historyBody = el('div', 'loan-match-history-body');
   if (records) {
-    historyBody.appendChild(el('p', 'loan-match-history-label', player.fan_pick ? '以下是球迷点将球员本赛季的逐场数据' : '以下是该球员本赛季租借生效后的逐场数据'));
+    const historyContext = el('div', 'loan-match-history-context');
+    historyContext.append(
+      el('p', 'loan-match-history-label', player.fan_pick ? '以下是球迷点将球员本赛季的逐场数据' : '以下是该球员本赛季租借生效后的逐场数据'),
+      el('small', null, '赛后解读基于 FotMob 逐场指标自动生成，并非 Opta 官方数据。'),
+    );
+    historyBody.appendChild(historyContext);
     const rows = el('div', 'loan-match-list');
     for (const match of player.matches || []) rows.appendChild(loanWatchMatchRow(match, player));
     historyBody.appendChild(rows);
@@ -4223,12 +4276,16 @@ function renderLoanWatch(context) {
     const scheduleRows = el('div', 'loan-schedule-rows');
     for (const player of upcoming) {
       const fixture = player.next_match;
-      const row = el('div', 'loan-schedule-row');
+      const row = el('button', 'loan-schedule-row');
+      row.type = 'button';
+      row.title = `查看${player.name_zh}的赛后数据`;
+      row.setAttribute('aria-label', `${loanWatchKickoff(fixture.date)}，${player.name_zh}，${fixture.is_home ? '主场' : '客场'}对阵${fixture.opponent}；点击查看球员卡片`);
+      row.onclick = () => focusLoanWatchPlayer(player.key);
       row.append(
         el('time', null, loanWatchKickoff(fixture.date)),
         el('strong', null, player.name_zh),
         el('span', null, `${fixture.is_home ? '主场' : '客场'} vs ${fixture.opponent}`),
-        el('small', null, fixture.competition || ''),
+        el('small', null, `${fixture.competition || ''}　查看球员 ↓`),
       );
       scheduleRows.appendChild(row);
     }

@@ -267,6 +267,8 @@ function playerFallback(configPlayer, previousPlayer, now, error = null) {
   return {
     key: configPlayer.key,
     fotmob_id: configPlayer.fotmob_id,
+    fotmob_team_id: configPlayer.fotmob_team_id,
+    team_names: [...(configPlayer.team_names || [configPlayer.club_en])],
     name_zh: configPlayer.name_zh,
     name_en: configPlayer.name_en,
     club_zh: configPlayer.club_zh,
@@ -344,6 +346,8 @@ async function buildPlayer(configPlayer, previousPlayer, config, now, matchDetai
   return {
     key: configPlayer.key,
     fotmob_id: configPlayer.fotmob_id,
+    fotmob_team_id: configPlayer.fotmob_team_id,
+    team_names: [...(configPlayer.team_names || [configPlayer.club_en])],
     name_zh: configPlayer.name_zh,
     name_en: configPlayer.name_en,
     club_zh: configPlayer.club_zh,
@@ -409,7 +413,7 @@ function scheduledFixture(fixture, player, config, previousSchedule = null) {
   };
 }
 
-function matchFromDetails(details, schedule, player) {
+export function matchFromDetails(details, schedule, player) {
   const appearanceStatus = lineupAppearanceStatus(details, player);
   if (!appearanceStatus) return null;
   const playerStats = details?.content?.playerStats?.[String(player.fotmob_id)];
@@ -418,7 +422,8 @@ function matchFromDetails(details, schedule, player) {
   const teams = details?.header?.teams || [];
   const home = teams[0] || {};
   const away = teams[1] || {};
-  const isHome = Number(playerStats.teamId) === Number(home.id);
+  // 未登场球员不会出现在 playerStats 中，主客场应由球队 id 判断。
+  const isHome = Number(player.fotmob_team_id) === Number(home.id);
   const homeScore = Number(home.score);
   const awayScore = Number(away.score);
   const matchLike = { homeScore, awayScore, isHomeTeam: isHome };
@@ -449,6 +454,8 @@ function configuredPlayer(configPlayer, previousPlayer, now) {
   return {
     key: configPlayer.key,
     fotmob_id: configPlayer.fotmob_id,
+    fotmob_team_id: configPlayer.fotmob_team_id,
+    team_names: [...(configPlayer.team_names || [configPlayer.club_en])],
     name_zh: configPlayer.name_zh,
     name_en: configPlayer.name_en,
     club_zh: configPlayer.club_zh,
@@ -555,7 +562,20 @@ export async function buildLoanWatchData({ now = new Date(), force = false } = {
 
   const dueMatches = new Map();
   for (const player of players) {
+    const recordedIds = new Set((player.matches || []).map((match) => String(match.id)));
     for (const fixture of player.schedule || []) {
+      // 旧版本可能先把赛程标为 checked，随后在处理未登场球员时出错。
+      // 自动重新开放这类“已检查但没有逐场记录”的赛程，下一轮即可补抓。
+      if (fixture.checked && !recordedIds.has(String(fixture.id))) {
+        fixture.checked = false;
+        fixture.checked_at = null;
+        fixture.fetch_after = now.toISOString();
+      }
+      const scheduledRetryAt = new Date(fixture.date).getTime()
+        + (Number(config.estimated_match_duration_hours || 2) + Number(config.post_match_fetch_delay_hours || 1)) * 60 * 60 * 1000;
+      if (!fixture.checked && !recordedIds.has(String(fixture.id)) && scheduledRetryAt <= now.getTime()) {
+        fixture.fetch_after = now.toISOString();
+      }
       if (fixture.checked || new Date(fixture.fetch_after).getTime() > now.getTime()) continue;
       if (!dueMatches.has(fixture.id)) dueMatches.set(fixture.id, []);
       dueMatches.get(fixture.id).push({ player, fixture });
@@ -571,18 +591,21 @@ export async function buildLoanWatchData({ now = new Date(), force = false } = {
         return;
       }
       for (const { player, fixture } of entries) {
+        const match = matchFromDetails(details, fixture, player);
+        if (!match) {
+          fixture.fetch_after = new Date(now.getTime() + 60 * 60 * 1000).toISOString();
+          continue;
+        }
         fixture.checked = true;
         fixture.checked_at = now.toISOString();
-        const match = matchFromDetails(details, fixture, player);
-        if (match) {
-          const matches = new Map((player.matches || []).map((item) => [String(item.id), item]));
-          matches.set(match.id, match);
-          player.matches = [...matches.values()].sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 60);
-          player.summary = summarizeMatches(player.matches);
-        }
+        const matches = new Map((player.matches || []).map((item) => [String(item.id), item]));
+        matches.set(match.id, match);
+        player.matches = [...matches.values()].sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 60);
+        player.summary = summarizeMatches(player.matches);
       }
     } catch (error) {
       for (const { fixture } of entries) {
+        fixture.checked = false;
         fixture.last_error = error.message;
         fixture.fetch_after = new Date(now.getTime() + 60 * 60 * 1000).toISOString();
       }

@@ -566,7 +566,12 @@ body.survey-open { overflow: hidden; }
 .loan-player-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 11px; }
 .loan-player-card {
   min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: var(--card);
-  box-shadow: 0 7px 20px rgba(35,67,84,.07);
+  scroll-margin-top: 72px; box-shadow: 0 7px 20px rgba(35,67,84,.07);
+}
+.loan-player-card.schedule-target { animation: loan-schedule-target 2.2s ease; }
+@keyframes loan-schedule-target {
+  0%, 100% { box-shadow: 0 7px 20px rgba(35,67,84,.07); }
+  18%, 70% { border-color: #d7a72f; box-shadow: 0 0 0 4px rgba(245,200,91,.28), 0 9px 24px rgba(35,67,84,.13); }
 }
 .loan-player-card.priority { border-color: rgba(43,136,184,.48); box-shadow: inset 3px 0 0 var(--accent), 0 7px 20px rgba(35,67,84,.08); }
 .loan-player-card.fan-pick { border-color: rgba(216,178,82,.72); box-shadow: inset 3px 0 0 #d8b252, 0 7px 20px rgba(87,66,14,.08); }
@@ -612,7 +617,10 @@ body.survey-open { overflow: hidden; }
   padding: 10px; border: 1px solid #9fc9dc; border-top: 0; border-radius: 0 0 10px 10px;
   background: #e9f4f8;
 }
+.loan-match-history-context { margin: 0 0 8px; }
 .loan-match-history-label { margin: 0 0 8px; padding-left: 8px; border-left: 4px solid var(--accent); color: #31566d; font-size: 11px; font-weight: 950; }
+.loan-match-history-context .loan-match-history-label { margin-bottom: 2px; }
+.loan-match-history-context small { display: block; padding-left: 12px; color: #617d8e; font-size: 8px; line-height: 1.4; }
 .loan-match-list { display: grid; gap: 9px; }
 .loan-match-row { padding: 10px; border: 1px solid #bad5e1; border-left: 4px solid #62afd2; border-radius: 10px; background: #fff; box-shadow: 0 5px 14px rgba(35,67,84,.07); }
 .loan-match-headline { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 6px; }
@@ -634,6 +642,9 @@ body.survey-open { overflow: hidden; }
 .loan-match-stats .loan-summary-stat { min-height: 42px; padding: 4px 2px; border-color: #d3e2e9; background: #f8fbfc; }
 .loan-match-stats .loan-summary-stat strong { margin-top: 1px; font-size: 9px; }
 .loan-match-stats .loan-summary-stat small { font-size: 10.5px; }
+.loan-match-analysis { margin-top: 7px; padding: 7px 9px; border-left: 3px solid #d7a72f; border-radius: 0 7px 7px 0; background: #fff9e8; }
+.loan-match-analysis strong { display: block; color: #72500b; font-size: 10px; font-weight: 950; }
+.loan-match-analysis p { margin: 2px 0 0; color: #294b60; font-size: 9px; font-weight: 700; line-height: 1.5; }
 .loan-match-source { display: inline-block; margin-top: 7px; color: var(--accent); font-size: 9px; font-weight: 700; }
 .loan-no-match { margin: 8px 0 0; color: var(--text-dim); font-size: 10px; line-height: 1.55; }
 .loan-player-reaction-summary {
@@ -2596,9 +2607,11 @@ body.big6-spend-open { overflow: hidden; }
 .loan-schedule-note { margin: 5px 0 9px; color: var(--text-dim); font-size: 10px; line-height: 1.45; }
 .loan-schedule-rows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .loan-schedule-row {
-  min-width: 0; padding: 8px 9px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1px 8px;
-  border: 1px solid var(--line); border-radius: 9px; background: #fff;
+  width: 100%; min-width: 0; padding: 8px 9px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1px 8px;
+  border: 1px solid var(--line); border-radius: 9px; background: #fff; color: inherit; font: inherit; text-align: left; cursor: pointer;
 }
+.loan-schedule-row:hover { border-color: var(--accent); background: #eef8fc; transform: translateY(-1px); }
+.loan-schedule-row:focus-visible { outline: 3px solid rgba(43,136,184,.24); outline-offset: 2px; }
 .loan-schedule-row time { color: #9a6500; font-size: 10px; font-weight: 900; font-variant-numeric: tabular-nums; }
 .loan-schedule-row strong { min-width: 0; overflow: hidden; color: var(--text); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .loan-schedule-row span { color: var(--t1); font-size: 10px; font-weight: 800; }
@@ -2713,6 +2726,12 @@ body.big6-spend-open { overflow: hidden; }
   .loan-match-history > summary { padding: 7px 8px; font-size: 11px; }
   .loan-match-history-body { padding: 7px; }
   .loan-match-history-label { margin-bottom: 6px; font-size: 10px; }
+  .loan-match-history-context { margin-bottom: 6px; }
+  .loan-match-history-context .loan-match-history-label { margin-bottom: 2px; }
+  .loan-match-history-context small { padding-left: 12px; font-size: 7px; }
+  .loan-match-analysis { margin-top: 5px; padding: 5px 7px; }
+  .loan-match-analysis strong { font-size: 9px; }
+  .loan-match-analysis p { font-size: 8px; line-height: 1.45; }
   .loan-weekly-award { padding: 6px 7px; grid-template-columns: auto minmax(0, 1fr); gap: 6px; }
   .loan-weekly-award-copy span { font-size: 7.5px; }
   .loan-weekly-award-copy strong { font-size: 10.5px; }
