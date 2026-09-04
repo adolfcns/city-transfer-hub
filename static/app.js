@@ -3850,13 +3850,252 @@ function loanMatchAnalysisText(match, player) {
   if (Number(match.goals || 0)) contributions.push(`${Number(match.goals)}球`);
   if (Number(match.assists || 0)) contributions.push(`${Number(match.assists)}次助攻`);
   const metrics = (match.metrics || []).slice(0, 3).map((metric) => `${metric.label}${metric.value}`);
+  const previousRatings = (player.matches || [])
+    .filter((item) => (
+      String(item.id) !== String(match.id)
+      && new Date(item.date).getTime() < new Date(match.date).getTime()
+      && Number(item.minutes || 0) > 0
+      && Number(item.rating || 0) > 0
+    ))
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+    .slice(0, 5)
+    .map((item) => Number(item.rating));
+  let comparison = '';
+  if (rating && previousRatings.length >= 2) {
+    const recentAverage = previousRatings.reduce((sum, value) => sum + value, 0) / previousRatings.length;
+    const difference = rating - recentAverage;
+    comparison = difference >= 0.5
+      ? `较此前${previousRatings.length}场均分高${difference.toFixed(1)}`
+      : difference <= -0.5
+        ? `较此前${previousRatings.length}场均分低${Math.abs(difference).toFixed(1)}`
+        : `与此前${previousRatings.length}场均分基本持平`;
+  }
   const focus = {
     keeper: '门将数据',
     defender: '防守数据',
     midfielder: '中场数据',
     attacker: '进攻数据',
   }[player.position_group] || '关键数据';
-  return `${verdict}，出场${minutes}分钟${contributions.length ? `，贡献${contributions.join('、')}` : ''}。${metrics.length ? `${focus}：${metrics.join('、')}。` : ''}`;
+  if (!rating && !metrics.length && !contributions.length) return `出场${minutes}分钟，但公开逐场指标不足，暂不作表现判断。`;
+  return `${verdict}，出场${minutes}分钟${contributions.length ? `，贡献${contributions.join('、')}` : ''}。${metrics.length ? `${focus}：${metrics.join('、')}。` : ''}${comparison ? `${comparison}。` : ''}`;
+}
+
+function loanPostMatchAnalysisEntries(data) {
+  const matches = new Map();
+  for (const player of (data.players || []).filter((item) => !item.fan_pick)) {
+    for (const match of player.matches || []) {
+      const key = String(match.id || `${match.date}-${match.team}-${match.opponent}`);
+      if (!matches.has(key)) matches.set(key, { key, match, players: [] });
+      matches.get(key).players.push({ player, match });
+    }
+  }
+  return [...matches.values()]
+    .sort((a, b) => String(b.match.date).localeCompare(String(a.match.date)) || String(b.key).localeCompare(String(a.key)));
+}
+
+function loanAnalysisMatchTitle(entry) {
+  const first = entry.players[0];
+  if (!first) return '比赛信息待更新';
+  const trackedTeam = first.player.club_zh || first.match.team || '外租球队';
+  const opponent = first.match.opponent || '对手待更新';
+  return first.match.is_home
+    ? `${trackedTeam} ${first.match.score || '—'} ${opponent}`
+    : `${opponent} ${first.match.score || '—'} ${trackedTeam}`;
+}
+
+function loanAnalysisStatusText(match) {
+  const status = loanAppearanceStatus(match);
+  if (Number(match.minutes || 0) > 0) return status?.label || '已出场';
+  return status?.label === '替补未登场' ? '进入替补席，本场未登场。' : '本场未进入比赛名单。';
+}
+
+async function buildLoanAnalysisShareCard(entry) {
+  const width = 1080;
+  const height = 1350;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('CANVAS_UNAVAILABLE');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  const background = ctx.createLinearGradient(0, 0, width, height);
+  background.addColorStop(0, '#061b31');
+  background.addColorStop(.58, '#0b3559');
+  background.addColorStop(1, '#287aa2');
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, width, height);
+  ctx.save();
+  ctx.globalAlpha = .16;
+  ctx.fillStyle = '#8dd2f2';
+  ctx.beginPath();
+  ctx.arc(980, 90, 275, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  const crest = await loadShareCardImage(new URL('./assets/man-city-crest.svg', document.baseURI).href);
+  ctx.drawImage(crest, 64, 54, 132, 132);
+  cardFont(ctx, 24, 800);
+  ctx.fillStyle = '#8dd2f2';
+  ctx.fillText('CITY ON LOAN · POST-MATCH', 232, 95);
+  cardFont(ctx, 58, 900);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText('蓝月赛后分析', 232, 164);
+
+  fillRoundedCanvasRect(ctx, 56, 230, 968, 174, 26, '#eef8fd');
+  cardFont(ctx, 24, 800);
+  ctx.fillStyle = '#28779d';
+  ctx.fillText(`${loanWatchDate(entry.match.date)} · ${entry.match.competition || '赛事待更新'}`, 92, 278);
+  cardFont(ctx, 42, 900);
+  ctx.fillStyle = '#0b2a46';
+  ctx.fillText(fitCanvasText(ctx, loanAnalysisMatchTitle(entry), 890), 92, 345);
+  cardFont(ctx, 21, 700);
+  ctx.fillStyle = '#5a7587';
+  ctx.fillText('赛后评分与位置专项指标来自 FotMob', 92, 382);
+
+  const playerRows = entry.players.slice(0, 3);
+  const rowHeight = playerRows.length > 1 ? 250 : 330;
+  let rowY = 442;
+  for (const { player, match } of playerRows) {
+    fillRoundedCanvasRect(ctx, 56, rowY, 968, rowHeight - 18, 24, '#ffffff');
+    fillRoundedCanvasRect(ctx, 56, rowY, 12, rowHeight - 18, 6, '#6cabdd');
+    cardFont(ctx, 36, 900);
+    ctx.fillStyle = '#102f4c';
+    ctx.fillText(fitCanvasText(ctx, player.name_zh, 500), 92, rowY + 58);
+    cardFont(ctx, 22, 800);
+    ctx.fillStyle = '#28779d';
+    ctx.fillText(`${loanAppearanceStatus(match)?.label || '状态待确认'} · ${player.position_zh}`, 92, rowY + 96);
+    if (Number(match.minutes || 0) > 0) {
+      const stats = [
+        `评分 ${match.rating ? Number(match.rating).toFixed(1) : '—'}`,
+        `${Number(match.minutes || 0)} 分钟`,
+        `${Number(match.goals || 0)} 球`,
+        `${Number(match.assists || 0)} 助攻`,
+      ];
+      let statX = 92;
+      for (const stat of stats) {
+        cardFont(ctx, 20, 850);
+        const statWidth = Math.ceil(ctx.measureText(stat).width) + 32;
+        fillRoundedCanvasRect(ctx, statX, rowY + 118, statWidth, 42, 12, '#e8f5fb');
+        ctx.fillStyle = '#155f86';
+        ctx.fillText(stat, statX + 16, rowY + 147);
+        statX += statWidth + 10;
+      }
+    }
+    cardFont(ctx, playerRows.length > 1 ? 23 : 27, 700);
+    ctx.fillStyle = '#294b60';
+    const copy = Number(match.minutes || 0) > 0 ? loanMatchAnalysisText(match, player) : loanAnalysisStatusText(match);
+    const lines = wrapCardText(ctx, copy, 872, playerRows.length > 1 ? 3 : 5);
+    let copyY = rowY + (Number(match.minutes || 0) > 0 ? 202 : 145);
+    for (const line of lines) {
+      ctx.fillText(line, 92, copyY);
+      copyY += playerRows.length > 1 ? 34 : 42;
+    }
+    rowY += rowHeight;
+  }
+
+  const sourceY = Math.min(1220, rowY + 18);
+  cardFont(ctx, 23, 800);
+  ctx.fillStyle = '#bfe8fb';
+  ctx.fillText('自动分析只描述公开数据，不替代完整比赛观察。', 64, sourceY);
+  ctx.strokeStyle = 'rgba(191,232,251,.35)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(64, 1258);
+  ctx.lineTo(1016, 1258);
+  ctx.stroke();
+  cardFont(ctx, 20, 700);
+  ctx.fillStyle = '#b9d9e9';
+  ctx.textAlign = 'center';
+  ctx.fillText('adolfcns.github.io/city-transfer-hub/?view=loans', width / 2, 1305);
+  ctx.textAlign = 'left';
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('PNG_EXPORT_FAILED')), 'image/png', .96);
+  });
+}
+
+function loanAnalysisShareFilename(entry) {
+  const matchup = loanAnalysisMatchTitle(entry).replace(/[\\/:*?"<>|]/g, '-').slice(0, 40);
+  return `蓝月赛后分析-${matchup}-${Date.now()}.png`;
+}
+
+function loanPostMatchAnalysisCard(entry) {
+  const card = el('article', 'loan-post-match-card');
+  const header = el('header', 'loan-post-match-card-head');
+  const heading = el('div');
+  heading.append(
+    el('span', null, `${loanWatchDate(entry.match.date)} · ${entry.match.competition || '赛事待更新'}`),
+    el('h4', null, loanAnalysisMatchTitle(entry)),
+  );
+  const outcome = el('b', `loan-post-match-outcome ${entry.match.outcome === '胜' ? 'win' : entry.match.outcome === '负' ? 'loss' : 'draw'}`, entry.match.outcome || '赛果');
+  header.append(heading, outcome);
+  const players = el('div', 'loan-post-match-players');
+  for (const { player, match } of entry.players) {
+    const item = el('section', `loan-post-match-player${Number(match.minutes || 0) > 0 ? '' : ' no-appearance'}`);
+    const playerHead = el('div', 'loan-post-match-player-head');
+    playerHead.append(
+      el('strong', null, player.name_zh),
+      el('span', null, loanAnalysisStatusText(match)),
+      el('b', null, match.rating ? Number(match.rating).toFixed(1) : '—'),
+    );
+    const copy = Number(match.minutes || 0) > 0 ? loanMatchAnalysisText(match, player) : loanAnalysisStatusText(match);
+    item.append(playerHead, el('p', null, copy));
+    players.appendChild(item);
+  }
+  const footer = el('footer', 'loan-post-match-card-footer');
+  footer.appendChild(el('small', null, '基于 FotMob 逐场数据自动生成'));
+  const share = el('button', 'loan-analysis-share', '↓ 下载分享图');
+  share.type = 'button';
+  share.onclick = async () => {
+    if (share.disabled) return;
+    share.disabled = true;
+    share.textContent = '正在生成…';
+    try {
+      const blob = await buildLoanAnalysisShareCard(entry);
+      const filename = loanAnalysisShareFilename(entry);
+      downloadShareCard(blob, filename);
+      showShareCardSavePreview(blob, filename, {
+        title: '蓝月赛后分析分享图',
+        hint: '图片已尝试下载；手机若未自动保存，可长按下方图片存入相册。',
+        alt: `${loanAnalysisMatchTitle(entry)}蓝月赛后分析分享图`,
+        downloadLabel: '↓ 再次下载',
+      });
+    } catch {
+      toast('分享图生成失败，请稍后重试', 'err');
+    } finally {
+      share.disabled = false;
+      share.textContent = '↓ 下载分享图';
+    }
+  };
+  footer.appendChild(share);
+  card.append(header, players, footer);
+  return card;
+}
+
+function loanPostMatchAnalysisSection(data) {
+  const entries = loanPostMatchAnalysisEntries(data);
+  if (!entries.length) return null;
+  const section = el('section', 'loan-post-match-section');
+  const head = el('header', 'loan-post-match-section-head');
+  const copy = el('div');
+  copy.append(el('span', null, 'POST-MATCH REVIEW'), el('h3', null, '蓝月赛后分析'));
+  head.append(copy, el('p', null, '每场完赛后，按位置读懂外租球员的真实表现。'));
+  const latest = el('div', 'loan-post-match-grid');
+  for (const entry of entries.slice(0, 3)) latest.appendChild(loanPostMatchAnalysisCard(entry));
+  section.append(head, latest);
+  if (entries.length > 3) {
+    const more = document.createElement('details');
+    more.className = 'loan-post-match-more';
+    const summary = document.createElement('summary');
+    summary.textContent = `查看更早的赛后分析（${entries.length - 3}场）`;
+    const grid = el('div', 'loan-post-match-grid');
+    for (const entry of entries.slice(3)) grid.appendChild(loanPostMatchAnalysisCard(entry));
+    more.append(summary, grid);
+    section.appendChild(more);
+  }
+  return section;
 }
 
 function loanWatchMatchRow(match, player) {
@@ -3896,7 +4135,7 @@ function loanWatchMatchRow(match, player) {
   }
   const analysis = el('section', 'loan-match-analysis');
   analysis.append(
-    el('strong', null, '赛后数据解读'),
+    el('strong', null, '蓝月赛后分析'),
     el('p', null, loanMatchAnalysisText(match, player)),
   );
   row.append(headline, meta, stats, analysis, source, buildReactionBar(reactionItem, true, 'loan-match'));
@@ -4306,6 +4545,8 @@ function renderLoanWatch(context) {
   note.appendChild(provider);
   root.append(intro, controls);
   if (upcomingSchedule) root.appendChild(upcomingSchedule);
+  const postMatchAnalysis = loanPostMatchAnalysisSection(data);
+  if (postMatchAnalysis) root.appendChild(postMatchAnalysis);
   const weeklyAward = weeklyLoanAward(data, context);
   if (weeklyAward) root.appendChild(weeklyAward);
   root.append(list, note);

@@ -245,10 +245,27 @@ test('赛程可点击定位球员卡片且逐场记录提供数据分析', () =>
   assert.match(app, /row\.onclick = \(\) => focusLoanWatchPlayer\(player\.key\)/);
   assert.match(app, /scrollIntoView\(\{ behavior: 'smooth', block: 'start' \}\)/);
   assert.match(app, /function loanMatchAnalysisText\(match, player\)/);
-  assert.match(app, /赛后数据解读/);
+  assert.match(app, /蓝月赛后分析/);
   assert.match(app, /并非 Opta 官方数据/);
   assert.match(style, /\.loan-match-analysis/);
   assert.match(style, /\.loan-player-card\.schedule-target/);
+});
+
+test('蓝月赛后分析默认展示最新三场并可下载带网址的分享图', () => {
+  assert.match(app, /function loanPostMatchAnalysisEntries\(data\)/);
+  assert.match(app, /function loanPostMatchAnalysisSection\(data\)/);
+  assert.match(app, /entries\.slice\(0, 3\)/);
+  assert.match(app, /查看更早的赛后分析/);
+  assert.match(app, /function buildLoanAnalysisShareCard\(entry\)/);
+  assert.match(app, /canvas\.width = width/);
+  assert.match(app, /downloadShareCard\(blob, filename\)/);
+  assert.match(app, /showShareCardSavePreview\(blob, filename/);
+  assert.match(app, /adolfcns\.github\.io\/city-transfer-hub\/\?view=loans/);
+  assert.match(app, /↓ 下载分享图/);
+  assert.match(app, /较此前\$\{previousRatings\.length\}场均分/);
+  assert.match(app, /公开逐场指标不足，暂不作表现判断/);
+  assert.match(style, /\.loan-post-match-grid \{[^}]*grid-template-columns: repeat\(3/);
+  assert.match(style, /@media \(max-width: 560px\)[\s\S]*?\.loan-post-match-grid \{ grid-template-columns: 1fr/);
 });
 
 test('球员卡片提供极简近五场走势和每周最佳榜单', () => {

@@ -645,6 +645,48 @@ body.survey-open { overflow: hidden; }
 .loan-match-analysis { margin-top: 7px; padding: 7px 9px; border-left: 3px solid #d7a72f; border-radius: 0 7px 7px 0; background: #fff9e8; }
 .loan-match-analysis strong { display: block; color: #72500b; font-size: 10px; font-weight: 950; }
 .loan-match-analysis p { margin: 2px 0 0; color: #294b60; font-size: 9px; font-weight: 700; line-height: 1.5; }
+.loan-post-match-section {
+  padding: 13px; border: 1px solid #8fc9e2; border-radius: 14px;
+  background: linear-gradient(135deg, rgba(108,171,221,.18), rgba(255,249,229,.72));
+  box-shadow: 0 8px 22px rgba(35,67,84,.07);
+}
+.loan-post-match-section-head { margin-bottom: 9px; display: flex; align-items: end; justify-content: space-between; gap: 14px; }
+.loan-post-match-section-head span { color: #287aa2; font-size: 8.5px; font-weight: 950; letter-spacing: .13em; }
+.loan-post-match-section-head h3 { margin: 2px 0 0; color: #14364e; font-size: 20px; font-weight: 950; }
+.loan-post-match-section-head p { margin: 0; color: #4f7083; font-size: 10px; font-weight: 800; }
+.loan-post-match-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 8px; }
+.loan-post-match-card { min-width: 0; overflow: hidden; border: 1px solid #c3dce8; border-radius: 11px; background: rgba(255,255,255,.94); }
+.loan-post-match-card-head { padding: 9px 10px 7px; display: flex; align-items: flex-start; gap: 7px; border-bottom: 1px solid #deebf1; }
+.loan-post-match-card-head > div { min-width: 0; }
+.loan-post-match-card-head span { display: block; overflow: hidden; color: #607d8e; font-size: 8px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.loan-post-match-card-head h4 { margin: 3px 0 0; overflow: hidden; color: #17384e; font-size: 13px; font-weight: 950; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.loan-post-match-outcome { flex: 0 0 auto; margin-left: auto; padding: 3px 6px; border-radius: 999px; background: #eef2f4; color: #607785; font-size: 8px; font-weight: 950; }
+.loan-post-match-outcome.win { background: #e2f4ea; color: #247451; }
+.loan-post-match-outcome.loss { background: #f7e8eb; color: #913d4d; }
+.loan-post-match-outcome.draw { background: #fff3d7; color: #93620b; }
+.loan-post-match-players { display: grid; }
+.loan-post-match-player { min-width: 0; padding: 8px 10px; border-bottom: 1px solid #e2edf2; }
+.loan-post-match-player:last-child { border-bottom: 0; }
+.loan-post-match-player.no-appearance { background: #f7fafb; }
+.loan-post-match-player-head { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 5px; }
+.loan-post-match-player-head strong { overflow: hidden; color: #17384e; font-size: 12px; font-weight: 950; text-overflow: ellipsis; white-space: nowrap; }
+.loan-post-match-player-head span { color: #287aa2; font-size: 8px; font-weight: 900; white-space: nowrap; }
+.loan-post-match-player-head b { min-width: 30px; padding: 2px 4px; border-radius: 5px; background: #e5f4fa; color: #11688f; font-size: 10px; font-weight: 950; text-align: center; }
+.loan-post-match-player p {
+  margin: 5px 0 0; display: -webkit-box; overflow: hidden; color: #294b60; font-size: 9.5px; font-weight: 800; line-height: 1.5;
+  -webkit-box-orient: vertical; -webkit-line-clamp: 4;
+}
+.loan-post-match-card-footer { padding: 7px 9px; display: flex; align-items: center; gap: 6px; background: #f4f9fb; }
+.loan-post-match-card-footer small { color: #667f8f; font-size: 7.5px; font-weight: 750; line-height: 1.3; }
+.loan-analysis-share {
+  flex: 0 0 auto; min-height: 27px; margin-left: auto; padding: 4px 8px; border: 1px solid #d2a42e; border-radius: 7px;
+  background: #fff5d8; color: #74500a; font-size: 9px; font-weight: 950; cursor: pointer;
+}
+.loan-analysis-share:hover { background: #f7e2a2; }
+.loan-analysis-share:disabled { opacity: .6; cursor: wait; }
+.loan-post-match-more { margin-top: 8px; }
+.loan-post-match-more > summary { color: #216f96; font-size: 9px; font-weight: 900; text-align: center; cursor: pointer; }
+.loan-post-match-more[open] > summary { margin-bottom: 8px; }
 .loan-match-source { display: inline-block; margin-top: 7px; color: var(--accent); font-size: 9px; font-weight: 700; }
 .loan-no-match { margin: 8px 0 0; color: var(--text-dim); font-size: 10px; line-height: 1.55; }
 .loan-player-reaction-summary {
@@ -2732,6 +2774,21 @@ body.big6-spend-open { overflow: hidden; }
   .loan-match-analysis { margin-top: 5px; padding: 5px 7px; }
   .loan-match-analysis strong { font-size: 9px; }
   .loan-match-analysis p { font-size: 8px; line-height: 1.45; }
+  .loan-post-match-section { padding: 9px; }
+  .loan-post-match-section-head { margin-bottom: 7px; align-items: flex-start; }
+  .loan-post-match-section-head span { font-size: 6.5px; }
+  .loan-post-match-section-head h3 { font-size: 15px; }
+  .loan-post-match-section-head p { max-width: 48%; font-size: 7.5px; line-height: 1.4; text-align: right; }
+  .loan-post-match-grid { grid-template-columns: 1fr; gap: 6px; }
+  .loan-post-match-card-head { padding: 7px 8px 6px; }
+  .loan-post-match-card-head span { font-size: 7px; }
+  .loan-post-match-card-head h4 { font-size: 12px; }
+  .loan-post-match-player { padding: 7px 8px; }
+  .loan-post-match-player-head strong { font-size: 11px; }
+  .loan-post-match-player-head span { font-size: 7px; }
+  .loan-post-match-player p { margin-top: 4px; font-size: 8.5px; -webkit-line-clamp: 3; }
+  .loan-post-match-card-footer { padding: 6px 7px; }
+  .loan-analysis-share { min-height: 27px; padding: 3px 7px; font-size: 8.5px; }
   .loan-weekly-award { padding: 6px 7px; grid-template-columns: auto minmax(0, 1fr); gap: 6px; }
   .loan-weekly-award-copy span { font-size: 7.5px; }
   .loan-weekly-award-copy strong { font-size: 10.5px; }
