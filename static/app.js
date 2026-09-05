@@ -78,9 +78,6 @@ const ACTIVE_SURVEY_IDS = new Set(['summer_2026', DEPARTURE_SURVEY_ID]);
 const WINDOW_FINALE_NOTICE_KEY = 'cth_window_finale_20260901_5h_v1';
 const WINDOW_FINALE_NOTICE_INTERVAL_MS = 5 * 60 * 60 * 1000;
 const WINDOW_FINALE_NOTICE_DELAY_MS = 1500;
-const BIG6_SPEND_NOTICE_KEY = 'cth_big6_spend_20260902_12h_v1';
-const BIG6_SPEND_NOTICE_INTERVAL_MS = 12 * 60 * 60 * 1000;
-const BIG6_SPEND_NOTICE_DELAY_MS = 2400;
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
 // 布阿迪交易已进入 Here we go 阶段，暂时撤下重点传闻卡片；保留数据与逻辑，方便后续恢复。
 const FOCUS_RUMOR_STRIP_ENABLED = false;
@@ -3702,6 +3699,65 @@ function chinaBroadcastForCompetition(competition) {
   return null;
 }
 
+function loanScheduleEntries(players, now = Date.now(), estimatedDurationHours = 2) {
+  const duration = (Number(estimatedDurationHours) || 2) * 60 * 60 * 1000;
+  const cutoff = Number(now) - 24 * 60 * 60 * 1000;
+  const entries = [];
+  const matchKey = (match) => String(match.id || `${match.date}|${match.opponent}`);
+  for (const player of players) {
+    const matches = new Map((player.matches || []).map((match) => [matchKey(match), match]));
+    for (const match of matches.values()) {
+      const kickoff = Date.parse(match.date);
+      // Older snapshots record kickoff only; use the same duration estimate as the collector.
+      const endedAt = Date.parse(match.ended_at || match.finished_at) || kickoff + duration;
+      if (!Number.isFinite(kickoff) || kickoff > now || endedAt <= cutoff) continue;
+      entries.push({ player, fixture: match, match, phase: 'completed' });
+    }
+    const fixtures = new Map();
+    for (const fixture of [...(player.schedule || []), player.next_match].filter(Boolean)) {
+      const kickoff = Date.parse(fixture.date);
+      if (!Number.isFinite(kickoff) || matches.has(matchKey(fixture))) continue;
+      fixtures.set(matchKey(fixture), fixture);
+    }
+    const upcoming = [...fixtures.values()]
+      .filter((fixture) => !fixture.checked && Date.parse(fixture.date) > now)
+      .sort((a, b) => Date.parse(a.date) - Date.parse(b.date))[0];
+    if (upcoming) entries.push({ player, fixture: upcoming, match: null, phase: 'upcoming' });
+    for (const fixture of fixtures.values()) {
+      const kickoff = Date.parse(fixture.date);
+      if (kickoff > now || kickoff + duration <= cutoff) continue;
+      entries.push({
+        player, fixture, match: null,
+        phase: kickoff + duration <= now ? 'pending' : 'started',
+      });
+    }
+  }
+  const order = { completed: 0, pending: 1, started: 1, upcoming: 2 };
+  return entries.sort((a, b) => (
+    order[a.phase] - order[b.phase]
+    || (a.phase === 'completed' ? -1 : 1) * (Date.parse(a.fixture.date) - Date.parse(b.fixture.date))
+    || String(a.player.key).localeCompare(String(b.player.key))
+  ));
+}
+
+function loanSchedulePlayerStatus(entry) {
+  if (entry.phase === 'upcoming') return { label: '未开赛', cls: 'upcoming' };
+  if (entry.phase === 'started') return { label: '已开赛', cls: 'pending' };
+  if (!entry.match) return { label: '赛后待更新', cls: 'pending' };
+  const match = entry.match;
+  const played = Number(match.minutes) > 0 || ['starter', 'subbed_on', 'played'].includes(match.appearance_status);
+  if (played) {
+    const rating = Number(match.rating);
+    return Number.isFinite(rating) && rating > 0
+      ? { label: `评分 ${rating.toFixed(1)}`, cls: 'rating' }
+      : { label: '已出场 · 暂无评分', cls: 'pending' };
+  }
+  if (['unused_sub', 'not_in_squad'].includes(match.appearance_status)) {
+    return { label: '未出场', cls: 'unused', detail: match.appearance_status === 'unused_sub' ? '替补未登场' : '未进名单' };
+  }
+  return { label: '出场情况待更新', cls: 'pending' };
+}
+
 function loanWatchSummaryStat(value, label, cls = '') {
   const item = el('span', `loan-summary-stat${cls ? ` ${cls}` : ''}`);
   if (/^0(?:\.0+)?$/.test(String(value).trim())) item.classList.add('is-zero');
@@ -3763,6 +3819,8 @@ function focusLoanWatchPlayer(playerKey) {
   card.classList.remove('schedule-target');
   void card.offsetWidth;
   card.classList.add('schedule-target');
+  card.tabIndex = -1;
+  card.focus({ preventScroll: true });
   card.scrollIntoView({ behavior: 'smooth', block: 'start' });
   window.setTimeout(() => card.classList.remove('schedule-target'), 2200);
 }
@@ -4419,13 +4477,6 @@ function renderLoanWatch(context) {
     };
     controls.appendChild(button);
   }
-  const big6Button = el('button', 'big6-spend-trigger');
-  big6Button.type = 'button';
-  big6Button.setAttribute('aria-haspopup', 'dialog');
-  big6Button.setAttribute('aria-controls', 'big6-spend-notice');
-  big6Button.innerHTML = '<span aria-hidden="true">£</span> BIG 6账本';
-  big6Button.onclick = showBig6SpendNotice;
-  controls.appendChild(big6Button);
 
   const filteredPlayers = sortLoanWatchPlayers(data.players.filter((player) => (
     (activeFilter === 'all' && !player.fan_pick)
@@ -4433,35 +4484,39 @@ function renderLoanWatch(context) {
     || (activeFilter === 'fan_pick' && player.fan_pick)
     || (!player.fan_pick && player.position_group === activeFilter)
   )));
-  const upcoming = filteredPlayers
-    .filter((player) => player.next_match?.date)
-    .sort((a, b) => String(a.next_match.date).localeCompare(String(b.next_match.date)));
+  const scheduleEntries = loanScheduleEntries(filteredPlayers, Date.now(), data.estimated_match_duration_hours);
   let upcomingSchedule = null;
-  if (upcoming.length) {
+  if (scheduleEntries.length) {
     upcomingSchedule = document.createElement('details');
     upcomingSchedule.className = 'loan-upcoming-schedule';
     upcomingSchedule.open = true;
     const scheduleTitle = document.createElement('summary');
-    scheduleTitle.textContent = `接下来谁出场？赛程表（${upcoming.length}场）`;
+    const fixtureCount = new Set(scheduleEntries.map(({ fixture }) => String(fixture.id || `${fixture.date}|${fixture.opponent}`))).size;
+    scheduleTitle.textContent = `赛程表 · 近24小时赛果（${fixtureCount}场）`;
     upcomingSchedule.appendChild(scheduleTitle);
-    upcomingSchedule.appendChild(el('p', 'loan-schedule-note', '按赛程自动等待，预计完赛 1 小时后抓取；以下均为你的本地时间。中国大陆观赛入口仅在已核实转播平台时显示，具体场次、会员和地区限制以平台当日节目单为准。'));
+    upcomingSchedule.appendChild(el('p', 'loan-schedule-note', '完赛后保留24小时，点击查看球员卡片。时间为本地时间；国内观赛以平台当日节目单为准。'));
     const scheduleRows = el('div', 'loan-schedule-rows');
-    for (const player of upcoming) {
-      const fixture = player.next_match;
-      const scheduleItem = el('div', 'loan-schedule-item');
+    for (const entry of scheduleEntries) {
+      const { player, fixture } = entry;
+      const status = loanSchedulePlayerStatus(entry);
+      const scheduleItem = el('div', `loan-schedule-item ${entry.phase}`);
       const row = el('button', 'loan-schedule-row');
       row.type = 'button';
-      row.title = `查看${player.name_zh}的赛后数据`;
-      row.setAttribute('aria-label', `${loanWatchKickoff(fixture.date)}，${player.name_zh}，${fixture.is_home ? '主场' : '客场'}对阵${fixture.opponent}；点击查看球员卡片`);
+      row.dataset.loanPlayerKey = player.key;
+      row.title = `${status.detail || status.label}；查看${player.name_zh}的赛后数据`;
+      row.setAttribute('aria-label', `${loanWatchKickoff(fixture.date)}，${player.name_zh}，${status.detail || status.label}，${fixture.is_home ? '主场' : '客场'}对阵${fixture.opponent}；点击查看球员卡片`);
       row.onclick = () => focusLoanWatchPlayer(player.key);
+      const identity = el('div', 'loan-schedule-identity');
+      identity.append(el('strong', null, player.name_zh), el('time', null, loanWatchKickoff(fixture.date)));
       row.append(
-        el('time', null, loanWatchKickoff(fixture.date)),
-        el('strong', null, player.name_zh),
-        el('span', null, `${fixture.is_home ? '主场' : '客场'} vs ${fixture.opponent}`),
-        el('small', null, `${fixture.competition || ''}　查看球员 ↓`),
+        identity,
+        el('b', `loan-schedule-status ${status.cls}`, status.label),
+        el('span', 'loan-schedule-matchup', `${fixture.is_home ? '主场' : '客场'} vs ${fixture.opponent}${entry.match?.score ? ` · ${entry.match.score}` : ''}`),
+        el('small', 'loan-schedule-meta', `${fixture.competition || ''}　查看球员 ↓`),
       );
       scheduleItem.appendChild(row);
-      const broadcast = chinaBroadcastForCompetition(fixture.competition);
+      const broadcast = entry.phase === 'upcoming' || entry.phase === 'started'
+        ? chinaBroadcastForCompetition(fixture.competition) : null;
       if (broadcast) {
         const link = el('a', 'loan-schedule-broadcast', `中国大陆：${broadcast.name} ↗`);
         link.href = broadcast.url;
@@ -5861,51 +5916,6 @@ function dismissWindowFinaleNotice() {
   scheduleWindowFinaleNotice();
 }
 
-let big6SpendNoticeTimer = null;
-
-function big6SpendNoticeWait() {
-  try {
-    const lastShownAt = Number(localStorage.getItem(BIG6_SPEND_NOTICE_KEY) || 0);
-    if (Number.isFinite(lastShownAt) && lastShownAt > 0) {
-      return Math.max(0, BIG6_SPEND_NOTICE_INTERVAL_MS - (Date.now() - lastShownAt));
-    }
-  } catch { /* 禁用本机存储时，本次访问仍可展示 */ }
-  return BIG6_SPEND_NOTICE_DELAY_MS;
-}
-
-function showBig6SpendNotice() {
-  const notice = $('#big6-spend-notice');
-  if (!notice) return;
-  clearTimeout(big6SpendNoticeTimer);
-  notice.hidden = false;
-  document.body.classList.add('big6-spend-open');
-  try { localStorage.setItem(BIG6_SPEND_NOTICE_KEY, String(Date.now())); }
-  catch { /* 禁用本机存储时仍可正常关闭 */ }
-  setTimeout(() => $('#big6-spend-ok')?.focus(), 0);
-}
-
-function scheduleBig6SpendNotice(delay = null) {
-  clearTimeout(big6SpendNoticeTimer);
-  const wait = delay === null ? big6SpendNoticeWait() : delay;
-  big6SpendNoticeTimer = setTimeout(() => {
-    if (document.hidden || document.querySelector('.modal:not([hidden]), .comment-overlay, .survey-overlay')) {
-      scheduleBig6SpendNotice(15000);
-      return;
-    }
-    showBig6SpendNotice();
-  }, wait);
-}
-
-function dismissBig6SpendNotice() {
-  const notice = $('#big6-spend-notice');
-  if (!notice) return;
-  notice.hidden = true;
-  document.body.classList.remove('big6-spend-open');
-  try { localStorage.setItem(BIG6_SPEND_NOTICE_KEY, String(Date.now())); }
-  catch { /* 禁用本机存储时仍可正常关闭 */ }
-  scheduleBig6SpendNotice();
-}
-
 async function triggerCloudFetch() {
   const pat = localStorage.getItem('cth_pat');
   if (!pat && !TRIGGER_ENDPOINT) { $('#trigger-panel').hidden = false; return; }
@@ -6007,7 +6017,6 @@ function bind() {
     if (event.key === 'Escape' && document.querySelector('.comment-overlay')) closeComments();
     if (event.key === 'Escape' && document.querySelector('.survey-overlay')) closeSurvey();
     if (event.key === 'Escape' && !$('#window-finale-notice')?.hidden) dismissWindowFinaleNotice();
-    if (event.key === 'Escape' && !$('#big6-spend-notice')?.hidden) dismissBig6SpendNotice();
     if (event.key === 'Escape' && !$('#recovery-notice')?.hidden) dismissRecoveryNotice();
   });
   document.querySelectorAll('#lang-seg button').forEach((button) => {
@@ -6064,11 +6073,6 @@ function bind() {
   $('#window-finale-notice').addEventListener('click', (event) => {
     if (event.target === $('#window-finale-notice')) dismissWindowFinaleNotice();
   });
-  $('#big6-spend-close').onclick = dismissBig6SpendNotice;
-  $('#big6-spend-ok').onclick = dismissBig6SpendNotice;
-  $('#big6-spend-notice').addEventListener('click', (event) => {
-    if (event.target === $('#big6-spend-notice')) dismissBig6SpendNotice();
-  });
   $('#pat-save').onclick = savePat;
   $('#btn-status').onclick = openStatus;
   $('#btn-status-close').onclick = closeStatus;
@@ -6117,7 +6121,6 @@ renderFocusZone();
 if (IS_LOAN_PAGE) {
   updateWinterWindowCountdown();
   setInterval(updateWinterWindowCountdown, 1000);
-  scheduleBig6SpendNotice();
   loadLoanWatchHome().finally(() => {
     const surveyId = requestedSurveyId();
     if (surveyId) openSurvey(surveyId);

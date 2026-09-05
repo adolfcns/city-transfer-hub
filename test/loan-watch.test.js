@@ -139,8 +139,7 @@ test('按赛程驱动赛后抓取并设置每日安全额度', () => {
   assert.doesNotMatch(workflow, /node scripts\/fetch\.js/);
   assert.match(workflow, /cron: '29 \* \* \* \*'/);
   assert.match(app, /只统计本赛季租借生效后的比赛。/);
-  assert.match(app, /预计完赛 1 小时后抓取/);
-  assert.match(app, /接下来谁出场？赛程表/);
+  assert.match(app, /赛程表 · 近24小时赛果/);
   assert.match(app, /upcomingSchedule\.open = true/);
   assert.doesNotMatch(app, /context\.home && !window\.matchMedia\('\(max-width: 560px\)'\)\.matches/);
   assert.match(style, /\.loan-player-list \{[^}]*grid-template-columns: repeat\(2/);
@@ -254,8 +253,8 @@ test('未开赛赛程仅在已核实时显示中国大陆正规观赛入口', ()
   assert.match(app, /m\.miguvideo\.com/);
   assert.match(app, /Champions League\|Europa League/);
   assert.match(app, /sports\.iqiyi\.com/);
-  assert.match(app, /中国大陆观赛入口仅在已核实转播平台时显示/);
-  assert.match(app, /const scheduleItem = el\('div', 'loan-schedule-item'\)/);
+  assert.match(app, /国内观赛以平台当日节目单为准/);
+  assert.match(app, /loan-schedule-item \$\{entry\.phase\}/);
   assert.match(app, /const link = el\('a', 'loan-schedule-broadcast'/);
   assert.match(style, /\.loan-schedule-broadcast/);
 });
