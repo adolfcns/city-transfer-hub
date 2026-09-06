@@ -1,18 +1,18 @@
 {
   "version": 1,
-  "generated_at": "2026-09-06T02:30:46.028Z",
-  "checked_at": "2026-09-06T02:31:39.303Z",
+  "generated_at": "2026-09-06T03:01:19.978Z",
+  "checked_at": "2026-09-06T03:01:19.978Z",
   "team_id": 8456,
   "season_start": "2026-07-01T00:00:00Z",
   "provider_usage": {
     "date": "2026-09-06",
-    "requests": 10,
+    "requests": 37,
     "limit": 40
   },
   "provider": {
     "name": "FotMob",
     "url": "https://www.fotmob.com",
-    "note": "比赛事实、评分及 xG 等来自 FotMob 展示的公开比赛数据；Opta 战报仅展示标题并链接原文。本站中文复盘由数据规则自动生成，不代表 Opta 官方观点。"
+    "note": "比赛事实、评分、阵型标签、射门图及 xG 等来自 FotMob 展示的公开比赛数据；中文战术复盘由本站综合撰写，不代表 FotMob、Opta、俱乐部或教练组观点。"
   },
   "total": 7,
   "latest_match_id": "5795442",
@@ -20,7 +20,7 @@
     {
       "id": "5795442",
       "date": "2026-09-05T14:00:00.000Z",
-      "analysed_at": "2026-09-06T02:20:50.901Z",
+      "analysed_at": "2026-09-06T03:01:19.978Z",
       "competition": "Premier League",
       "is_home": true,
       "city": {
@@ -122,6 +122,11 @@
           "player_url": "https://www.fotmob.com/players/618878/gianluigi-donnarumma",
           "man_of_the_match": true,
           "metrics": [
+            {
+              "key": "saves",
+              "label": "扑救",
+              "value": "3"
+            },
             {
               "key": "goals_prevented",
               "label": "阻止失球",
@@ -239,19 +244,256 @@
           ]
         }
       ],
-      "opta_review": {
-        "source": "Opta",
-        "title": "Manchester City 1-0 Coventry City: Haaland keeps Maresca's men perfect",
-        "url": "https://www.fotmob.com/news/os5d3lt8x7et1c8bwfwsk0d4r-manchester-city-1-0-coventry-city-haaland-keeps-marescas-men-perfect?utm_source=fotmob",
-        "updated_at": "2026-09-05T16:18:35.000Z"
+      "tactical_data": {
+        "lineup": {
+          "city_formation": "4-1-4-1",
+          "opponent_formation": "3-4-3",
+          "city_starting_xi": [
+            {
+              "id": "618878",
+              "name": "多纳鲁马",
+              "name_en": "Gianluigi Donnarumma"
+            },
+            {
+              "id": "1362998",
+              "name": "胡桑诺夫",
+              "name_en": "Abdukodir Khusanov"
+            },
+            {
+              "id": "614006",
+              "name": "鲁本·迪亚斯",
+              "name_en": "Rúben Dias"
+            },
+            {
+              "id": "844425",
+              "name": "格伊",
+              "name_en": "Marc Guéhi"
+            },
+            {
+              "id": "1070712",
+              "name": "格瓦迪奥尔",
+              "name_en": "Josko Gvardiol"
+            },
+            {
+              "id": "1089691",
+              "name": "埃利奥特·安德森",
+              "name_en": "Elliot Anderson"
+            },
+            {
+              "id": "933576",
+              "name": "塞梅尼奥",
+              "name_en": "Antoine Semenyo"
+            },
+            {
+              "id": "1137705",
+              "name": "恩佐·费尔南德斯",
+              "name_en": "Enzo Fernández"
+            },
+            {
+              "id": "1104053",
+              "name": "谢尔基",
+              "name_en": "Rayan Cherki"
+            },
+            {
+              "id": "965764",
+              "name": "伊利曼·恩迪亚耶",
+              "name_en": "Iliman Ndiaye"
+            },
+            {
+              "id": "737066",
+              "name": "哈兰德",
+              "name_en": "Erling Haaland"
+            }
+          ],
+          "opponent_starting_xi": [
+            {
+              "id": "1187236",
+              "name": "Carl Rushworth",
+              "name_en": "Carl Rushworth"
+            },
+            {
+              "id": "1257648",
+              "name": "Aurèle Amenda",
+              "name_en": "Aurèle Amenda"
+            },
+            {
+              "id": "1161885",
+              "name": "Bobby Thomas",
+              "name_en": "Bobby Thomas"
+            },
+            {
+              "id": "711357",
+              "name": "Ethan Pinnock",
+              "name_en": "Ethan Pinnock"
+            },
+            {
+              "id": "1074750",
+              "name": "Milan van Ewijk",
+              "name_en": "Milan van Ewijk"
+            },
+            {
+              "id": "856685",
+              "name": "Frank Onyeka",
+              "name_en": "Frank Onyeka"
+            },
+            {
+              "id": "478357",
+              "name": "Matt Grimes",
+              "name_en": "Matt Grimes"
+            },
+            {
+              "id": "759814",
+              "name": "Jay Dasilva",
+              "name_en": "Jay Dasilva"
+            },
+            {
+              "id": "1030830",
+              "name": "Jack Rudoni",
+              "name_en": "Jack Rudoni"
+            },
+            {
+              "id": "643717",
+              "name": "Taiwo Awoniyi",
+              "name_en": "Taiwo Awoniyi"
+            },
+            {
+              "id": "798654",
+              "name": "Ephron Mason-Clark",
+              "name_en": "Ephron Mason-Clark"
+            }
+          ]
+        },
+        "shots": {
+          "available": true,
+          "total": 15,
+          "xg": 2.12,
+          "inside_box": 14,
+          "outside_box": 1,
+          "open_play": 11,
+          "open_play_xg": 1.89,
+          "set_piece": 4,
+          "set_piece_xg": 0.23,
+          "high_quality": 2,
+          "first_half": {
+            "shots": 9,
+            "xg": 1.09
+          },
+          "second_half": {
+            "shots": 6,
+            "xg": 1.04
+          }
+        },
+        "opponent_shots": {
+          "available": true,
+          "total": 12,
+          "xg": 1.37,
+          "inside_box": 8,
+          "outside_box": 4,
+          "open_play": 4,
+          "open_play_xg": 0.71,
+          "set_piece": 8,
+          "set_piece_xg": 0.66,
+          "high_quality": 1,
+          "first_half": {
+            "shots": 4,
+            "xg": 0.73
+          },
+          "second_half": {
+            "shots": 8,
+            "xg": 0.64
+          }
+        },
+        "attacking_zones": {
+          "city": {
+            "total": {
+              "left": 32,
+              "center": 40,
+              "right": 28
+            },
+            "first_half": {
+              "left": 39,
+              "center": 33,
+              "right": 28
+            },
+            "second_half": {
+              "left": 22,
+              "center": 49,
+              "right": 29
+            }
+          },
+          "opponent": {
+            "total": {
+              "left": 35,
+              "center": 35,
+              "right": 30
+            },
+            "first_half": {
+              "left": 38,
+              "center": 44,
+              "right": 18
+            },
+            "second_half": {
+              "left": 33,
+              "center": 31,
+              "right": 36
+            }
+          }
+        }
       },
-      "match_url": "https://www.fotmob.com/matches/manchester-city-vs-coventry-city/2fb7wc#5795442",
-      "official_results_url": "https://www.mancity.com/results/mens"
+      "tactical_longform": {
+        "version": 2,
+        "title": "78%控球之下，曼城为何只与考文垂拉开一球？",
+        "standfirst": "这不是战报复述，而是把阵型标签、进攻方向、射门位置、xG 与比赛节点放在一起，回答曼城怎样控制比赛、又在哪里留下风险。",
+        "sections": [
+          {
+            "heading": "一、基础站位：阵型只是起点",
+            "paragraphs": [
+              "比赛阵容数据把曼城的基础阵型标为 4-1-4-1，考文垂则是 3-4-3。曼城首发为多纳鲁马、胡桑诺夫、鲁本·迪亚斯、格伊、格瓦迪奥尔、埃利奥特·安德森、塞梅尼奥、恩佐·费尔南德斯、谢尔基、伊利曼·恩迪亚耶、哈兰德。",
+              "曼城全场控球率达到 78%，完成 751 次准确传球，传球成功率 92%。这说明曼城大部分时间拥有组织进攻的主动权，但高控球本身不等于持续制造高质量射门。"
+            ]
+          },
+          {
+            "heading": "二、有球推进：球权主要去了哪里",
+            "paragraphs": [
+              "进攻方向分布为左路 32%、中路 40%、右路 28%，其中中路占比最高。这组数据不能直接证明某名球员固定站在某个区域，却能说明球队把推进资源更多投向了哪里。",
+              "曼城在对方禁区完成 36 次触球，15 次射门中有 14 次来自禁区内、1 次来自禁区外。评价推进是否有效，关键不是传了多少脚，而是球权最终有没有进入能够完成高价值射门的区域。"
+            ]
+          },
+          {
+            "heading": "三、机会形成：控制有没有变成杀伤",
+            "paragraphs": [
+              "曼城累计 2.12 xG，其中运动战与快速反击贡献约 1.89，定位球贡献约 0.23；全场有 2 次单次 xG 不低于 0.30 的高质量射门。",
+              "真正的问题出在兑现：3 次绝佳机会只换来 1 球，比赛本可更早失去悬念。射正、绝佳机会和禁区触球必须放在一起看：单纯增加低质量远射，不会自动解决进攻效率。"
+            ]
+          },
+          {
+            "heading": "四、无球与转换：比分之外的风险",
+            "paragraphs": [
+              "考文垂完成 12 次射门，其中 8 次在禁区内；对手禁区触球 19 次。对手仍拿到 3 次绝佳机会和 1.37 xG，这不是可以被比分掩盖的小波动，而是防守保护与转换落位需要复盘的警报。",
+              "曼城门将完成 3 次扑救。当最后一道防线需要频繁直接处理威胁时，问题通常不只属于门将或中卫，也要回看前场压迫被绕过后，中场是否及时保护第二点与禁区弧顶。"
+            ]
+          },
+          {
+            "heading": "五、比赛走势：优势何时出现、何时减弱",
+            "paragraphs": [
+              "曼城上下半场分别制造 1.09 与 1.04 xG，威胁分布相对接近。决定比分的节点是26 分钟哈兰德接塞梅尼奥助攻破门。",
+              "比分变化会反过来影响两队风险偏好，因此赛后不能把全场均值当成九十分钟始终不变的战术状态。领先后的控球如果不能继续制造威胁，就可能从主动控制变成被动消耗。"
+            ]
+          },
+          {
+            "heading": "结论",
+            "paragraphs": [
+              "1-0带来了结果，但这场球更重要的信号是：曼城已经建立机会优势，下一步要提高终结效率。若对手把握住其中一次高质量机会，比赛叙事就会完全不同。"
+            ]
+          }
+        ],
+        "source_note": "本站中文战术复盘，根据 FotMob 展示的阵型、比赛事件、射门图与统计数据综合撰写；阵型标签与数据只能支持可观察的比赛现象，不冒充教练战术指令。"
+      }
     },
     {
       "id": "5795429",
       "date": "2026-08-28T19:00:00.000Z",
-      "analysed_at": "2026-09-06T02:20:50.901Z",
+      "analysed_at": "2026-09-06T03:01:19.978Z",
       "competition": "Premier League",
       "is_home": false,
       "city": {
@@ -496,19 +738,256 @@
           ]
         }
       ],
-      "opta_review": {
-        "source": "Opta",
-        "title": "Crystal Palace 1-4 Manchester City: Cherki dazzles and Haaland gets off the mark in big win",
-        "url": "https://www.fotmob.com/news/tee2lyrqd1dk1pq3p2tx7lgy2-crystal-palace-1-4-manchester-city-cherki-dazzles-haaland-gets-off-mark-big-win?utm_source=fotmob",
-        "updated_at": "2026-08-28T21:21:50.000Z"
+      "tactical_data": {
+        "lineup": {
+          "city_formation": "4-2-3-1",
+          "opponent_formation": "3-4-2-1",
+          "city_starting_xi": [
+            {
+              "id": "618878",
+              "name": "多纳鲁马",
+              "name_en": "Gianluigi Donnarumma"
+            },
+            {
+              "id": "1362998",
+              "name": "胡桑诺夫",
+              "name_en": "Abdukodir Khusanov"
+            },
+            {
+              "id": "614006",
+              "name": "鲁本·迪亚斯",
+              "name_en": "Rúben Dias"
+            },
+            {
+              "id": "844425",
+              "name": "格伊",
+              "name_en": "Marc Guéhi"
+            },
+            {
+              "id": "1070712",
+              "name": "格瓦迪奥尔",
+              "name_en": "Josko Gvardiol"
+            },
+            {
+              "id": "1300526",
+              "name": "奥赖利",
+              "name_en": "Nico O'Reilly"
+            },
+            {
+              "id": "1089691",
+              "name": "埃利奥特·安德森",
+              "name_en": "Elliot Anderson"
+            },
+            {
+              "id": "815006",
+              "name": "福登",
+              "name_en": "Phil Foden"
+            },
+            {
+              "id": "1104053",
+              "name": "谢尔基",
+              "name_en": "Rayan Cherki"
+            },
+            {
+              "id": "933576",
+              "name": "塞梅尼奥",
+              "name_en": "Antoine Semenyo"
+            },
+            {
+              "id": "737066",
+              "name": "哈兰德",
+              "name_en": "Erling Haaland"
+            }
+          ],
+          "opponent_starting_xi": [
+            {
+              "id": "719330",
+              "name": "Dean Henderson",
+              "name_en": "Dean Henderson"
+            },
+            {
+              "id": "1664722",
+              "name": "Jaydee Canvot",
+              "name_en": "Jaydee Canvot"
+            },
+            {
+              "id": "950829",
+              "name": "Chris Richards",
+              "name_en": "Chris Richards"
+            },
+            {
+              "id": "664444",
+              "name": "Takehiro Tomiyasu",
+              "name_en": "Takehiro Tomiyasu"
+            },
+            {
+              "id": "1477878",
+              "name": "Anan Khalaili",
+              "name_en": "Anan Khalaili"
+            },
+            {
+              "id": "1296650",
+              "name": "Adam Wharton",
+              "name_en": "Adam Wharton"
+            },
+            {
+              "id": "621515",
+              "name": "Daichi Kamada",
+              "name_en": "Daichi Kamada"
+            },
+            {
+              "id": "1120224",
+              "name": "Tyrick Mitchell",
+              "name_en": "Tyrick Mitchell"
+            },
+            {
+              "id": "1047676",
+              "name": "Yéremi Pino",
+              "name_en": "Yéremi Pino"
+            },
+            {
+              "id": "860920",
+              "name": "Edward Nketiah",
+              "name_en": "Edward Nketiah"
+            },
+            {
+              "id": "821100",
+              "name": "Jørgen Strand Larsen",
+              "name_en": "Jørgen Strand Larsen"
+            }
+          ]
+        },
+        "shots": {
+          "available": true,
+          "total": 19,
+          "xg": 2.22,
+          "inside_box": 14,
+          "outside_box": 5,
+          "open_play": 13,
+          "open_play_xg": 1.81,
+          "set_piece": 6,
+          "set_piece_xg": 0.4,
+          "high_quality": 1,
+          "first_half": {
+            "shots": 11,
+            "xg": 1.73
+          },
+          "second_half": {
+            "shots": 8,
+            "xg": 0.48
+          }
+        },
+        "opponent_shots": {
+          "available": true,
+          "total": 9,
+          "xg": 0.66,
+          "inside_box": 6,
+          "outside_box": 3,
+          "open_play": 4,
+          "open_play_xg": 0.47,
+          "set_piece": 5,
+          "set_piece_xg": 0.2,
+          "high_quality": 1,
+          "first_half": {
+            "shots": 7,
+            "xg": 0.3
+          },
+          "second_half": {
+            "shots": 2,
+            "xg": 0.36
+          }
+        },
+        "attacking_zones": {
+          "city": {
+            "total": {
+              "left": 41,
+              "center": 30,
+              "right": 29
+            },
+            "first_half": {
+              "left": 46,
+              "center": 26,
+              "right": 28
+            },
+            "second_half": {
+              "left": 37,
+              "center": 33,
+              "right": 30
+            }
+          },
+          "opponent": {
+            "total": {
+              "left": 33,
+              "center": 21,
+              "right": 46
+            },
+            "first_half": {
+              "left": 24,
+              "center": 22,
+              "right": 54
+            },
+            "second_half": {
+              "left": 46,
+              "center": 19,
+              "right": 35
+            }
+          }
+        }
       },
-      "match_url": "https://www.fotmob.com/matches/manchester-city-vs-crystal-palace/2ri9zd#5795429",
-      "official_results_url": "https://www.mancity.com/results/mens"
+      "tactical_longform": {
+        "version": 2,
+        "title": "从基础站位到攻防转换：曼城 4-1 水晶宫",
+        "standfirst": "这不是战报复述，而是把阵型标签、进攻方向、射门位置、xG 与比赛节点放在一起，回答曼城怎样控制比赛、又在哪里留下风险。",
+        "sections": [
+          {
+            "heading": "一、基础站位：阵型只是起点",
+            "paragraphs": [
+              "比赛阵容数据把曼城的基础阵型标为 4-2-3-1，水晶宫则是 3-4-2-1。曼城首发为多纳鲁马、胡桑诺夫、鲁本·迪亚斯、格伊、格瓦迪奥尔、奥赖利、埃利奥特·安德森、福登、谢尔基、塞梅尼奥、哈兰德。",
+              "曼城全场控球率达到 72%，完成 731 次准确传球，传球成功率 93%。这说明曼城大部分时间拥有组织进攻的主动权，但高控球本身不等于持续制造高质量射门。"
+            ]
+          },
+          {
+            "heading": "二、有球推进：球权主要去了哪里",
+            "paragraphs": [
+              "进攻方向分布为左路 41%、中路 30%、右路 29%，其中左路占比最高。这组数据不能直接证明某名球员固定站在某个区域，却能说明球队把推进资源更多投向了哪里。",
+              "曼城在对方禁区完成 35 次触球，19 次射门中有 14 次来自禁区内、5 次来自禁区外。评价推进是否有效，关键不是传了多少脚，而是球权最终有没有进入能够完成高价值射门的区域。"
+            ]
+          },
+          {
+            "heading": "三、机会形成：控制有没有变成杀伤",
+            "paragraphs": [
+              "曼城累计 2.21 xG，其中运动战与快速反击贡献约 1.81，定位球贡献约 0.40；全场有 1 次单次 xG 不低于 0.30 的高质量射门。",
+              "从机会总量与质量看，曼城的优势不只停留在控球层面。射正、绝佳机会和禁区触球必须放在一起看：单纯增加低质量远射，不会自动解决进攻效率。"
+            ]
+          },
+          {
+            "heading": "四、无球与转换：比分之外的风险",
+            "paragraphs": [
+              "水晶宫完成 9 次射门，其中 6 次在禁区内；对手禁区触球 14 次。对手仍拿到 3 次绝佳机会和 0.66 xG，这不是可以被比分掩盖的小波动，而是防守保护与转换落位需要复盘的警报。",
+              "曼城门将完成 1 次扑救。当最后一道防线需要频繁直接处理威胁时，问题通常不只属于门将或中卫，也要回看前场压迫被绕过后，中场是否及时保护第二点与禁区弧顶。"
+            ]
+          },
+          {
+            "heading": "五、比赛走势：优势何时出现、何时减弱",
+            "paragraphs": [
+              "曼城上半场已制造 1.73 xG，下半场只有 0.48；后半程没有延续同等强度的机会产出。决定比分的节点是17 分钟哈兰德接塞梅尼奥助攻破门，随后54 分钟谢尔基接福登助攻破门，随后59 分钟谢尔基接格瓦迪奥尔助攻破门，随后84 分钟哈兰德接福登助攻破门。",
+              "比分变化会反过来影响两队风险偏好，因此赛后不能把全场均值当成九十分钟始终不变的战术状态。领先后的控球如果不能继续制造威胁，就可能从主动控制变成被动消耗。"
+            ]
+          },
+          {
+            "heading": "结论",
+            "paragraphs": [
+              "4-1带来了结果，但这场球更重要的信号是：曼城已经建立机会优势，下一步要提高终结效率。只要继续压缩对手进入禁区的次数，这种控制才会真正稳定。"
+            ]
+          }
+        ],
+        "source_note": "本站中文战术复盘，根据 FotMob 展示的阵型、比赛事件、射门图与统计数据综合撰写；阵型标签与数据只能支持可观察的比赛现象，不冒充教练战术指令。"
+      }
     },
     {
       "id": "5795370",
       "date": "2026-08-23T13:00:00.000Z",
-      "analysed_at": "2026-09-06T02:20:50.901Z",
+      "analysed_at": "2026-09-06T03:01:19.978Z",
       "competition": "Premier League",
       "is_home": true,
       "city": {
@@ -696,6 +1175,11 @@
           "man_of_the_match": false,
           "metrics": [
             {
+              "key": "saves",
+              "label": "扑救",
+              "value": "3"
+            },
+            {
               "key": "goals_prevented",
               "label": "阻止失球",
               "value": "0.7"
@@ -734,19 +1218,256 @@
           ]
         }
       ],
-      "opta_review": {
-        "source": "Opta",
-        "title": "​Manchester City 2-1 Bournemouth: Substitute Cherki sparks late turnaround to get Maresca's first win",
-        "url": "https://www.fotmob.com/news/o3bf0p2geop17gimmhs26ewg-manchester-city-2-1-bournemouth-substitute-cherki-sparks-late-turnaround-get-marescas-first-win?utm_source=fotmob",
-        "updated_at": "2026-08-23T15:28:51.000Z"
+      "tactical_data": {
+        "lineup": {
+          "city_formation": "4-2-3-1",
+          "opponent_formation": "4-2-3-1",
+          "city_starting_xi": [
+            {
+              "id": "618878",
+              "name": "多纳鲁马",
+              "name_en": "Gianluigi Donnarumma"
+            },
+            {
+              "id": "1288450",
+              "name": "里科·刘易斯",
+              "name_en": "Rico Lewis"
+            },
+            {
+              "id": "1362998",
+              "name": "胡桑诺夫",
+              "name_en": "Abdukodir Khusanov"
+            },
+            {
+              "id": "614006",
+              "name": "鲁本·迪亚斯",
+              "name_en": "Rúben Dias"
+            },
+            {
+              "id": "1070712",
+              "name": "格瓦迪奥尔",
+              "name_en": "Josko Gvardiol"
+            },
+            {
+              "id": "1089691",
+              "name": "埃利奥特·安德森",
+              "name_en": "Elliot Anderson"
+            },
+            {
+              "id": "844425",
+              "name": "格伊",
+              "name_en": "Marc Guéhi"
+            },
+            {
+              "id": "815006",
+              "name": "福登",
+              "name_en": "Phil Foden"
+            },
+            {
+              "id": "1300526",
+              "name": "奥赖利",
+              "name_en": "Nico O'Reilly"
+            },
+            {
+              "id": "933576",
+              "name": "塞梅尼奥",
+              "name_en": "Antoine Semenyo"
+            },
+            {
+              "id": "737066",
+              "name": "哈兰德",
+              "name_en": "Erling Haaland"
+            }
+          ],
+          "opponent_starting_xi": [
+            {
+              "id": "1067256",
+              "name": "Djordje Petrovic",
+              "name_en": "Djordje Petrovic"
+            },
+            {
+              "id": "160447",
+              "name": "Adam Smith",
+              "name_en": "Adam Smith"
+            },
+            {
+              "id": "959407",
+              "name": "James Hill",
+              "name_en": "James Hill"
+            },
+            {
+              "id": "1292092",
+              "name": "António Silva",
+              "name_en": "António Silva"
+            },
+            {
+              "id": "1177358",
+              "name": "Adrien Truffert",
+              "name_en": "Adrien Truffert"
+            },
+            {
+              "id": "562724",
+              "name": "Lewis Cook",
+              "name_en": "Lewis Cook"
+            },
+            {
+              "id": "1233655",
+              "name": "Alex Scott",
+              "name_en": "Alex Scott"
+            },
+            {
+              "id": "1478295",
+              "name": "Rayan",
+              "name_en": "Rayan"
+            },
+            {
+              "id": "794253",
+              "name": "Justin Kluivert",
+              "name_en": "Justin Kluivert"
+            },
+            {
+              "id": "789630",
+              "name": "Marcus Tavernier",
+              "name_en": "Marcus Tavernier"
+            },
+            {
+              "id": "1098096",
+              "name": "Evanilson",
+              "name_en": "Evanilson"
+            }
+          ]
+        },
+        "shots": {
+          "available": true,
+          "total": 13,
+          "xg": 2.25,
+          "inside_box": 11,
+          "outside_box": 2,
+          "open_play": 9,
+          "open_play_xg": 1.21,
+          "set_piece": 4,
+          "set_piece_xg": 1.04,
+          "high_quality": 2,
+          "first_half": {
+            "shots": 6,
+            "xg": 0.49
+          },
+          "second_half": {
+            "shots": 7,
+            "xg": 1.76
+          }
+        },
+        "opponent_shots": {
+          "available": true,
+          "total": 5,
+          "xg": 0.65,
+          "inside_box": 4,
+          "outside_box": 1,
+          "open_play": 4,
+          "open_play_xg": 0.55,
+          "set_piece": 1,
+          "set_piece_xg": 0.1,
+          "high_quality": 1,
+          "first_half": {
+            "shots": 4,
+            "xg": 0.55
+          },
+          "second_half": {
+            "shots": 1,
+            "xg": 0.1
+          }
+        },
+        "attacking_zones": {
+          "city": {
+            "total": {
+              "left": 33,
+              "center": 31,
+              "right": 36
+            },
+            "first_half": {
+              "left": 33,
+              "center": 32,
+              "right": 35
+            },
+            "second_half": {
+              "left": 32,
+              "center": 31,
+              "right": 37
+            }
+          },
+          "opponent": {
+            "total": {
+              "left": 38,
+              "center": 22,
+              "right": 40
+            },
+            "first_half": {
+              "left": 43,
+              "center": 20,
+              "right": 37
+            },
+            "second_half": {
+              "left": 34,
+              "center": 23,
+              "right": 43
+            }
+          }
+        }
       },
-      "match_url": "https://www.fotmob.com/matches/manchester-city-vs-afc-bournemouth/2feiv3#5795370",
-      "official_results_url": "https://www.mancity.com/results/mens"
+      "tactical_longform": {
+        "version": 2,
+        "title": "从基础站位到攻防转换：曼城 2-1 伯恩茅斯",
+        "standfirst": "这不是战报复述，而是把阵型标签、进攻方向、射门位置、xG 与比赛节点放在一起，回答曼城怎样控制比赛、又在哪里留下风险。",
+        "sections": [
+          {
+            "heading": "一、基础站位：阵型只是起点",
+            "paragraphs": [
+              "比赛阵容数据把曼城的基础阵型标为 4-2-3-1，伯恩茅斯则是 4-2-3-1。曼城首发为多纳鲁马、里科·刘易斯、胡桑诺夫、鲁本·迪亚斯、格瓦迪奥尔、埃利奥特·安德森、格伊、福登、奥赖利、塞梅尼奥、哈兰德。",
+              "曼城全场控球率达到 66%，完成 584 次准确传球，传球成功率 89%。这说明曼城大部分时间拥有组织进攻的主动权，但高控球本身不等于持续制造高质量射门。"
+            ]
+          },
+          {
+            "heading": "二、有球推进：球权主要去了哪里",
+            "paragraphs": [
+              "进攻方向分布为左路 33%、中路 31%、右路 36%，其中右路占比最高。这组数据不能直接证明某名球员固定站在某个区域，却能说明球队把推进资源更多投向了哪里。",
+              "曼城在对方禁区完成 37 次触球，13 次射门中有 11 次来自禁区内、2 次来自禁区外。评价推进是否有效，关键不是传了多少脚，而是球权最终有没有进入能够完成高价值射门的区域。"
+            ]
+          },
+          {
+            "heading": "三、机会形成：控制有没有变成杀伤",
+            "paragraphs": [
+              "曼城累计 2.25 xG，其中运动战与快速反击贡献约 1.21，定位球贡献约 1.04；全场有 2 次单次 xG 不低于 0.30 的高质量射门。",
+              "真正的问题出在兑现：4 次绝佳机会只换来 2 球，比赛本可更早失去悬念。射正、绝佳机会和禁区触球必须放在一起看：单纯增加低质量远射，不会自动解决进攻效率。"
+            ]
+          },
+          {
+            "heading": "四、无球与转换：比分之外的风险",
+            "paragraphs": [
+              "伯恩茅斯完成 5 次射门，其中 4 次在禁区内；对手禁区触球 6 次。对手只有 1 次绝佳机会和 0.65 xG，曼城无球阶段整体守住了危险区域。",
+              "曼城门将完成 3 次扑救。当最后一道防线需要频繁直接处理威胁时，问题通常不只属于门将或中卫，也要回看前场压迫被绕过后，中场是否及时保护第二点与禁区弧顶。"
+            ]
+          },
+          {
+            "heading": "五、比赛走势：优势何时出现、何时减弱",
+            "paragraphs": [
+              "曼城下半场的射门 xG 从 0.49 升至 1.76，进攻质量在中场休息后有所提升。决定比分的节点是84 分钟格伊接谢尔基助攻破门，随后90 分钟格瓦迪奥尔接谢尔基助攻破门。",
+              "比分变化会反过来影响两队风险偏好，因此赛后不能把全场均值当成九十分钟始终不变的战术状态。领先后的控球如果不能继续制造威胁，就可能从主动控制变成被动消耗。"
+            ]
+          },
+          {
+            "heading": "结论",
+            "paragraphs": [
+              "2-1带来了结果，但这场球更重要的信号是：曼城已经建立机会优势，下一步要提高终结效率。只要继续压缩对手进入禁区的次数，这种控制才会真正稳定。"
+            ]
+          }
+        ],
+        "source_note": "本站中文战术复盘，根据 FotMob 展示的阵型、比赛事件、射门图与统计数据综合撰写；阵型标签与数据只能支持可观察的比赛现象，不冒充教练战术指令。"
+      }
     },
     {
       "id": "5793186",
       "date": "2026-08-16T14:00:00.000Z",
-      "analysed_at": "2026-09-06T02:20:50.901Z",
+      "analysed_at": "2026-09-06T03:01:19.978Z",
       "competition": "Community Shield",
       "is_home": false,
       "city": {
@@ -962,19 +1683,256 @@
           ]
         }
       ],
-      "opta_review": {
-        "source": "Opta",
-        "title": "Arsenal 3-0 Manchester City: Premier League champions run riot in Community Shield",
-        "url": "https://www.fotmob.com/news/190cfk6fxkfvd183ry8av1390c-arsenal-3-0-manchester-city-premier-league-champions-run-riot-community-shield?utm_source=fotmob",
-        "updated_at": "2026-08-16T16:04:39.000Z"
+      "tactical_data": {
+        "lineup": {
+          "city_formation": "4-2-3-1",
+          "opponent_formation": "4-3-3",
+          "city_starting_xi": [
+            {
+              "id": "618878",
+              "name": "多纳鲁马",
+              "name_en": "Gianluigi Donnarumma"
+            },
+            {
+              "id": "1362998",
+              "name": "胡桑诺夫",
+              "name_en": "Abdukodir Khusanov"
+            },
+            {
+              "id": "614006",
+              "name": "鲁本·迪亚斯",
+              "name_en": "Rúben Dias"
+            },
+            {
+              "id": "1070712",
+              "name": "格瓦迪奥尔",
+              "name_en": "Josko Gvardiol"
+            },
+            {
+              "id": "1300526",
+              "name": "奥赖利",
+              "name_en": "Nico O'Reilly"
+            },
+            {
+              "id": "1089691",
+              "name": "埃利奥特·安德森",
+              "name_en": "Elliot Anderson"
+            },
+            {
+              "id": "239219",
+              "name": "马特奥·科瓦契奇",
+              "name_en": "Mateo Kovacic"
+            },
+            {
+              "id": "933576",
+              "name": "塞梅尼奥",
+              "name_en": "Antoine Semenyo"
+            },
+            {
+              "id": "815006",
+              "name": "福登",
+              "name_en": "Phil Foden"
+            },
+            {
+              "id": "942368",
+              "name": "杰里米·多库",
+              "name_en": "Jérémy Doku"
+            },
+            {
+              "id": "737066",
+              "name": "哈兰德",
+              "name_en": "Erling Haaland"
+            }
+          ],
+          "opponent_starting_xi": [
+            {
+              "id": "562727",
+              "name": "David Raya",
+              "name_en": "David Raya"
+            },
+            {
+              "id": "776151",
+              "name": "Ben White",
+              "name_en": "Ben White"
+            },
+            {
+              "id": "1298907",
+              "name": "Cristhian Mosquera",
+              "name_en": "Cristhian Mosquera"
+            },
+            {
+              "id": "795179",
+              "name": "Gabriel",
+              "name_en": "Gabriel"
+            },
+            {
+              "id": "1105912",
+              "name": "Riccardo Calafiori",
+              "name_en": "Riccardo Calafiori"
+            },
+            {
+              "id": "534670",
+              "name": "Martin Ødegaard",
+              "name_en": "Martin Ødegaard"
+            },
+            {
+              "id": "850354",
+              "name": "Bruno Guimarães",
+              "name_en": "Bruno Guimarães"
+            },
+            {
+              "id": "1406436",
+              "name": "Myles Lewis-Skelly",
+              "name_en": "Myles Lewis-Skelly"
+            },
+            {
+              "id": "1084981",
+              "name": "Noni Madueke",
+              "name_en": "Noni Madueke"
+            },
+            {
+              "id": "749736",
+              "name": "Kai Havertz",
+              "name_en": "Kai Havertz"
+            },
+            {
+              "id": "1157237",
+              "name": "Christos Tzolis",
+              "name_en": "Christos Tzolis"
+            }
+          ]
+        },
+        "shots": {
+          "available": true,
+          "total": 12,
+          "xg": 1.12,
+          "inside_box": 7,
+          "outside_box": 5,
+          "open_play": 11,
+          "open_play_xg": 1.1,
+          "set_piece": 1,
+          "set_piece_xg": 0.02,
+          "high_quality": 0,
+          "first_half": {
+            "shots": 5,
+            "xg": 0.69
+          },
+          "second_half": {
+            "shots": 7,
+            "xg": 0.43
+          }
+        },
+        "opponent_shots": {
+          "available": true,
+          "total": 9,
+          "xg": 2.16,
+          "inside_box": 8,
+          "outside_box": 1,
+          "open_play": 9,
+          "open_play_xg": 2.16,
+          "set_piece": 0,
+          "set_piece_xg": 0,
+          "high_quality": 3,
+          "first_half": {
+            "shots": 6,
+            "xg": 0.99
+          },
+          "second_half": {
+            "shots": 3,
+            "xg": 1.17
+          }
+        },
+        "attacking_zones": {
+          "city": {
+            "total": {
+              "left": 28,
+              "center": 32,
+              "right": 40
+            },
+            "first_half": {
+              "left": 29,
+              "center": 30,
+              "right": 41
+            },
+            "second_half": {
+              "left": 27,
+              "center": 33,
+              "right": 40
+            }
+          },
+          "opponent": {
+            "total": {
+              "left": 30,
+              "center": 28,
+              "right": 42
+            },
+            "first_half": {
+              "left": 23,
+              "center": 26,
+              "right": 51
+            },
+            "second_half": {
+              "left": 42,
+              "center": 33,
+              "right": 25
+            }
+          }
+        }
       },
-      "match_url": "https://www.fotmob.com/matches/manchester-city-vs-arsenal/2rhvvi#5793186",
-      "official_results_url": "https://www.mancity.com/results/mens"
+      "tactical_longform": {
+        "version": 2,
+        "title": "从基础站位到攻防转换：曼城 0-3 阿森纳",
+        "standfirst": "这不是战报复述，而是把阵型标签、进攻方向、射门位置、xG 与比赛节点放在一起，回答曼城怎样控制比赛、又在哪里留下风险。",
+        "sections": [
+          {
+            "heading": "一、基础站位：阵型只是起点",
+            "paragraphs": [
+              "比赛阵容数据把曼城的基础阵型标为 4-2-3-1，阿森纳则是 4-3-3。曼城首发为多纳鲁马、胡桑诺夫、鲁本·迪亚斯、格瓦迪奥尔、奥赖利、埃利奥特·安德森、马特奥·科瓦契奇、塞梅尼奥、福登、杰里米·多库、哈兰德。",
+              "曼城全场控球率达到 59%，完成 519 次准确传球，传球成功率 89%。曼城没有依靠极端控球压住比赛，攻守转换与每一次向前推进的质量因而更加重要。"
+            ]
+          },
+          {
+            "heading": "二、有球推进：球权主要去了哪里",
+            "paragraphs": [
+              "进攻方向分布为左路 28%、中路 32%、右路 40%，其中右路占比最高。这组数据不能直接证明某名球员固定站在某个区域，却能说明球队把推进资源更多投向了哪里。",
+              "曼城在对方禁区完成 34 次触球，12 次射门中有 7 次来自禁区内、5 次来自禁区外。评价推进是否有效，关键不是传了多少脚，而是球权最终有没有进入能够完成高价值射门的区域。"
+            ]
+          },
+          {
+            "heading": "三、机会形成：控制有没有变成杀伤",
+            "paragraphs": [
+              "曼城累计 1.12 xG，其中运动战与快速反击贡献约 1.10，定位球贡献约 0.02；全场有 0 次单次 xG 不低于 0.30 的高质量射门。",
+              "机会质量没有随球权同步拉开，控制感强于实际杀伤。射正、绝佳机会和禁区触球必须放在一起看：单纯增加低质量远射，不会自动解决进攻效率。"
+            ]
+          },
+          {
+            "heading": "四、无球与转换：比分之外的风险",
+            "paragraphs": [
+              "阿森纳完成 9 次射门，其中 8 次在禁区内；对手禁区触球 27 次。对手仍拿到 4 次绝佳机会和 2.16 xG，这不是可以被比分掩盖的小波动，而是防守保护与转换落位需要复盘的警报。",
+              "曼城门将完成 2 次扑救。当最后一道防线需要频繁直接处理威胁时，问题通常不只属于门将或中卫，也要回看前场压迫被绕过后，中场是否及时保护第二点与禁区弧顶。"
+            ]
+          },
+          {
+            "heading": "五、比赛走势：优势何时出现、何时减弱",
+            "paragraphs": [
+              "曼城上下半场分别制造 0.69 与 0.43 xG，威胁分布相对接近。本场没有进球节点可以改变比赛状态。",
+              "比分变化会反过来影响两队风险偏好，因此赛后不能把全场均值当成九十分钟始终不变的战术状态。领先后的控球如果不能继续制造威胁，就可能从主动控制变成被动消耗。"
+            ]
+          },
+          {
+            "heading": "结论",
+            "paragraphs": [
+              "比分没有站在曼城一边。复盘重点不是简单增加控球，而是让推进更早抵达危险区域，同时在丢失球权后的第一时间保护中路与身后。"
+            ]
+          }
+        ],
+        "source_note": "本站中文战术复盘，根据 FotMob 展示的阵型、比赛事件、射门图与统计数据综合撰写；阵型标签与数据只能支持可观察的比赛现象，不冒充教练战术指令。"
+      }
     },
     {
       "id": "5862945",
       "date": "2026-08-09T11:00:00.000Z",
-      "analysed_at": "2026-09-06T02:20:50.901Z",
+      "analysed_at": "2026-09-06T03:01:19.978Z",
       "competition": "Club Friendlies",
       "is_home": true,
       "city": {
@@ -1010,7 +1968,7 @@
         {
           "key": "turning",
           "title": "关键节点",
-          "text": "57′ Omar Marmoush；59′ Omar Marmoush；90′ Rayan Aït-Nouri"
+          "text": "57′ 奥马尔·马尔穆什；59′ 奥马尔·马尔穆什；90′ 拉扬·艾特-努里"
         }
       ],
       "stats": [
@@ -1060,21 +2018,21 @@
       "goals": [
         {
           "minute": 57,
-          "player": "Omar Marmoush",
+          "player": "奥马尔·马尔穆什",
           "player_en": "Omar Marmoush",
           "assist": null,
           "type": "Goal"
         },
         {
           "minute": 59,
-          "player": "Omar Marmoush",
+          "player": "奥马尔·马尔穆什",
           "player_en": "Omar Marmoush",
           "assist": null,
           "type": "Goal"
         },
         {
           "minute": 90,
-          "player": "Rayan Aït-Nouri",
+          "player": "拉扬·艾特-努里",
           "player_en": "Rayan Aït-Nouri",
           "assist": null,
           "type": "Goal"
@@ -1083,7 +2041,7 @@
       "top_players": [
         {
           "id": "839204",
-          "name": "Omar Marmoush",
+          "name": "奥马尔·马尔穆什",
           "name_en": "Omar Marmoush",
           "rating": 8.84,
           "position": "ST",
@@ -1135,7 +2093,7 @@
         },
         {
           "id": "1174337",
-          "name": "Savinho",
+          "name": "萨维尼奥",
           "name_en": "Savinho",
           "rating": 7.93,
           "position": "RW",
@@ -1212,19 +2170,224 @@
           ]
         }
       ],
-      "opta_review": {
-        "source": "Opta",
-        "title": "Manchester City 3-1 Atletico Madrid: Marmoush and Semenyo link up in comeback win",
-        "url": "https://www.fotmob.com/news/12girbomgma0f19ibwb3z63ntc-manchester-city-3-1-atletico-madrid-marmoush-semenyo-link-up-comeback-win?utm_source=fotmob",
-        "updated_at": "2026-08-09T13:20:30.000Z"
+      "tactical_data": {
+        "lineup": {
+          "city_formation": "4-2-3-1",
+          "opponent_formation": "4-4-2",
+          "city_starting_xi": [
+            {
+              "id": "618878",
+              "name": "多纳鲁马",
+              "name_en": "Gianluigi Donnarumma"
+            },
+            {
+              "id": "955529",
+              "name": "马特乌斯·努内斯",
+              "name_en": "Matheus Nunes"
+            },
+            {
+              "id": "614006",
+              "name": "鲁本·迪亚斯",
+              "name_en": "Rúben Dias"
+            },
+            {
+              "id": "1580952",
+              "name": "维托尔·雷斯",
+              "name_en": "Vitor Reis"
+            },
+            {
+              "id": "1070712",
+              "name": "格瓦迪奥尔",
+              "name_en": "Josko Gvardiol"
+            },
+            {
+              "id": "239219",
+              "name": "马特奥·科瓦契奇",
+              "name_en": "Mateo Kovacic"
+            },
+            {
+              "id": "868344",
+              "name": "蒂贾尼·赖因德斯",
+              "name_en": "Tijjani Reijnders"
+            },
+            {
+              "id": "1174337",
+              "name": "萨维尼奥",
+              "name_en": "Savinho"
+            },
+            {
+              "id": "815006",
+              "name": "福登",
+              "name_en": "Phil Foden"
+            },
+            {
+              "id": "933576",
+              "name": "塞梅尼奥",
+              "name_en": "Antoine Semenyo"
+            },
+            {
+              "id": "839204",
+              "name": "奥马尔·马尔穆什",
+              "name_en": "Omar Marmoush"
+            }
+          ],
+          "opponent_starting_xi": [
+            {
+              "id": "177126",
+              "name": "Jan Oblak",
+              "name_en": "Jan Oblak"
+            },
+            {
+              "id": "1842329",
+              "name": "Jorge Domínguez",
+              "name_en": "Jorge Domínguez"
+            },
+            {
+              "id": "609516",
+              "name": "Robin Le Normand",
+              "name_en": "Robin Le Normand"
+            },
+            {
+              "id": "727897",
+              "name": "Dávid Hancko",
+              "name_en": "Dávid Hancko"
+            },
+            {
+              "id": "1531100",
+              "name": "Dani Martinez",
+              "name_en": "Dani Martinez"
+            },
+            {
+              "id": "1282015",
+              "name": "Carlos Martín",
+              "name_en": "Carlos Martín"
+            },
+            {
+              "id": "184533",
+              "name": "Koke",
+              "name_en": "Koke"
+            },
+            {
+              "id": "950199",
+              "name": "Morten Hjulmand",
+              "name_en": "Morten Hjulmand"
+            },
+            {
+              "id": "1254394",
+              "name": "Obed Vargas",
+              "name_en": "Obed Vargas"
+            },
+            {
+              "id": "1419969",
+              "name": "Rodrigo Mendoza",
+              "name_en": "Rodrigo Mendoza"
+            },
+            {
+              "id": "690516",
+              "name": "Ademola Lookman",
+              "name_en": "Ademola Lookman"
+            }
+          ]
+        },
+        "shots": {
+          "available": false,
+          "total": 0,
+          "xg": 0,
+          "inside_box": 0,
+          "outside_box": 0,
+          "open_play": 0,
+          "open_play_xg": 0,
+          "set_piece": 0,
+          "set_piece_xg": 0,
+          "high_quality": 0,
+          "first_half": {
+            "shots": 0,
+            "xg": 0
+          },
+          "second_half": {
+            "shots": 0,
+            "xg": 0
+          }
+        },
+        "opponent_shots": {
+          "available": false,
+          "total": 0,
+          "xg": 0,
+          "inside_box": 0,
+          "outside_box": 0,
+          "open_play": 0,
+          "open_play_xg": 0,
+          "set_piece": 0,
+          "set_piece_xg": 0,
+          "high_quality": 0,
+          "first_half": {
+            "shots": 0,
+            "xg": 0
+          },
+          "second_half": {
+            "shots": 0,
+            "xg": 0
+          }
+        },
+        "attacking_zones": {
+          "city": null,
+          "opponent": null
+        }
       },
-      "match_url": "https://www.fotmob.com/matches/manchester-city-vs-atletico-madrid/2sdp29#5862945",
-      "official_results_url": "https://www.mancity.com/results/mens"
+      "tactical_longform": {
+        "version": 2,
+        "title": "从基础站位到攻防转换：曼城 3-1 马德里竞技",
+        "standfirst": "这不是战报复述，而是把阵型标签、进攻方向、射门位置、xG 与比赛节点放在一起，回答曼城怎样控制比赛、又在哪里留下风险。",
+        "sections": [
+          {
+            "heading": "一、基础站位：阵型只是起点",
+            "paragraphs": [
+              "比赛阵容数据把曼城的基础阵型标为 4-2-3-1，马德里竞技则是 4-4-2。曼城首发为多纳鲁马、马特乌斯·努内斯、鲁本·迪亚斯、维托尔·雷斯、格瓦迪奥尔、马特奥·科瓦契奇、蒂贾尼·赖因德斯、萨维尼奥、福登、塞梅尼奥、奥马尔·马尔穆什。",
+              "曼城全场控球率达到 54%，完成 474 次准确传球，传球成功率 92%。曼城没有依靠极端控球压住比赛，攻守转换与每一次向前推进的质量因而更加重要。"
+            ]
+          },
+          {
+            "heading": "二、有球推进：球权主要去了哪里",
+            "paragraphs": [
+              "本场没有提供进攻方向分布，因此不根据印象猜测球队偏重哪一侧。",
+              "曼城在对方禁区完成 31 次触球，全场共有 16 次射门；射门位置图未提供，因此不进一步虚构禁区内外的分布。"
+            ]
+          },
+          {
+            "heading": "三、机会形成：控制有没有变成杀伤",
+            "paragraphs": [
+              "本场没有提供可可靠读取的逐射门 xG，因此这里不会用 0 冒充“没有威胁”；可以确认的是曼城完成 16 次射门、6 次绝佳机会。",
+              "真正的问题出在兑现：6 次绝佳机会只换来 3 球，比赛本可更早失去悬念。射正、绝佳机会和禁区触球必须放在一起看：单纯增加低质量远射，不会自动解决进攻效率。"
+            ]
+          },
+          {
+            "heading": "四、无球与转换：比分之外的风险",
+            "paragraphs": [
+              "马德里竞技完成 13 次射门、19 次禁区触球；对手射门位置图未提供。对手只有 1 次绝佳机会，曼城无球阶段整体守住了危险区域。",
+              "曼城门将完成 2 次扑救。当最后一道防线需要频繁直接处理威胁时，问题通常不只属于门将或中卫，也要回看前场压迫被绕过后，中场是否及时保护第二点与禁区弧顶。"
+            ]
+          },
+          {
+            "heading": "五、比赛走势：优势何时出现、何时减弱",
+            "paragraphs": [
+              "本场没有提供可可靠读取的逐射门 xG，因此不虚构上下半场威胁变化。决定比分的节点是57 分钟奥马尔·马尔穆什破门，随后59 分钟奥马尔·马尔穆什破门，随后90 分钟拉扬·艾特-努里破门。",
+              "比分变化会反过来影响两队风险偏好，因此赛后不能把全场均值当成九十分钟始终不变的战术状态。领先后的控球如果不能继续制造威胁，就可能从主动控制变成被动消耗。"
+            ]
+          },
+          {
+            "heading": "结论",
+            "paragraphs": [
+              "3-1带来了结果，但这场球更重要的信号是：曼城还需要把控球与推进更稳定地转化为安全的比赛结构。只要继续压缩对手进入禁区的次数，这种控制才会真正稳定。"
+            ]
+          }
+        ],
+        "source_note": "本站中文战术复盘，根据 FotMob 展示的阵型、比赛事件、射门图与统计数据综合撰写；阵型标签与数据只能支持可观察的比赛现象，不冒充教练战术指令。"
+      }
     },
     {
       "id": "5862944",
       "date": "2026-08-05T11:00:00.000Z",
-      "analysed_at": "2026-09-06T02:30:46.028Z",
+      "analysed_at": "2026-09-06T03:01:19.978Z",
       "competition": "Club Friendlies",
       "is_home": false,
       "city": {
@@ -1260,7 +2423,7 @@
         {
           "key": "turning",
           "title": "关键节点",
-          "text": "9′ Rayan Aït-Nouri；20′ Tijjani Reijnders（塞梅尼奥助攻）；23′ Divin Mubama"
+          "text": "9′ 拉扬·艾特-努里；20′ 蒂贾尼·赖因德斯（塞梅尼奥助攻）；23′ 迪万·穆巴马"
         }
       ],
       "stats": [
@@ -1310,35 +2473,245 @@
       "goals": [
         {
           "minute": 9,
-          "player": "Rayan Aït-Nouri",
+          "player": "拉扬·艾特-努里",
           "player_en": "Rayan Aït-Nouri",
           "assist": null,
           "type": "Goal"
         },
         {
           "minute": 20,
-          "player": "Tijjani Reijnders",
+          "player": "蒂贾尼·赖因德斯",
           "player_en": "Tijjani Reijnders",
           "assist": "塞梅尼奥",
           "type": "Goal"
         },
         {
           "minute": 23,
-          "player": "Divin Mubama",
+          "player": "迪万·穆巴马",
           "player_en": "Divin Mubama",
           "assist": null,
           "type": "Goal"
         }
       ],
       "top_players": [],
-      "opta_review": null,
-      "match_url": "https://www.fotmob.com/matches/manchester-city-vs-k-league-all-stars/arbo11h#5862944",
-      "official_results_url": "https://www.mancity.com/results/mens"
+      "tactical_data": {
+        "lineup": {
+          "city_formation": "4-2-3-1",
+          "opponent_formation": "4-4-2",
+          "city_starting_xi": [
+            {
+              "id": "618878",
+              "name": "多纳鲁马",
+              "name_en": "Gianluigi Donnarumma"
+            },
+            {
+              "id": "1288450",
+              "name": "里科·刘易斯",
+              "name_en": "Rico Lewis"
+            },
+            {
+              "id": "1362998",
+              "name": "胡桑诺夫",
+              "name_en": "Abdukodir Khusanov"
+            },
+            {
+              "id": "614006",
+              "name": "鲁本·迪亚斯",
+              "name_en": "Rúben Dias"
+            },
+            {
+              "id": "1070712",
+              "name": "格瓦迪奥尔",
+              "name_en": "Josko Gvardiol"
+            },
+            {
+              "id": "868344",
+              "name": "蒂贾尼·赖因德斯",
+              "name_en": "Tijjani Reijnders"
+            },
+            {
+              "id": "239219",
+              "name": "马特奥·科瓦契奇",
+              "name_en": "Mateo Kovacic"
+            },
+            {
+              "id": "933576",
+              "name": "塞梅尼奥",
+              "name_en": "Antoine Semenyo"
+            },
+            {
+              "id": "815006",
+              "name": "福登",
+              "name_en": "Phil Foden"
+            },
+            {
+              "id": "933845",
+              "name": "拉扬·艾特-努里",
+              "name_en": "Rayan Aït-Nouri"
+            },
+            {
+              "id": "1203658",
+              "name": "迪万·穆巴马",
+              "name_en": "Divin Mubama"
+            }
+          ],
+          "opponent_starting_xi": [
+            {
+              "id": "848068",
+              "name": "Bum-Keun Song",
+              "name_en": "Bum-Keun Song"
+            },
+            {
+              "id": "828273",
+              "name": "Moon-Hwan Kim",
+              "name_en": "Moon-Hwan Kim"
+            },
+            {
+              "id": "852168",
+              "name": "Yazan Abu Al-Arab",
+              "name_en": "Yazan Abu Al-Arab"
+            },
+            {
+              "id": "1232264",
+              "name": "Gi-Hyuk Lee",
+              "name_en": "Gi-Hyuk Lee"
+            },
+            {
+              "id": "1232940",
+              "name": "Jeong-Won Eo",
+              "name_en": "Jeong-Won Eo"
+            },
+            {
+              "id": "954131",
+              "name": "Dong-Gyeong Lee",
+              "name_en": "Dong-Gyeong Lee"
+            },
+            {
+              "id": "1232490",
+              "name": "Bong-Soo Kim",
+              "name_en": "Bong-Soo Kim"
+            },
+            {
+              "id": "925867",
+              "name": "Tae-Joon Park",
+              "name_en": "Tae-Joon Park"
+            },
+            {
+              "id": "734964",
+              "name": "Dae-Won Kim",
+              "name_en": "Dae-Won Kim"
+            },
+            {
+              "id": "783680",
+              "name": "Matheus Oliveira Santos",
+              "name_en": "Matheus Oliveira Santos"
+            },
+            {
+              "id": "1354250",
+              "name": "Yago Cariello",
+              "name_en": "Yago Cariello"
+            }
+          ]
+        },
+        "shots": {
+          "available": false,
+          "total": 0,
+          "xg": 0,
+          "inside_box": 0,
+          "outside_box": 0,
+          "open_play": 0,
+          "open_play_xg": 0,
+          "set_piece": 0,
+          "set_piece_xg": 0,
+          "high_quality": 0,
+          "first_half": {
+            "shots": 0,
+            "xg": 0
+          },
+          "second_half": {
+            "shots": 0,
+            "xg": 0
+          }
+        },
+        "opponent_shots": {
+          "available": false,
+          "total": 0,
+          "xg": 0,
+          "inside_box": 0,
+          "outside_box": 0,
+          "open_play": 0,
+          "open_play_xg": 0,
+          "set_piece": 0,
+          "set_piece_xg": 0,
+          "high_quality": 0,
+          "first_half": {
+            "shots": 0,
+            "xg": 0
+          },
+          "second_half": {
+            "shots": 0,
+            "xg": 0
+          }
+        },
+        "attacking_zones": {
+          "city": null,
+          "opponent": null
+        }
+      },
+      "tactical_longform": {
+        "version": 2,
+        "title": "从基础站位到攻防转换：曼城 3-1 K联赛全明星",
+        "standfirst": "这不是战报复述，而是把阵型标签、进攻方向、射门位置、xG 与比赛节点放在一起，回答曼城怎样控制比赛、又在哪里留下风险。",
+        "sections": [
+          {
+            "heading": "一、基础站位：阵型只是起点",
+            "paragraphs": [
+              "比赛阵容数据把曼城的基础阵型标为 4-2-3-1，K联赛全明星则是 4-4-2。曼城首发为多纳鲁马、里科·刘易斯、胡桑诺夫、鲁本·迪亚斯、格瓦迪奥尔、蒂贾尼·赖因德斯、马特奥·科瓦契奇、塞梅尼奥、福登、拉扬·艾特-努里、迪万·穆巴马。",
+              "曼城全场控球率达到 50%，完成 — 次准确传球。曼城没有依靠极端控球压住比赛，攻守转换与每一次向前推进的质量因而更加重要。"
+            ]
+          },
+          {
+            "heading": "二、有球推进：球权主要去了哪里",
+            "paragraphs": [
+              "本场没有提供进攻方向分布，因此不根据印象猜测球队偏重哪一侧。",
+              "曼城在对方禁区完成 0 次触球，全场共有 0 次射门；射门位置图未提供，因此不进一步虚构禁区内外的分布。"
+            ]
+          },
+          {
+            "heading": "三、机会形成：控制有没有变成杀伤",
+            "paragraphs": [
+              "本场没有提供可可靠读取的逐射门 xG，因此这里不会用 0 冒充“没有威胁”；可以确认的是曼城完成 0 次射门、0 次绝佳机会。",
+              "缺少逐射门 xG 时，只能确认机会数量，不能把主观观感包装成精确的机会质量结论。射正、绝佳机会和禁区触球必须放在一起看：单纯增加低质量远射，不会自动解决进攻效率。"
+            ]
+          },
+          {
+            "heading": "四、无球与转换：比分之外的风险",
+            "paragraphs": [
+              "K联赛全明星完成 0 次射门、0 次禁区触球；对手射门位置图未提供。对手只有 0 次绝佳机会，曼城无球阶段整体守住了危险区域。",
+              "当最后一道防线需要频繁直接处理威胁时，问题通常不只属于门将或中卫，也要回看前场压迫被绕过后，中场是否及时保护第二点与禁区弧顶。"
+            ]
+          },
+          {
+            "heading": "五、比赛走势：优势何时出现、何时减弱",
+            "paragraphs": [
+              "本场没有提供可可靠读取的逐射门 xG，因此不虚构上下半场威胁变化。决定比分的节点是9 分钟拉扬·艾特-努里破门，随后20 分钟蒂贾尼·赖因德斯接塞梅尼奥助攻破门，随后23 分钟迪万·穆巴马破门。",
+              "比分变化会反过来影响两队风险偏好，因此赛后不能把全场均值当成九十分钟始终不变的战术状态。领先后的控球如果不能继续制造威胁，就可能从主动控制变成被动消耗。"
+            ]
+          },
+          {
+            "heading": "结论",
+            "paragraphs": [
+              "3-1带来了结果，但这场球更重要的信号是：曼城还需要把控球与推进更稳定地转化为安全的比赛结构。只要继续压缩对手进入禁区的次数，这种控制才会真正稳定。"
+            ]
+          }
+        ],
+        "source_note": "本站中文战术复盘，根据 FotMob 展示的阵型、比赛事件、射门图与统计数据综合撰写；阵型标签与数据只能支持可观察的比赛现象，不冒充教练战术指令。"
+      }
     },
     {
       "id": "5406269",
       "date": "2026-08-01T11:30:00.000Z",
-      "analysed_at": "2026-09-06T02:30:46.028Z",
+      "analysed_at": "2026-09-06T03:01:19.978Z",
       "competition": "Club Friendlies",
       "is_home": true,
       "city": {
@@ -1347,7 +2720,7 @@
         "score": 1
       },
       "opponent": {
-        "name": "Inter",
+        "name": "国际米兰",
         "name_en": "Inter",
         "score": 1
       },
@@ -1374,7 +2747,7 @@
         {
           "key": "turning",
           "title": "关键节点",
-          "text": "14′ Divin Mubama"
+          "text": "14′ 迪万·穆巴马"
         }
       ],
       "stats": [
@@ -1424,7 +2797,7 @@
       "goals": [
         {
           "minute": 14,
-          "player": "Divin Mubama",
+          "player": "迪万·穆巴马",
           "player_en": "Divin Mubama",
           "assist": null,
           "type": "Goal"
@@ -1459,7 +2832,7 @@
         },
         {
           "id": "1288450",
-          "name": "Rico Lewis",
+          "name": "里科·刘易斯",
           "name_en": "Rico Lewis",
           "rating": 7.44,
           "position": "RB",
@@ -1485,7 +2858,7 @@
         },
         {
           "id": "1580952",
-          "name": "Vitor Reis",
+          "name": "维托尔·雷斯",
           "name_en": "Vitor Reis",
           "rating": 7.4,
           "position": "",
@@ -1557,14 +2930,219 @@
           ]
         }
       ],
-      "opta_review": {
-        "source": "Opta",
-        "title": "Manchester City 1-1 Inter (1-3 pens): Maresca starts with defeat despite second-half domination",
-        "url": "https://www.fotmob.com/news/qzd3b6azauje1awu46ym12f1t-manchester-city-1-1-inter-1-3-pens-maresca-starts-defeat-despite-second-half-domination?utm_source=fotmob",
-        "updated_at": "2026-08-01T13:49:30.000Z"
+      "tactical_data": {
+        "lineup": {
+          "city_formation": "4-2-3-1",
+          "opponent_formation": "3-5-2",
+          "city_starting_xi": [
+            {
+              "id": "618878",
+              "name": "多纳鲁马",
+              "name_en": "Gianluigi Donnarumma"
+            },
+            {
+              "id": "1288450",
+              "name": "里科·刘易斯",
+              "name_en": "Rico Lewis"
+            },
+            {
+              "id": "1362998",
+              "name": "胡桑诺夫",
+              "name_en": "Abdukodir Khusanov"
+            },
+            {
+              "id": "1070712",
+              "name": "格瓦迪奥尔",
+              "name_en": "Josko Gvardiol"
+            },
+            {
+              "id": "1613300",
+              "name": "斯蒂芬·姆富尼",
+              "name_en": "Stephen Mfuni"
+            },
+            {
+              "id": "239219",
+              "name": "马特奥·科瓦契奇",
+              "name_en": "Mateo Kovacic"
+            },
+            {
+              "id": "868344",
+              "name": "蒂贾尼·赖因德斯",
+              "name_en": "Tijjani Reijnders"
+            },
+            {
+              "id": "933576",
+              "name": "塞梅尼奥",
+              "name_en": "Antoine Semenyo"
+            },
+            {
+              "id": "815006",
+              "name": "福登",
+              "name_en": "Phil Foden"
+            },
+            {
+              "id": "1174337",
+              "name": "萨维尼奥",
+              "name_en": "Savinho"
+            },
+            {
+              "id": "1203658",
+              "name": "迪万·穆巴马",
+              "name_en": "Divin Mubama"
+            }
+          ],
+          "opponent_starting_xi": [
+            {
+              "id": "772168",
+              "name": "Josep Martínez",
+              "name_en": "Josep Martínez"
+            },
+            {
+              "id": "611223",
+              "name": "Benjamin Pavard",
+              "name_en": "Benjamin Pavard"
+            },
+            {
+              "id": "889535",
+              "name": "Yann Aurel Bisseck",
+              "name_en": "Yann Aurel Bisseck"
+            },
+            {
+              "id": "940829",
+              "name": "Carlos Augusto",
+              "name_en": "Carlos Augusto"
+            },
+            {
+              "id": "1254297",
+              "name": "Andy Diouf",
+              "name_en": "Andy Diouf"
+            },
+            {
+              "id": "541820",
+              "name": "Nicolò Barella",
+              "name_en": "Nicolò Barella"
+            },
+            {
+              "id": "1410437",
+              "name": "Aleksandar Stankovic",
+              "name_en": "Aleksandar Stankovic"
+            },
+            {
+              "id": "73167",
+              "name": "Henrikh Mkhitaryan",
+              "name_en": "Henrikh Mkhitaryan"
+            },
+            {
+              "id": "605224",
+              "name": "Federico Dimarco",
+              "name_en": "Federico Dimarco"
+            },
+            {
+              "id": "1367618",
+              "name": "Francesco Pio Esposito",
+              "name_en": "Francesco Pio Esposito"
+            },
+            {
+              "id": "1814609",
+              "name": "Jamal Iddrissou",
+              "name_en": "Jamal Iddrissou"
+            }
+          ]
+        },
+        "shots": {
+          "available": false,
+          "total": 0,
+          "xg": 0,
+          "inside_box": 0,
+          "outside_box": 0,
+          "open_play": 0,
+          "open_play_xg": 0,
+          "set_piece": 0,
+          "set_piece_xg": 0,
+          "high_quality": 0,
+          "first_half": {
+            "shots": 0,
+            "xg": 0
+          },
+          "second_half": {
+            "shots": 0,
+            "xg": 0
+          }
+        },
+        "opponent_shots": {
+          "available": false,
+          "total": 0,
+          "xg": 0,
+          "inside_box": 0,
+          "outside_box": 0,
+          "open_play": 0,
+          "open_play_xg": 0,
+          "set_piece": 0,
+          "set_piece_xg": 0,
+          "high_quality": 0,
+          "first_half": {
+            "shots": 0,
+            "xg": 0
+          },
+          "second_half": {
+            "shots": 0,
+            "xg": 0
+          }
+        },
+        "attacking_zones": {
+          "city": null,
+          "opponent": null
+        }
       },
-      "match_url": "https://www.fotmob.com/matches/manchester-city-vs-inter/2ez486#5406269",
-      "official_results_url": "https://www.mancity.com/results/mens"
+      "tactical_longform": {
+        "version": 2,
+        "title": "从基础站位到攻防转换：曼城 1-1 国际米兰",
+        "standfirst": "这不是战报复述，而是把阵型标签、进攻方向、射门位置、xG 与比赛节点放在一起，回答曼城怎样控制比赛、又在哪里留下风险。",
+        "sections": [
+          {
+            "heading": "一、基础站位：阵型只是起点",
+            "paragraphs": [
+              "比赛阵容数据把曼城的基础阵型标为 4-2-3-1，国际米兰则是 3-5-2。曼城首发为多纳鲁马、里科·刘易斯、胡桑诺夫、格瓦迪奥尔、斯蒂芬·姆富尼、马特奥·科瓦契奇、蒂贾尼·赖因德斯、塞梅尼奥、福登、萨维尼奥、迪万·穆巴马。",
+              "曼城全场控球率达到 64%，完成 623 次准确传球，传球成功率 93%。曼城没有依靠极端控球压住比赛，攻守转换与每一次向前推进的质量因而更加重要。"
+            ]
+          },
+          {
+            "heading": "二、有球推进：球权主要去了哪里",
+            "paragraphs": [
+              "本场没有提供进攻方向分布，因此不根据印象猜测球队偏重哪一侧。",
+              "曼城在对方禁区完成 61 次触球，全场共有 24 次射门；射门位置图未提供，因此不进一步虚构禁区内外的分布。"
+            ]
+          },
+          {
+            "heading": "三、机会形成：控制有没有变成杀伤",
+            "paragraphs": [
+              "本场没有提供可可靠读取的逐射门 xG，因此这里不会用 0 冒充“没有威胁”；可以确认的是曼城完成 24 次射门、3 次绝佳机会。",
+              "真正的问题出在兑现：3 次绝佳机会只换来 1 球，比赛本可更早失去悬念。射正、绝佳机会和禁区触球必须放在一起看：单纯增加低质量远射，不会自动解决进攻效率。"
+            ]
+          },
+          {
+            "heading": "四、无球与转换：比分之外的风险",
+            "paragraphs": [
+              "国际米兰完成 10 次射门、18 次禁区触球；对手射门位置图未提供。对手只有 2 次绝佳机会，曼城无球阶段整体守住了危险区域。",
+              "曼城门将完成 3 次扑救。当最后一道防线需要频繁直接处理威胁时，问题通常不只属于门将或中卫，也要回看前场压迫被绕过后，中场是否及时保护第二点与禁区弧顶。"
+            ]
+          },
+          {
+            "heading": "五、比赛走势：优势何时出现、何时减弱",
+            "paragraphs": [
+              "本场没有提供可可靠读取的逐射门 xG，因此不虚构上下半场威胁变化。决定比分的节点是14 分钟迪万·穆巴马破门。",
+              "比分变化会反过来影响两队风险偏好，因此赛后不能把全场均值当成九十分钟始终不变的战术状态。领先后的控球如果不能继续制造威胁，就可能从主动控制变成被动消耗。"
+            ]
+          },
+          {
+            "heading": "结论",
+            "paragraphs": [
+              "比分没有站在曼城一边。复盘重点不是简单增加控球，而是让推进更早抵达危险区域，同时在丢失球权后的第一时间保护中路与身后。"
+            ]
+          }
+        ],
+        "source_note": "本站中文战术复盘，根据 FotMob 展示的阵型、比赛事件、射门图与统计数据综合撰写；阵型标签与数据只能支持可观察的比赛现象，不冒充教练战术指令。"
+      }
     }
   ]
 }

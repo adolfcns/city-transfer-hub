@@ -24,6 +24,20 @@ const PLAYER_ZH = Object.freeze({
   'Enzo Fernández': '恩佐·费尔南德斯',
   'Enzo Fernandez': '恩佐·费尔南德斯',
   'Antoine Semenyo': '塞梅尼奥',
+  'Divin Mubama': '迪万·穆巴马',
+  'Iliman Ndiaye': '伊利曼·恩迪亚耶',
+  'Jérémy Doku': '杰里米·多库',
+  'Jeremy Doku': '杰里米·多库',
+  'Mateo Kovacic': '马特奥·科瓦契奇',
+  'Mateo Kovačić': '马特奥·科瓦契奇',
+  'Matheus Nunes': '马特乌斯·努内斯',
+  'Omar Marmoush': '奥马尔·马尔穆什',
+  'Rayan Aït-Nouri': '拉扬·艾特-努里',
+  'Rico Lewis': '里科·刘易斯',
+  'Savinho': '萨维尼奥',
+  'Stephen Mfuni': '斯蒂芬·姆富尼',
+  'Tijjani Reijnders': '蒂贾尼·赖因德斯',
+  'Vitor Reis': '维托尔·雷斯',
   'Phil Foden': '福登',
   'Rodri': '罗德里',
   'Rúben Dias': '鲁本·迪亚斯',
@@ -46,6 +60,7 @@ const TEAM_ZH = Object.freeze({
   'Atlético Madrid': '马德里竞技',
   'Atletico Madrid': '马德里竞技',
   'K-League All Stars': 'K联赛全明星',
+  'Inter': '国际米兰',
 });
 
 const METRIC_GROUPS = Object.freeze({
@@ -294,6 +309,193 @@ function goalEvents(details, cityIndex) {
   return goals.sort((a, b) => a.minute - b.minute);
 }
 
+function round(value, digits = 2) {
+  const scale = 10 ** digits;
+  return Math.round((Number(value) + Number.EPSILON) * scale) / scale;
+}
+
+function lineupSnapshot(details, cityIndex) {
+  const lineup = details?.content?.lineup || {};
+  const city = cityIndex === 0 ? lineup.homeTeam : lineup.awayTeam;
+  const opponent = cityIndex === 0 ? lineup.awayTeam : lineup.homeTeam;
+  const names = (team) => (team?.starters || []).map((player) => ({
+    id: String(player.id || ''),
+    name: playerZh(player.name),
+    name_en: player.name || '',
+  }));
+  return {
+    city_formation: city?.formation || '',
+    opponent_formation: opponent?.formation || '',
+    city_starting_xi: names(city),
+    opponent_starting_xi: names(opponent),
+  };
+}
+
+function summariseShots(details, teamId) {
+  const shots = (details?.content?.shotmap?.shots || []).filter((shot) => Number(shot.teamId) === Number(teamId));
+  const sumXg = (items) => round(items.reduce((sum, shot) => sum + Number(shot.expectedGoals || 0), 0));
+  const regular = shots.filter((shot) => shot.situation === 'RegularPlay');
+  const fastBreak = shots.filter((shot) => shot.situation === 'FastBreak');
+  const setPiece = shots.filter((shot) => !['RegularPlay', 'FastBreak'].includes(shot.situation));
+  const firstHalf = shots.filter((shot) => shot.period === 'FirstHalf');
+  const secondHalf = shots.filter((shot) => shot.period === 'SecondHalf');
+  return {
+    available: shots.length > 0,
+    total: shots.length,
+    xg: sumXg(shots),
+    inside_box: shots.filter((shot) => shot.isFromInsideBox).length,
+    outside_box: shots.filter((shot) => !shot.isFromInsideBox).length,
+    open_play: regular.length + fastBreak.length,
+    open_play_xg: sumXg([...regular, ...fastBreak]),
+    set_piece: setPiece.length,
+    set_piece_xg: sumXg(setPiece),
+    high_quality: shots.filter((shot) => Number(shot.expectedGoals || 0) >= 0.3).length,
+    first_half: { shots: firstHalf.length, xg: sumXg(firstHalf) },
+    second_half: { shots: secondHalf.length, xg: sumXg(secondHalf) },
+  };
+}
+
+function attackZoneSnapshot(details, cityIndex) {
+  const zones = details?.content?.attackingZones || {};
+  const city = cityIndex === 0 ? zones.home : zones.away;
+  const opponent = cityIndex === 0 ? zones.away : zones.home;
+  const normalise = (value) => value ? {
+    total: value.total || null,
+    first_half: value.firstHalf || null,
+    second_half: value.secondHalf || null,
+  } : null;
+  return { city: normalise(city), opponent: normalise(opponent) };
+}
+
+function zoneText(zones) {
+  if (!zones?.total) return null;
+  const { left = 0, center = 0, right = 0 } = zones.total;
+  const leading = [['左路', left], ['中路', center], ['右路', right]].sort((a, b) => b[1] - a[1])[0];
+  return `左路 ${left}%、中路 ${center}%、右路 ${right}%，其中${leading[0]}占比最高`;
+}
+
+function buildTacticalLongform({
+  opponentName,
+  cityScore,
+  opponentScore,
+  cityIndex,
+  stats,
+  goals,
+  keeperSaves,
+  lineup,
+  shots,
+  opponentShots,
+  attackingZones,
+}) {
+  const possession = safeStat(stats, 'BallPossesion', cityIndex, 50);
+  const opponentIndex = cityIndex === 0 ? 1 : 0;
+  const xg = safeStat(stats, 'expected_goals', cityIndex, null);
+  const opponentXg = safeStat(stats, 'expected_goals', opponentIndex, null);
+  const hasXg = xg !== null && opponentXg !== null && (xg > 0 || opponentXg > 0);
+  const cityShotTotal = shots.available ? shots.total : safeStat(stats, 'total_shots', cityIndex, 0);
+  const opponentShotTotal = opponentShots.available ? opponentShots.total : safeStat(stats, 'total_shots', opponentIndex, 0);
+  const bigChances = safeStat(stats, 'big_chance', cityIndex, 0);
+  const opponentBigChances = safeStat(stats, 'big_chance', opponentIndex, 0);
+  const boxTouches = safeStat(stats, 'touches_opp_box', cityIndex, 0);
+  const opponentBoxTouches = safeStat(stats, 'touches_opp_box', opponentIndex, 0);
+  const accuratePassesRaw = stats.accurate_passes?.[cityIndex] ?? '—';
+  const accuratePasses = numeric(accuratePassesRaw) ?? '—';
+  const passAccuracy = percent(accuratePassesRaw);
+  const conversionGap = Math.max(0, bigChances - cityScore);
+  const title = possession >= 68 && Math.abs(cityScore - opponentScore) <= 1
+    ? `${possession}%控球之下，曼城为何只与${opponentName}拉开一球？`
+    : `从基础站位到攻防转换：曼城 ${cityScore}-${opponentScore} ${opponentName}`;
+  const formationLine = lineup.city_formation
+    ? `比赛阵容数据把曼城的基础阵型标为 ${lineup.city_formation}${lineup.opponent_formation ? `，${opponentName}则是 ${lineup.opponent_formation}` : ''}。`
+    : '本场阵型标签尚未提供，因此不把具体站位变化写成既定事实。';
+  const starterLine = lineup.city_starting_xi.length
+    ? `曼城首发为${lineup.city_starting_xi.map((player) => player.name).join('、')}。`
+    : '';
+  const buildUpJudgement = possession >= 65
+    ? '这说明曼城大部分时间拥有组织进攻的主动权，但高控球本身不等于持续制造高质量射门。'
+    : '曼城没有依靠极端控球压住比赛，攻守转换与每一次向前推进的质量因而更加重要。';
+  const chanceJudgement = conversionGap >= 2
+    ? `真正的问题出在兑现：${bigChances} 次绝佳机会只换来 ${cityScore} 球，比赛本可更早失去悬念。`
+    : hasXg && xg >= opponentXg + 0.7
+      ? '从机会总量与质量看，曼城的优势不只停留在控球层面。'
+      : hasXg
+        ? '机会质量没有随球权同步拉开，控制感强于实际杀伤。'
+        : bigChances >= 3
+          ? '虽然缺少逐射门 xG，但绝佳机会数量仍能确认曼城制造了明确威胁。'
+          : '缺少逐射门 xG 时，只能确认机会数量，不能把主观观感包装成精确的机会质量结论。';
+  const defenceJudgement = opponentBigChances >= 3 || (hasXg && opponentXg >= 1.2)
+    ? `对手仍拿到 ${opponentBigChances} 次绝佳机会${hasXg ? `和 ${opponentXg.toFixed(2)} xG` : ''}，这不是可以被比分掩盖的小波动，而是防守保护与转换落位需要复盘的警报。`
+    : `对手只有 ${opponentBigChances} 次绝佳机会${hasXg ? `和 ${opponentXg.toFixed(2)} xG` : ''}，曼城无球阶段整体守住了危险区域。`;
+  const halfShift = !shots.available
+    ? '本场没有提供可可靠读取的逐射门 xG，因此不虚构上下半场威胁变化。'
+    : shots.second_half.xg > shots.first_half.xg + 0.35
+    ? `曼城下半场的射门 xG 从 ${shots.first_half.xg.toFixed(2)} 升至 ${shots.second_half.xg.toFixed(2)}，进攻质量在中场休息后有所提升。`
+    : shots.first_half.xg > shots.second_half.xg + 0.35
+      ? `曼城上半场已制造 ${shots.first_half.xg.toFixed(2)} xG，下半场只有 ${shots.second_half.xg.toFixed(2)}；后半程没有延续同等强度的机会产出。`
+      : `曼城上下半场分别制造 ${shots.first_half.xg.toFixed(2)} 与 ${shots.second_half.xg.toFixed(2)} xG，威胁分布相对接近。`;
+  const goalLine = goals.length
+    ? `决定比分的节点是${goals.map((goal) => `${goal.minute} 分钟${goal.player}${goal.assist ? `接${goal.assist}助攻` : ''}破门`).join('，随后')}。`
+    : '本场没有进球节点可以改变比赛状态。';
+  const conclusion = cityScore > opponentScore
+    ? `${cityScore}-${opponentScore}带来了结果，但这场球更重要的信号是：${hasXg && xg >= opponentXg + 0.7 ? '曼城已经建立机会优势，下一步要提高终结效率' : '曼城还需要把控球与推进更稳定地转化为安全的比赛结构'}。${hasXg && opponentXg >= 1.2 ? '若对手把握住其中一次高质量机会，比赛叙事就会完全不同。' : '只要继续压缩对手进入禁区的次数，这种控制才会真正稳定。'}`
+    : `比分没有站在曼城一边。复盘重点不是简单增加控球，而是让推进更早抵达危险区域，同时在丢失球权后的第一时间保护中路与身后。`;
+  return {
+    version: 2,
+    title,
+    standfirst: `这不是战报复述，而是把阵型标签、进攻方向、射门位置、xG 与比赛节点放在一起，回答曼城怎样控制比赛、又在哪里留下风险。`,
+    sections: [
+      {
+        heading: '一、基础站位：阵型只是起点',
+        paragraphs: [
+          `${formationLine}${starterLine}`,
+          `曼城全场控球率达到 ${possession}%，完成 ${accuratePasses} 次准确传球${passAccuracy === null ? '' : `，传球成功率 ${passAccuracy}%`}。${buildUpJudgement}`,
+        ],
+      },
+      {
+        heading: '二、有球推进：球权主要去了哪里',
+        paragraphs: [
+          zoneText(attackingZones.city)
+            ? `进攻方向分布为${zoneText(attackingZones.city)}。这组数据不能直接证明某名球员固定站在某个区域，却能说明球队把推进资源更多投向了哪里。`
+            : '本场没有提供进攻方向分布，因此不根据印象猜测球队偏重哪一侧。',
+          shots.available
+            ? `曼城在对方禁区完成 ${boxTouches} 次触球，${cityShotTotal} 次射门中有 ${shots.inside_box} 次来自禁区内、${shots.outside_box} 次来自禁区外。评价推进是否有效，关键不是传了多少脚，而是球权最终有没有进入能够完成高价值射门的区域。`
+            : `曼城在对方禁区完成 ${boxTouches} 次触球，全场共有 ${cityShotTotal} 次射门；射门位置图未提供，因此不进一步虚构禁区内外的分布。`,
+        ],
+      },
+      {
+        heading: '三、机会形成：控制有没有变成杀伤',
+        paragraphs: [
+          hasXg && shots.available
+            ? `曼城累计 ${xg.toFixed(2)} xG，其中运动战与快速反击贡献约 ${shots.open_play_xg.toFixed(2)}，定位球贡献约 ${shots.set_piece_xg.toFixed(2)}；全场有 ${shots.high_quality} 次单次 xG 不低于 0.30 的高质量射门。`
+            : `本场没有提供可可靠读取的逐射门 xG，因此这里不会用 0 冒充“没有威胁”；可以确认的是曼城完成 ${cityShotTotal} 次射门、${bigChances} 次绝佳机会。`,
+          `${chanceJudgement}射正、绝佳机会和禁区触球必须放在一起看：单纯增加低质量远射，不会自动解决进攻效率。`,
+        ],
+      },
+      {
+        heading: '四、无球与转换：比分之外的风险',
+        paragraphs: [
+          opponentShots.available
+            ? `${opponentName}完成 ${opponentShotTotal} 次射门，其中 ${opponentShots.inside_box} 次在禁区内；对手禁区触球 ${opponentBoxTouches} 次。${defenceJudgement}`
+            : `${opponentName}完成 ${opponentShotTotal} 次射门、${opponentBoxTouches} 次禁区触球；对手射门位置图未提供。${defenceJudgement}`,
+          `${keeperSaves ? `曼城门将完成 ${keeperSaves} 次扑救。` : ''}当最后一道防线需要频繁直接处理威胁时，问题通常不只属于门将或中卫，也要回看前场压迫被绕过后，中场是否及时保护第二点与禁区弧顶。`,
+        ],
+      },
+      {
+        heading: '五、比赛走势：优势何时出现、何时减弱',
+        paragraphs: [
+          `${halfShift}${goalLine}`,
+          `比分变化会反过来影响两队风险偏好，因此赛后不能把全场均值当成九十分钟始终不变的战术状态。领先后的控球如果不能继续制造威胁，就可能从主动控制变成被动消耗。`,
+        ],
+      },
+      {
+        heading: '结论',
+        paragraphs: [conclusion],
+      },
+    ],
+    source_note: '本站中文战术复盘，根据 FotMob 展示的阵型、比赛事件、射门图与统计数据综合撰写；阵型标签与数据只能支持可观察的比赛现象，不冒充教练战术指令。',
+  };
+}
+
 export function buildMatchAnalysis(details, fixture, now = new Date()) {
   const teams = details?.header?.teams || [];
   const cityIndex = teams.findIndex((team) => Number(team?.id) === TEAM_ID);
@@ -325,8 +527,23 @@ export function buildMatchAnalysis(details, fixture, now = new Date()) {
   const keeperStats = keeper ? flattenPlayerStats(details?.content?.playerStats?.[keeper.id]) : {};
   const keeperSaves = numeric(keeperStats.saves?.value ?? keeperStats.keeper_saves?.value ?? stats.keeper_saves?.[cityIndex]) || 0;
   const story = buildStory({ cityScore, opponentScore, cityIndex, opponentIndex, stats, keeperSaves, goals });
-  const postReview = (details?.content?.matchFacts?.postReview || []).find((item) => item.lang === 'en' && item.source === 'Opta')
-    || (details?.content?.matchFacts?.postReview || []).find((item) => item.lang === 'en');
+  const lineup = lineupSnapshot(details, cityIndex);
+  const shots = summariseShots(details, cityTeam.id);
+  const opponentShots = summariseShots(details, opponentTeam.id);
+  const attackingZones = attackZoneSnapshot(details, cityIndex);
+  const tacticalLongform = buildTacticalLongform({
+    opponentName: teamZh(opponentTeam.name),
+    cityScore,
+    opponentScore,
+    cityIndex,
+    stats,
+    goals,
+    keeperSaves,
+    lineup,
+    shots,
+    opponentShots,
+    attackingZones,
+  });
   const kickoff = asIso(details?.header?.status?.utcTime || fixture?.status?.utcTime);
   const statCards = [
     ['BallPossesion', '控球率', '%'],
@@ -358,14 +575,8 @@ export function buildMatchAnalysis(details, fixture, now = new Date()) {
     stats: statCards,
     goals,
     top_players: topPlayers,
-    opta_review: postReview ? {
-      source: postReview.source || 'Opta',
-      title: postReview.title || '',
-      url: postReview.shareUrl || '',
-      updated_at: asIso(postReview.dateUpdated),
-    } : null,
-    match_url: fixture?.pageUrl ? `https://www.fotmob.com${fixture.pageUrl}` : `https://www.fotmob.com/matches/x#${fixture?.id}`,
-    official_results_url: 'https://www.mancity.com/results/mens',
+    tactical_data: { lineup, shots, opponent_shots: opponentShots, attacking_zones: attackingZones },
+    tactical_longform: tacticalLongform,
   };
 }
 
@@ -389,7 +600,8 @@ function createBudget(previous, now) {
 
 function needsRefresh(previousMatch, fixture, now) {
   if (!previousMatch) return true;
-  if (previousMatch.opta_review && previousMatch.top_players?.length && previousMatch.stats?.length) return false;
+  if (previousMatch.tactical_longform?.version !== 2 || !previousMatch.tactical_longform?.sections?.length) return true;
+  if (previousMatch.tactical_longform?.sections?.length && previousMatch.top_players?.length && previousMatch.stats?.length) return false;
   const kickoffAge = now.getTime() - new Date(fixture?.status?.utcTime).getTime();
   const checkedAge = now.getTime() - new Date(previousMatch.analysed_at || 0).getTime();
   return kickoffAge < 72 * 60 * 60 * 1000 && checkedAge >= 3 * 60 * 60 * 1000;
@@ -444,7 +656,7 @@ export async function buildFirstTeamAnalysisData({ now = new Date() } = {}) {
     provider: {
       name: 'FotMob',
       url: 'https://www.fotmob.com',
-      note: '比赛事实、评分及 xG 等来自 FotMob 展示的公开比赛数据；Opta 战报仅展示标题并链接原文。本站中文复盘由数据规则自动生成，不代表 Opta 官方观点。',
+      note: '比赛事实、评分、阵型标签、射门图及 xG 等来自 FotMob 展示的公开比赛数据；中文战术复盘由本站综合撰写，不代表 FotMob、Opta、俱乐部或教练组观点。',
     },
     total: matches.length,
     latest_match_id: matches[0]?.id || null,

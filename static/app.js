@@ -1822,8 +1822,8 @@ function configurePageMode() {
     filterbar.hidden = true;
     librarybar.hidden = true;
     feed.hidden = true;
-    $('#footer-primary').textContent = '比赛事实、评分及 xG 等数据来自 FotMob；Opta 战报保留原文入口。';
-    $('#footer-secondary').textContent = '蓝月赛后分析 · 数据复盘由本站自动生成，不代表 Opta 官方观点';
+    $('#footer-primary').textContent = '比赛事实、评分、阵型标签、射门图及 xG 等数据来自 FotMob。';
+    $('#footer-secondary').textContent = '蓝月赛后分析 · 中文战术复盘由本站综合撰写';
     return;
   }
 
@@ -3862,7 +3862,7 @@ async function buildFirstTeamAnalysisShareCard(match) {
   cardFont(ctx, 19, 700);
   ctx.fillStyle = '#b9d9e9';
   ctx.textAlign = 'center';
-  ctx.fillText('数据来自 FotMob · 本站自动复盘不代表 Opta 官方观点', width / 2, 1290);
+  ctx.fillText('数据来自 FotMob · 中文战术复盘由本站综合撰写', width / 2, 1290);
   ctx.fillText('adolfcns.github.io/city-transfer-hub/?view=analysis', width / 2, 1324);
   ctx.textAlign = 'left';
   return new Promise((resolve, reject) => {
@@ -3919,6 +3919,29 @@ function firstTeamTopPlayerCard(player) {
   return link;
 }
 
+function firstTeamTacticalLongform(match) {
+  const longform = match.tactical_longform || {};
+  const section = el('section', 'first-team-tactical-longform');
+  const header = el('header', 'first-team-tactical-longform-head');
+  header.append(
+    el('span', null, 'TACTICAL REVIEW · 中文战术复盘'),
+    el('h4', null, longform.title || '本场战术长文正在生成'),
+    el('p', null, longform.standfirst || '从阵型、推进、机会形成和攻防转换重新阅读这场比赛。'),
+  );
+  section.appendChild(header);
+  const body = el('div', 'first-team-tactical-longform-body');
+  for (const item of longform.sections || []) {
+    const part = el('section', 'first-team-tactical-longform-part');
+    part.appendChild(el('h5', null, item.heading));
+    for (const paragraph of item.paragraphs || []) part.appendChild(el('p', null, paragraph));
+    body.appendChild(part);
+  }
+  if (!longform.sections?.length) body.appendChild(el('p', 'first-team-tactical-longform-empty', '本场结构化比赛数据正在整理，长文生成后会直接出现在这里。'));
+  section.appendChild(body);
+  if (longform.source_note) section.appendChild(el('footer', 'first-team-tactical-longform-note', longform.source_note));
+  return section;
+}
+
 function firstTeamAnalysisReport(match, data) {
   const report = el('article', 'first-team-report');
   const matchHead = el('header', 'first-team-match-head');
@@ -3931,7 +3954,7 @@ function firstTeamAnalysisReport(match, data) {
   matchHead.append(meta, el('b', `first-team-result ${firstTeamResultClass(match.result)}`, match.result || '赛果'));
 
   const verdict = el('section', 'first-team-verdict');
-  verdict.append(el('span', null, '本站结论'), el('p', null, match.verdict || '赛后分析正在生成。'));
+  verdict.append(el('span', null, '数据结论'), el('p', null, match.verdict || '赛后数据复盘正在生成。'));
 
   const stats = el('section', 'first-team-stats');
   stats.appendChild(el('h4', null, '曼城 vs 对手｜核心数据'));
@@ -3939,16 +3962,7 @@ function firstTeamAnalysisReport(match, data) {
   for (const stat of match.stats || []) statGrid.appendChild(firstTeamAnalysisStatCard(stat, match.opponent?.name || '对手'));
   stats.appendChild(statGrid);
 
-  const analysis = el('section', 'first-team-analysis-sections');
-  analysis.appendChild(el('h4', null, '比赛拆解'));
-  const analysisGrid = el('div', 'first-team-analysis-grid');
-  const icons = { control: '🎛', attack: '⚔', defence: '🛡', turning: '⏱' };
-  for (const section of match.analysis || []) {
-    const card = el('article', `first-team-analysis-point ${section.key || ''}`);
-    card.append(el('strong', null, `${icons[section.key] || '•'} ${section.title}`), el('p', null, section.text));
-    analysisGrid.appendChild(card);
-  }
-  analysis.appendChild(analysisGrid);
+  const tacticalLongform = firstTeamTacticalLongform(match);
 
   const players = el('section', 'first-team-players');
   players.appendChild(el('h4', null, '关键球员｜评分与位置数据'));
@@ -3956,39 +3970,9 @@ function firstTeamAnalysisReport(match, data) {
   for (const player of match.top_players || []) playerGrid.appendChild(firstTeamTopPlayerCard(player));
   players.appendChild(playerGrid);
 
-  const sources = el('section', 'first-team-sources');
-  const sourceCopy = el('div');
-  sourceCopy.append(
-    el('span', null, '原文与数据'),
-    el('strong', null, match.opta_review ? 'Opta 赛后战报已收录' : 'Opta 战报仍在等待发布'),
-  );
-  if (match.opta_review?.title) sourceCopy.appendChild(el('p', null, match.opta_review.title));
-  const links = el('div', 'first-team-source-links');
-  if (match.opta_review?.url) {
-    const opta = el('a', 'primary', '阅读 Opta 战报 ↗');
-    opta.href = match.opta_review.url;
-    opta.target = '_blank';
-    opta.rel = 'noopener noreferrer';
-    links.appendChild(opta);
-  }
-  const fotmob = el('a', null, 'FotMob 比赛中心 ↗');
-  fotmob.href = match.match_url;
-  fotmob.target = '_blank';
-  fotmob.rel = 'noopener noreferrer';
-  const official = el('a', null, '曼城官方战报 ↗');
-  official.href = match.official_results_url;
-  official.target = '_blank';
-  official.rel = 'noopener noreferrer';
-  links.append(fotmob, official);
-  const save = el('button', 'first-team-share', '↓ 下载赛后分析图');
-  save.type = 'button';
-  save.onclick = () => saveFirstTeamAnalysisImage(match);
-  links.appendChild(save);
-  sources.append(sourceCopy, links);
-
   const note = el('footer', 'first-team-analysis-note');
   note.textContent = data.provider?.note || '本站根据公开比赛数据自动生成中文复盘。';
-  report.append(matchHead, verdict, stats, analysis, players, sources, note);
+  report.append(matchHead, verdict, stats, tacticalLongform, players, note);
   return report;
 }
 
@@ -4037,10 +4021,10 @@ async function loadFirstTeamAnalysisHome() {
   const root = $('#first-team-analysis-home');
   const cached = firstTeamAnalysisData || readFirstTeamAnalysisCache();
   if (cached?.matches?.length) renderFirstTeamAnalysis(cached);
-  else root.innerHTML = '<div class="first-team-analysis-loading">正在读取最新比赛与 Opta 数据…</div>';
+  else root.innerHTML = '<div class="first-team-analysis-loading">正在读取最新比赛与战术数据…</div>';
   try {
     const data = await firstTeamAnalysisApi();
-    if (!cached || data.generated_at !== cached.generated_at) renderFirstTeamAnalysis(data);
+    if (!cached || data.checked_at !== cached.checked_at) renderFirstTeamAnalysis(data);
     else firstTeamAnalysisData = data;
   } catch {
     if (!cached?.matches?.length) root.innerHTML = '<div class="first-team-analysis-loading error">赛后分析暂时连接不上，请稍后刷新。</div>';

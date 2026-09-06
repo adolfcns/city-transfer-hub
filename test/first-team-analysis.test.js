@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { buildMatchAnalysis, flattenTeamStats } from '../scripts/fetch-first-team-analysis.js';
+
+const APP_SOURCE = readFileSync(new URL('../static/app.js', import.meta.url), 'utf8');
 
 function fixtureDetails() {
   return {
@@ -72,7 +75,7 @@ test('球队统计扁平化后保留主客两列', () => {
   assert.deepEqual(stats.BallPossesion, [78, 22]);
 });
 
-test('生成曼城视角中文赛后分析、关键球员和 Opta 原文入口', () => {
+test('生成曼城视角中文赛后分析、关键球员和战术长文', () => {
   const details = fixtureDetails();
   const match = buildMatchAnalysis(details, {
     id: 5795442,
@@ -87,8 +90,9 @@ test('生成曼城视角中文赛后分析、关键球员和 Opta 原文入口',
   assert.equal(match.goals[0].player, '哈兰德');
   assert.equal(match.top_players[0].name, '哈兰德');
   assert.equal(match.top_players[0].metrics[0].label, '预期进球');
-  assert.equal(match.opta_review.source, 'Opta');
-  assert.equal(match.opta_review.url, 'https://www.fotmob.com/news/example');
+  assert.equal(match.tactical_longform.sections.length, 6);
+  assert.match(match.tactical_longform.title, /考文垂/);
+  assert.match(match.tactical_longform.sections[0].paragraphs.join(''), /阵型/);
 });
 
 test('客场比赛仍按曼城视角计算比分和数据', () => {
@@ -112,4 +116,13 @@ test('客场比赛仍按曼城视角计算比分和数据', () => {
   assert.equal(match.result, '胜');
   assert.equal(match.stats[0].city, 78);
   assert.equal(match.goals[0].player, '哈兰德');
+});
+
+test('一线队页面直接展示中文战术长文，不再出现原文与数据按钮区', () => {
+  assert.match(APP_SOURCE, /first-team-tactical-longform/);
+  assert.match(APP_SOURCE, /中文战术复盘/);
+  assert.doesNotMatch(APP_SOURCE, /原文与数据/);
+  assert.doesNotMatch(APP_SOURCE, /阅读 Opta 战报/);
+  assert.doesNotMatch(APP_SOURCE, /FotMob 比赛中心/);
+  assert.doesNotMatch(APP_SOURCE, /曼城官方战报/);
 });
