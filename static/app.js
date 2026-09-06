@@ -2975,10 +2975,15 @@ async function firstTeamAnalysisApi() {
   return data;
 }
 
+function matchPreviewEntries(data) {
+  return [data, ...(Array.isArray(data?.more_previews) ? data.more_previews : [])]
+    .filter((preview) => preview?.match && Array.isArray(preview.sections) && preview.sections.length);
+}
+
 function readMatchPreviewCache() {
   try {
     const data = JSON.parse(localStorage.getItem(MATCH_PREVIEW_CACHE_KEY) || 'null');
-    return data?.match && Array.isArray(data?.sections) ? data : null;
+    return matchPreviewEntries(data).length ? data : null;
   } catch {
     return null;
   }
@@ -2994,7 +2999,7 @@ async function matchPreviewApi() {
   const response = await fetch(`${MATCH_PREVIEW_URL}?t=${Date.now()}`, { cache: 'no-store' });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const data = await response.json();
-  if (!data?.match || !Array.isArray(data.sections) || !data.sections.length) throw new Error('bad_match_preview_data');
+  if (!matchPreviewEntries(data).length) throw new Error('bad_match_preview_data');
   writeMatchPreviewCache(data);
   return data;
 }
@@ -4253,10 +4258,9 @@ function matchPreviewCountdown(value) {
 }
 
 function updateMatchPreviewCountdown() {
-  const target = $('#match-preview-countdown');
-  if (target && matchPreviewData?.match?.kickoff) {
-    target.textContent = matchPreviewCountdown(matchPreviewData.match.kickoff);
-  }
+  $$('.match-preview-accordion-countdown').forEach((target) => {
+    target.textContent = matchPreviewCountdown(target.dataset.kickoff);
+  });
 }
 
 function matchPreviewSectionTitle(text) {
@@ -4265,29 +4269,9 @@ function matchPreviewSectionTitle(text) {
   return head;
 }
 
-function renderMatchPreview(data) {
-  const root = $('#match-preview-home');
-  if (!root) return;
-  root.textContent = '';
-  matchPreviewData = data;
+function matchPreviewReport(data) {
   const match = data.match || {};
-
-  const hero = el('header', 'match-preview-hero');
-  const heroCopy = el('div', 'match-preview-hero-copy');
-  heroCopy.append(
-    el('span', 'match-preview-kicker', 'BLUE MOON · MATCH PREVIEW'),
-    el('h2', null, '蓝月比赛前瞻'),
-    el('p', null, data.headline || '下一场对手怎么踢，曼城该怎么应对。'),
-  );
-  const fixture = el('div', 'match-preview-fixture');
-  fixture.append(
-    el('span', null, `${match.competition || '赛事'} · ${match.venue || '比赛场地待定'}`),
-    el('strong', null, `${match.opponent || '对手'} vs ${match.city || '曼城'}`),
-    el('b', null, `北京时间 ${matchPreviewKickoff(match.kickoff)}`),
-    el('em', null, matchPreviewCountdown(match.kickoff)),
-  );
-  fixture.querySelector('em').id = 'match-preview-countdown';
-  hero.append(heroCopy, fixture);
+  const opponentName = match.opponent || '对手';
 
   const report = el('article', 'match-preview-report');
   const standfirst = el('section', 'match-preview-standfirst');
@@ -4316,7 +4300,7 @@ function renderMatchPreview(data) {
   report.appendChild(profile);
 
   const numbers = el('section', 'match-preview-numbers');
-  numbers.appendChild(matchPreviewSectionTitle('前5轮，波尔图踢出了什么'));
+  numbers.appendChild(matchPreviewSectionTitle(data.numbers_title || `${opponentName}本赛季踢出了什么`));
   const numberGrid = el('div', 'match-preview-number-grid');
   for (const stat of data.season_numbers || []) {
     const card = el('div', 'match-preview-number');
@@ -4335,7 +4319,7 @@ function renderMatchPreview(data) {
     const copy = el('div');
     copy.append(
       el('span', null, `${item.date || ''} · ${item.home ? '主场' : '客场'}`),
-      el('strong', null, `${item.home ? '波尔图' : item.opponent} ${item.score || ''} ${item.home ? item.opponent : '波尔图'}`),
+      el('strong', null, `${item.home ? opponentName : item.opponent} ${item.score || ''} ${item.home ? item.opponent : opponentName}`),
       el('p', null, item.note || ''),
     );
     row.append(el('i', `result-${item.result === '胜' ? 'win' : item.result === '负' ? 'loss' : 'draw'}`, item.result || '—'), copy, score);
@@ -4345,7 +4329,7 @@ function renderMatchPreview(data) {
   report.appendChild(form);
 
   const danger = el('section', 'match-preview-danger');
-  danger.appendChild(matchPreviewSectionTitle('最需要盯住的人'));
+  danger.appendChild(matchPreviewSectionTitle(data.danger_title || '最需要盯住的人'));
   const dangerGrid = el('div', 'match-preview-danger-grid');
   for (const player of data.danger_players || []) {
     const card = el('article', 'match-preview-danger-card');
@@ -4360,7 +4344,7 @@ function renderMatchPreview(data) {
   report.appendChild(danger);
 
   const longform = el('section', 'match-preview-longform');
-  longform.appendChild(matchPreviewSectionTitle('战术长文｜波尔图怎么踢，曼城怎么拆'));
+  longform.appendChild(matchPreviewSectionTitle(data.longform_title || `战术长文｜${opponentName}怎么踢，曼城怎么拆`));
   const body = el('div', 'match-preview-longform-body');
   for (const item of data.sections || []) {
     const part = el('section', `match-preview-part tone-${item.tone || 'plain'}`);
@@ -4400,8 +4384,84 @@ function renderMatchPreview(data) {
   report.appendChild(sourceNote);
   report.appendChild(matchPreviewPollSection(match));
   report.appendChild(matchDiscussionSection('preview', match));
-  root.append(hero, report);
-  $('#updated-at').textContent = `前瞻更新于 ${firstTeamAnalysisDate(data.generated_at, true)}`;
+  return report;
+}
+
+function matchPreviewFixtureTitle(match) {
+  if (!match) return '比赛前瞻';
+  return match.is_home
+    ? `${match.city || '曼城'} vs ${match.opponent || '对手'}`
+    : `${match.opponent || '对手'} vs ${match.city || '曼城'}`;
+}
+
+function matchPreviewAccordion(data, featuredId) {
+  const match = data.match || {};
+  const isFeatured = String(match.id) === String(featuredId);
+  const details = el('details', `match-preview-accordion${isFeatured ? ' featured' : ''}`);
+  details.open = data.default_open === true;
+
+  const summary = el('summary', 'match-preview-accordion-summary');
+  const copy = el('div', 'match-preview-accordion-copy');
+  const eyebrow = el('div', 'match-preview-accordion-eyebrow');
+  eyebrow.append(
+    el('span', data.badge === '曼市德比' ? 'derby' : null, data.badge || '比赛前瞻'),
+    el('b', null, `${match.competition || '赛事'} · ${match.venue || '场地待定'}`),
+  );
+  copy.append(
+    eyebrow,
+    el('h3', null, matchPreviewFixtureTitle(match)),
+    el('p', null, data.headline || '点开查看完整战术前瞻。'),
+  );
+
+  const meta = el('div', 'match-preview-accordion-meta');
+  const countdown = el('em', 'match-preview-accordion-countdown', matchPreviewCountdown(match.kickoff));
+  countdown.dataset.kickoff = match.kickoff || '';
+  meta.append(
+    el('b', null, `北京时间 ${matchPreviewKickoff(match.kickoff)}`),
+    countdown,
+    el('span', 'match-preview-accordion-action', '展开完整前瞻'),
+  );
+  summary.append(copy, meta);
+  details.append(summary, matchPreviewReport(data));
+  const syncAction = () => {
+    const action = details.querySelector('.match-preview-accordion-action');
+    if (action) action.textContent = details.open ? '收起完整前瞻' : '展开完整前瞻';
+  };
+  details.addEventListener('toggle', syncAction);
+  syncAction();
+  return details;
+}
+
+function renderMatchPreview(data) {
+  const root = $('#match-preview-home');
+  if (!root) return;
+  root.textContent = '';
+  matchPreviewData = data;
+  const previews = matchPreviewEntries(data);
+  const featuredId = data.featured_preview_id || previews[0]?.match?.id;
+
+  const hero = el('header', 'match-preview-hero');
+  const heroCopy = el('div', 'match-preview-hero-copy');
+  heroCopy.append(
+    el('span', 'match-preview-kicker', 'BLUE MOON · MATCH PREVIEW'),
+    el('h2', null, '蓝月比赛前瞻'),
+    el('p', null, '先闯巨龙球场，再去老特拉福德。两场比赛都能点开看完整战术长文。'),
+  );
+  const status = el('div', 'match-preview-hero-status');
+  status.append(
+    el('span', null, '未来两战'),
+    el('strong', null, `${previews.length} 篇`),
+    el('b', null, '战术前瞻已就位'),
+  );
+  hero.append(heroCopy, status);
+
+  const stack = el('section', 'match-preview-stack');
+  const ordered = [...previews].sort((a, b) => String(b.match?.id) === String(featuredId) ? 1 : String(a.match?.id) === String(featuredId) ? -1 : 0);
+  for (const preview of ordered) stack.appendChild(matchPreviewAccordion(preview, featuredId));
+  root.append(hero, stack);
+
+  const latest = ordered.reduce((value, preview) => !value || String(preview.generated_at || '') > String(value) ? preview.generated_at : value, data.generated_at);
+  $('#updated-at').textContent = `前瞻更新于 ${firstTeamAnalysisDate(latest, true)}`;
   clearInterval(matchPreviewCountdownTimer);
   matchPreviewCountdownTimer = setInterval(updateMatchPreviewCountdown, 60000);
 }
@@ -4409,14 +4469,14 @@ function renderMatchPreview(data) {
 async function loadMatchPreviewHome() {
   const root = $('#match-preview-home');
   const cached = matchPreviewData || readMatchPreviewCache();
-  if (cached?.match && cached?.sections?.length) renderMatchPreview(cached);
-  else root.innerHTML = '<div class="first-team-analysis-loading">正在读取波尔图比赛前瞻…</div>';
+  if (matchPreviewEntries(cached).length) renderMatchPreview(cached);
+  else root.innerHTML = '<div class="first-team-analysis-loading">正在读取比赛前瞻…</div>';
   try {
     const data = await matchPreviewApi();
     if (!cached || data.checked_at !== cached.checked_at) renderMatchPreview(data);
     else matchPreviewData = data;
   } catch {
-    if (!cached?.match) root.innerHTML = '<div class="first-team-analysis-loading error">比赛前瞻暂时连接不上，请稍后刷新。</div>';
+    if (!matchPreviewEntries(cached).length) root.innerHTML = '<div class="first-team-analysis-loading error">比赛前瞻暂时连接不上，请稍后刷新。</div>';
   }
 }
 

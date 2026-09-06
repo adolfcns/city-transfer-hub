@@ -30,9 +30,35 @@ test('波尔图前瞻包含赛程、近况、重点球员和完整战术拆解',
   assert.match(data.sections.map((section) => section.heading).join(' '), /怎么踢|压迫|最强|口子|曼城拿球|曼城无球|换人|开场15分钟/);
 });
 
+test('曼市德比前瞻与波尔图前瞻并列，并把曼联放在首位主推', () => {
+  assert.equal(data.featured_preview_id, 5795452);
+  assert.equal(data.more_previews.length, 1);
+  const derby = data.more_previews[0];
+  assert.equal(derby.match.id, 5795452);
+  assert.equal(derby.match.opponent, '曼联');
+  assert.equal(derby.match.kickoff, '2026-09-13T15:30:00.000Z');
+  assert.equal(derby.badge, '曼市德比');
+  assert.equal(derby.recent_form.length, 5);
+  assert.ok(derby.season_numbers.length >= 6);
+  assert.ok(derby.danger_players.length >= 5);
+  assert.ok(derby.sections.length >= 8);
+  assert.match(JSON.stringify(derby), /卡里克|4-2-3-1|3-2-5|布鲁诺|姆贝乌莫|双后腰|弱侧|边路夹击|换人/);
+});
+
+test('两篇前瞻都能独立折叠，投票与评论按比赛编号隔离', () => {
+  assert.match(app, /function matchPreviewEntries\(data\)/);
+  assert.match(app, /function matchPreviewAccordion\(data, featuredId\)/);
+  assert.match(app, /match-preview-accordion\$\{isFeatured \? ' featured' : ''\}/);
+  assert.match(app, /details\.open = data\.default_open === true/);
+  assert.match(app, /matchPreviewPollSection\(match\)/);
+  assert.match(app, /matchDiscussionSection\('preview', match\)/);
+  assert.match(css, /\.match-preview-accordion\[open\]/);
+  assert.match(css, /\.match-preview-accordion-summary/);
+});
+
 test('前瞻用直接中文说明战术，不使用空泛或过度防御措辞', () => {
   const copy = JSON.stringify(data);
-  assert.match(copy, /第三人|弱侧|边路围抢|维加|迪奥戈·科斯塔/);
+  assert.match(copy, /第三人|弱侧|边路围抢|维加|迪奥戈·科斯塔|老特拉福德/);
   assert.doesNotMatch(copy, /作为一个AI|仅供参考|不能说明|不能代替|不代表|先不下结论|先不硬评|背锅/);
   assert.ok(data.sources.length >= 4);
 });
