@@ -242,7 +242,8 @@ test('赛程可点击定位球员卡片且逐场记录提供数据分析', () =>
   assert.match(app, /scrollIntoView\(\{ behavior: 'smooth', block: 'start' \}\)/);
   assert.match(app, /function loanMatchAnalysisText\(match, player\)/);
   assert.match(app, /蓝月赛后分析/);
-  assert.match(app, /并非 Opta 官方数据/);
+  assert.match(app, /赛后解读依据 FotMob 逐场指标生成/);
+  assert.doesNotMatch(app, /并非 Opta 官方数据/);
   assert.match(style, /\.loan-match-analysis/);
   assert.match(style, /\.loan-player-card\.schedule-target/);
 });

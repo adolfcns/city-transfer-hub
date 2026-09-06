@@ -136,7 +136,7 @@ test('生成曼城视角中文赛后分析、关键球员和战术长文', () =>
   assert.equal(match.top_players[0].metrics[0].label, '预期进球');
   assert.equal(match.tactical_longform.sections.length, 7);
   assert.match(match.tactical_longform.title, /考文垂/);
-  assert.equal(match.tactical_longform.version, 5);
+  assert.equal(match.tactical_longform.version, 6);
   assert.ok(match.tactical_longform.problems.length >= 3);
   assert.match(match.tactical_longform.problems.join(''), /控球|绝佳机会|换人/);
   assert.match(match.tactical_longform.sections[0].paragraphs.join(''), /4-2-3-1.*4-1-4-1|开场/);
@@ -144,6 +144,7 @@ test('生成曼城视角中文赛后分析、关键球员和战术长文', () =>
   assert.match(match.tactical_longform.sections[5].paragraphs.join(''), /具体|定位球|反应速度/);
   assert.doesNotMatch(match.tactical_longform.title, /的4-1-4-1/);
   assert.doesNotMatch(JSON.stringify(match.tactical_longform), /背锅|分锅|这口锅/);
+  assert.doesNotMatch(JSON.stringify(match.tactical_longform), /不能说明|不能代替|必须把|不等于|只用来|先不下结论|先不硬评|不代表/);
   assert.equal(match.tactical_longform.sources.length, 3);
   assert.equal(match.tactical_data.lineup.city_coach, '马雷斯卡');
   assert.deepEqual(match.tactical_data.lineup.city_substitutions[0], {

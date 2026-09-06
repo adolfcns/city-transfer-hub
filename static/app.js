@@ -4568,7 +4568,7 @@ function loanWatchPlayerCard(player) {
     const historyContext = el('div', 'loan-match-history-context');
     historyContext.append(
       el('p', 'loan-match-history-label', player.fan_pick ? '以下是球迷点将球员本赛季的逐场数据' : '以下是该球员本赛季租借生效后的逐场数据'),
-      el('small', null, '赛后解读基于 FotMob 逐场指标自动生成，并非 Opta 官方数据。'),
+      el('small', null, '赛后解读依据 FotMob 逐场指标生成。'),
     );
     historyBody.appendChild(historyContext);
     const rows = el('div', 'loan-match-list');
