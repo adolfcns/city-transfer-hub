@@ -3950,7 +3950,24 @@ function firstTeamTacticalLongform(match) {
   }
   if (!longform.sections?.length) body.appendChild(el('p', 'first-team-tactical-longform-empty', '本场结构化比赛数据正在整理，长文生成后会直接出现在这里。'));
   section.appendChild(body);
-  if (longform.source_note) section.appendChild(el('footer', 'first-team-tactical-longform-note', longform.source_note));
+  if (longform.source_note || longform.sources?.length) {
+    const note = el('footer', 'first-team-tactical-longform-note');
+    if (longform.source_note) note.appendChild(document.createTextNode(longform.source_note));
+    if (longform.sources?.length) {
+      const links = el('span', 'first-team-tactical-source-links');
+      links.appendChild(document.createTextNode(' 核对：'));
+      longform.sources.forEach((source, index) => {
+        if (index) links.appendChild(document.createTextNode(' · '));
+        const link = el('a', null, source.label || '来源');
+        link.href = source.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        links.appendChild(link);
+      });
+      note.appendChild(links);
+    }
+    section.appendChild(note);
+  }
   return section;
 }
 

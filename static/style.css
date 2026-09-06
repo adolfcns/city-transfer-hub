@@ -2872,6 +2872,7 @@ body[data-page="analysis"] .container { max-width: 1060px; }
 .first-team-tactical-longform-part:last-child h5 { margin: 0; color: #8c6309; }
 .first-team-tactical-longform-empty { color: #6d8798; font-size: 13px; line-height: 1.7; }
 .first-team-tactical-longform-note { padding: 12px 20px; border-top: 1px solid #d8e8ef; background: #f5fafc; color: #738b9a; font-size: 9px; line-height: 1.6; }
+.first-team-tactical-source-links a { color: #167ca8; font-weight: 850; text-decoration: underline; text-underline-offset: 2px; }
 .first-team-player-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .first-team-player {
   position: relative; min-width: 0; padding: 11px; border: 1px solid #bdd8e6; border-radius: 11px;
