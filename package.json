@@ -11,6 +11,7 @@
     "fetch": "node scripts/fetch-loan-watch.js",
     "fetch:loans": "node scripts/fetch-loan-watch.js",
     "fetch:analysis": "node scripts/fetch-first-team-analysis.js",
+    "rebuild:analysis-text": "node scripts/fetch-first-team-analysis.js --rebuild-stored",
     "fetch:social": "node scripts/fetch-social-feed.js",
     "test": "node --test",
     "serve": "node scripts/serve.js"

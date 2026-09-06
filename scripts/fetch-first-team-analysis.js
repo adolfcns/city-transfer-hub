@@ -13,6 +13,7 @@ const USER_AGENT = 'Mozilla/5.0 (compatible; CityTransferHub/1.0; +https://adolf
 const MAX_MATCHES = 12;
 const BOOTSTRAP_MATCHES = 5;
 const DAILY_LIMIT = 40;
+const TACTICAL_LONGFORM_VERSION = 4;
 
 const PLAYER_ZH = Object.freeze({
   'Gianluigi Donnarumma': '多纳鲁马',
@@ -61,6 +62,10 @@ const TEAM_ZH = Object.freeze({
   'Atletico Madrid': '马德里竞技',
   'K-League All Stars': 'K联赛全明星',
   'Inter': '国际米兰',
+});
+
+const COACH_ZH = Object.freeze({
+  'Enzo Maresca': '马雷斯卡',
 });
 
 const METRIC_GROUPS = Object.freeze({
@@ -164,6 +169,10 @@ function teamZh(name) {
 
 function playerZh(name) {
   return PLAYER_ZH[name] || name || '球员';
+}
+
+function coachZh(name) {
+  return COACH_ZH[name] || name || '主教练';
 }
 
 export function flattenTeamStats(details) {
@@ -318,16 +327,68 @@ function lineupSnapshot(details, cityIndex) {
   const lineup = details?.content?.lineup || {};
   const city = cityIndex === 0 ? lineup.homeTeam : lineup.awayTeam;
   const opponent = cityIndex === 0 ? lineup.awayTeam : lineup.homeTeam;
-  const names = (team) => (team?.starters || []).map((player) => ({
+  const starters = (team) => (team?.starters || []).map((player) => ({
     id: String(player.id || ''),
     name: playerZh(player.name),
     name_en: player.name || '',
+    position_id: numeric(player.positionId),
+    rating: numeric(player.performance?.rating),
   }));
+  const substitutions = (team) => {
+    const outs = new Map();
+    const ins = new Map();
+    for (const player of team?.starters || []) {
+      for (const event of player.performance?.substitutionEvents || []) {
+        if (event?.type !== 'subOut') continue;
+        const minute = Number(event.time || 0);
+        if (!outs.has(minute)) outs.set(minute, []);
+        outs.get(minute).push({
+          name: playerZh(player.name),
+          name_en: player.name || '',
+          usual_position_id: numeric(player.usualPlayingPositionId),
+          reason: event.reason || 'tactical',
+        });
+      }
+    }
+    for (const player of team?.subs || []) {
+      for (const event of player.performance?.substitutionEvents || []) {
+        if (event?.type !== 'subIn') continue;
+        const minute = Number(event.time || 0);
+        if (!ins.has(minute)) ins.set(minute, []);
+        ins.get(minute).push({
+          name: playerZh(player.name),
+          name_en: player.name || '',
+          usual_position_id: numeric(player.usualPlayingPositionId),
+          reason: event.reason || 'tactical',
+        });
+      }
+    }
+    return [...new Set([...outs.keys(), ...ins.keys()])]
+      .sort((a, b) => a - b)
+      .flatMap((minute) => {
+        const playersOut = outs.get(minute) || [];
+        const playersIn = ins.get(minute) || [];
+        const count = Math.max(playersOut.length, playersIn.length);
+        return Array.from({ length: count }, (_, index) => ({
+          minute,
+          out: playersOut[index]?.name || '',
+          out_en: playersOut[index]?.name_en || '',
+          in: playersIn[index]?.name || '',
+          in_en: playersIn[index]?.name_en || '',
+          out_position_id: playersOut[index]?.usual_position_id ?? null,
+          in_position_id: playersIn[index]?.usual_position_id ?? null,
+          reason: playersOut[index]?.reason || playersIn[index]?.reason || 'tactical',
+        }));
+      });
+  };
   return {
+    city_coach: coachZh(city?.coach?.name),
+    city_coach_en: city?.coach?.name || '',
     city_formation: city?.formation || '',
     opponent_formation: opponent?.formation || '',
-    city_starting_xi: names(city),
-    opponent_starting_xi: names(opponent),
+    city_starting_xi: starters(city),
+    opponent_starting_xi: starters(opponent),
+    city_substitutions: substitutions(city),
   };
 }
 
@@ -352,6 +413,14 @@ function summariseShots(details, teamId) {
     high_quality: shots.filter((shot) => Number(shot.expectedGoals || 0) >= 0.3).length,
     first_half: { shots: firstHalf.length, xg: sumXg(firstHalf) },
     second_half: { shots: secondHalf.length, xg: sumXg(secondHalf) },
+    timeline: shots.map((shot) => ({
+      minute: Number(shot.min || 0),
+      xg: round(Number(shot.expectedGoals || 0)),
+      on_target: Boolean(shot.isOnTarget),
+      inside_box: Boolean(shot.isFromInsideBox),
+      situation: shot.situation || '',
+      event_type: shot.eventType || '',
+    })).sort((a, b) => a.minute - b.minute),
   };
 }
 
@@ -372,6 +441,110 @@ function zoneText(zones) {
   const { left = 0, center = 0, right = 0 } = zones.total;
   const leading = [['左路', left], ['中路', center], ['右路', right]].sort((a, b) => b[1] - a[1])[0];
   return `左路 ${left}%、中路 ${center}%、右路 ${right}%，其中${leading[0]}占比最高`;
+}
+
+function formationIdea(formation) {
+  if (/4-1-4-1/.test(formation)) return '思路是单后腰托底，两个中前卫往前站，边路把场地拉开。';
+  if (/4-2-3-1/.test(formation)) return '思路是双后腰稳住出球，前腰去接两条线之间的球，两名边锋负责把防线撑开。';
+  if (/4-3-3/.test(formation)) return '思路是用三中场控制中路，再让边锋和边后卫把宽度做出来。';
+  if (/3-/.test(formation)) return '思路是先用三名后卫保证出球人数，再把翼卫推高。';
+  return formation ? '阵型只是开场站位，真正要看的是球员拿球后往哪里走。' : '';
+}
+
+function lineupRoleText(lineup) {
+  const starters = lineup?.city_starting_xi || [];
+  const namesBetween = (min, max) => starters
+    .filter((player) => Number(player.position_id) >= min && Number(player.position_id) <= max)
+    .map((player) => player.name);
+  const holders = namesBetween(60, 79);
+  const attackingBand = namesBetween(80, 99);
+  const forwards = starters.filter((player) => Number(player.position_id) >= 100).map((player) => player.name);
+  const parts = [];
+  if (holders.length) parts.push(`后腰线是${holders.join('、')}`);
+  if (attackingBand.length) parts.push(`身前一排是${attackingBand.join('、')}`);
+  if (forwards.length) parts.push(`最前面是${forwards.join('、')}`);
+  return parts.length ? `从开场落位看，${parts.join('，')}。` : '';
+}
+
+function formationMatchupText(cityFormation, opponentFormation, opponentName) {
+  if (/4-1-4-1/.test(cityFormation) && /3-4-3/.test(opponentFormation)) {
+    return `${opponentName}的三中卫可以一起照顾哈兰德，两个翼卫又能顶住边路。曼城要拆这套防线，光让边锋站宽不够，两名中前卫还得往肋部和禁区里插，把其中一名中卫带出来。4-1-4-1的风险也在这里：两名中前卫都压上以后，单后腰身边会很空。`;
+  }
+  if (/4-2-3-1/.test(cityFormation) && /3-4-2-1/.test(opponentFormation)) {
+    return `${opponentName}用两名前腰站在曼城双后腰两侧，正好盯着出球的接应点。曼城如果只在双后腰脚下横传，推进会很慢；破法是边后卫或前腰主动落下来，先多造出一个接球点。`;
+  }
+  if (/4-2-3-1/.test(cityFormation) && /4-4-2/.test(opponentFormation)) {
+    return `${opponentName}的两名前锋先封中路，两排四人再守住宽度。曼城双后腰拿球不难，难的是把第一脚向前传送到对手中场身后。`;
+  }
+  if (/4-2-3-1/.test(cityFormation) && /4-3-3/.test(opponentFormation)) {
+    return `${opponentName}用三中场守住中路，曼城的前腰需要不断换位，把对方后腰从位置上带走；否则双后腰会有球，却找不到向前的线路。`;
+  }
+  if (cityFormation && opponentFormation) {
+    return `${cityFormation}对${opponentFormation}，胜负点不在阵型名字，而在谁能先把球送到对方中场身后。`;
+  }
+  return '';
+}
+
+function shotWindow(snapshot, fromMinute, toMinute) {
+  const events = (snapshot?.timeline || []).filter((shot) => shot.minute >= fromMinute && shot.minute < toMinute);
+  return {
+    shots: events.length,
+    xg: round(events.reduce((sum, shot) => sum + Number(shot.xg || 0), 0)),
+    on_target: events.filter((shot) => shot.on_target).length,
+  };
+}
+
+function substitutionReview({ coachName, lineup, shots, opponentShots }) {
+  const substitutions = lineup?.city_substitutions;
+  if (!Array.isArray(substitutions)) {
+    return ['这一场的旧数据没有留下完整换人时间，临场调整先不硬评。'];
+  }
+  if (!substitutions.length) {
+    return [`${coachName}全场没有换人，或者比赛页面没有记录到换人。`];
+  }
+  const changeLine = substitutions.map((change) => {
+    const pair = change.out && change.in
+      ? `${change.out}下，${change.in}上`
+      : change.in ? `${change.in}上` : `${change.out}下`;
+    return `${change.minute}分钟${pair}${change.reason === 'tactical' ? '' : '（被动换人）'}`;
+  }).join('；');
+  const paragraphs = [`${coachName}这场的换人是：${changeLine}。`];
+  const firstTactical = substitutions.find((change) => change.reason === 'tactical');
+  if (!firstTactical) {
+    paragraphs.push('这几次都是伤情或其他被动调整，拿它们评价教练主动变招并不合适。');
+    return paragraphs;
+  }
+  const minute = firstTactical.minute;
+  const before = shotWindow(shots, Math.max(46, minute - 15), minute);
+  const after = shotWindow(shots, minute, Math.min(96, minute + 15));
+  const opponentAfter = shotWindow(opponentShots, minute, Math.min(96, minute + 15));
+  if (shots?.timeline?.length) {
+    const names = firstTactical.out && firstTactical.in ? `${firstTactical.in}换下${firstTactical.out}` : '第一次主动调整';
+    let effect = '场面没有立刻出现明显变化。';
+    if (after.xg >= before.xg + 0.25 || after.shots >= before.shots + 2) effect = '至少在换人后的这段时间，进攻有了起色。';
+    else if (after.xg + 0.15 < before.xg && after.shots <= before.shots) effect = '换完以后，进攻反而更安静了。';
+    paragraphs.push(`${names}前15分钟，曼城有 ${before.shots} 次射门、${before.xg.toFixed(2)} xG；换人后15分钟是 ${after.shots} 次射门、${after.xg.toFixed(2)} xG。${effect}`);
+    if (minute >= 65 && before.xg < 0.3) {
+      paragraphs.push(`下半场进攻已经卡了一阵，${coachName}到 ${minute} 分钟才第一次主动动人。这个调整偏慢。`);
+    } else if (minute <= 60 && before.xg < 0.3) {
+      paragraphs.push(`进攻刚开始发闷，${coachName}就在 ${minute} 分钟动手，反应不算慢。`);
+    }
+    if (opponentAfter.xg >= 0.5 || opponentAfter.shots >= 4) {
+      paragraphs.push(`换人后15分钟，对手也有 ${opponentAfter.shots} 次射门、${opponentAfter.xg.toFixed(2)} xG。往前加人以后，身后的保护没有跟上。`);
+    }
+    for (const change of substitutions.filter((item) => item.reason === 'tactical' && item !== firstTactical)) {
+      const cityRest = shotWindow(shots, change.minute, 96);
+      const opponentRest = shotWindow(opponentShots, change.minute, 96);
+      let verdict = '这次调整以后，两边的威胁变化不大。';
+      if (opponentRest.shots >= cityRest.shots + 2) {
+        verdict = `曼城自己还有 ${cityRest.shots} 次射门、${cityRest.xg.toFixed(2)} xG，但对手也起脚 ${opponentRest.shots} 次。换完以后，场面没有真正安静下来。`;
+      } else if (cityRest.xg >= opponentRest.xg + 0.25) {
+        verdict = `此后曼城做出 ${cityRest.xg.toFixed(2)} xG，对手是 ${opponentRest.xg.toFixed(2)}。至少到终场前，主动权还在曼城这边。`;
+      }
+      paragraphs.push(`${change.minute}分钟${change.in || '替补'}换下${change.out || '首发'}。${verdict}`);
+    }
+  }
+  return paragraphs;
 }
 
 function buildTacticalLongform({
@@ -403,164 +576,156 @@ function buildTacticalLongform({
   const passAccuracy = percent(accuratePassesRaw);
   const conversionGap = Math.max(0, bigChances - cityScore);
   const xgLead = hasXg ? xg - opponentXg : null;
+  const coachName = lineup.city_coach || '马雷斯卡';
+  const firstTacticalSub = (lineup.city_substitutions || []).find((change) => change.reason === 'tactical');
+  const quietBeforeFirstSub = firstTacticalSub
+    ? shotWindow(shots, 46, firstTacticalSub.minute)
+    : null;
   const problems = [];
-  if (possession >= 65 && (!hasXg || xgLead < 1)) {
-    problems.push(`${possession}% 的控球没有换来压倒性的机会差，控球优势仍有相当一部分停留在安全区域。`);
+  if (firstTacticalSub && firstTacticalSub.minute >= 65 && quietBeforeFirstSub?.xg < 0.3) {
+    problems.push(`下半场前 ${firstTacticalSub.minute - 45} 分钟只做出 ${quietBeforeFirstSub.shots} 次射门、${quietBeforeFirstSub.xg.toFixed(2)} xG，${coachName}到 ${firstTacticalSub.minute} 分钟才第一次主动换人，慢了。`);
   }
-  if (conversionGap > 0) {
-    problems.push(`${bigChances} 次绝佳机会只打进 ${cityScore} 球，终结效率让本可提前结束的比赛一直保留悬念。`);
+  if (possession >= 65 && (!hasXg || xgLead < 1)) {
+    problems.push(`控球有 ${possession}%，${hasXg ? `xG 却只比对手多 ${Math.max(0, xgLead).toFixed(2)}` : '但没有打出压倒性的机会优势'}。球一直在曼城脚下，${coachName}的进攻结构却没把对手压垮。`);
   }
   if (opponentBigChances >= 3 || (hasXg && opponentXg >= 1.2)) {
-    problems.push(`${opponentName}得到 ${opponentBigChances} 次绝佳机会${hasXg ? `和 ${opponentXg.toFixed(2)} xG` : ''}，防守端给出的机会过于真实。`);
+    problems.push(`${opponentName}拿到 ${opponentBigChances} 次绝佳机会${hasXg ? `、${opponentXg.toFixed(2)} xG` : ''}。${cityScore > opponentScore ? '球赢了，防守却一点也不稳。' : '防守没有把比赛托住。'}`);
   }
-  if (keeperSaves >= 3) {
-    problems.push(`门将完成 ${keeperSaves} 次扑救，说明最后一道防线承担了超出比分观感的压力。`);
+  if (conversionGap > 0) {
+    problems.push(`${bigChances} 次绝佳机会只进 ${cityScore} 个，这一条更多是前场球员的锅，战术板不能替他们射门。`);
   }
   if (shots.available && shots.second_half.xg + 0.35 < shots.first_half.xg) {
-    problems.push(`下半场射门 xG 降至 ${shots.second_half.xg.toFixed(2)}，领先后继续制造威胁的能力明显减弱。`);
+    problems.push(`下半场只有 ${shots.second_half.xg.toFixed(2)} xG。领先以后，球队把主动权踢没了一截。`);
   }
   if (!problems.length) {
-    problems.push('数据没有暴露单一的致命缺口，但推进速度、机会兑现和丢球后的第一道保护仍需要逐回合检查。');
+    problems.push('这场暂时挑不出明显的布置硬伤，赢球方式也基本说得通。');
   }
-  const title = possession >= 68 && cityScore - opponentScore === 1
-    ? `${possession}%控球之下，曼城为何只与${opponentName}拉开一球？`
-    : `从基础站位到攻防转换：曼城 ${cityScore}-${opponentScore} ${opponentName}`;
+  const title = possession >= 68 && (cityScore - opponentScore === 1 || opponentXg >= 1.2)
+    ? `${coachName}的${lineup.city_formation || '开场布置'}：对${opponentName}有${possession}%控球，为什么还踢得这么险？`
+    : `${coachName}对${opponentName}怎么布置，又是怎么调整的？`;
   const formationLine = lineup.city_formation
-    ? `比赛阵容数据把曼城的基础阵型标为 ${lineup.city_formation}${lineup.opponent_formation ? `，${opponentName}则是 ${lineup.opponent_formation}` : ''}。`
-    : '本场阵型标签尚未提供，因此不把具体站位变化写成既定事实。';
-  const starterLine = lineup.city_starting_xi.length
-    ? `曼城首发为${lineup.city_starting_xi.map((player) => player.name).join('、')}。`
-    : '';
-  const buildUpJudgement = possession >= 65
-    ? '这说明曼城大部分时间拥有组织进攻的主动权，但高控球本身不等于持续制造高质量射门。'
-    : '曼城没有依靠极端控球压住比赛，攻守转换与每一次向前推进的质量因而更加重要。';
-  const chanceJudgement = conversionGap >= 2
-    ? `真正的问题出在兑现：${bigChances} 次绝佳机会只换来 ${cityScore} 球，比赛本可更早失去悬念。`
-    : hasXg && xg >= opponentXg + 0.7
-      ? '从机会总量与质量看，曼城的优势不只停留在控球层面。'
-      : hasXg
-        ? '机会质量没有随球权同步拉开，控制感强于实际杀伤。'
-        : bigChances >= 3
-          ? '虽然缺少逐射门 xG，但绝佳机会数量仍能确认曼城制造了明确威胁。'
-          : '缺少逐射门 xG 时，只能确认机会数量，不能把主观观感包装成精确的机会质量结论。';
-  const defenceJudgement = opponentBigChances >= 3 || (hasXg && opponentXg >= 1.2)
-    ? `对手仍拿到 ${opponentBigChances} 次绝佳机会${hasXg ? `和 ${opponentXg.toFixed(2)} xG` : ''}，这不是可以被比分掩盖的小波动，而是防守保护与转换落位需要复盘的警报。`
-    : `对手只有 ${opponentBigChances} 次绝佳机会${hasXg ? `和 ${opponentXg.toFixed(2)} xG` : ''}，曼城无球阶段整体守住了危险区域。`;
-  const halfShift = !shots.available
-    ? '本场没有提供可可靠读取的逐射门 xG，因此不虚构上下半场威胁变化。'
-    : shots.second_half.xg > shots.first_half.xg + 0.35
-    ? `曼城下半场的射门 xG 从 ${shots.first_half.xg.toFixed(2)} 升至 ${shots.second_half.xg.toFixed(2)}，进攻质量在中场休息后有所提升。`
-    : shots.first_half.xg > shots.second_half.xg + 0.35
-      ? `曼城上半场已制造 ${shots.first_half.xg.toFixed(2)} xG，下半场只有 ${shots.second_half.xg.toFixed(2)}；后半程没有延续同等强度的机会产出。`
-      : `曼城上下半场分别制造 ${shots.first_half.xg.toFixed(2)} 与 ${shots.second_half.xg.toFixed(2)} xG，威胁分布相对接近。`;
-  const goalLine = goals.length
-    ? `决定比分的节点是${goals.map((goal) => `${goal.minute} 分钟${goal.player}${goal.assist ? `接${goal.assist}助攻` : ''}破门`).join('，随后')}。`
-    : '本场没有进球节点可以改变比赛状态。';
-  const conclusion = cityScore > opponentScore
-    ? `${cityScore}-${opponentScore}带来了结果，但这场球更重要的信号是：${hasXg && xg >= opponentXg + 0.7 ? '曼城已经建立机会优势，下一步要提高终结效率' : '曼城还需要把控球与推进更稳定地转化为安全的比赛结构'}。${hasXg && opponentXg >= 1.2 ? '若对手把握住其中一次高质量机会，比赛叙事就会完全不同。' : '只要继续压缩对手进入禁区的次数，这种控制才会真正稳定。'}`
-    : `比分没有站在曼城一边。复盘重点不是简单增加控球，而是让推进更早抵达危险区域，同时在丢失球权后的第一时间保护中路与身后。`;
+    ? `${coachName}开场摆出 ${lineup.city_formation}${lineup.opponent_formation ? `，${opponentName}是 ${lineup.opponent_formation}` : ''}。${formationIdea(lineup.city_formation)}`
+    : `比赛页面没有给出清楚的开场阵型，这一段只谈看得到的进攻结果。`;
+  const roles = lineupRoleText(lineup);
+  const matchupParagraph = formationMatchupText(lineup.city_formation, lineup.opponent_formation, opponentName);
+  const zone = zoneText(attackingZones.city);
+  const zoneParagraph = zone
+    ? `曼城的推进分布是${zone}。${attackingZones.city.total.right + 5 < attackingZones.city.total.left ? '右路用得偏少，两边没有形成同样的压力。' : attackingZones.city.total.left + 5 < attackingZones.city.total.right ? '左路用得偏少，两边没有形成同样的压力。' : '两边的使用比较接近。'}`
+    : '这一场没有进攻方向数据，边路偏重先不下结论。';
+  const boxParagraph = shots.available
+    ? `曼城有 ${boxTouches} 次禁区触球，${cityShotTotal} 次射门里 ${shots.inside_box} 次在禁区内。${shots.inside_box >= Math.max(1, cityShotTotal * 0.7) ? '人和球都进得去，最后一脚才是最拖后腿的地方。' : '球到了前场，真正把进攻做到禁区里的次数还是不够。'}`
+    : `曼城有 ${boxTouches} 次禁区触球和 ${cityShotTotal} 次射门。射门位置没留下来，这里只看总量。`;
+  const chanceParagraph = hasXg && shots.available
+    ? `曼城做出 ${xg.toFixed(2)} xG，其中运动战和反击是 ${shots.open_play_xg.toFixed(2)}，定位球是 ${shots.set_piece_xg.toFixed(2)}。${shots.high_quality ? `其中 ${shots.high_quality} 脚的单次 xG 不低于 0.30。` : ''}`
+    : `曼城有 ${cityShotTotal} 次射门、${bigChances} 次绝佳机会。`;
+  const finishParagraph = conversionGap > 0
+    ? `${bigChances} 次绝佳机会只进 ${cityScore} 个。机会已经做出来了，这部分主要怪终结，不能什么都赖到教练头上。`
+    : hasXg && xgLead >= 0.7
+      ? '机会优势是真实的，进攻安排基本达到了目的。'
+      : '球权不少，真正能让对手门将难受的机会却没有跟着涨。';
+  const opponentOpenPlayXg = Number(opponentShots.open_play_xg || 0);
+  const opponentSetPieceXg = Number(opponentShots.set_piece_xg || 0);
+  let defensiveCause = '对手的威胁来源比较分散。';
+  if (opponentOpenPlayXg >= 0.8) defensiveCause = `对手光靠运动战和反击就做出 ${opponentOpenPlayXg.toFixed(2)} xG。前场压迫一旦被过，中场身后的保护就露了出来。`;
+  else if (opponentSetPieceXg >= 0.5) defensiveCause = `对手在定位球上做出 ${opponentSetPieceXg.toFixed(2)} xG，盯人和第二点保护是主要漏洞。`;
+  const defensiveParagraph = `${opponentName}有 ${opponentShotTotal} 次射门、${opponentBoxTouches} 次禁区触球${hasXg ? `和 ${opponentXg.toFixed(2)} xG` : ''}。${defensiveCause}`;
+  const keeperParagraph = keeperSaves
+    ? `门将做了 ${keeperSaves} 次扑救。后场没有把危险挡在门将前面，这口锅要从整条防守结构往前找。`
+    : '门将没有被迫反复救险，防守结构至少守住了最后一层。';
+  const substitutions = substitutionReview({ coachName, lineup, shots, opponentShots });
+  const coachFaults = [];
+  if (possession >= 65 && (!hasXg || xgLead < 1)) coachFaults.push('控球很多，进攻却没有把对手两条线持续拉开，这是结构问题');
+  if (opponentOpenPlayXg >= 0.8) coachFaults.push('丢球后的中路和身后保护不够，这是布置问题');
+  else if (opponentSetPieceXg >= 0.5) coachFaults.push('定位球盯人和第二点保护没做好，这是训练和布置问题');
+  else if (opponentBigChances >= 3) coachFaults.push('禁区保护让对手拿到太多大机会，这是防守安排的问题');
+  if (firstTacticalSub && firstTacticalSub.minute >= 65 && quietBeforeFirstSub?.xg < 0.3) coachFaults.push('场面发闷以后换得偏晚，这是临场问题');
+  const coachBlame = coachFaults.length
+    ? `${coachName}该背的锅很清楚：${coachFaults.join('；')}。`
+    : `${coachName}这场的开场方案和临场处理没有暴露明显硬伤。`;
+  const playerBlame = conversionGap > 0
+    ? `球员也得背锅：${bigChances} 次绝佳机会只进 ${cityScore} 个，教练把人送到机会面前，最后一下没人能代踢。`
+    : '球员把主要机会兑现了，结果和场面基本对得上。';
+  const finalLine = cityScore > opponentScore
+    ? `${cityScore}-${opponentScore}赢了，但下一场如果还是让对手拿到 ${opponentBigChances} 次绝佳机会，未必还能这么收场。`
+    : `${cityScore}-${opponentScore}已经把问题写在比分上：只拿球不够，得让阵型更快把球送进真正危险的地方。`;
   return {
-    version: 3,
+    version: TACTICAL_LONGFORM_VERSION,
     title,
-    standfirst: '先把问题摆在前面，再用阵型、进攻方向、射门位置、xG 与比赛节点解释这些问题是怎样出现的。',
+    standfirst: `重点看${coachName}的开场布置、进攻路线、无球保护和换人。数据只回答一件事：这些安排到底好不好使。`,
     problems: problems.slice(0, 4),
     sections: [
       {
-        heading: '一、基础站位：阵型只是起点',
+        heading: `一、${coachName}开场想怎么踢`,
         paragraphs: [
-          `${formationLine}${starterLine}`,
-          `曼城全场控球率达到 ${possession}%，完成 ${accuratePasses} 次准确传球${passAccuracy === null ? '' : `，传球成功率 ${passAccuracy}%`}。${buildUpJudgement}`,
+          `${formationLine}${roles ? ` ${roles}` : ''}`,
+          ...(matchupParagraph ? [matchupParagraph] : []),
+          `曼城最后拿到 ${possession}% 控球，完成 ${accuratePasses} 次准确传球${passAccuracy === null ? '' : `，成功率 ${passAccuracy}%`}。球权拿住了，接下来就看这套站位能不能把球送到真正危险的地方。`,
         ],
       },
       {
-        heading: '二、推进问题：球权很多，穿透有多少',
-        paragraphs: [
-          zoneText(attackingZones.city)
-            ? `进攻方向分布为${zoneText(attackingZones.city)}。这组数据不能直接证明某名球员固定站在某个区域，却能说明球队把推进资源更多投向了哪里。`
-            : '本场没有提供进攻方向分布，因此不根据印象猜测球队偏重哪一侧。',
-          shots.available
-            ? `曼城在对方禁区完成 ${boxTouches} 次触球，${cityShotTotal} 次射门中有 ${shots.inside_box} 次来自禁区内、${shots.outside_box} 次来自禁区外。评价推进是否有效，关键不是传了多少脚，而是球权最终有没有进入能够完成高价值射门的区域。`
-            : `曼城在对方禁区完成 ${boxTouches} 次触球，全场共有 ${cityShotTotal} 次射门；射门位置图未提供，因此不进一步虚构禁区内外的分布。`,
-        ],
+        heading: '二、出球和推进：球到底送到了哪儿',
+        paragraphs: [zoneParagraph, boxParagraph],
       },
       {
-        heading: '三、进攻问题：控制没有完全变成杀伤',
-        paragraphs: [
-          hasXg && shots.available
-            ? `曼城累计 ${xg.toFixed(2)} xG，其中运动战与快速反击贡献约 ${shots.open_play_xg.toFixed(2)}，定位球贡献约 ${shots.set_piece_xg.toFixed(2)}；全场有 ${shots.high_quality} 次单次 xG 不低于 0.30 的高质量射门。`
-            : `本场没有提供可可靠读取的逐射门 xG，因此这里不会用 0 冒充“没有威胁”；可以确认的是曼城完成 ${cityShotTotal} 次射门、${bigChances} 次绝佳机会。`,
-          `${chanceJudgement}射正、绝佳机会和禁区触球必须放在一起看：单纯增加低质量远射，不会自动解决进攻效率。`,
-        ],
+        heading: '三、进攻安排：机会做出来没有',
+        paragraphs: [chanceParagraph, finishParagraph],
       },
       {
-        heading: '四、防守问题：比分掩盖了多少风险',
-        paragraphs: [
-          opponentShots.available
-            ? `${opponentName}完成 ${opponentShotTotal} 次射门，其中 ${opponentShots.inside_box} 次在禁区内；对手禁区触球 ${opponentBoxTouches} 次。${defenceJudgement}`
-            : `${opponentName}完成 ${opponentShotTotal} 次射门、${opponentBoxTouches} 次禁区触球；对手射门位置图未提供。${defenceJudgement}`,
-          `${keeperSaves ? `曼城门将完成 ${keeperSaves} 次扑救。` : ''}当最后一道防线需要频繁直接处理威胁时，问题通常不只属于门将或中卫，也要回看前场压迫被绕过后，中场是否及时保护第二点与禁区弧顶。`,
-        ],
+        heading: '四、无球和转换：对手为什么能打到门前',
+        paragraphs: [defensiveParagraph, keeperParagraph],
       },
       {
-        heading: '五、比赛管理：优势出现后有没有守住主动',
-        paragraphs: [
-          `${halfShift}${goalLine}`,
-          `比分变化会反过来影响两队风险偏好，因此赛后不能把全场均值当成九十分钟始终不变的战术状态。领先后的控球如果不能继续制造威胁，就可能从主动控制变成被动消耗。`,
-        ],
+        heading: `五、换人复盘：${coachName}动得早不早，换完有没有用`,
+        paragraphs: substitutions,
       },
       {
-        heading: '结论',
-        paragraphs: [conclusion],
+        heading: '六、最后分锅：哪些问题该教练负责',
+        paragraphs: [coachBlame, playerBlame, finalLine],
       },
     ],
-    source_note: '本站中文战术复盘，根据 FotMob 展示的阵型、比赛事件、射门图与统计数据综合撰写；阵型标签与数据只能支持可观察的比赛现象，不冒充教练战术指令。',
+    source_note: '比赛数据来自 FotMob 公开页面。换人前后数据是时间对照，不等于换人直接造成了变化。',
   };
 }
 
-function upgradeStoredTacticalLongform(match) {
-  if (match?.tactical_longform?.version === 3) return match;
-  if (match?.tactical_longform?.version !== 2) return match;
-  const metric = (key, side = 'city') => numeric((match.stats || []).find((item) => item.key === key)?.[side]);
-  const possession = metric('BallPossesion') ?? 50;
-  const xg = metric('expected_goals');
-  const opponentXg = metric('expected_goals', 'opponent');
-  const bigChances = metric('big_chance') ?? 0;
-  const opponentBigChances = metric('big_chance', 'opponent') ?? 0;
-  const cityScore = Number(match.city?.score || 0);
-  const keeperSaves = numeric((match.tactical_longform.sections || [])
-    .flatMap((section) => section.paragraphs || [])
-    .find((paragraph) => /门将完成\s*\d+\s*次扑救/.test(paragraph))?.match(/门将完成\s*(\d+)/)?.[1]) || 0;
-  const problems = [];
-  if (possession >= 65 && (xg === null || opponentXg === null || xg - opponentXg < 1)) {
-    problems.push(`${possession}% 的控球没有换来压倒性的机会差，控球优势仍有相当一部分停留在安全区域。`);
-  }
-  if (bigChances > cityScore) {
-    problems.push(`${bigChances} 次绝佳机会只打进 ${cityScore} 球，终结效率让本可提前结束的比赛一直保留悬念。`);
-  }
-  if (opponentBigChances >= 3 || (opponentXg !== null && opponentXg >= 1.2)) {
-    problems.push(`${match.opponent?.name || '对手'}得到 ${opponentBigChances} 次绝佳机会${opponentXg !== null && opponentXg > 0 ? `和 ${opponentXg.toFixed(2)} xG` : ''}，防守端给出的机会过于真实。`);
-  }
-  if (keeperSaves >= 3) problems.push(`门将完成 ${keeperSaves} 次扑救，说明最后一道防线承担了超出比分观感的压力。`);
-  if (!problems.length) problems.push('数据没有暴露单一的致命缺口，但推进速度、机会兑现和丢球后的第一道保护仍需要逐回合检查。');
-  const headingMap = {
-    '二、有球推进：球权主要去了哪里': '二、推进问题：球权很多，穿透有多少',
-    '三、机会形成：控制有没有变成杀伤': '三、进攻问题：控制没有完全变成杀伤',
-    '四、无球与转换：比分之外的风险': '四、防守问题：比分掩盖了多少风险',
-    '五、比赛走势：优势何时出现、何时减弱': '五、比赛管理：优势出现后有没有守住主动',
-  };
+function upgradeStoredTacticalLongform(match, force = false) {
+  if (!force && match?.tactical_longform?.version === TACTICAL_LONGFORM_VERSION) return match;
+  if (!match?.tactical_longform?.sections?.length) return match;
+  const stats = {};
+  for (const item of match.stats || []) stats[item.key] = [item.city, item.opponent];
+  const oldText = (match.tactical_longform.sections || []).flatMap((section) => section.paragraphs || []).join(' ');
+  const passMatch = oldText.match(/完成\s*([\d,]+)\s*次准确传球(?:，(?:传球)?成功率\s*([\d.]+)%)?/);
+  if (passMatch) stats.accurate_passes = [`${passMatch[1]}${passMatch[2] ? ` (${passMatch[2]}%)` : ''}`, null];
+  const keeperSaves = numeric(oldText.match(/门将(?:完成|做了)\s*(\d+)\s*次扑救/)?.[1]) || 0;
+  const tacticalData = match.tactical_data || {};
+  const longform = buildTacticalLongform({
+    opponentName: match.opponent?.name || '对手',
+    cityScore: Number(match.city?.score || 0),
+    opponentScore: Number(match.opponent?.score || 0),
+    cityIndex: 0,
+    stats,
+    goals: match.goals || [],
+    keeperSaves,
+    lineup: tacticalData.lineup || { city_starting_xi: [], city_substitutions: undefined },
+    shots: tacticalData.shots || { available: false, timeline: [] },
+    opponentShots: tacticalData.opponent_shots || { available: false, timeline: [] },
+    attackingZones: tacticalData.attacking_zones || {},
+  });
   return {
     ...match,
-    tactical_longform: {
-      ...match.tactical_longform,
-      version: 3,
-      standfirst: '先把问题摆在前面，再用阵型、进攻方向、射门位置、xG 与比赛节点解释这些问题是怎样出现的。',
-      problems: problems.slice(0, 4),
-      sections: (match.tactical_longform.sections || []).map((section) => ({
-        ...section,
-        heading: headingMap[section.heading] || section.heading,
-      })),
-    },
+    tactical_longform: longform,
   };
+}
+
+async function rebuildStoredLongforms() {
+  const previous = await readJsonFile(OUTPUT_PATH);
+  if (!previous?.matches?.length) throw new Error('No stored first-team analysis to rebuild');
+  const matches = previous.matches.map((match) => upgradeStoredTacticalLongform(match, true));
+  await writeFile(OUTPUT_PATH, `${JSON.stringify({
+    ...previous,
+    generated_at: new Date().toISOString(),
+    matches,
+  }, null, 2)}\n`, 'utf8');
+  console.log(`Rebuilt ${matches.length} stored tactical longforms without provider requests`);
 }
 
 export function buildMatchAnalysis(details, fixture, now = new Date()) {
@@ -667,7 +832,8 @@ function createBudget(previous, now) {
 
 function needsRefresh(previousMatch, fixture, now) {
   if (!previousMatch) return true;
-  if (previousMatch.tactical_longform?.version !== 3 || !previousMatch.tactical_longform?.sections?.length) return true;
+  if (previousMatch.tactical_longform?.version !== TACTICAL_LONGFORM_VERSION || !previousMatch.tactical_longform?.sections?.length) return true;
+  if (!Array.isArray(previousMatch.tactical_data?.lineup?.city_substitutions)) return true;
   if (previousMatch.tactical_longform?.sections?.length && previousMatch.top_players?.length && previousMatch.stats?.length) return false;
   const kickoffAge = now.getTime() - new Date(fixture?.status?.utcTime).getTime();
   const checkedAge = now.getTime() - new Date(previousMatch.analysed_at || 0).getTime();
@@ -739,7 +905,8 @@ async function main() {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
-  main().catch(async (error) => {
+  const run = process.argv.includes('--rebuild-stored') ? rebuildStoredLongforms : main;
+  run().catch(async (error) => {
     console.error(`First-team analysis update failed: ${error.stack || error.message}`);
     const previous = await readJsonFile(OUTPUT_PATH);
     if (previous?.matches?.length) {

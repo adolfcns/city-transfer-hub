@@ -3927,9 +3927,9 @@ function firstTeamTacticalLongform(match) {
   const section = el('section', 'first-team-tactical-longform');
   const header = el('header', 'first-team-tactical-longform-head');
   header.append(
-    el('span', null, 'TACTICAL REVIEW · 中文战术复盘'),
+    el('span', null, 'COACHING REVIEW · 主教练战术复盘'),
     el('h4', null, longform.title || '本场战术长文正在生成'),
-    el('p', null, longform.standfirst || '从阵型、推进、机会形成和攻防转换重新阅读这场比赛。'),
+    el('p', null, longform.standfirst || '看开场布置、进攻路线、防守漏洞和换人效果。'),
   );
   section.appendChild(header);
   if (longform.problems?.length) {
@@ -3942,7 +3942,8 @@ function firstTeamTacticalLongform(match) {
   }
   const body = el('div', 'first-team-tactical-longform-body');
   for (const item of longform.sections || []) {
-    const part = el('section', 'first-team-tactical-longform-part');
+    const coachFocus = /开场|换人|教练/.test(item.heading || '') ? ' coach-focus' : '';
+    const part = el('section', `first-team-tactical-longform-part${coachFocus}`);
     part.appendChild(el('h5', null, item.heading));
     for (const paragraph of item.paragraphs || []) part.appendChild(el('p', null, paragraph));
     body.appendChild(part);
@@ -4001,7 +4002,7 @@ function renderFirstTeamAnalysis(data) {
   heroCopy.append(
     el('span', 'first-team-analysis-kicker', 'BLUE MOON · POST-MATCH'),
     el('h2', null, '蓝月赛后分析'),
-    el('p', null, '比分只是结果。这里看控场、机会质量、攻防隐患和关键球员。'),
+    el('p', null, '不只报数据。重点拆主教练的布置、漏洞和换人。'),
   );
   const latest = el('div', 'first-team-analysis-latest');
   latest.append(el('span', null, '最新复盘'), el('strong', null, selected ? firstTeamMatchTitle(selected) : '等待赛后数据'));
@@ -6226,7 +6227,7 @@ function featureGuideDefinition() {
       icon: '🧠',
       kicker: 'BLUE MOON · TACTICS',
       title: '蓝月赛后分析',
-      text: '直接读中文战术长文：先说问题，再拆阵型、推进、机会形成与防守风险。',
+      text: '直接读中文战术长文：看主教练怎么布置、哪里出错、换人有没有用。',
       action: '去看战术分析',
       href: './?view=analysis',
     },

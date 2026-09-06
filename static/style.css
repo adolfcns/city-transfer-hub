@@ -2866,6 +2866,8 @@ body[data-page="analysis"] .container { max-width: 1060px; }
 .first-team-tactical-longform-part h5 { margin: 19px 0 10px; color: #123b57; font-size: 18px; font-weight: 950; line-height: 1.45; }
 .first-team-tactical-longform-part:first-child h5 { margin-top: 0; }
 .first-team-tactical-longform-part p { margin-top: 10px; color: #314f63; font-size: 14px; font-weight: 600; line-height: 1.9; text-align: justify; overflow-wrap: anywhere; }
+.first-team-tactical-longform-part.coach-focus { margin-left: -12px; margin-right: -12px; padding: 14px 16px 22px; border-left: 4px solid #2693bd; background: #f4fbfe; }
+.first-team-tactical-longform-part.coach-focus + .first-team-tactical-longform-part { padding-top: 14px; }
 .first-team-tactical-longform-part:last-child { margin: 6px -10px 0; padding: 16px 18px 18px; border: 0; border-left: 4px solid #d7a63a; border-radius: 10px; background: #fff8e6; }
 .first-team-tactical-longform-part:last-child h5 { margin: 0; color: #8c6309; }
 .first-team-tactical-longform-empty { color: #6d8798; font-size: 13px; line-height: 1.7; }
@@ -2932,6 +2934,7 @@ body[data-page="analysis"] .container { max-width: 1060px; }
   .first-team-tactical-longform-part { padding-bottom: 18px; }
   .first-team-tactical-longform-part h5 { margin: 14px 0 7px; font-size: 17px; }
   .first-team-tactical-longform-part p { margin-top: 9px; font-size: 14px; line-height: 1.85; text-align: left; }
+  .first-team-tactical-longform-part.coach-focus { margin-left: -4px; margin-right: -4px; padding: 11px 10px 17px; }
   .first-team-tactical-longform-part:last-child { margin: 2px -3px 0; padding: 12px 12px 14px; }
   .first-team-tactical-longform-note { padding: 10px 12px; font-size: 9px; }
   .first-team-player-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }

@@ -65,6 +65,50 @@ function fixtureDetails() {
           shareUrl: 'https://www.fotmob.com/news/example', dateUpdated: '2026-09-05T16:18:35Z',
         }],
       },
+      lineup: {
+        homeTeam: {
+          formation: '4-1-4-1',
+          coach: { name: 'Enzo Maresca' },
+          starters: [
+            { id: 1, name: 'Gianluigi Donnarumma', positionId: 11 },
+            { id: 2, name: 'Abdukodir Khusanov', positionId: 32 },
+            { id: 3, name: 'Rúben Dias', positionId: 34 },
+            { id: 4, name: 'Marc Guéhi', positionId: 36 },
+            { id: 5, name: 'Josko Gvardiol', positionId: 38 },
+            { id: 6, name: 'Elliot Anderson', positionId: 65 },
+            { id: 7, name: 'Antoine Semenyo', positionId: 82 },
+            { id: 8, name: 'Enzo Fernández', positionId: 84 },
+            { id: 9, name: 'Rayan Cherki', positionId: 86, usualPlayingPositionId: 2, performance: { substitutionEvents: [{ time: 66, type: 'subOut', reason: 'tactical' }] } },
+            { id: 10, name: 'Iliman Ndiaye', positionId: 88 },
+            { id: 737066, name: 'Erling Haaland', positionId: 115 },
+          ],
+          subs: [
+            { id: 11, name: 'Phil Foden', usualPlayingPositionId: 2, performance: { substitutionEvents: [{ time: 66, type: 'subIn', reason: 'tactical' }] } },
+          ],
+        },
+        awayTeam: { formation: '3-4-3', starters: [], subs: [] },
+      },
+      shotmap: {
+        shots: [
+          { teamId: 8456, min: 16, expectedGoals: 0.60, isOnTarget: true, isFromInsideBox: true, situation: 'RegularPlay' },
+          { teamId: 8456, min: 26, expectedGoals: 0.49, isOnTarget: true, isFromInsideBox: true, situation: 'RegularPlay' },
+          { teamId: 8456, min: 50, expectedGoals: 0.03, isOnTarget: false, isFromInsideBox: false, situation: 'RegularPlay' },
+          { teamId: 8456, min: 58, expectedGoals: 0.04, isOnTarget: false, isFromInsideBox: true, situation: 'RegularPlay' },
+          { teamId: 8456, min: 64, expectedGoals: 0.02, isOnTarget: false, isFromInsideBox: false, situation: 'RegularPlay' },
+          { teamId: 8456, min: 70, expectedGoals: 0.40, isOnTarget: true, isFromInsideBox: true, situation: 'RegularPlay' },
+          { teamId: 8456, min: 75, expectedGoals: 0.30, isOnTarget: false, isFromInsideBox: true, situation: 'FastBreak' },
+          { teamId: 8456, min: 80, expectedGoals: 0.24, isOnTarget: true, isFromInsideBox: true, situation: 'RegularPlay' },
+          { teamId: 8669, min: 8, expectedGoals: 0.50, isOnTarget: false, isFromInsideBox: true, situation: 'RegularPlay' },
+          { teamId: 8669, min: 40, expectedGoals: 0.23, isOnTarget: true, isFromInsideBox: true, situation: 'FromCorner' },
+          { teamId: 8669, min: 55, expectedGoals: 0.14, isOnTarget: false, isFromInsideBox: true, situation: 'RegularPlay' },
+          { teamId: 8669, min: 70, expectedGoals: 0.14, isOnTarget: true, isFromInsideBox: true, situation: 'FastBreak' },
+          { teamId: 8669, min: 82, expectedGoals: 0.35, isOnTarget: true, isFromInsideBox: true, situation: 'RegularPlay' },
+        ],
+      },
+      attackingZones: {
+        home: { total: { left: 32, center: 40, right: 28 } },
+        away: { total: { left: 30, center: 36, right: 34 } },
+      },
     },
   };
 }
@@ -92,10 +136,24 @@ test('生成曼城视角中文赛后分析、关键球员和战术长文', () =>
   assert.equal(match.top_players[0].metrics[0].label, '预期进球');
   assert.equal(match.tactical_longform.sections.length, 6);
   assert.match(match.tactical_longform.title, /考文垂/);
-  assert.equal(match.tactical_longform.version, 3);
+  assert.equal(match.tactical_longform.version, 4);
   assert.ok(match.tactical_longform.problems.length >= 3);
-  assert.match(match.tactical_longform.problems.join(''), /控球|终结效率|防守端/);
-  assert.match(match.tactical_longform.sections[0].paragraphs.join(''), /阵型/);
+  assert.match(match.tactical_longform.problems.join(''), /控球|绝佳机会|换人/);
+  assert.match(match.tactical_longform.sections[0].paragraphs.join(''), /4-1-4-1|开场/);
+  assert.equal(match.tactical_data.lineup.city_coach, '马雷斯卡');
+  assert.deepEqual(match.tactical_data.lineup.city_substitutions[0], {
+    minute: 66,
+    out: '谢尔基',
+    out_en: 'Rayan Cherki',
+    in: '福登',
+    in_en: 'Phil Foden',
+    out_position_id: 2,
+    in_position_id: 2,
+    reason: 'tactical',
+  });
+  const substitutionSection = match.tactical_longform.sections.find((section) => /换人复盘/.test(section.heading));
+  assert.match(substitutionSection.paragraphs.join(''), /66分钟|福登换下谢尔基|调整偏慢/);
+  assert.doesNotMatch(match.tactical_longform.sections.flatMap((section) => section.paragraphs).join(''), /不能直接证明|必须放在一起看|不会自动解决|不冒充/);
 });
 
 test('客场比赛仍按曼城视角计算比分和数据', () => {
