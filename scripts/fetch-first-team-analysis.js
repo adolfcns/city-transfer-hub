@@ -13,7 +13,7 @@ const USER_AGENT = 'Mozilla/5.0 (compatible; CityTransferHub/1.0; +https://adolf
 const MAX_MATCHES = 12;
 const BOOTSTRAP_MATCHES = 5;
 const DAILY_LIMIT = 40;
-const TACTICAL_LONGFORM_VERSION = 7;
+const TACTICAL_LONGFORM_VERSION = 8;
 const PROVIDER_NOTE = '比赛事实、评分、阵型、射门图及 xG 来自 FotMob 公开比赛数据；中文战术复盘由本站撰写。';
 
 const MATCH_TACTICAL_CONTEXT = Object.freeze({
@@ -703,6 +703,51 @@ function buildTacticalLongform({
   const stalledWindowParagraph = firstTacticalSub && quietBeforeFirstSub
     ? `下半场开局，46分钟到第一次主动换人的 ${firstTacticalSub.minute} 分钟，曼城只有 ${quietBeforeFirstSub.shots} 次射门、${quietBeforeFirstSub.xg.toFixed(2)} xG。球队能够推进到前场，控球却停在外围，没能连续变成真正的机会。`
     : null;
+  const opponentFormation = lineup.opponent_formation || '';
+  let pressingParagraph = `曼城的前场压迫需要先封住对方中路接应，再由边锋决定何时扑向中卫。前锋一个人追球、中场留在后面，只会把第一道防线拉成两截。`;
+  if (/3-/.test(opponentFormation)) {
+    pressingParagraph = `${opponentName}用三中卫开场，外侧中卫天然比曼城第一线多一个接球点。曼城要么让边锋向内压住外侧中卫、边后卫再跟住翼卫，要么主动放一侧出球后集体围过去；前锋各追各的，会让对手轻松把球送到翼卫脚下。`;
+  } else if (/4-4-2/.test(opponentFormation)) {
+    pressingParagraph = `${opponentName}用4-4-2开场，两名前锋负责把曼城出球赶向一侧。曼城的后腰需要轮流落到中卫身边接球，边后卫则站到对方边前卫身后；接应点如果都停在同一条横线上，后场人数再多也只是来回倒脚。`;
+  } else if (/4-2-3-1|4-3-3/.test(opponentFormation)) {
+    pressingParagraph = `${opponentName}用${opponentFormation}守中路，前场第一线会盯住中卫到后腰的直传。曼城需要让一名中场下沉吸人，另一名中场提前站到对方后腰身后，用上下两层接应把压迫拆开。`;
+  }
+  const phaseParagraphs = [];
+  const hasShotTimeline = Array.isArray(shots.timeline) && shots.timeline.length
+    && Array.isArray(opponentShots.timeline) && opponentShots.timeline.length;
+  if (hasShotTimeline) {
+    const phaseWindows = [
+      { label: '0到15分钟', from: 0, to: 16 },
+      { label: '16到30分钟', from: 16, to: 31 },
+      { label: '31分钟到半场', from: 31, to: 46 },
+      { label: '46到60分钟', from: 46, to: 61 },
+      { label: '61到75分钟', from: 61, to: 76 },
+      { label: '最后15分钟', from: 76, to: 96 },
+    ].map((phase) => ({
+      ...phase,
+      city: shotWindow(shots, phase.from, phase.to),
+      opponent: shotWindow(opponentShots, phase.from, phase.to),
+    }));
+    const cityPeak = [...phaseWindows].sort((a, b) => b.city.xg - a.city.xg || b.city.shots - a.city.shots)[0];
+    const opponentPeak = [...phaseWindows].sort((a, b) => b.opponent.xg - a.opponent.xg || b.opponent.shots - a.opponent.shots)[0];
+    phaseParagraphs.push(`把比赛切成每15分钟来看，曼城进攻最有威胁的是${cityPeak.label}：${cityPeak.city.shots}次射门、${cityPeak.city.xg.toFixed(2)} xG。全场质量最高的一批机会集中在这里，回看时应该盯住机会出现前的接应层次和最后一次向前传球。`);
+    phaseParagraphs.push(`${opponentName}最危险的是${opponentPeak.label}，做出${opponentPeak.opponent.shots}次射门、${opponentPeak.opponent.xg.toFixed(2)} xG。这是曼城控制力最松的一段，压迫高度、球后人数和边路保护都要拿出来重新看。`);
+    const secondStartCity = phaseWindows[3].city;
+    const secondStartOpponent = phaseWindows[3].opponent;
+    const finalCity = phaseWindows[5].city;
+    const finalOpponent = phaseWindows[5].opponent;
+    phaseParagraphs.push(`下半场开局15分钟，曼城是${secondStartCity.shots}次射门、${secondStartCity.xg.toFixed(2)} xG，对手是${secondStartOpponent.shots}次、${secondStartOpponent.xg.toFixed(2)} xG；最后15分钟则变成曼城${finalCity.shots}次、${finalCity.xg.toFixed(2)} xG，对手${finalOpponent.shots}次、${finalOpponent.xg.toFixed(2)} xG。比赛有没有被重新控制住，从这两段的变化最容易看出来。`);
+  } else if (shots.available && opponentShots.available) {
+    const firstCityXg = Number(shots.first_half?.xg || 0);
+    const secondCityXg = Number(shots.second_half?.xg || 0);
+    const firstOpponentXg = Number(opponentShots.first_half?.xg || 0);
+    const secondOpponentXg = Number(opponentShots.second_half?.xg || 0);
+    phaseParagraphs.push(`上半场曼城做出${Number(shots.first_half?.shots || 0)}次射门、${firstCityXg.toFixed(2)} xG，下半场是${Number(shots.second_half?.shots || 0)}次、${secondCityXg.toFixed(2)} xG。${secondCityXg + 0.3 < firstCityXg ? '中场以后进攻明显降速，对手收窄空间后，曼城没有及时换一条推进路线。' : secondCityXg > firstCityXg + 0.3 ? '中场后的调整让进攻提了速，球队把更多球送进了真正危险的位置。' : '两段比赛的机会产出接近，场面没有因为中场休息发生彻底变化。'}`);
+    phaseParagraphs.push(`${opponentName}上半场有${Number(opponentShots.first_half?.shots || 0)}次射门、${firstOpponentXg.toFixed(2)} xG，下半场是${Number(opponentShots.second_half?.shots || 0)}次、${secondOpponentXg.toFixed(2)} xG。${secondOpponentXg > firstOpponentXg + 0.25 ? '对手下半场找到了更直接的进攻出口，曼城的领先或控球没有把比赛压回安全区。' : '曼城下半场限制住了对手的大部分推进，防守调整起到了作用。'}`);
+  } else {
+    phaseParagraphs.push(`这场旧记录没有留下逐分钟射门，阶段变化只能从阵型、比分和全场数据往回看。以后新比赛会按15分钟拆开，直接比较双方什么时候提速、什么时候失去控制。`);
+    phaseParagraphs.push(`${opponentName}开场用${opponentFormation || '既定阵型'}应对曼城。复盘时先看他们中场休息后有没有改变压迫高度和进攻人数，再对照马雷斯卡的第一次换人与最终结果。`);
+  }
   const nextSteps = [];
   if (formationContext) {
     nextSteps.push(`继续让安德森和恩佐搭档，就要明确一个人向前接应时，另一个人留在球后。这样既能让谢尔基靠近哈兰德，也能避免一次传球失误就把中路完全让出来。`);
@@ -729,6 +774,7 @@ function buildTacticalLongform({
   ];
   const buildUpParagraphs = [
     ...(editorialContext.goal_sequence ? [editorialContext.goal_sequence] : []),
+    pressingParagraph,
     zoneParagraph,
     ...(phaseZoneParagraph ? [phaseZoneParagraph] : []),
     boxParagraph,
@@ -749,7 +795,7 @@ function buildTacticalLongform({
       paragraphs: openingParagraphs,
     },
     {
-      heading: editorialContext.goal_sequence ? '二、进球是怎么打出来的，这套站位想要什么' : '二、出球和推进：球到底送到了哪儿',
+      heading: editorialContext.goal_sequence ? '二、出球与压迫：进球是怎么打出来的' : '二、出球与压迫：第一道防线怎么较量',
       paragraphs: buildUpParagraphs,
     },
     {
@@ -757,22 +803,26 @@ function buildTacticalLongform({
       paragraphs: attackParagraphs,
     },
     {
-      heading: '四、无球和转换：危险从哪儿来',
+      heading: `四、比赛怎么变了：${opponentName}的调整有没有奏效`,
+      paragraphs: phaseParagraphs,
+    },
+    {
+      heading: '五、无球和转换：危险从哪儿来',
       paragraphs: defensiveParagraphs,
     },
     {
-      heading: `五、换人复盘：${coachName}动得早不早，换完有没有用`,
+      heading: `六、换人复盘：${coachName}动得早不早，换完有没有用`,
       paragraphs: substitutions,
     },
   ];
   if (nextSteps.length) {
     sections.push({
-      heading: `六、下一场，${coachName}具体该改什么`,
+      heading: `七、下一场，${coachName}具体该改什么`,
       paragraphs: nextSteps,
     });
   }
   sections.push({
-    heading: `${nextSteps.length ? '七' : '六'}、最后总结：教练布置和球员执行分开看`,
+    heading: `${nextSteps.length ? '八' : '七'}、最后总结：这场球真正留下了什么`,
     paragraphs: [coachReview, playerReview, finalLine],
   });
   return {

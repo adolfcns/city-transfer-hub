@@ -135,14 +135,16 @@ test('生成曼城视角中文赛后分析、关键球员和战术长文', () =>
   assert.equal(match.goals[0].player, '哈兰德');
   assert.equal(match.top_players[0].name, '哈兰德');
   assert.equal(match.top_players[0].metrics[0].label, '预期进球');
-  assert.equal(match.tactical_longform.sections.length, 7);
+  assert.equal(match.tactical_longform.sections.length, 8);
   assert.match(match.tactical_longform.title, /考文垂/);
-  assert.equal(match.tactical_longform.version, 7);
+  assert.equal(match.tactical_longform.version, 8);
   assert.ok(match.tactical_longform.problems.length >= 3);
   assert.match(match.tactical_longform.problems.join(''), /控球|绝佳机会|换人/);
   assert.match(match.tactical_longform.sections[0].paragraphs.join(''), /4-2-3-1.*4-1-4-1|开场/);
   assert.match(match.tactical_longform.sections[1].paragraphs.join(''), /26分钟|进球/);
-  assert.match(match.tactical_longform.sections[5].paragraphs.join(''), /具体|定位球|反应速度/);
+  assert.match(match.tactical_longform.sections[3].heading, /比赛怎么变了|调整/);
+  assert.match(match.tactical_longform.sections[3].paragraphs.join(''), /15分钟|xG|对手/);
+  assert.match(match.tactical_longform.sections[6].paragraphs.join(''), /具体|定位球|反应速度/);
   assert.doesNotMatch(match.tactical_longform.title, /的4-1-4-1/);
   assert.doesNotMatch(JSON.stringify(match.tactical_longform), /背锅|分锅|这口锅/);
   assert.doesNotMatch(JSON.stringify(match.tactical_longform), /不能说明|不能代替|必须把|不等于|只用来|先不下结论|先不硬评|不代表/);
@@ -195,11 +197,19 @@ test('一线队页面直接展示中文战术长文，不再出现原文与数�
   assert.doesNotMatch(APP_SOURCE, /曼城官方战报/);
 });
 
-test('本赛季每场已生成复盘都保留七段战术结构和具体改法', () => {
+test('本赛季每场已生成复盘都保留八段深度战术结构和具体改法', () => {
   assert.ok(STORED_ANALYSIS.matches.length > 0);
   for (const match of STORED_ANALYSIS.matches) {
-    assert.equal(match.tactical_longform.version, 7);
-    assert.equal(match.tactical_longform.sections.length, 7);
-    assert.match(match.tactical_longform.sections[5].heading, /具体该改什么/);
+    assert.equal(match.tactical_longform.version, 8);
+    assert.equal(match.tactical_longform.sections.length, 8);
+    assert.match(match.tactical_longform.sections[3].heading, /比赛怎么变了/);
+    assert.match(match.tactical_longform.sections[6].heading, /具体该改什么/);
   }
+});
+
+test('每场赛后复盘底部都有独立评论区，支持点赞和回复', () => {
+  assert.match(APP_SOURCE, /matchDiscussionSection\('review', match\)/);
+  assert.match(APP_SOURCE, /id: `\$\{isPreview \? 'match_preview' : 'match_review'\}_\$\{matchId\}`/);
+  assert.match(APP_SOURCE, /action: 'like', comment_id: commentId/);
+  assert.match(APP_SOURCE, /parent_id: activeReplyTarget\?\.id \|\| ''/);
 });

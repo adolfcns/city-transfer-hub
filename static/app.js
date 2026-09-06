@@ -2094,7 +2094,7 @@ function clearCommentReply() {
   const replying = document.querySelector('.comment-replying');
   if (replying) replying.hidden = true;
   const input = document.querySelector('.comment-input');
-  if (input) input.placeholder = '友善发言，最多120字';
+  if (input) input.placeholder = activeCommentItem?.comment_placeholder || '友善发言，最多120字';
 }
 
 function startCommentReply(comment) {
@@ -2157,7 +2157,7 @@ function renderCommentRows(comments) {
   if (!comments.length) {
     const empty = el('div', 'comment-empty');
     empty.appendChild(el('strong', null, '还没有评论'));
-    empty.appendChild(el('span', null, '说说你对这条转会消息的看法吧。'));
+    empty.appendChild(el('span', null, activeCommentItem?.comment_empty || '说说你对这条消息的看法吧。'));
     list.appendChild(empty);
     return;
   }
@@ -2421,17 +2421,17 @@ function openComments(it) {
   const sheet = el('section', 'comment-sheet');
   sheet.setAttribute('role', 'dialog');
   sheet.setAttribute('aria-modal', 'true');
-  sheet.setAttribute('aria-label', '消息评论');
+  sheet.setAttribute('aria-label', it.comment_title || '评论');
   sheet.appendChild(el('div', 'comment-sheet-handle'));
   const head = el('div', 'comment-sheet-head');
-  const title = el('h2', null, '评论');
+  const title = el('h2', null, it.comment_title || '评论');
   title.appendChild(el('span', 'comment-sheet-count', itemCommentCount(itemId(it)) ? ` ${itemCommentCount(itemId(it))}` : ''));
   const close = el('button', 'comment-close', '×');
   close.type = 'button';
   close.setAttribute('aria-label', '关闭评论');
   close.onclick = closeComments;
   head.append(title, close);
-  const summary = el('div', 'comment-item-summary', String(it.text_zh || it.text || '').replace(/\s+/g, ' ').slice(0, 58));
+  const summary = el('div', 'comment-item-summary', String(it.comment_summary || it.text_zh || it.text || '').replace(/\s+/g, ' ').slice(0, 76));
   const list = el('div', 'comment-list');
   list.appendChild(el('div', 'comment-loading', '正在加载评论…'));
 
@@ -2455,7 +2455,7 @@ function openComments(it) {
   input.className = 'comment-input';
   input.rows = 1;
   input.maxLength = 120;
-  input.placeholder = '友善发言，最多120字';
+  input.placeholder = it.comment_placeholder || '友善发言，最多120字';
   input.setAttribute('aria-label', '评论内容');
   const send = el('button', 'comment-send', '发送');
   send.type = 'button';
@@ -4026,6 +4026,39 @@ function firstTeamTacticalLongform(match) {
   return section;
 }
 
+function matchDiscussionItem(kind, match) {
+  const opponent = String(match?.opponent?.name || match?.opponent || '这场比赛');
+  const matchId = String(match?.id || 'current').replace(/[^A-Za-z0-9_-]/g, '_');
+  const isPreview = kind === 'preview';
+  return {
+    id: `${isPreview ? 'match_preview' : 'match_review'}_${matchId}`,
+    comment_title: isPreview ? '赛前讨论' : '赛后讨论',
+    comment_summary: isPreview
+      ? `曼城对${opponent}，你最担心哪个对位？比赛会怎么走？`
+      : `曼城对${opponent}，你怎么看开场布置、场上调整和换人？`,
+    comment_empty: isPreview ? '留下你的预测，或者说说最值得盯住的对位。' : '说说你对这场比赛和教练调整的看法。',
+    comment_placeholder: isPreview ? '聊聊对位、首发或比分，最多120字' : '聊聊战术、球员或换人，最多120字',
+  };
+}
+
+function matchDiscussionSection(kind, match) {
+  const item = matchDiscussionItem(kind, match);
+  const section = el('section', 'match-discussion');
+  const copy = el('div', 'match-discussion-copy');
+  copy.append(
+    el('span', null, kind === 'preview' ? 'BEFORE KICK-OFF' : 'AFTER THE WHISTLE'),
+    el('h4', null, kind === 'preview' ? '开球前，你怎么看？' : '看完这场，你怎么评？'),
+    el('p', null, '无需注册。评论可以点赞，也可以回复。'),
+  );
+  const button = buildCommentButton(item);
+  button.classList.add('match-discussion-button');
+  const label = button.querySelector('.comment-label');
+  if (label) label.textContent = '进入评论区';
+  section.append(copy, button);
+  queueCommentCounts([item]);
+  return section;
+}
+
 function firstTeamAnalysisReport(match, data) {
   const report = el('article', 'first-team-report');
   const matchHead = el('header', 'first-team-match-head');
@@ -4038,7 +4071,7 @@ function firstTeamAnalysisReport(match, data) {
   matchHead.append(meta, el('b', `first-team-result ${firstTeamResultClass(match.result)}`, match.result || '赛果'));
 
   const verdict = el('section', 'first-team-verdict');
-  verdict.append(el('span', null, '数据结论'), el('p', null, match.verdict || '赛后数据复盘正在生成。'));
+  verdict.append(el('span', null, '先说结论'), el('p', null, match.verdict || '赛后数据复盘正在生成。'));
 
   const stats = el('section', 'first-team-stats');
   stats.appendChild(el('h4', null, '曼城 vs 对手｜核心数据'));
@@ -4056,7 +4089,7 @@ function firstTeamAnalysisReport(match, data) {
 
   const note = el('footer', 'first-team-analysis-note');
   note.textContent = data.provider?.note || '本站根据公开比赛数据自动生成中文复盘。';
-  report.append(matchHead, verdict, stats, tacticalLongform, players, note);
+  report.append(matchHead, verdict, stats, tacticalLongform, players, note, matchDiscussionSection('review', match));
   return report;
 }
 
@@ -4287,6 +4320,7 @@ function renderMatchPreview(data) {
     sourceNote.appendChild(links);
   }
   report.appendChild(sourceNote);
+  report.appendChild(matchDiscussionSection('preview', match));
   root.append(hero, report);
   $('#updated-at').textContent = `前瞻更新于 ${firstTeamAnalysisDate(data.generated_at, true)}`;
   clearInterval(matchPreviewCountdownTimer);

@@ -33,3 +33,12 @@ test('前瞻用直接中文说明战术，不使用空泛或过度防御措辞',
   assert.doesNotMatch(copy, /作为一个AI|仅供参考|不能说明|不能代替|不代表|先不下结论|先不硬评|背锅/);
   assert.ok(data.sources.length >= 4);
 });
+
+test('前瞻底部接入独立赛前讨论，支持评论点赞和回复', () => {
+  assert.match(app, /matchDiscussionSection\('preview', match\)/);
+  assert.match(app, /开球前，你怎么看/);
+  assert.match(app, /评论可以点赞，也可以回复/);
+  assert.match(app, /comment_title: isPreview \? '赛前讨论' : '赛后讨论'/);
+  assert.match(css, /\.match-discussion/);
+  assert.match(css, /\.match-discussion-button/);
+});

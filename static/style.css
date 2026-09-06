@@ -3027,6 +3027,21 @@ body[data-page="analysis"] .container { max-width: 1060px; }
   background: #e6bb4f; color: #604500; font-size: 7px; font-style: normal; font-weight: 950;
 }
 .first-team-analysis-note { padding: 15px 22px 20px; color: #78909f; font-size: 9px; line-height: 1.5; }
+.match-discussion {
+  margin: 0; padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  border-top: 1px solid #bddce9; background: linear-gradient(120deg, #edf8fc, #fff 66%, #fff5d8);
+}
+.match-discussion-copy { min-width: 0; }
+.match-discussion-copy > span { color: #1581ad; font-size: 8px; font-weight: 950; letter-spacing: .14em; }
+.match-discussion-copy h4 { margin-top: 3px; color: #123852; font-size: 18px; font-weight: 950; }
+.match-discussion-copy p { margin-top: 3px; color: #698394; font-size: 10px; font-weight: 700; }
+.match-discussion .match-discussion-button {
+  min-width: 132px; min-height: 42px; padding: 8px 15px; flex: none; border-color: #278eb9;
+  border-radius: 999px; background: #167fac; color: #fff; font-size: 12px; font-weight: 950;
+  box-shadow: 0 7px 18px rgba(31,126,169,.18);
+}
+.match-discussion .match-discussion-button:hover { border-color: #0d688f; background: #0d688f; color: #fff; }
+.match-discussion .comment-count { padding-left: 2px; }
 
 @media (max-width: 760px) {
   body[data-page="analysis"] .container { padding: 8px 8px 54px; }
@@ -3073,6 +3088,11 @@ body[data-page="analysis"] .container { max-width: 1060px; }
   .first-team-tactical-longform-part.coach-focus { margin-left: -4px; margin-right: -4px; padding: 11px 10px 17px; }
   .first-team-tactical-longform-part:last-child { margin: 2px -3px 0; padding: 12px 12px 14px; }
   .first-team-tactical-longform-note { padding: 10px 12px; font-size: 9px; }
+  .match-discussion { padding: 13px; gap: 10px; }
+  .match-discussion-copy > span { font-size: 7px; }
+  .match-discussion-copy h4 { font-size: 14px; }
+  .match-discussion-copy p { font-size: 8px; }
+  .match-discussion .match-discussion-button { min-width: 104px; min-height: 38px; padding: 7px 10px; font-size: 10px; }
   .first-team-player-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
   .first-team-player { padding: 8px; }
   .first-team-player-head strong { font-size: 10px; }
