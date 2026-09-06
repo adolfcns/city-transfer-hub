@@ -92,6 +92,9 @@ test('生成曼城视角中文赛后分析、关键球员和战术长文', () =>
   assert.equal(match.top_players[0].metrics[0].label, '预期进球');
   assert.equal(match.tactical_longform.sections.length, 6);
   assert.match(match.tactical_longform.title, /考文垂/);
+  assert.equal(match.tactical_longform.version, 3);
+  assert.ok(match.tactical_longform.problems.length >= 3);
+  assert.match(match.tactical_longform.problems.join(''), /控球|终结效率|防守端/);
   assert.match(match.tactical_longform.sections[0].paragraphs.join(''), /阵型/);
 });
 

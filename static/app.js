@@ -82,6 +82,9 @@ const ACTIVE_SURVEY_IDS = new Set(['summer_2026', DEPARTURE_SURVEY_ID]);
 const WINDOW_FINALE_NOTICE_KEY = 'cth_window_finale_20260901_5h_v1';
 const WINDOW_FINALE_NOTICE_INTERVAL_MS = 5 * 60 * 60 * 1000;
 const WINDOW_FINALE_NOTICE_DELAY_MS = 1500;
+const FEATURE_GUIDE_STORAGE_PREFIX = 'cth_feature_guide_4h_v1';
+const FEATURE_GUIDE_INTERVAL_MS = 4 * 60 * 60 * 1000;
+const FEATURE_GUIDE_DELAY_MS = 2200;
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
 // 布阿迪交易已进入 Here we go 阶段，暂时撤下重点传闻卡片；保留数据与逻辑，方便后续恢复。
 const FOCUS_RUMOR_STRIP_ENABLED = false;
@@ -3929,6 +3932,14 @@ function firstTeamTacticalLongform(match) {
     el('p', null, longform.standfirst || '从阵型、推进、机会形成和攻防转换重新阅读这场比赛。'),
   );
   section.appendChild(header);
+  if (longform.problems?.length) {
+    const problems = el('aside', 'first-team-tactical-problems');
+    problems.appendChild(el('strong', null, '先说问题'));
+    const list = el('ul');
+    for (const problem of longform.problems) list.appendChild(el('li', null, problem));
+    problems.appendChild(list);
+    section.appendChild(problems);
+  }
   const body = el('div', 'first-team-tactical-longform-body');
   for (const item of longform.sections || []) {
     const part = el('section', 'first-team-tactical-longform-part');
@@ -6207,6 +6218,136 @@ function showRecoveryNotice() {
   setTimeout(() => $('#recovery-notice-ok')?.focus(), 0);
 }
 
+let featureGuideTimer = null;
+
+function featureGuideDefinition() {
+  const destinations = {
+    analysis: {
+      icon: '🧠',
+      kicker: 'BLUE MOON · TACTICS',
+      title: '蓝月赛后分析',
+      text: '直接读中文战术长文：先说问题，再拆阵型、推进、机会形成与防守风险。',
+      action: '去看战术分析',
+      href: './?view=analysis',
+    },
+    loans: {
+      icon: '🌍',
+      kicker: 'CITY ON LOAN',
+      title: '蓝月在外',
+      text: '按赛程追踪外租小将，查看出场、评分、近5场走势和逐场表现。',
+      action: '去看外租小将',
+      href: './?view=loans',
+    },
+  };
+  if (PAGE_VIEW === 'analysis') return {
+    eyebrow: '还有一个栏目',
+    title: '看完一线队，也别漏掉外租小将',
+    text: '他们离开曼城，不等于离开视线。',
+    items: [destinations.loans],
+  };
+  if (PAGE_VIEW === 'loans') return {
+    eyebrow: '还有一个栏目',
+    title: '外租之外，复盘曼城这一场',
+    text: '比分只是结果，真正的问题藏在比赛结构里。',
+    items: [destinations.analysis],
+  };
+  return {
+    eyebrow: '两个重点栏目',
+    title: '除了社媒，这两处也值得常看',
+    text: '一个复盘曼城一线队，一个追踪在外成长的小将。',
+    items: [destinations.analysis, destinations.loans],
+  };
+}
+
+function featureGuideStorageKey() {
+  return `${FEATURE_GUIDE_STORAGE_PREFIX}_${PAGE_VIEW}`;
+}
+
+function buildFeatureGuide() {
+  const existing = $('#feature-guide');
+  if (existing) return existing;
+  const definition = featureGuideDefinition();
+  const overlay = el('div', 'modal feature-guide');
+  overlay.id = 'feature-guide';
+  overlay.hidden = true;
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-labelledby', 'feature-guide-title');
+  const box = el('div', 'modal-box feature-guide-box');
+  const close = el('button', 'feature-guide-close', '×');
+  close.type = 'button';
+  close.setAttribute('aria-label', '关闭栏目引导');
+  close.onclick = dismissFeatureGuide;
+  const intro = el('header', 'feature-guide-head');
+  intro.append(
+    el('span', null, definition.eyebrow),
+    el('h2', null, definition.title),
+    el('p', null, definition.text),
+  );
+  intro.querySelector('h2').id = 'feature-guide-title';
+  const grid = el('div', `feature-guide-grid count-${definition.items.length}`);
+  for (const item of definition.items) {
+    const link = el('a', 'feature-guide-card');
+    link.href = item.href;
+    const copy = el('div', 'feature-guide-card-copy');
+    copy.append(
+      el('span', null, item.kicker),
+      el('strong', null, item.title),
+      el('p', null, item.text),
+    );
+    link.append(el('i', null, item.icon), copy, el('b', null, `${item.action} →`));
+    grid.appendChild(link);
+  }
+  const later = el('button', 'feature-guide-later', '先看当前页');
+  later.type = 'button';
+  later.onclick = dismissFeatureGuide;
+  box.append(close, intro, grid, later);
+  overlay.appendChild(box);
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay) dismissFeatureGuide();
+  });
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function featureGuideWait() {
+  try {
+    const lastShownAt = Number(localStorage.getItem(featureGuideStorageKey()) || 0);
+    if (Number.isFinite(lastShownAt) && lastShownAt > 0) {
+      return Math.max(0, FEATURE_GUIDE_INTERVAL_MS - (Date.now() - lastShownAt));
+    }
+  } catch { /* 禁用本机存储时，本次访问仍可展示 */ }
+  return FEATURE_GUIDE_DELAY_MS;
+}
+
+function showFeatureGuide() {
+  const guide = buildFeatureGuide();
+  if (document.hidden || document.querySelector('.modal:not([hidden]), .comment-overlay, .survey-overlay')) {
+    scheduleFeatureGuide(1200);
+    return;
+  }
+  guide.hidden = false;
+  document.body.classList.add('feature-guide-open');
+  try { localStorage.setItem(featureGuideStorageKey(), String(Date.now())); }
+  catch { /* 禁用本机存储时仍可正常关闭 */ }
+  setTimeout(() => guide.querySelector('.feature-guide-close')?.focus(), 0);
+}
+
+function scheduleFeatureGuide(delay = null) {
+  clearTimeout(featureGuideTimer);
+  featureGuideTimer = setTimeout(showFeatureGuide, delay === null ? featureGuideWait() : delay);
+}
+
+function dismissFeatureGuide() {
+  const guide = $('#feature-guide');
+  if (!guide) return;
+  guide.hidden = true;
+  document.body.classList.remove('feature-guide-open');
+  try { localStorage.setItem(featureGuideStorageKey(), String(Date.now())); }
+  catch { /* 禁用本机存储时仍可正常关闭 */ }
+  scheduleFeatureGuide();
+}
+
 let windowFinaleNoticeTimer = null;
 
 function windowFinaleNoticeWait() {
@@ -6379,6 +6520,7 @@ function bind() {
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && document.querySelector('.comment-overlay')) closeComments();
     if (event.key === 'Escape' && document.querySelector('.survey-overlay')) closeSurvey();
+    if (event.key === 'Escape' && !$('#feature-guide')?.hidden) dismissFeatureGuide();
     if (event.key === 'Escape' && !$('#window-finale-notice')?.hidden) dismissWindowFinaleNotice();
     if (event.key === 'Escape' && !$('#recovery-notice')?.hidden) dismissRecoveryNotice();
   });
@@ -6488,6 +6630,7 @@ bind();
 bindPrayer();
 recordRequestedShareVisit();
 renderFocusZone();
+scheduleFeatureGuide();
 if (IS_LOAN_PAGE) {
   updateWinterWindowCountdown();
   setInterval(updateWinterWindowCountdown, 1000);

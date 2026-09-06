@@ -402,7 +402,27 @@ function buildTacticalLongform({
   const accuratePasses = numeric(accuratePassesRaw) ?? '—';
   const passAccuracy = percent(accuratePassesRaw);
   const conversionGap = Math.max(0, bigChances - cityScore);
-  const title = possession >= 68 && Math.abs(cityScore - opponentScore) <= 1
+  const xgLead = hasXg ? xg - opponentXg : null;
+  const problems = [];
+  if (possession >= 65 && (!hasXg || xgLead < 1)) {
+    problems.push(`${possession}% 的控球没有换来压倒性的机会差，控球优势仍有相当一部分停留在安全区域。`);
+  }
+  if (conversionGap > 0) {
+    problems.push(`${bigChances} 次绝佳机会只打进 ${cityScore} 球，终结效率让本可提前结束的比赛一直保留悬念。`);
+  }
+  if (opponentBigChances >= 3 || (hasXg && opponentXg >= 1.2)) {
+    problems.push(`${opponentName}得到 ${opponentBigChances} 次绝佳机会${hasXg ? `和 ${opponentXg.toFixed(2)} xG` : ''}，防守端给出的机会过于真实。`);
+  }
+  if (keeperSaves >= 3) {
+    problems.push(`门将完成 ${keeperSaves} 次扑救，说明最后一道防线承担了超出比分观感的压力。`);
+  }
+  if (shots.available && shots.second_half.xg + 0.35 < shots.first_half.xg) {
+    problems.push(`下半场射门 xG 降至 ${shots.second_half.xg.toFixed(2)}，领先后继续制造威胁的能力明显减弱。`);
+  }
+  if (!problems.length) {
+    problems.push('数据没有暴露单一的致命缺口，但推进速度、机会兑现和丢球后的第一道保护仍需要逐回合检查。');
+  }
+  const title = possession >= 68 && cityScore - opponentScore === 1
     ? `${possession}%控球之下，曼城为何只与${opponentName}拉开一球？`
     : `从基础站位到攻防转换：曼城 ${cityScore}-${opponentScore} ${opponentName}`;
   const formationLine = lineup.city_formation
@@ -440,9 +460,10 @@ function buildTacticalLongform({
     ? `${cityScore}-${opponentScore}带来了结果，但这场球更重要的信号是：${hasXg && xg >= opponentXg + 0.7 ? '曼城已经建立机会优势，下一步要提高终结效率' : '曼城还需要把控球与推进更稳定地转化为安全的比赛结构'}。${hasXg && opponentXg >= 1.2 ? '若对手把握住其中一次高质量机会，比赛叙事就会完全不同。' : '只要继续压缩对手进入禁区的次数，这种控制才会真正稳定。'}`
     : `比分没有站在曼城一边。复盘重点不是简单增加控球，而是让推进更早抵达危险区域，同时在丢失球权后的第一时间保护中路与身后。`;
   return {
-    version: 2,
+    version: 3,
     title,
-    standfirst: `这不是战报复述，而是把阵型标签、进攻方向、射门位置、xG 与比赛节点放在一起，回答曼城怎样控制比赛、又在哪里留下风险。`,
+    standfirst: '先把问题摆在前面，再用阵型、进攻方向、射门位置、xG 与比赛节点解释这些问题是怎样出现的。',
+    problems: problems.slice(0, 4),
     sections: [
       {
         heading: '一、基础站位：阵型只是起点',
@@ -452,7 +473,7 @@ function buildTacticalLongform({
         ],
       },
       {
-        heading: '二、有球推进：球权主要去了哪里',
+        heading: '二、推进问题：球权很多，穿透有多少',
         paragraphs: [
           zoneText(attackingZones.city)
             ? `进攻方向分布为${zoneText(attackingZones.city)}。这组数据不能直接证明某名球员固定站在某个区域，却能说明球队把推进资源更多投向了哪里。`
@@ -463,7 +484,7 @@ function buildTacticalLongform({
         ],
       },
       {
-        heading: '三、机会形成：控制有没有变成杀伤',
+        heading: '三、进攻问题：控制没有完全变成杀伤',
         paragraphs: [
           hasXg && shots.available
             ? `曼城累计 ${xg.toFixed(2)} xG，其中运动战与快速反击贡献约 ${shots.open_play_xg.toFixed(2)}，定位球贡献约 ${shots.set_piece_xg.toFixed(2)}；全场有 ${shots.high_quality} 次单次 xG 不低于 0.30 的高质量射门。`
@@ -472,7 +493,7 @@ function buildTacticalLongform({
         ],
       },
       {
-        heading: '四、无球与转换：比分之外的风险',
+        heading: '四、防守问题：比分掩盖了多少风险',
         paragraphs: [
           opponentShots.available
             ? `${opponentName}完成 ${opponentShotTotal} 次射门，其中 ${opponentShots.inside_box} 次在禁区内；对手禁区触球 ${opponentBoxTouches} 次。${defenceJudgement}`
@@ -481,7 +502,7 @@ function buildTacticalLongform({
         ],
       },
       {
-        heading: '五、比赛走势：优势何时出现、何时减弱',
+        heading: '五、比赛管理：优势出现后有没有守住主动',
         paragraphs: [
           `${halfShift}${goalLine}`,
           `比分变化会反过来影响两队风险偏好，因此赛后不能把全场均值当成九十分钟始终不变的战术状态。领先后的控球如果不能继续制造威胁，就可能从主动控制变成被动消耗。`,
@@ -493,6 +514,52 @@ function buildTacticalLongform({
       },
     ],
     source_note: '本站中文战术复盘，根据 FotMob 展示的阵型、比赛事件、射门图与统计数据综合撰写；阵型标签与数据只能支持可观察的比赛现象，不冒充教练战术指令。',
+  };
+}
+
+function upgradeStoredTacticalLongform(match) {
+  if (match?.tactical_longform?.version === 3) return match;
+  if (match?.tactical_longform?.version !== 2) return match;
+  const metric = (key, side = 'city') => numeric((match.stats || []).find((item) => item.key === key)?.[side]);
+  const possession = metric('BallPossesion') ?? 50;
+  const xg = metric('expected_goals');
+  const opponentXg = metric('expected_goals', 'opponent');
+  const bigChances = metric('big_chance') ?? 0;
+  const opponentBigChances = metric('big_chance', 'opponent') ?? 0;
+  const cityScore = Number(match.city?.score || 0);
+  const keeperSaves = numeric((match.tactical_longform.sections || [])
+    .flatMap((section) => section.paragraphs || [])
+    .find((paragraph) => /门将完成\s*\d+\s*次扑救/.test(paragraph))?.match(/门将完成\s*(\d+)/)?.[1]) || 0;
+  const problems = [];
+  if (possession >= 65 && (xg === null || opponentXg === null || xg - opponentXg < 1)) {
+    problems.push(`${possession}% 的控球没有换来压倒性的机会差，控球优势仍有相当一部分停留在安全区域。`);
+  }
+  if (bigChances > cityScore) {
+    problems.push(`${bigChances} 次绝佳机会只打进 ${cityScore} 球，终结效率让本可提前结束的比赛一直保留悬念。`);
+  }
+  if (opponentBigChances >= 3 || (opponentXg !== null && opponentXg >= 1.2)) {
+    problems.push(`${match.opponent?.name || '对手'}得到 ${opponentBigChances} 次绝佳机会${opponentXg !== null && opponentXg > 0 ? `和 ${opponentXg.toFixed(2)} xG` : ''}，防守端给出的机会过于真实。`);
+  }
+  if (keeperSaves >= 3) problems.push(`门将完成 ${keeperSaves} 次扑救，说明最后一道防线承担了超出比分观感的压力。`);
+  if (!problems.length) problems.push('数据没有暴露单一的致命缺口，但推进速度、机会兑现和丢球后的第一道保护仍需要逐回合检查。');
+  const headingMap = {
+    '二、有球推进：球权主要去了哪里': '二、推进问题：球权很多，穿透有多少',
+    '三、机会形成：控制有没有变成杀伤': '三、进攻问题：控制没有完全变成杀伤',
+    '四、无球与转换：比分之外的风险': '四、防守问题：比分掩盖了多少风险',
+    '五、比赛走势：优势何时出现、何时减弱': '五、比赛管理：优势出现后有没有守住主动',
+  };
+  return {
+    ...match,
+    tactical_longform: {
+      ...match.tactical_longform,
+      version: 3,
+      standfirst: '先把问题摆在前面，再用阵型、进攻方向、射门位置、xG 与比赛节点解释这些问题是怎样出现的。',
+      problems: problems.slice(0, 4),
+      sections: (match.tactical_longform.sections || []).map((section) => ({
+        ...section,
+        heading: headingMap[section.heading] || section.heading,
+      })),
+    },
   };
 }
 
@@ -600,7 +667,7 @@ function createBudget(previous, now) {
 
 function needsRefresh(previousMatch, fixture, now) {
   if (!previousMatch) return true;
-  if (previousMatch.tactical_longform?.version !== 2 || !previousMatch.tactical_longform?.sections?.length) return true;
+  if (previousMatch.tactical_longform?.version !== 3 || !previousMatch.tactical_longform?.sections?.length) return true;
   if (previousMatch.tactical_longform?.sections?.length && previousMatch.top_players?.length && previousMatch.stats?.length) return false;
   const kickoffAge = now.getTime() - new Date(fixture?.status?.utcTime).getTime();
   const checkedAge = now.getTime() - new Date(previousMatch.analysed_at || 0).getTime();
@@ -610,7 +677,7 @@ function needsRefresh(previousMatch, fixture, now) {
 export async function buildFirstTeamAnalysisData({ now = new Date() } = {}) {
   const previous = await loadPrevious();
   const budget = createBudget(previous, now);
-  const previousById = new Map((previous?.matches || []).map((match) => [String(match.id), match]));
+  const previousById = new Map((previous?.matches || []).map(upgradeStoredTacticalLongform).map((match) => [String(match.id), match]));
   let teamData;
   try {
     teamData = await fetchJson(`${FOTMOB_API}/teams?id=${TEAM_ID}&ccode3=USA`, { budget });
