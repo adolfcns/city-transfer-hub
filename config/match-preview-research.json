@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "purpose": "为每一场曼城比赛前瞻固定取材和核对流程，重点写清下一个对手怎么踢，以及曼城如何应对。",
+  "source_priority": [
+    {
+      "type": "tactical_report",
+      "name": "Total Football Analysis",
+      "url": "https://totalfootballanalysis.com/",
+      "use_for": ["主教练体系", "有球结构", "无球压迫", "常见进攻套路"]
+    },
+    {
+      "type": "tactical_report",
+      "name": "Assoanalisti",
+      "url": "https://assoanalisti.it/",
+      "use_for": ["比赛模型", "阵型变化", "进攻与防守阶段", "定位球"]
+    },
+    {
+      "type": "video_analysis",
+      "name": "Football Made Simple",
+      "url": "https://www.youtube.com/@FootballMadeSimple",
+      "use_for": ["动态站位", "压迫触发点", "临场变化", "关键回合"]
+    },
+    {
+      "type": "verification",
+      "name": "球队与赛事官方信息",
+      "use_for": ["赛程", "伤停", "主教练与阵容"]
+    },
+    {
+      "type": "verification",
+      "name": "FotMob",
+      "url": "https://www.fotmob.com/",
+      "use_for": ["最近5场", "首发", "比赛数据", "球员表现"]
+    }
+  ],
+  "workflow": [
+    "先确认下一场的对手、开球时间、场地和赛事。",
+    "优先查找当前主教练与当前赛季的文字战术报告；没有时再扩大到近期同体系材料。",
+    "补看 Football Made Simple 等视频拆解，记录站位、跑动与压迫触发点。",
+    "用对手最近5场实际比赛核对资料里的判断，不照抄旧赛季结论。",
+    "正文必须讲清对手的有球打法、无球打法、最强点、最容易被打的位置、危险球员和定位球。",
+    "最后结合曼城当下的人员与打法，写开场方案、持球破解、无球限制和可能的换人方向。",
+    "只写资料和比赛画面能支撑的判断，中文要像球迷和球迷聊球，不写空话。"
+  ]
+}

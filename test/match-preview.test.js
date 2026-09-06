@@ -6,6 +6,9 @@ const html = readFileSync(new URL('../static/index.html', import.meta.url), 'utf
 const app = readFileSync(new URL('../static/app.js', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../static/style.css', import.meta.url), 'utf8');
 const data = JSON.parse(readFileSync(new URL('../data/match-preview.json', import.meta.url), 'utf8'));
+const research = JSON.parse(readFileSync(new URL('../config/match-preview-research.json', import.meta.url), 'utf8'));
+const pagesWorker = readFileSync(new URL('../cloudflare/pages-worker.js', import.meta.url), 'utf8');
+const backupWorker = readFileSync(new URL('../scripts/cloudflare-worker.js', import.meta.url), 'utf8');
 
 test('比赛前瞻是独立且显眼的第四个页面', () => {
   assert.match(html, /id="page-preview" href="\.\/\?view=preview">比赛前瞻<\/a>/);
@@ -41,4 +44,28 @@ test('前瞻底部接入独立赛前讨论，支持评论点赞和回复', () =>
   assert.match(app, /comment_title: isPreview \? '赛前讨论' : '赛后讨论'/);
   assert.match(css, /\.match-discussion/);
   assert.match(css, /\.match-discussion-button/);
+});
+
+test('以后前瞻固定优先使用战术长文与视频，并用近期比赛核对', () => {
+  const sources = JSON.stringify(research.source_priority);
+  const workflow = research.workflow.join(' ');
+  assert.match(sources, /Total Football Analysis/);
+  assert.match(sources, /Assoanalisti/);
+  assert.match(sources, /Football Made Simple/);
+  assert.match(workflow, /最近5场实际比赛核对/);
+  assert.match(workflow, /有球打法、无球打法、最强点、最容易被打的位置/);
+});
+
+test('前瞻底部有可改票的实时胜负投票', () => {
+  assert.match(app, /看完这篇前瞻，你觉得曼城能拿下吗/);
+  assert.match(app, /稳了，能拿下/);
+  assert.match(app, /不好说，先看开场/);
+  assert.match(app, /悬了，感觉要出事/);
+  assert.match(app, /surveyApi\(pollId, 'POST', \{ outlook: option\.key \}\)/);
+  assert.match(app, /matchPreviewPollSection\(match\)/);
+  assert.match(css, /\.match-preview-poll-options/);
+  for (const worker of [pagesWorker, backupWorker]) {
+    assert.match(worker, /MATCH_PREVIEW_POLL_RE/);
+    assert.match(worker, /options: \['win', 'unsure', 'worry'\]/);
+  }
 });

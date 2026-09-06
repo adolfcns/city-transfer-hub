@@ -95,6 +95,13 @@ const SURVEY_RULES = Object.freeze({
     },
   },
 });
+const MATCH_PREVIEW_POLL_RE = /^match_preview_[A-Za-z0-9_-]{1,96}$/;
+const MATCH_PREVIEW_POLL_RULE = Object.freeze({
+  closes_at: null,
+  questions: {
+    outlook: { type: 'single', options: ['win', 'unsure', 'worry'] },
+  },
+});
 const NICKNAME_BLOCKED_TERMS = [
   '站长', '管理员', '官方', '客服', '系统', '小编',
   '总书记', '国家主席', '主席', '总理', '总统', '首相', '议员', '部长', '市长', '省长', '州长',
@@ -493,7 +500,8 @@ async function reportComment(env, commentId, reporterId) {
 }
 
 function surveyRule(pollId) {
-  return Object.prototype.hasOwnProperty.call(SURVEY_RULES, pollId) ? SURVEY_RULES[pollId] : null;
+  if (Object.prototype.hasOwnProperty.call(SURVEY_RULES, pollId)) return SURVEY_RULES[pollId];
+  return MATCH_PREVIEW_POLL_RE.test(pollId) ? MATCH_PREVIEW_POLL_RULE : null;
 }
 
 function validateSurveyAnswers(pollId, value) {

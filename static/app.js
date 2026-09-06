@@ -48,6 +48,11 @@ const FIRST_TEAM_ANALYSIS_URL = './data/first-team-analysis.json';
 const FIRST_TEAM_ANALYSIS_CACHE_KEY = 'cth_first_team_analysis_cache_v1';
 const MATCH_PREVIEW_URL = './data/match-preview.json';
 const MATCH_PREVIEW_CACHE_KEY = 'cth_match_preview_cache_v1';
+const MATCH_PREVIEW_POLL_OPTIONS = Object.freeze([
+  { key: 'win', label: '稳了，能拿下' },
+  { key: 'unsure', label: '不好说，先看开场' },
+  { key: 'worry', label: '悬了，感觉要出事' },
+]);
 const CHELSEA_WATCH_ENABLED = false;
 const REFRESH_MS = 90 * 1000;
 // 转会窗关闭时间（到点自动切到下一个）
@@ -4059,6 +4064,79 @@ function matchDiscussionSection(kind, match) {
   return section;
 }
 
+function matchPreviewPollId(match) {
+  const matchId = String(match?.id || 'current').replace(/[^A-Za-z0-9_-]/g, '_');
+  return `match_preview_${matchId}`;
+}
+
+function renderMatchPreviewPollState(section, match, data, notice = '') {
+  const pollId = matchPreviewPollId(match);
+  const selected = String(data?.ballot?.answers?.outlook || '');
+  const results = data?.results || {};
+  const counts = results.questions?.outlook?.counts || {};
+  const total = Math.max(0, Number(results.total || 0));
+  section.textContent = '';
+
+  const copy = el('div', 'match-preview-poll-copy');
+  copy.append(
+    el('span', null, '开球前投一票'),
+    el('h4', null, '看完这篇前瞻，你觉得曼城能拿下吗？'),
+  );
+  const status = el('p', `match-preview-poll-status${notice ? ' has-notice' : ''}`,
+    notice || `${total ? `已有 ${total} 位蓝月球迷投票` : '等你投下第一票'}${selected ? ' · 可以改票' : ''}`);
+  status.setAttribute('aria-live', 'polite');
+  copy.appendChild(status);
+
+  const options = el('div', 'match-preview-poll-options');
+  for (const option of MATCH_PREVIEW_POLL_OPTIONS) {
+    const button = el('button', selected === option.key ? 'selected' : '');
+    button.type = 'button';
+    button.dataset.choice = option.key;
+    button.setAttribute('aria-pressed', selected === option.key ? 'true' : 'false');
+    button.append(
+      el('span', null, option.label),
+      el('b', null, String(Math.max(0, Number(counts[option.key] || 0)))),
+    );
+    button.onclick = async () => {
+      if (section.dataset.saving === '1') return;
+      if (selected === option.key) {
+        toast('你已经选了这一项');
+        return;
+      }
+      section.dataset.saving = '1';
+      options.querySelectorAll('button').forEach((node) => { node.disabled = true; });
+      status.textContent = selected ? '正在改票…' : '正在投票…';
+      try {
+        const fresh = await surveyApi(pollId, 'POST', { outlook: option.key });
+        if (fresh.ok !== true) {
+          renderMatchPreviewPollState(section, match, data, surveyErrorText(fresh.reason));
+          return;
+        }
+        renderMatchPreviewPollState(section, match, fresh);
+        toast(selected ? '已经改票 ✓' : '投票成功 ✓');
+      } catch {
+        renderMatchPreviewPollState(section, match, data, surveyErrorText('unavailable'));
+      } finally {
+        delete section.dataset.saving;
+      }
+    };
+    options.appendChild(button);
+  }
+  section.append(copy, options);
+}
+
+function matchPreviewPollSection(match) {
+  const section = el('section', 'match-preview-poll');
+  renderMatchPreviewPollState(section, match, null, '正在同步实时票数…');
+  surveyApi(matchPreviewPollId(match))
+    .then((data) => {
+      if (data.ok !== true) throw new Error(data.reason || 'bad_poll');
+      renderMatchPreviewPollState(section, match, data);
+    })
+    .catch(() => renderMatchPreviewPollState(section, match, null, '实时票数暂时连接不上，请稍后再试'));
+  return section;
+}
+
 function firstTeamAnalysisReport(match, data) {
   const report = el('article', 'first-team-report');
   const matchHead = el('header', 'first-team-match-head');
@@ -4320,6 +4398,7 @@ function renderMatchPreview(data) {
     sourceNote.appendChild(links);
   }
   report.appendChild(sourceNote);
+  report.appendChild(matchPreviewPollSection(match));
   report.appendChild(matchDiscussionSection('preview', match));
   root.append(hero, report);
   $('#updated-at').textContent = `前瞻更新于 ${firstTeamAnalysisDate(data.generated_at, true)}`;

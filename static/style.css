@@ -2859,6 +2859,29 @@ body[data-page="preview"] .container { max-width: 1060px; }
 .match-preview-lineup > small { display: block; margin-top: 6px; color: #718a9a; font-size: 9px; line-height: 1.6; }
 .match-preview-source-note { padding: 13px 22px 17px; border-top: 1px solid #d7e8ef; background: #f4f9fb; color: #748b99; font-size: 9px; line-height: 1.65; }
 .match-preview-source-note a { color: #117ca9; font-weight: 850; text-decoration: underline; text-underline-offset: 2px; }
+.match-preview-poll {
+  display: grid; grid-template-columns: minmax(260px, .8fr) minmax(420px, 1.2fr); align-items: center; gap: 18px;
+  border-top: 1px solid #c9e0ea; background: linear-gradient(120deg, #edf8fd, #fff9e8);
+}
+.match-preview-poll-copy > span { color: #a2730d; font-size: 9px; font-weight: 950; letter-spacing: .08em; }
+.match-preview-poll-copy h4 { margin-top: 3px; color: #143b55; font-size: 17px; font-weight: 950; line-height: 1.35; }
+.match-preview-poll-status { margin-top: 4px; color: #718999; font-size: 9px; font-weight: 700; }
+.match-preview-poll-status.has-notice { color: #aa5c24; }
+.match-preview-poll-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.match-preview-poll-options button {
+  min-width: 0; min-height: 45px; padding: 7px 9px; display: flex; align-items: center; justify-content: space-between; gap: 7px;
+  border: 1px solid #9bc9dd; border-radius: 10px; background: rgba(255,255,255,.9); color: #1b516e;
+  font: inherit; font-size: 10px; font-weight: 900; cursor: pointer; transition: border-color .16s ease, background .16s ease, transform .16s ease;
+}
+.match-preview-poll-options button:hover { border-color: #1988b5; background: #fff; transform: translateY(-1px); }
+.match-preview-poll-options button.selected { border-color: #087ead; background: #117fac; color: #fff; box-shadow: 0 5px 14px rgba(17,127,172,.18); }
+.match-preview-poll-options button:disabled { cursor: wait; opacity: .72; transform: none; }
+.match-preview-poll-options button span { min-width: 0; line-height: 1.35; text-align: left; }
+.match-preview-poll-options button b {
+  min-width: 23px; padding: 3px 5px; border-radius: 999px; background: #e6f4fa; color: #0877a4;
+  font-size: 10px; font-weight: 950; font-variant-numeric: tabular-nums; text-align: center;
+}
+.match-preview-poll-options button.selected b { background: rgba(255,255,255,.22); color: #fff; }
 
 @media (max-width: 760px) {
   body[data-page="preview"] .container { padding: 8px 8px 54px; }
@@ -2905,6 +2928,14 @@ body[data-page="preview"] .container { max-width: 1060px; }
   .match-preview-part.tone-coach, .match-preview-part.tone-city, .match-preview-part.tone-weakness, .match-preview-part.tone-watch { margin-inline: -5px; padding: 11px 10px 18px; }
   .match-preview-lineup > p { font-size: 11px; }
   .match-preview-source-note { padding: 10px 12px 13px; font-size: 8px; }
+  .match-preview-report > .match-preview-poll { padding: 12px 10px; grid-template-columns: 1fr; gap: 9px; }
+  .match-preview-poll-copy { text-align: center; }
+  .match-preview-poll-copy > span { font-size: 8px; }
+  .match-preview-poll-copy h4 { margin-top: 2px; font-size: 14px; }
+  .match-preview-poll-status { margin-top: 3px; font-size: 8px; }
+  .match-preview-poll-options { gap: 4px; }
+  .match-preview-poll-options button { min-height: 43px; padding: 5px 6px; gap: 4px; font-size: 9px; }
+  .match-preview-poll-options button b { min-width: 20px; padding: 2px 4px; font-size: 9px; }
 }
 
 /* ============ 蓝月赛后分析：一线队独立页面 ============ */
