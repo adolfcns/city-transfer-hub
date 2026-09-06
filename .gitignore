@@ -1,6 +1,7 @@
 node_modules/
 data/*.json
 !data/loan-watch.json
+!data/first-team-analysis.json
 .env
 *.log
 scripts/local-trigger.vbs

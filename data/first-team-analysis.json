@@ -1,0 +1,1570 @@
+{
+  "version": 1,
+  "generated_at": "2026-09-06T02:30:46.028Z",
+  "checked_at": "2026-09-06T02:31:39.303Z",
+  "team_id": 8456,
+  "season_start": "2026-07-01T00:00:00Z",
+  "provider_usage": {
+    "date": "2026-09-06",
+    "requests": 10,
+    "limit": 40
+  },
+  "provider": {
+    "name": "FotMob",
+    "url": "https://www.fotmob.com",
+    "note": "比赛事实、评分及 xG 等来自 FotMob 展示的公开比赛数据；Opta 战报仅展示标题并链接原文。本站中文复盘由数据规则自动生成，不代表 Opta 官方观点。"
+  },
+  "total": 7,
+  "latest_match_id": "5795442",
+  "matches": [
+    {
+      "id": "5795442",
+      "date": "2026-09-05T14:00:00.000Z",
+      "analysed_at": "2026-09-06T02:20:50.901Z",
+      "competition": "Premier League",
+      "is_home": true,
+      "city": {
+        "name": "曼城",
+        "name_en": "Manchester City",
+        "score": 1
+      },
+      "opponent": {
+        "name": "考文垂",
+        "name_en": "Coventry City",
+        "score": 0
+      },
+      "score": "1-0",
+      "result": "胜",
+      "headline": "三分到手，但过程比比分更险",
+      "verdict": "曼城明显掌握球权，控球率 78% 对 22%；全场 xG 2.12-1.37，机会质量略占上风。比分是 1-0，但判断比赛不能只看结果。",
+      "analysis": [
+        {
+          "key": "control",
+          "title": "控场",
+          "text": "控球率 78%，完成 751 (92%) 次准确传球，成功率 92%。球权与机会产出基本形成了正向关系。"
+        },
+        {
+          "key": "attack",
+          "title": "进攻",
+          "text": "15 次射门、4 次射正、3 次绝佳机会、36 次禁区触球，累计 2.12 xG，最终打进 1 球。把优势更早变成进球，比赛会轻松得多。"
+        },
+        {
+          "key": "defence",
+          "title": "防守",
+          "text": "对手得到 12 次射门、3 次射正、3 次绝佳机会和 19 次禁区触球；1.37 的对手 xG 和 3 次绝佳机会说明防线承受了真实压力，门将完成 3 次扑救。"
+        },
+        {
+          "key": "turning",
+          "title": "关键节点",
+          "text": "26′ 哈兰德（塞梅尼奥助攻）"
+        }
+      ],
+      "stats": [
+        {
+          "key": "BallPossesion",
+          "label": "控球率",
+          "city": 78,
+          "opponent": 22,
+          "suffix": "%"
+        },
+        {
+          "key": "expected_goals",
+          "label": "预期进球",
+          "city": 2.12,
+          "opponent": 1.37,
+          "suffix": ""
+        },
+        {
+          "key": "total_shots",
+          "label": "射门",
+          "city": 15,
+          "opponent": 12,
+          "suffix": ""
+        },
+        {
+          "key": "ShotsOnTarget",
+          "label": "射正",
+          "city": 4,
+          "opponent": 3,
+          "suffix": ""
+        },
+        {
+          "key": "big_chance",
+          "label": "绝佳机会",
+          "city": 3,
+          "opponent": 3,
+          "suffix": ""
+        },
+        {
+          "key": "touches_opp_box",
+          "label": "禁区触球",
+          "city": 36,
+          "opponent": 19,
+          "suffix": ""
+        }
+      ],
+      "goals": [
+        {
+          "minute": 26,
+          "player": "哈兰德",
+          "player_en": "Erling Haaland",
+          "assist": "塞梅尼奥",
+          "type": "Header"
+        }
+      ],
+      "top_players": [
+        {
+          "id": "618878",
+          "name": "多纳鲁马",
+          "name_en": "Gianluigi Donnarumma",
+          "rating": 8.68,
+          "position": "GK",
+          "player_url": "https://www.fotmob.com/players/618878/gianluigi-donnarumma",
+          "man_of_the_match": true,
+          "metrics": [
+            {
+              "key": "goals_prevented",
+              "label": "阻止失球",
+              "value": "1.76"
+            },
+            {
+              "key": "accurate_passes",
+              "label": "传球",
+              "value": "15/17"
+            }
+          ]
+        },
+        {
+          "id": "737066",
+          "name": "哈兰德",
+          "name_en": "Erling Haaland",
+          "rating": 8.4,
+          "position": "ST",
+          "player_url": "https://www.fotmob.com/players/737066/erling-haaland",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "expected_goals",
+              "label": "预期进球",
+              "value": "1.06"
+            },
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.48"
+            },
+            {
+              "key": "total_shots",
+              "label": "射门",
+              "value": "4"
+            }
+          ]
+        },
+        {
+          "id": "1089691",
+          "name": "埃利奥特·安德森",
+          "name_en": "Elliot Anderson",
+          "rating": 8.3,
+          "position": "DM",
+          "player_url": "https://www.fotmob.com/players/1089691/elliot-anderson",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.17"
+            },
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "1"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "21"
+            }
+          ]
+        },
+        {
+          "id": "844425",
+          "name": "格伊",
+          "name_en": "Marc Guéhi",
+          "rating": 8.05,
+          "position": "CB",
+          "player_url": "https://www.fotmob.com/players/844425/marc-gu-hi",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "defensive_actions",
+              "label": "防守贡献",
+              "value": "9"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "6"
+            },
+            {
+              "key": "clearances",
+              "label": "解围",
+              "value": "8"
+            }
+          ]
+        },
+        {
+          "id": "1070712",
+          "name": "格瓦迪奥尔",
+          "name_en": "Josko Gvardiol",
+          "rating": 7.72,
+          "position": "LB",
+          "player_url": "https://www.fotmob.com/players/1070712/josko-gvardiol",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "defensive_actions",
+              "label": "防守贡献",
+              "value": "8"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "7"
+            },
+            {
+              "key": "clearances",
+              "label": "解围",
+              "value": "2"
+            }
+          ]
+        }
+      ],
+      "opta_review": {
+        "source": "Opta",
+        "title": "Manchester City 1-0 Coventry City: Haaland keeps Maresca's men perfect",
+        "url": "https://www.fotmob.com/news/os5d3lt8x7et1c8bwfwsk0d4r-manchester-city-1-0-coventry-city-haaland-keeps-marescas-men-perfect?utm_source=fotmob",
+        "updated_at": "2026-09-05T16:18:35.000Z"
+      },
+      "match_url": "https://www.fotmob.com/matches/manchester-city-vs-coventry-city/2fb7wc#5795442",
+      "official_results_url": "https://www.mancity.com/results/mens"
+    },
+    {
+      "id": "5795429",
+      "date": "2026-08-28T19:00:00.000Z",
+      "analysed_at": "2026-09-06T02:20:50.901Z",
+      "competition": "Premier League",
+      "is_home": false,
+      "city": {
+        "name": "曼城",
+        "name_en": "Manchester City",
+        "score": 4
+      },
+      "opponent": {
+        "name": "水晶宫",
+        "name_en": "Crystal Palace",
+        "score": 1
+      },
+      "score": "1-4",
+      "result": "胜",
+      "headline": "从控场到机会，这场胜利有数据支撑",
+      "verdict": "曼城明显掌握球权，控球率 72% 对 28%；全场 xG 2.21-0.66，机会质量明显占优。比分是 4-1，但判断比赛不能只看结果。",
+      "analysis": [
+        {
+          "key": "control",
+          "title": "控场",
+          "text": "控球率 72%，完成 731 (93%) 次准确传球，成功率 93%。球权与机会产出基本形成了正向关系。"
+        },
+        {
+          "key": "attack",
+          "title": "进攻",
+          "text": "18 次射门、9 次射正、5 次绝佳机会、35 次禁区触球，累计 2.21 xG，最终打进 4 球。把优势更早变成进球，比赛会轻松得多。"
+        },
+        {
+          "key": "defence",
+          "title": "防守",
+          "text": "对手得到 9 次射门、1 次射正、3 次绝佳机会和 14 次禁区触球；将对手限制在 0.66 xG，防守端总体可控，门将完成 1 次扑救。"
+        },
+        {
+          "key": "turning",
+          "title": "关键节点",
+          "text": "17′ 哈兰德（塞梅尼奥助攻）；54′ 谢尔基（福登助攻）；59′ 谢尔基（格瓦迪奥尔助攻）；84′ 哈兰德（福登助攻）"
+        }
+      ],
+      "stats": [
+        {
+          "key": "BallPossesion",
+          "label": "控球率",
+          "city": 72,
+          "opponent": 28,
+          "suffix": "%"
+        },
+        {
+          "key": "expected_goals",
+          "label": "预期进球",
+          "city": 2.21,
+          "opponent": 0.66,
+          "suffix": ""
+        },
+        {
+          "key": "total_shots",
+          "label": "射门",
+          "city": 18,
+          "opponent": 9,
+          "suffix": ""
+        },
+        {
+          "key": "ShotsOnTarget",
+          "label": "射正",
+          "city": 9,
+          "opponent": 1,
+          "suffix": ""
+        },
+        {
+          "key": "big_chance",
+          "label": "绝佳机会",
+          "city": 5,
+          "opponent": 3,
+          "suffix": ""
+        },
+        {
+          "key": "touches_opp_box",
+          "label": "禁区触球",
+          "city": 35,
+          "opponent": 14,
+          "suffix": ""
+        }
+      ],
+      "goals": [
+        {
+          "minute": 17,
+          "player": "哈兰德",
+          "player_en": "Erling Haaland",
+          "assist": "塞梅尼奥",
+          "type": "Header"
+        },
+        {
+          "minute": 54,
+          "player": "谢尔基",
+          "player_en": "Rayan Cherki",
+          "assist": "福登",
+          "type": "Goal"
+        },
+        {
+          "minute": 59,
+          "player": "谢尔基",
+          "player_en": "Rayan Cherki",
+          "assist": "格瓦迪奥尔",
+          "type": "Goal"
+        },
+        {
+          "minute": 84,
+          "player": "哈兰德",
+          "player_en": "Erling Haaland",
+          "assist": "福登",
+          "type": "Goal"
+        }
+      ],
+      "top_players": [
+        {
+          "id": "1104053",
+          "name": "谢尔基",
+          "name_en": "Rayan Cherki",
+          "rating": 9.12,
+          "position": "AM",
+          "player_url": "https://www.fotmob.com/players/1104053/rayan-cherki",
+          "man_of_the_match": true,
+          "metrics": [
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.55"
+            },
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "3"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": "815006",
+          "name": "福登",
+          "name_en": "Phil Foden",
+          "rating": 8.86,
+          "position": "RW",
+          "player_url": "https://www.fotmob.com/players/815006/phil-foden",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "expected_goals",
+              "label": "预期进球",
+              "value": "0.87"
+            },
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.45"
+            },
+            {
+              "key": "total_shots",
+              "label": "射门",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": "737066",
+          "name": "哈兰德",
+          "name_en": "Erling Haaland",
+          "rating": 8.85,
+          "position": "ST",
+          "player_url": "https://www.fotmob.com/players/737066/erling-haaland",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "expected_goals",
+              "label": "预期进球",
+              "value": "0.66"
+            },
+            {
+              "key": "total_shots",
+              "label": "射门",
+              "value": "5"
+            },
+            {
+              "key": "ShotsOnTarget",
+              "label": "射正",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": "1089691",
+          "name": "埃利奥特·安德森",
+          "name_en": "Elliot Anderson",
+          "rating": 8.17,
+          "position": "DM",
+          "player_url": "https://www.fotmob.com/players/1089691/elliot-anderson",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.22"
+            },
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "1"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "14"
+            }
+          ]
+        },
+        {
+          "id": "614006",
+          "name": "鲁本·迪亚斯",
+          "name_en": "Rúben Dias",
+          "rating": 8.04,
+          "position": "CB",
+          "player_url": "https://www.fotmob.com/players/614006/r-ben-dias",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "defensive_actions",
+              "label": "防守贡献",
+              "value": "6"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "6"
+            },
+            {
+              "key": "clearances",
+              "label": "解围",
+              "value": "4"
+            }
+          ]
+        }
+      ],
+      "opta_review": {
+        "source": "Opta",
+        "title": "Crystal Palace 1-4 Manchester City: Cherki dazzles and Haaland gets off the mark in big win",
+        "url": "https://www.fotmob.com/news/tee2lyrqd1dk1pq3p2tx7lgy2-crystal-palace-1-4-manchester-city-cherki-dazzles-haaland-gets-off-mark-big-win?utm_source=fotmob",
+        "updated_at": "2026-08-28T21:21:50.000Z"
+      },
+      "match_url": "https://www.fotmob.com/matches/manchester-city-vs-crystal-palace/2ri9zd#5795429",
+      "official_results_url": "https://www.mancity.com/results/mens"
+    },
+    {
+      "id": "5795370",
+      "date": "2026-08-23T13:00:00.000Z",
+      "analysed_at": "2026-09-06T02:20:50.901Z",
+      "competition": "Premier League",
+      "is_home": true,
+      "city": {
+        "name": "曼城",
+        "name_en": "Manchester City",
+        "score": 2
+      },
+      "opponent": {
+        "name": "伯恩茅斯",
+        "name_en": "AFC Bournemouth",
+        "score": 1
+      },
+      "score": "2-1",
+      "result": "胜",
+      "headline": "从控场到机会，这场胜利有数据支撑",
+      "verdict": "曼城明显掌握球权，控球率 66% 对 34%；全场 xG 2.25-0.65，机会质量明显占优。比分是 2-1，但判断比赛不能只看结果。",
+      "analysis": [
+        {
+          "key": "control",
+          "title": "控场",
+          "text": "控球率 66%，完成 584 (89%) 次准确传球，成功率 89%。球权与机会产出基本形成了正向关系。"
+        },
+        {
+          "key": "attack",
+          "title": "进攻",
+          "text": "13 次射门、6 次射正、4 次绝佳机会、37 次禁区触球，累计 2.25 xG，最终打进 2 球。把优势更早变成进球，比赛会轻松得多。"
+        },
+        {
+          "key": "defence",
+          "title": "防守",
+          "text": "对手得到 5 次射门、4 次射正、1 次绝佳机会和 6 次禁区触球；将对手限制在 0.65 xG，防守端总体可控，门将完成 3 次扑救。"
+        },
+        {
+          "key": "turning",
+          "title": "关键节点",
+          "text": "84′ 格伊（谢尔基助攻）；90′ 格瓦迪奥尔（谢尔基助攻）"
+        }
+      ],
+      "stats": [
+        {
+          "key": "BallPossesion",
+          "label": "控球率",
+          "city": 66,
+          "opponent": 34,
+          "suffix": "%"
+        },
+        {
+          "key": "expected_goals",
+          "label": "预期进球",
+          "city": 2.25,
+          "opponent": 0.65,
+          "suffix": ""
+        },
+        {
+          "key": "total_shots",
+          "label": "射门",
+          "city": 13,
+          "opponent": 5,
+          "suffix": ""
+        },
+        {
+          "key": "ShotsOnTarget",
+          "label": "射正",
+          "city": 6,
+          "opponent": 4,
+          "suffix": ""
+        },
+        {
+          "key": "big_chance",
+          "label": "绝佳机会",
+          "city": 4,
+          "opponent": 1,
+          "suffix": ""
+        },
+        {
+          "key": "touches_opp_box",
+          "label": "禁区触球",
+          "city": 37,
+          "opponent": 6,
+          "suffix": ""
+        }
+      ],
+      "goals": [
+        {
+          "minute": 84,
+          "player": "格伊",
+          "player_en": "Marc Guéhi",
+          "assist": "谢尔基",
+          "type": "Header"
+        },
+        {
+          "minute": 90,
+          "player": "格瓦迪奥尔",
+          "player_en": "Josko Gvardiol",
+          "assist": "谢尔基",
+          "type": "Goal"
+        }
+      ],
+      "top_players": [
+        {
+          "id": "844425",
+          "name": "格伊",
+          "name_en": "Marc Guéhi",
+          "rating": 8.52,
+          "position": "DM",
+          "player_url": "https://www.fotmob.com/players/844425/marc-gu-hi",
+          "man_of_the_match": true,
+          "metrics": [
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.32"
+            },
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "1"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "4"
+            }
+          ]
+        },
+        {
+          "id": "1070712",
+          "name": "格瓦迪奥尔",
+          "name_en": "Josko Gvardiol",
+          "rating": 8.42,
+          "position": "LB",
+          "player_url": "https://www.fotmob.com/players/1070712/josko-gvardiol",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "defensive_actions",
+              "label": "防守贡献",
+              "value": "7"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "5"
+            },
+            {
+              "key": "clearances",
+              "label": "解围",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "id": "1104053",
+          "name": "谢尔基",
+          "name_en": "Rayan Cherki",
+          "rating": 8.28,
+          "position": "",
+          "player_url": "https://www.fotmob.com/players/1104053/rayan-cherki",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.5"
+            },
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "4"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "id": "618878",
+          "name": "多纳鲁马",
+          "name_en": "Gianluigi Donnarumma",
+          "rating": 7.8,
+          "position": "GK",
+          "player_url": "https://www.fotmob.com/players/618878/gianluigi-donnarumma",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "goals_prevented",
+              "label": "阻止失球",
+              "value": "0.7"
+            },
+            {
+              "key": "accurate_passes",
+              "label": "传球",
+              "value": "15/20"
+            }
+          ]
+        },
+        {
+          "id": "614006",
+          "name": "鲁本·迪亚斯",
+          "name_en": "Rúben Dias",
+          "rating": 7.79,
+          "position": "CB",
+          "player_url": "https://www.fotmob.com/players/614006/r-ben-dias",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "defensive_actions",
+              "label": "防守贡献",
+              "value": "6"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "8"
+            },
+            {
+              "key": "clearances",
+              "label": "解围",
+              "value": "6"
+            }
+          ]
+        }
+      ],
+      "opta_review": {
+        "source": "Opta",
+        "title": "​Manchester City 2-1 Bournemouth: Substitute Cherki sparks late turnaround to get Maresca's first win",
+        "url": "https://www.fotmob.com/news/o3bf0p2geop17gimmhs26ewg-manchester-city-2-1-bournemouth-substitute-cherki-sparks-late-turnaround-get-marescas-first-win?utm_source=fotmob",
+        "updated_at": "2026-08-23T15:28:51.000Z"
+      },
+      "match_url": "https://www.fotmob.com/matches/manchester-city-vs-afc-bournemouth/2feiv3#5795370",
+      "official_results_url": "https://www.mancity.com/results/mens"
+    },
+    {
+      "id": "5793186",
+      "date": "2026-08-16T14:00:00.000Z",
+      "analysed_at": "2026-09-06T02:20:50.901Z",
+      "competition": "Community Shield",
+      "is_home": false,
+      "city": {
+        "name": "曼城",
+        "name_en": "Manchester City",
+        "score": 0
+      },
+      "opponent": {
+        "name": "阿森纳",
+        "name_en": "Arsenal",
+        "score": 3
+      },
+      "score": "3-0",
+      "result": "负",
+      "headline": "失利不只看结果，更要看优势为何没有建立",
+      "verdict": "曼城拥有更多球权，控球率 59% 对 41%；全场 xG 1.12-2.16，机会质量落后于对手。比分是 0-3，但判断比赛不能只看结果。",
+      "analysis": [
+        {
+          "key": "control",
+          "title": "控场",
+          "text": "控球率 59%，完成 519 (89%) 次准确传球，成功率 89%。球权与机会产出基本形成了正向关系。"
+        },
+        {
+          "key": "attack",
+          "title": "进攻",
+          "text": "12 次射门、5 次射正、1 次绝佳机会、34 次禁区触球，累计 1.12 xG，最终打进 0 球。把优势更早变成进球，比赛会轻松得多。"
+        },
+        {
+          "key": "defence",
+          "title": "防守",
+          "text": "对手得到 9 次射门、5 次射正、4 次绝佳机会和 27 次禁区触球；2.16 的对手 xG 和 4 次绝佳机会说明防线承受了真实压力，门将完成 2 次扑救。"
+        },
+        {
+          "key": "turning",
+          "title": "关键节点",
+          "text": "本场没有进球节点"
+        }
+      ],
+      "stats": [
+        {
+          "key": "BallPossesion",
+          "label": "控球率",
+          "city": 59,
+          "opponent": 41,
+          "suffix": "%"
+        },
+        {
+          "key": "expected_goals",
+          "label": "预期进球",
+          "city": 1.12,
+          "opponent": 2.16,
+          "suffix": ""
+        },
+        {
+          "key": "total_shots",
+          "label": "射门",
+          "city": 12,
+          "opponent": 9,
+          "suffix": ""
+        },
+        {
+          "key": "ShotsOnTarget",
+          "label": "射正",
+          "city": 5,
+          "opponent": 5,
+          "suffix": ""
+        },
+        {
+          "key": "big_chance",
+          "label": "绝佳机会",
+          "city": 1,
+          "opponent": 4,
+          "suffix": ""
+        },
+        {
+          "key": "touches_opp_box",
+          "label": "禁区触球",
+          "city": 34,
+          "opponent": 27,
+          "suffix": ""
+        }
+      ],
+      "goals": [],
+      "top_players": [
+        {
+          "id": "1362998",
+          "name": "胡桑诺夫",
+          "name_en": "Abdukodir Khusanov",
+          "rating": 6.89,
+          "position": "RB",
+          "player_url": "https://www.fotmob.com/players/1362998/abdukodir-khusanov",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "defensive_actions",
+              "label": "防守贡献",
+              "value": "9"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "4"
+            },
+            {
+              "key": "clearances",
+              "label": "解围",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "id": "1070712",
+          "name": "格瓦迪奥尔",
+          "name_en": "Josko Gvardiol",
+          "rating": 6.75,
+          "position": "CB",
+          "player_url": "https://www.fotmob.com/players/1070712/josko-gvardiol",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "defensive_actions",
+              "label": "防守贡献",
+              "value": "5"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "2"
+            },
+            {
+              "key": "clearances",
+              "label": "解围",
+              "value": "2"
+            }
+          ]
+        },
+        {
+          "id": "1104053",
+          "name": "谢尔基",
+          "name_en": "Rayan Cherki",
+          "rating": 6.68,
+          "position": "",
+          "player_url": "https://www.fotmob.com/players/1104053/rayan-cherki",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.44"
+            },
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "2"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "4"
+            }
+          ]
+        },
+        {
+          "id": "614006",
+          "name": "鲁本·迪亚斯",
+          "name_en": "Rúben Dias",
+          "rating": 6.61,
+          "position": "CB",
+          "player_url": "https://www.fotmob.com/players/614006/r-ben-dias",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "defensive_actions",
+              "label": "防守贡献",
+              "value": "6"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "2"
+            },
+            {
+              "key": "clearances",
+              "label": "解围",
+              "value": "5"
+            }
+          ]
+        },
+        {
+          "id": "844425",
+          "name": "格伊",
+          "name_en": "Marc Guéhi",
+          "rating": 6.61,
+          "position": "",
+          "player_url": "https://www.fotmob.com/players/844425/marc-gu-hi",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.03"
+            },
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "0"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "9"
+            }
+          ]
+        }
+      ],
+      "opta_review": {
+        "source": "Opta",
+        "title": "Arsenal 3-0 Manchester City: Premier League champions run riot in Community Shield",
+        "url": "https://www.fotmob.com/news/190cfk6fxkfvd183ry8av1390c-arsenal-3-0-manchester-city-premier-league-champions-run-riot-community-shield?utm_source=fotmob",
+        "updated_at": "2026-08-16T16:04:39.000Z"
+      },
+      "match_url": "https://www.fotmob.com/matches/manchester-city-vs-arsenal/2rhvvi#5793186",
+      "official_results_url": "https://www.mancity.com/results/mens"
+    },
+    {
+      "id": "5862945",
+      "date": "2026-08-09T11:00:00.000Z",
+      "analysed_at": "2026-09-06T02:20:50.901Z",
+      "competition": "Club Friendlies",
+      "is_home": true,
+      "city": {
+        "name": "曼城",
+        "name_en": "Manchester City",
+        "score": 3
+      },
+      "opponent": {
+        "name": "马德里竞技",
+        "name_en": "Atletico Madrid",
+        "score": 1
+      },
+      "score": "3-1",
+      "result": "胜",
+      "headline": "结果拿下，过程仍有值得复盘之处",
+      "verdict": "曼城没有依靠控球建立绝对优势，控球率 54% 对 46%；全场 xG 0.00-0.00，双方机会质量接近。比分是 3-1，但判断比赛不能只看结果。",
+      "analysis": [
+        {
+          "key": "control",
+          "title": "控场",
+          "text": "控球率 54%，完成 474 (92%) 次准确传球，成功率 92%。球权与机会产出基本形成了正向关系。"
+        },
+        {
+          "key": "attack",
+          "title": "进攻",
+          "text": "16 次射门、9 次射正、6 次绝佳机会、31 次禁区触球，累计 0.00 xG，最终打进 3 球。把优势更早变成进球，比赛会轻松得多。"
+        },
+        {
+          "key": "defence",
+          "title": "防守",
+          "text": "对手得到 13 次射门、3 次射正、1 次绝佳机会和 19 次禁区触球；将对手限制在 0.00 xG，防守端总体可控，门将完成 2 次扑救。"
+        },
+        {
+          "key": "turning",
+          "title": "关键节点",
+          "text": "57′ Omar Marmoush；59′ Omar Marmoush；90′ Rayan Aït-Nouri"
+        }
+      ],
+      "stats": [
+        {
+          "key": "BallPossesion",
+          "label": "控球率",
+          "city": 54,
+          "opponent": 46,
+          "suffix": "%"
+        },
+        {
+          "key": "expected_goals",
+          "label": "预期进球",
+          "city": 0,
+          "opponent": 0,
+          "suffix": ""
+        },
+        {
+          "key": "total_shots",
+          "label": "射门",
+          "city": 16,
+          "opponent": 13,
+          "suffix": ""
+        },
+        {
+          "key": "ShotsOnTarget",
+          "label": "射正",
+          "city": 9,
+          "opponent": 3,
+          "suffix": ""
+        },
+        {
+          "key": "big_chance",
+          "label": "绝佳机会",
+          "city": 6,
+          "opponent": 1,
+          "suffix": ""
+        },
+        {
+          "key": "touches_opp_box",
+          "label": "禁区触球",
+          "city": 31,
+          "opponent": 19,
+          "suffix": ""
+        }
+      ],
+      "goals": [
+        {
+          "minute": 57,
+          "player": "Omar Marmoush",
+          "player_en": "Omar Marmoush",
+          "assist": null,
+          "type": "Goal"
+        },
+        {
+          "minute": 59,
+          "player": "Omar Marmoush",
+          "player_en": "Omar Marmoush",
+          "assist": null,
+          "type": "Goal"
+        },
+        {
+          "minute": 90,
+          "player": "Rayan Aït-Nouri",
+          "player_en": "Rayan Aït-Nouri",
+          "assist": null,
+          "type": "Goal"
+        }
+      ],
+      "top_players": [
+        {
+          "id": "839204",
+          "name": "Omar Marmoush",
+          "name_en": "Omar Marmoush",
+          "rating": 8.84,
+          "position": "ST",
+          "player_url": "https://www.fotmob.com/players/839204/omar-marmoush",
+          "man_of_the_match": true,
+          "metrics": [
+            {
+              "key": "total_shots",
+              "label": "射门",
+              "value": "2"
+            },
+            {
+              "key": "ShotsOnTarget",
+              "label": "射正",
+              "value": "2"
+            },
+            {
+              "key": "touches_opp_box",
+              "label": "禁区触球",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": "933576",
+          "name": "塞梅尼奥",
+          "name_en": "Antoine Semenyo",
+          "rating": 8.44,
+          "position": "LW",
+          "player_url": "https://www.fotmob.com/players/933576/antoine-semenyo",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "total_shots",
+              "label": "射门",
+              "value": "1"
+            },
+            {
+              "key": "ShotsOnTarget",
+              "label": "射正",
+              "value": "0"
+            },
+            {
+              "key": "touches_opp_box",
+              "label": "禁区触球",
+              "value": "8"
+            }
+          ]
+        },
+        {
+          "id": "1174337",
+          "name": "Savinho",
+          "name_en": "Savinho",
+          "rating": 7.93,
+          "position": "RW",
+          "player_url": "https://www.fotmob.com/players/1174337/savinho",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "total_shots",
+              "label": "射门",
+              "value": "2"
+            },
+            {
+              "key": "ShotsOnTarget",
+              "label": "射正",
+              "value": "1"
+            },
+            {
+              "key": "touches_opp_box",
+              "label": "禁区触球",
+              "value": "9"
+            }
+          ]
+        },
+        {
+          "id": "815006",
+          "name": "福登",
+          "name_en": "Phil Foden",
+          "rating": 7.68,
+          "position": "AM",
+          "player_url": "https://www.fotmob.com/players/815006/phil-foden",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "2"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "7"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "5"
+            }
+          ]
+        },
+        {
+          "id": "614006",
+          "name": "鲁本·迪亚斯",
+          "name_en": "Rúben Dias",
+          "rating": 7.45,
+          "position": "CB",
+          "player_url": "https://www.fotmob.com/players/614006/r-ben-dias",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "defensive_actions",
+              "label": "防守贡献",
+              "value": "8"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "3"
+            },
+            {
+              "key": "clearances",
+              "label": "解围",
+              "value": "5"
+            }
+          ]
+        }
+      ],
+      "opta_review": {
+        "source": "Opta",
+        "title": "Manchester City 3-1 Atletico Madrid: Marmoush and Semenyo link up in comeback win",
+        "url": "https://www.fotmob.com/news/12girbomgma0f19ibwb3z63ntc-manchester-city-3-1-atletico-madrid-marmoush-semenyo-link-up-comeback-win?utm_source=fotmob",
+        "updated_at": "2026-08-09T13:20:30.000Z"
+      },
+      "match_url": "https://www.fotmob.com/matches/manchester-city-vs-atletico-madrid/2sdp29#5862945",
+      "official_results_url": "https://www.mancity.com/results/mens"
+    },
+    {
+      "id": "5862944",
+      "date": "2026-08-05T11:00:00.000Z",
+      "analysed_at": "2026-09-06T02:30:46.028Z",
+      "competition": "Club Friendlies",
+      "is_home": false,
+      "city": {
+        "name": "曼城",
+        "name_en": "Manchester City",
+        "score": 3
+      },
+      "opponent": {
+        "name": "K联赛全明星",
+        "name_en": "K-League All Stars",
+        "score": 1
+      },
+      "score": "1-3",
+      "result": "胜",
+      "headline": "结果拿下，过程仍有值得复盘之处",
+      "verdict": "曼城没有依靠控球建立绝对优势，控球率 50% 对 50%；全场 xG 0.00-0.00，双方机会质量接近。比分是 3-1，但判断比赛不能只看结果。",
+      "analysis": [
+        {
+          "key": "control",
+          "title": "控场",
+          "text": "控球率 50%，完成 — 次准确传球。球权与机会产出基本形成了正向关系。"
+        },
+        {
+          "key": "attack",
+          "title": "进攻",
+          "text": "0 次射门、0 次射正、0 次绝佳机会、0 次禁区触球，累计 0.00 xG，最终打进 3 球。机会兑现效率与比赛结果相符。"
+        },
+        {
+          "key": "defence",
+          "title": "防守",
+          "text": "对手得到 0 次射门、0 次射正、0 次绝佳机会和 0 次禁区触球；将对手限制在 0.00 xG，防守端总体可控。"
+        },
+        {
+          "key": "turning",
+          "title": "关键节点",
+          "text": "9′ Rayan Aït-Nouri；20′ Tijjani Reijnders（塞梅尼奥助攻）；23′ Divin Mubama"
+        }
+      ],
+      "stats": [
+        {
+          "key": "BallPossesion",
+          "label": "控球率",
+          "city": 0,
+          "opponent": 0,
+          "suffix": "%"
+        },
+        {
+          "key": "expected_goals",
+          "label": "预期进球",
+          "city": 0,
+          "opponent": 0,
+          "suffix": ""
+        },
+        {
+          "key": "total_shots",
+          "label": "射门",
+          "city": 0,
+          "opponent": 0,
+          "suffix": ""
+        },
+        {
+          "key": "ShotsOnTarget",
+          "label": "射正",
+          "city": 0,
+          "opponent": 0,
+          "suffix": ""
+        },
+        {
+          "key": "big_chance",
+          "label": "绝佳机会",
+          "city": 0,
+          "opponent": 0,
+          "suffix": ""
+        },
+        {
+          "key": "touches_opp_box",
+          "label": "禁区触球",
+          "city": 0,
+          "opponent": 0,
+          "suffix": ""
+        }
+      ],
+      "goals": [
+        {
+          "minute": 9,
+          "player": "Rayan Aït-Nouri",
+          "player_en": "Rayan Aït-Nouri",
+          "assist": null,
+          "type": "Goal"
+        },
+        {
+          "minute": 20,
+          "player": "Tijjani Reijnders",
+          "player_en": "Tijjani Reijnders",
+          "assist": "塞梅尼奥",
+          "type": "Goal"
+        },
+        {
+          "minute": 23,
+          "player": "Divin Mubama",
+          "player_en": "Divin Mubama",
+          "assist": null,
+          "type": "Goal"
+        }
+      ],
+      "top_players": [],
+      "opta_review": null,
+      "match_url": "https://www.fotmob.com/matches/manchester-city-vs-k-league-all-stars/arbo11h#5862944",
+      "official_results_url": "https://www.mancity.com/results/mens"
+    },
+    {
+      "id": "5406269",
+      "date": "2026-08-01T11:30:00.000Z",
+      "analysed_at": "2026-09-06T02:30:46.028Z",
+      "competition": "Club Friendlies",
+      "is_home": true,
+      "city": {
+        "name": "曼城",
+        "name_en": "Manchester City",
+        "score": 1
+      },
+      "opponent": {
+        "name": "Inter",
+        "name_en": "Inter",
+        "score": 1
+      },
+      "score": "1-1",
+      "result": "平",
+      "headline": "比分停住了，比赛里的得失更值得看",
+      "verdict": "曼城拥有更多球权，控球率 64% 对 36%；全场 xG 0.00-0.00，双方机会质量接近。比分是 1-1，但判断比赛不能只看结果。",
+      "analysis": [
+        {
+          "key": "control",
+          "title": "控场",
+          "text": "控球率 64%，完成 623 (93%) 次准确传球，成功率 93%。球权与机会产出基本形成了正向关系。"
+        },
+        {
+          "key": "attack",
+          "title": "进攻",
+          "text": "24 次射门、7 次射正、3 次绝佳机会、61 次禁区触球，累计 0.00 xG，最终打进 1 球。把优势更早变成进球，比赛会轻松得多。"
+        },
+        {
+          "key": "defence",
+          "title": "防守",
+          "text": "对手得到 10 次射门、4 次射正、2 次绝佳机会和 18 次禁区触球；将对手限制在 0.00 xG，防守端总体可控，门将完成 3 次扑救。"
+        },
+        {
+          "key": "turning",
+          "title": "关键节点",
+          "text": "14′ Divin Mubama"
+        }
+      ],
+      "stats": [
+        {
+          "key": "BallPossesion",
+          "label": "控球率",
+          "city": 64,
+          "opponent": 36,
+          "suffix": "%"
+        },
+        {
+          "key": "expected_goals",
+          "label": "预期进球",
+          "city": 0,
+          "opponent": 0,
+          "suffix": ""
+        },
+        {
+          "key": "total_shots",
+          "label": "射门",
+          "city": 24,
+          "opponent": 10,
+          "suffix": ""
+        },
+        {
+          "key": "ShotsOnTarget",
+          "label": "射正",
+          "city": 7,
+          "opponent": 4,
+          "suffix": ""
+        },
+        {
+          "key": "big_chance",
+          "label": "绝佳机会",
+          "city": 3,
+          "opponent": 2,
+          "suffix": ""
+        },
+        {
+          "key": "touches_opp_box",
+          "label": "禁区触球",
+          "city": 61,
+          "opponent": 18,
+          "suffix": ""
+        }
+      ],
+      "goals": [
+        {
+          "minute": 14,
+          "player": "Divin Mubama",
+          "player_en": "Divin Mubama",
+          "assist": null,
+          "type": "Goal"
+        }
+      ],
+      "top_players": [
+        {
+          "id": "933576",
+          "name": "塞梅尼奥",
+          "name_en": "Antoine Semenyo",
+          "rating": 8.03,
+          "position": "RW",
+          "player_url": "https://www.fotmob.com/players/933576/antoine-semenyo",
+          "man_of_the_match": true,
+          "metrics": [
+            {
+              "key": "total_shots",
+              "label": "射门",
+              "value": "2"
+            },
+            {
+              "key": "ShotsOnTarget",
+              "label": "射正",
+              "value": "1"
+            },
+            {
+              "key": "touches_opp_box",
+              "label": "禁区触球",
+              "value": "9"
+            }
+          ]
+        },
+        {
+          "id": "1288450",
+          "name": "Rico Lewis",
+          "name_en": "Rico Lewis",
+          "rating": 7.44,
+          "position": "RB",
+          "player_url": "https://www.fotmob.com/players/1288450/rico-lewis",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "defensive_actions",
+              "label": "防守贡献",
+              "value": "4"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "5"
+            },
+            {
+              "key": "clearances",
+              "label": "解围",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "id": "1580952",
+          "name": "Vitor Reis",
+          "name_en": "Vitor Reis",
+          "rating": 7.4,
+          "position": "",
+          "player_url": "https://www.fotmob.com/players/1580952/vitor-reis",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "1"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "9"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "id": "618878",
+          "name": "多纳鲁马",
+          "name_en": "Gianluigi Donnarumma",
+          "rating": 7.34,
+          "position": "GK",
+          "player_url": "https://www.fotmob.com/players/618878/gianluigi-donnarumma",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "saves",
+              "label": "扑救",
+              "value": "3"
+            },
+            {
+              "key": "accurate_passes",
+              "label": "传球",
+              "value": "35/39"
+            }
+          ]
+        },
+        {
+          "id": "1280132",
+          "name": "Nico González",
+          "name_en": "Nico González",
+          "rating": 7.27,
+          "position": "",
+          "player_url": "https://www.fotmob.com/players/1280132/nico-gonz-lez",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "2"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "14"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "3"
+            }
+          ]
+        }
+      ],
+      "opta_review": {
+        "source": "Opta",
+        "title": "Manchester City 1-1 Inter (1-3 pens): Maresca starts with defeat despite second-half domination",
+        "url": "https://www.fotmob.com/news/qzd3b6azauje1awu46ym12f1t-manchester-city-1-1-inter-1-3-pens-maresca-starts-defeat-despite-second-half-domination?utm_source=fotmob",
+        "updated_at": "2026-08-01T13:49:30.000Z"
+      },
+      "match_url": "https://www.fotmob.com/matches/manchester-city-vs-inter/2ez486#5406269",
+      "official_results_url": "https://www.mancity.com/results/mens"
+    }
+  ]
+}

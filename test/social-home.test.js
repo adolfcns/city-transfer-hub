@@ -12,15 +12,18 @@ const fetcher = fs.readFileSync('scripts/fetch-social-feed.js', 'utf8');
 const workflow = fs.readFileSync('.github/workflows/fetch.yml', 'utf8');
 const config = YAML.parse(fs.readFileSync('config/sources.yaml', 'utf8'));
 
-test('社媒首页与蓝月在外使用两个稳定入口', () => {
+test('社媒、赛后分析与蓝月在外使用三个稳定入口', () => {
   assert.match(html, /<title>曼城社媒｜跟队记者与蓝月消息源<\/title>/);
   assert.match(html, /<nav class="page-tabs" id="page-tabs" aria-label="主要页面">/);
   assert.match(html, /id="page-social" href="\.\/" aria-current="page">曼城社媒<\/a>/);
+  assert.match(html, /id="page-analysis" href="\.\/\?view=analysis">赛后分析<\/a>/);
   assert.match(html, /id="page-loans" href="\.\/\?view=loans">蓝月在外<\/a>/);
   assert.match(html, /id="brand-slogan-copy">点击右侧看外租小将表现<\/span>/);
-  assert.match(app, /PAGE_VIEW = new URLSearchParams\(window\.location\.search\)/);
+  assert.match(app, /REQUESTED_PAGE_VIEW = new URLSearchParams\(window\.location\.search\)/);
+  assert.match(app, /IS_ANALYSIS_PAGE = PAGE_VIEW === 'analysis'/);
   assert.match(app, /loansTab\.classList\.toggle\('active', IS_LOAN_PAGE\)/);
-  assert.match(app, /socialTab\.classList\.toggle\('active', !IS_LOAN_PAGE\)/);
+  assert.match(app, /analysisTab\.classList\.toggle\('active', IS_ANALYSIS_PAGE\)/);
+  assert.match(app, /socialTab\.classList\.toggle\('active', PAGE_VIEW === 'social'\)/);
   assert.match(app, /slogan\.textContent = '点击右侧看外租小将表现'/);
   assert.match(css, /\.page-tabs/);
   assert.match(css, /\.page-tab\.active/);

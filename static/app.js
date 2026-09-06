@@ -2,8 +2,10 @@
 'use strict';
 
 // ---------------- 配置 ----------------
-const PAGE_VIEW = new URLSearchParams(window.location.search).get('view') === 'loans' ? 'loans' : 'social';
+const REQUESTED_PAGE_VIEW = new URLSearchParams(window.location.search).get('view');
+const PAGE_VIEW = ['loans', 'analysis'].includes(REQUESTED_PAGE_VIEW) ? REQUESTED_PAGE_VIEW : 'social';
 const IS_LOAN_PAGE = PAGE_VIEW === 'loans';
+const IS_ANALYSIS_PAGE = PAGE_VIEW === 'analysis';
 const SOCIAL_SOURCE_KEYS = new Set([
   'city_xtra', 'bajkowski', 'samlee', 'gaughan', 'fpl_maine_road',
   'etihad_intel', 'mcfcous', 'city_report', 'tolmie',
@@ -41,6 +43,8 @@ const STATUS_URL = './data/social-status.json';
 const CHELSEA_WATCH_URL = './data/chelsea-watch.json';
 const LOAN_WATCH_URL = './data/loan-watch.json';
 const LOAN_WATCH_CACHE_KEY = 'cth_loan_watch_cache_v1';
+const FIRST_TEAM_ANALYSIS_URL = './data/first-team-analysis.json';
+const FIRST_TEAM_ANALYSIS_CACHE_KEY = 'cth_first_team_analysis_cache_v1';
 const CHELSEA_WATCH_ENABLED = false;
 const REFRESH_MS = 90 * 1000;
 // 转会窗关闭时间（到点自动切到下一个）
@@ -1784,24 +1788,43 @@ function configurePageMode() {
   document.body.dataset.page = PAGE_VIEW;
   const socialHome = $('#social-home-intro');
   const loanHome = $('#loan-watch-home');
+  const analysisHome = $('#first-team-analysis-home');
   const stadium = $('#stadium-hero');
   const focusZone = $('#focus-zone');
   const filterbar = $('.filterbar');
   const librarybar = $('.librarybar');
   const feed = $('#feed');
   const socialTab = $('#page-social');
+  const analysisTab = $('#page-analysis');
   const loansTab = $('#page-loans');
   const title = $('#site-title');
   const slogan = $('#brand-slogan-copy');
 
-  socialTab.classList.toggle('active', !IS_LOAN_PAGE);
+  socialTab.classList.toggle('active', PAGE_VIEW === 'social');
+  analysisTab.classList.toggle('active', IS_ANALYSIS_PAGE);
   loansTab.classList.toggle('active', IS_LOAN_PAGE);
-  if (IS_LOAN_PAGE) {
-    socialTab.removeAttribute('aria-current');
-    loansTab.setAttribute('aria-current', 'page');
-  } else {
-    socialTab.setAttribute('aria-current', 'page');
-    loansTab.removeAttribute('aria-current');
+  for (const [view, tab] of [['social', socialTab], ['analysis', analysisTab], ['loans', loansTab]]) {
+    if (PAGE_VIEW === view) tab.setAttribute('aria-current', 'page');
+    else tab.removeAttribute('aria-current');
+  }
+
+  if (IS_ANALYSIS_PAGE) {
+    document.title = '蓝月赛后分析｜曼城一线队数据复盘';
+    title.textContent = '蓝月赛后分析';
+    slogan.textContent = '比分之外，看懂曼城这一场 💙';
+    $('#updated-at').textContent = '正在加载赛后分析…';
+    $('#btn-refresh').title = '刷新曼城赛后分析';
+    socialHome.hidden = true;
+    loanHome.hidden = true;
+    analysisHome.hidden = false;
+    stadium.hidden = true;
+    focusZone.hidden = true;
+    filterbar.hidden = true;
+    librarybar.hidden = true;
+    feed.hidden = true;
+    $('#footer-primary').textContent = '比赛事实、评分及 xG 等数据来自 FotMob；Opta 战报保留原文入口。';
+    $('#footer-secondary').textContent = '蓝月赛后分析 · 数据复盘由本站自动生成，不代表 Opta 官方观点';
+    return;
   }
 
   if (IS_LOAN_PAGE) {
@@ -1812,6 +1835,7 @@ function configurePageMode() {
     $('#btn-refresh').title = '刷新蓝月在外数据';
     socialHome.hidden = true;
     loanHome.hidden = false;
+    analysisHome.hidden = true;
     stadium.hidden = false;
     focusZone.hidden = true;
     filterbar.hidden = true;
@@ -1827,6 +1851,7 @@ function configurePageMode() {
   slogan.textContent = '点击右侧看外租小将表现';
   socialHome.hidden = false;
   loanHome.hidden = true;
+  analysisHome.hidden = true;
   stadium.hidden = true;
   focusZone.hidden = true;
   filterbar.hidden = false;
@@ -2889,6 +2914,30 @@ async function loanWatchApi() {
   return data;
 }
 
+function readFirstTeamAnalysisCache() {
+  try {
+    const data = JSON.parse(localStorage.getItem(FIRST_TEAM_ANALYSIS_CACHE_KEY) || 'null');
+    return Array.isArray(data?.matches) ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeFirstTeamAnalysisCache(data) {
+  try {
+    localStorage.setItem(FIRST_TEAM_ANALYSIS_CACHE_KEY, JSON.stringify(data));
+  } catch { /* 隐私模式或空间不足时继续使用在线数据 */ }
+}
+
+async function firstTeamAnalysisApi() {
+  const response = await fetch(`${FIRST_TEAM_ANALYSIS_URL}?t=${Date.now()}`, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  if (!Array.isArray(data.matches) || !data.matches.length) throw new Error('bad_first_team_analysis_data');
+  writeFirstTeamAnalysisCache(data);
+  return data;
+}
+
 async function featureReservationApi(featureId, method = 'GET') {
   const endpoints = [...new Set([
     state.featureReservationEndpoint,
@@ -3666,6 +3715,336 @@ function sortLoanWatchPlayers(players) {
     (LOAN_WATCH_POSITION_ORDER[a.position_group] ?? 9)
     - (LOAN_WATCH_POSITION_ORDER[b.position_group] ?? 9)
   ));
+}
+
+let firstTeamAnalysisSelectedId = '';
+let firstTeamAnalysisData = null;
+
+function firstTeamAnalysisDate(value, withTime = false) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return '时间待更新';
+  const options = { timeZone: 'Asia/Shanghai', month: 'numeric', day: 'numeric' };
+  if (withTime) Object.assign(options, { hour: '2-digit', minute: '2-digit', hour12: false });
+  return new Intl.DateTimeFormat('zh-CN', options).format(date).replaceAll('/', '月').replace(',', '日');
+}
+
+function firstTeamMatchTitle(match) {
+  return match.is_home
+    ? `曼城 ${match.city?.score ?? '—'}-${match.opponent?.score ?? '—'} ${match.opponent?.name || '对手'}`
+    : `${match.opponent?.name || '对手'} ${match.opponent?.score ?? '—'}-${match.city?.score ?? '—'} 曼城`;
+}
+
+function firstTeamResultClass(result) {
+  return result === '胜' ? 'win' : result === '负' ? 'loss' : 'draw';
+}
+
+function firstTeamAnalysisStatCard(stat, opponentName) {
+  const item = el('div', 'first-team-stat');
+  const city = Number(stat.city || 0);
+  const opponent = Number(stat.opponent || 0);
+  const total = Math.max(1, city + opponent);
+  const head = el('div', 'first-team-stat-head');
+  head.append(
+    el('b', null, `${city}${stat.suffix || ''}`),
+    el('strong', null, stat.label),
+    el('b', null, `${opponent}${stat.suffix || ''}`),
+  );
+  const bar = el('div', 'first-team-stat-bar');
+  const cityBar = el('span', 'city');
+  cityBar.style.width = `${Math.max(5, Math.min(95, city / total * 100))}%`;
+  bar.append(cityBar);
+  const labels = el('small', 'first-team-stat-labels');
+  labels.append(el('span', null, '曼城'), el('span', null, opponentName));
+  item.append(head, bar, labels);
+  return item;
+}
+
+async function buildFirstTeamAnalysisShareCard(match) {
+  const width = 1080;
+  const height = 1350;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('CANVAS_UNAVAILABLE');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  const background = ctx.createLinearGradient(0, 0, width, height);
+  background.addColorStop(0, '#061b31');
+  background.addColorStop(.58, '#0a3557');
+  background.addColorStop(1, '#247ba4');
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, width, height);
+  ctx.save();
+  ctx.globalAlpha = .15;
+  ctx.fillStyle = '#8dd2f2';
+  ctx.beginPath();
+  ctx.arc(970, 80, 300, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  const crest = await loadShareCardImage(new URL('./assets/man-city-crest.svg', document.baseURI).href);
+  ctx.drawImage(crest, 62, 50, 126, 126);
+  cardFont(ctx, 24, 800);
+  ctx.fillStyle = '#8dd2f2';
+  ctx.fillText('BLUE MOON · POST-MATCH REVIEW', 224, 92);
+  cardFont(ctx, 56, 900);
+  ctx.fillStyle = '#fff';
+  ctx.fillText('蓝月赛后分析', 224, 158);
+
+  fillRoundedCanvasRect(ctx, 54, 214, 972, 176, 25, '#f3faff');
+  cardFont(ctx, 23, 800);
+  ctx.fillStyle = '#24789d';
+  ctx.fillText(`${firstTeamAnalysisDate(match.date)} · ${match.competition || '赛事'}`, 88, 258);
+  cardFont(ctx, 49, 900);
+  ctx.fillStyle = '#0c2e4b';
+  ctx.fillText(fitCanvasText(ctx, firstTeamMatchTitle(match), 880), 88, 329);
+  cardFont(ctx, 23, 850);
+  ctx.fillStyle = '#a36a00';
+  ctx.fillText(match.headline || '比赛复盘', 88, 365);
+
+  fillRoundedCanvasRect(ctx, 54, 420, 972, 205, 25, '#ffffff');
+  cardFont(ctx, 25, 900);
+  ctx.fillStyle = '#1977a3';
+  ctx.fillText('一句话复盘', 88, 465);
+  cardFont(ctx, 29, 750);
+  ctx.fillStyle = '#153a54';
+  let y = 515;
+  for (const line of wrapCardText(ctx, match.verdict || '', 890, 3)) {
+    ctx.fillText(line, 88, y);
+    y += 42;
+  }
+
+  const shownStats = (match.stats || []).slice(0, 6);
+  let statX = 54;
+  let statY = 658;
+  for (const [index, stat] of shownStats.entries()) {
+    const boxWidth = 304;
+    if (index > 0 && index % 3 === 0) {
+      statX = 54;
+      statY += 116;
+    }
+    fillRoundedCanvasRect(ctx, statX, statY, boxWidth, 98, 18, '#eaf6fc');
+    cardFont(ctx, 18, 800);
+    ctx.fillStyle = '#54768b';
+    ctx.textAlign = 'center';
+    ctx.fillText(stat.label, statX + boxWidth / 2, statY + 28);
+    cardFont(ctx, 27, 900);
+    ctx.fillStyle = '#0c3452';
+    ctx.fillText(`${stat.city}${stat.suffix || ''}  :  ${stat.opponent}${stat.suffix || ''}`, statX + boxWidth / 2, statY + 68);
+    ctx.textAlign = 'left';
+    statX += boxWidth + 30;
+  }
+
+  let insightY = 918;
+  for (const section of (match.analysis || []).filter((item) => item.key !== 'turning').slice(0, 3)) {
+    cardFont(ctx, 22, 900);
+    ctx.fillStyle = '#8dd2f2';
+    ctx.fillText(section.title, 64, insightY);
+    cardFont(ctx, 22, 700);
+    ctx.fillStyle = '#eef8fd';
+    const lines = wrapCardText(ctx, section.text, 830, 2);
+    let lineY = insightY;
+    for (const line of lines) {
+      ctx.fillText(line, 154, lineY);
+      lineY += 31;
+    }
+    insightY += Math.max(74, lines.length * 31 + 18);
+  }
+
+  ctx.strokeStyle = 'rgba(191,232,251,.35)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(64, 1252);
+  ctx.lineTo(1016, 1252);
+  ctx.stroke();
+  cardFont(ctx, 19, 700);
+  ctx.fillStyle = '#b9d9e9';
+  ctx.textAlign = 'center';
+  ctx.fillText('数据来自 FotMob · 本站自动复盘不代表 Opta 官方观点', width / 2, 1290);
+  ctx.fillText('adolfcns.github.io/city-transfer-hub/?view=analysis', width / 2, 1324);
+  ctx.textAlign = 'left';
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('PNG_EXPORT_FAILED')), 'image/png', .96);
+  });
+}
+
+async function saveFirstTeamAnalysisImage(match) {
+  if (shareCardInFlight) {
+    toast('图片正在生成，请稍候');
+    return;
+  }
+  shareCardInFlight = true;
+  toast('正在生成赛后分析长图…');
+  try {
+    const blob = await buildFirstTeamAnalysisShareCard(match);
+    const opponent = String(match.opponent?.name || '比赛').replace(/[\\/:*?"<>|]/g, '-');
+    const filename = `蓝月赛后分析-曼城vs${opponent}-${Date.now()}.png`;
+    downloadShareCard(blob, filename);
+    const needsPreview = /iP(?:hone|ad|od)|MicroMessenger/i.test(navigator.userAgent)
+      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (needsPreview) {
+      showShareCardSavePreview(blob, filename, {
+        title: '保存赛后分析长图',
+        alt: `${firstTeamMatchTitle(match)}赛后分析长图`,
+      });
+    }
+    toast('赛后分析长图已生成 ✓');
+  } catch {
+    toast('图片生成失败，请稍后再试');
+  } finally {
+    shareCardInFlight = false;
+  }
+}
+
+function firstTeamTopPlayerCard(player) {
+  const link = el('a', `first-team-player${player.man_of_the_match ? ' potm' : ''}`);
+  link.href = player.player_url;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  const head = el('div', 'first-team-player-head');
+  const name = el('div');
+  name.append(el('strong', null, player.name), el('small', null, `${player.name_en || ''}${player.position ? ` · ${player.position}` : ''}`));
+  const rating = el('b', null, Number(player.rating || 0).toFixed(1));
+  head.append(name, rating);
+  const metrics = el('div', 'first-team-player-metrics');
+  for (const metric of player.metrics || []) {
+    const metricNode = el('span');
+    metricNode.append(el('b', null, metric.value), document.createTextNode(metric.label));
+    metrics.appendChild(metricNode);
+  }
+  link.append(head, metrics);
+  if (player.man_of_the_match) link.appendChild(el('i', null, '全场最佳'));
+  return link;
+}
+
+function firstTeamAnalysisReport(match, data) {
+  const report = el('article', 'first-team-report');
+  const matchHead = el('header', 'first-team-match-head');
+  const meta = el('div');
+  meta.append(
+    el('span', null, `${firstTeamAnalysisDate(match.date, true)} · ${match.competition || '赛事'}`),
+    el('h3', null, firstTeamMatchTitle(match)),
+    el('strong', null, match.headline || '比赛复盘'),
+  );
+  matchHead.append(meta, el('b', `first-team-result ${firstTeamResultClass(match.result)}`, match.result || '赛果'));
+
+  const verdict = el('section', 'first-team-verdict');
+  verdict.append(el('span', null, '本站结论'), el('p', null, match.verdict || '赛后分析正在生成。'));
+
+  const stats = el('section', 'first-team-stats');
+  stats.appendChild(el('h4', null, '曼城 vs 对手｜核心数据'));
+  const statGrid = el('div', 'first-team-stat-grid');
+  for (const stat of match.stats || []) statGrid.appendChild(firstTeamAnalysisStatCard(stat, match.opponent?.name || '对手'));
+  stats.appendChild(statGrid);
+
+  const analysis = el('section', 'first-team-analysis-sections');
+  analysis.appendChild(el('h4', null, '比赛拆解'));
+  const analysisGrid = el('div', 'first-team-analysis-grid');
+  const icons = { control: '🎛', attack: '⚔', defence: '🛡', turning: '⏱' };
+  for (const section of match.analysis || []) {
+    const card = el('article', `first-team-analysis-point ${section.key || ''}`);
+    card.append(el('strong', null, `${icons[section.key] || '•'} ${section.title}`), el('p', null, section.text));
+    analysisGrid.appendChild(card);
+  }
+  analysis.appendChild(analysisGrid);
+
+  const players = el('section', 'first-team-players');
+  players.appendChild(el('h4', null, '关键球员｜评分与位置数据'));
+  const playerGrid = el('div', 'first-team-player-grid');
+  for (const player of match.top_players || []) playerGrid.appendChild(firstTeamTopPlayerCard(player));
+  players.appendChild(playerGrid);
+
+  const sources = el('section', 'first-team-sources');
+  const sourceCopy = el('div');
+  sourceCopy.append(
+    el('span', null, '原文与数据'),
+    el('strong', null, match.opta_review ? 'Opta 赛后战报已收录' : 'Opta 战报仍在等待发布'),
+  );
+  if (match.opta_review?.title) sourceCopy.appendChild(el('p', null, match.opta_review.title));
+  const links = el('div', 'first-team-source-links');
+  if (match.opta_review?.url) {
+    const opta = el('a', 'primary', '阅读 Opta 战报 ↗');
+    opta.href = match.opta_review.url;
+    opta.target = '_blank';
+    opta.rel = 'noopener noreferrer';
+    links.appendChild(opta);
+  }
+  const fotmob = el('a', null, 'FotMob 比赛中心 ↗');
+  fotmob.href = match.match_url;
+  fotmob.target = '_blank';
+  fotmob.rel = 'noopener noreferrer';
+  const official = el('a', null, '曼城官方战报 ↗');
+  official.href = match.official_results_url;
+  official.target = '_blank';
+  official.rel = 'noopener noreferrer';
+  links.append(fotmob, official);
+  const save = el('button', 'first-team-share', '↓ 下载赛后分析图');
+  save.type = 'button';
+  save.onclick = () => saveFirstTeamAnalysisImage(match);
+  links.appendChild(save);
+  sources.append(sourceCopy, links);
+
+  const note = el('footer', 'first-team-analysis-note');
+  note.textContent = data.provider?.note || '本站根据公开比赛数据自动生成中文复盘。';
+  report.append(matchHead, verdict, stats, analysis, players, sources, note);
+  return report;
+}
+
+function renderFirstTeamAnalysis(data) {
+  const root = $('#first-team-analysis-home');
+  if (!root) return;
+  root.textContent = '';
+  firstTeamAnalysisData = data;
+  const matches = data.matches || [];
+  const selected = matches.find((match) => String(match.id) === String(firstTeamAnalysisSelectedId)) || matches[0];
+  firstTeamAnalysisSelectedId = selected?.id || '';
+
+  const hero = el('header', 'first-team-analysis-hero');
+  const heroCopy = el('div');
+  heroCopy.append(
+    el('span', 'first-team-analysis-kicker', 'BLUE MOON · POST-MATCH'),
+    el('h2', null, '蓝月赛后分析'),
+    el('p', null, '比分只是结果。这里看控场、机会质量、攻防隐患和关键球员。'),
+  );
+  const latest = el('div', 'first-team-analysis-latest');
+  latest.append(el('span', null, '最新复盘'), el('strong', null, selected ? firstTeamMatchTitle(selected) : '等待赛后数据'));
+  hero.append(heroCopy, latest);
+
+  const picker = el('nav', 'first-team-match-picker');
+  picker.setAttribute('aria-label', '选择一场比赛');
+  for (const match of matches) {
+    const button = el('button', String(match.id) === String(selected?.id) ? 'active' : '');
+    button.type = 'button';
+    button.append(
+      el('span', null, `${firstTeamAnalysisDate(match.date)} · ${match.result}`),
+      el('strong', null, `${match.opponent?.name || '对手'} ${match.score || ''}`),
+    );
+    button.onclick = () => {
+      firstTeamAnalysisSelectedId = match.id;
+      renderFirstTeamAnalysis(firstTeamAnalysisData);
+      document.querySelector('.first-team-report')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    picker.appendChild(button);
+  }
+  root.append(hero, picker);
+  if (selected) root.appendChild(firstTeamAnalysisReport(selected, data));
+  $('#updated-at').textContent = `复盘更新于 ${firstTeamAnalysisDate(data.generated_at, true)}`;
+}
+
+async function loadFirstTeamAnalysisHome() {
+  const root = $('#first-team-analysis-home');
+  const cached = firstTeamAnalysisData || readFirstTeamAnalysisCache();
+  if (cached?.matches?.length) renderFirstTeamAnalysis(cached);
+  else root.innerHTML = '<div class="first-team-analysis-loading">正在读取最新比赛与 Opta 数据…</div>';
+  try {
+    const data = await firstTeamAnalysisApi();
+    if (!cached || data.generated_at !== cached.generated_at) renderFirstTeamAnalysis(data);
+    else firstTeamAnalysisData = data;
+  } catch {
+    if (!cached?.matches?.length) root.innerHTML = '<div class="first-team-analysis-loading error">赛后分析暂时连接不上，请稍后刷新。</div>';
+  }
 }
 
 function loanWatchStatus(player) {
@@ -6049,7 +6428,11 @@ function bind() {
     if (state.filters.libraryView === 'unread') renderFeed();
     else syncAllRenderedItems();
   };
-  $('#btn-refresh').onclick = () => (IS_LOAN_PAGE ? loadLoanWatchHome() : loadData(true));
+  $('#btn-refresh').onclick = () => {
+    if (IS_LOAN_PAGE) return loadLoanWatchHome();
+    if (IS_ANALYSIS_PAGE) return loadFirstTeamAnalysisHome();
+    return loadData(true);
+  };
   $('#btn-trigger').onclick = triggerCloudFetch;
   // 一键收藏：复制网址 + 按设备给出最短收藏路径（浏览器不允许网页直接写书签）
   $('#btn-fav').onclick = async () => {
@@ -6090,7 +6473,10 @@ function bind() {
   };
   // 手机切后台再回来时，浏览器会冻结定时器 → 恢复可见时立即刷新一次
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) (IS_LOAN_PAGE ? loadLoanWatchHome() : loadData(true));
+    if (document.hidden) return;
+    if (IS_LOAN_PAGE) loadLoanWatchHome();
+    else if (IS_ANALYSIS_PAGE) loadFirstTeamAnalysisHome();
+    else loadData(true);
   });
   updateSrcBtn();
 }
@@ -6125,6 +6511,8 @@ if (IS_LOAN_PAGE) {
     const surveyId = requestedSurveyId();
     if (surveyId) openSurvey(surveyId);
   });
+} else if (IS_ANALYSIS_PAGE) {
+  loadFirstTeamAnalysisHome();
 } else {
   loadData(false).finally(() => {
     const surveyId = requestedSurveyId();
