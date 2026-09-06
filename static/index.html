@@ -30,6 +30,7 @@
         <span class="updated-at" id="updated-at">正在加载社媒动态…</span>
         <nav class="page-tabs" id="page-tabs" aria-label="主要页面">
           <a class="page-tab active" id="page-social" href="./" aria-current="page">曼城社媒</a>
+          <a class="page-tab" id="page-preview" href="./?view=preview">比赛前瞻</a>
           <a class="page-tab" id="page-analysis" href="./?view=analysis">赛后分析</a>
           <a class="page-tab" id="page-loans" href="./?view=loans">蓝月在外</a>
         </nav>
@@ -72,6 +73,14 @@
   <main class="container">
     <section class="social-home-intro" id="social-home-intro" aria-label="曼城社媒信源说明">
       <div class="feature-hero-grid">
+        <a class="loan-page-hero-link preview" href="./?view=preview" aria-label="进入蓝月比赛前瞻，阅读下一场对手分析">
+          <div class="loan-page-hero-copy">
+            <span class="social-home-kicker">NEXT MATCH · PORTO</span>
+            <h2>蓝月比赛前瞻</h2>
+            <p>先看懂对手，再等开球</p>
+          </div>
+          <span class="loan-page-hero-action">看波尔图前瞻 <b aria-hidden="true">→</b></span>
+        </a>
         <a class="loan-page-hero-link analysis" href="./?view=analysis" aria-label="进入蓝月赛后分析，阅读中文战术长文">
           <div class="loan-page-hero-copy">
             <span class="social-home-kicker">MATCHDAY TACTICS</span>
@@ -94,6 +103,8 @@
     <section class="loan-watch-home" id="loan-watch-home" aria-label="蓝月在外球员赛后数据" hidden></section>
 
     <section class="first-team-analysis-home" id="first-team-analysis-home" aria-label="曼城一线队赛后分析" hidden></section>
+
+    <section class="match-preview-home" id="match-preview-home" aria-label="曼城下一场比赛前瞻" hidden></section>
 
     <!-- 只保留夏窗调查和离队意难平 -->
     <section class="focus-zone poll-only-zone" id="focus-zone" hidden></section>

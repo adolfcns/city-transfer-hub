@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { buildMatchAnalysis, flattenTeamStats } from '../scripts/fetch-first-team-analysis.js';
 
 const APP_SOURCE = readFileSync(new URL('../static/app.js', import.meta.url), 'utf8');
+const STORED_ANALYSIS = JSON.parse(readFileSync(new URL('../data/first-team-analysis.json', import.meta.url), 'utf8'));
 
 function fixtureDetails() {
   return {
@@ -136,7 +137,7 @@ test('生成曼城视角中文赛后分析、关键球员和战术长文', () =>
   assert.equal(match.top_players[0].metrics[0].label, '预期进球');
   assert.equal(match.tactical_longform.sections.length, 7);
   assert.match(match.tactical_longform.title, /考文垂/);
-  assert.equal(match.tactical_longform.version, 6);
+  assert.equal(match.tactical_longform.version, 7);
   assert.ok(match.tactical_longform.problems.length >= 3);
   assert.match(match.tactical_longform.problems.join(''), /控球|绝佳机会|换人/);
   assert.match(match.tactical_longform.sections[0].paragraphs.join(''), /4-2-3-1.*4-1-4-1|开场/);
@@ -192,4 +193,13 @@ test('一线队页面直接展示中文战术长文，不再出现原文与数�
   assert.doesNotMatch(APP_SOURCE, /阅读 Opta 战报/);
   assert.doesNotMatch(APP_SOURCE, /FotMob 比赛中心/);
   assert.doesNotMatch(APP_SOURCE, /曼城官方战报/);
+});
+
+test('本赛季每场已生成复盘都保留七段战术结构和具体改法', () => {
+  assert.ok(STORED_ANALYSIS.matches.length > 0);
+  for (const match of STORED_ANALYSIS.matches) {
+    assert.equal(match.tactical_longform.version, 7);
+    assert.equal(match.tactical_longform.sections.length, 7);
+    assert.match(match.tactical_longform.sections[5].heading, /具体该改什么/);
+  }
 });

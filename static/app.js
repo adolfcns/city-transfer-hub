@@ -3,9 +3,10 @@
 
 // ---------------- 配置 ----------------
 const REQUESTED_PAGE_VIEW = new URLSearchParams(window.location.search).get('view');
-const PAGE_VIEW = ['loans', 'analysis'].includes(REQUESTED_PAGE_VIEW) ? REQUESTED_PAGE_VIEW : 'social';
+const PAGE_VIEW = ['loans', 'analysis', 'preview'].includes(REQUESTED_PAGE_VIEW) ? REQUESTED_PAGE_VIEW : 'social';
 const IS_LOAN_PAGE = PAGE_VIEW === 'loans';
 const IS_ANALYSIS_PAGE = PAGE_VIEW === 'analysis';
+const IS_PREVIEW_PAGE = PAGE_VIEW === 'preview';
 const SOCIAL_SOURCE_KEYS = new Set([
   'city_xtra', 'bajkowski', 'samlee', 'gaughan', 'fpl_maine_road',
   'etihad_intel', 'mcfcous', 'city_report', 'tolmie',
@@ -45,6 +46,8 @@ const LOAN_WATCH_URL = './data/loan-watch.json';
 const LOAN_WATCH_CACHE_KEY = 'cth_loan_watch_cache_v1';
 const FIRST_TEAM_ANALYSIS_URL = './data/first-team-analysis.json';
 const FIRST_TEAM_ANALYSIS_CACHE_KEY = 'cth_first_team_analysis_cache_v1';
+const MATCH_PREVIEW_URL = './data/match-preview.json';
+const MATCH_PREVIEW_CACHE_KEY = 'cth_match_preview_cache_v1';
 const CHELSEA_WATCH_ENABLED = false;
 const REFRESH_MS = 90 * 1000;
 // 转会窗关闭时间（到点自动切到下一个）
@@ -1792,23 +1795,46 @@ function configurePageMode() {
   const socialHome = $('#social-home-intro');
   const loanHome = $('#loan-watch-home');
   const analysisHome = $('#first-team-analysis-home');
+  const previewHome = $('#match-preview-home');
   const stadium = $('#stadium-hero');
   const focusZone = $('#focus-zone');
   const filterbar = $('.filterbar');
   const librarybar = $('.librarybar');
   const feed = $('#feed');
   const socialTab = $('#page-social');
+  const previewTab = $('#page-preview');
   const analysisTab = $('#page-analysis');
   const loansTab = $('#page-loans');
   const title = $('#site-title');
   const slogan = $('#brand-slogan-copy');
 
   socialTab.classList.toggle('active', PAGE_VIEW === 'social');
+  previewTab.classList.toggle('active', IS_PREVIEW_PAGE);
   analysisTab.classList.toggle('active', IS_ANALYSIS_PAGE);
   loansTab.classList.toggle('active', IS_LOAN_PAGE);
-  for (const [view, tab] of [['social', socialTab], ['analysis', analysisTab], ['loans', loansTab]]) {
+  for (const [view, tab] of [['social', socialTab], ['preview', previewTab], ['analysis', analysisTab], ['loans', loansTab]]) {
     if (PAGE_VIEW === view) tab.setAttribute('aria-current', 'page');
     else tab.removeAttribute('aria-current');
+  }
+
+  if (IS_PREVIEW_PAGE) {
+    document.title = '蓝月比赛前瞻｜下一场对手怎么踢';
+    title.textContent = '蓝月比赛前瞻';
+    slogan.textContent = '先看懂对手，再等开球 💙';
+    $('#updated-at').textContent = '正在加载比赛前瞻…';
+    $('#btn-refresh').title = '刷新曼城比赛前瞻';
+    socialHome.hidden = true;
+    loanHome.hidden = true;
+    analysisHome.hidden = true;
+    previewHome.hidden = false;
+    stadium.hidden = true;
+    focusZone.hidden = true;
+    filterbar.hidden = true;
+    librarybar.hidden = true;
+    feed.hidden = true;
+    $('#footer-primary').textContent = '赛程、赛果、阵容与比赛数据来自曼城官方及 FotMob。';
+    $('#footer-secondary').textContent = '蓝月比赛前瞻 · 对手打法与曼城应对思路';
+    return;
   }
 
   if (IS_ANALYSIS_PAGE) {
@@ -1820,6 +1846,7 @@ function configurePageMode() {
     socialHome.hidden = true;
     loanHome.hidden = true;
     analysisHome.hidden = false;
+    previewHome.hidden = true;
     stadium.hidden = true;
     focusZone.hidden = true;
     filterbar.hidden = true;
@@ -1839,6 +1866,7 @@ function configurePageMode() {
     socialHome.hidden = true;
     loanHome.hidden = false;
     analysisHome.hidden = true;
+    previewHome.hidden = true;
     stadium.hidden = false;
     focusZone.hidden = true;
     filterbar.hidden = true;
@@ -1855,6 +1883,7 @@ function configurePageMode() {
   socialHome.hidden = false;
   loanHome.hidden = true;
   analysisHome.hidden = true;
+  previewHome.hidden = true;
   stadium.hidden = true;
   focusZone.hidden = true;
   filterbar.hidden = false;
@@ -2941,6 +2970,30 @@ async function firstTeamAnalysisApi() {
   return data;
 }
 
+function readMatchPreviewCache() {
+  try {
+    const data = JSON.parse(localStorage.getItem(MATCH_PREVIEW_CACHE_KEY) || 'null');
+    return data?.match && Array.isArray(data?.sections) ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeMatchPreviewCache(data) {
+  try {
+    localStorage.setItem(MATCH_PREVIEW_CACHE_KEY, JSON.stringify(data));
+  } catch { /* 隐私模式或空间不足时继续使用在线数据 */ }
+}
+
+async function matchPreviewApi() {
+  const response = await fetch(`${MATCH_PREVIEW_URL}?t=${Date.now()}`, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  if (!data?.match || !Array.isArray(data.sections) || !data.sections.length) throw new Error('bad_match_preview_data');
+  writeMatchPreviewCache(data);
+  return data;
+}
+
 async function featureReservationApi(featureId, method = 'GET') {
   const endpoints = [...new Set([
     state.featureReservationEndpoint,
@@ -3722,6 +3775,8 @@ function sortLoanWatchPlayers(players) {
 
 let firstTeamAnalysisSelectedId = '';
 let firstTeamAnalysisData = null;
+let matchPreviewData = null;
+let matchPreviewCountdownTimer = null;
 
 function firstTeamAnalysisDate(value, withTime = false) {
   const date = new Date(value);
@@ -4057,6 +4112,198 @@ async function loadFirstTeamAnalysisHome() {
     else firstTeamAnalysisData = data;
   } catch {
     if (!cached?.matches?.length) root.innerHTML = '<div class="first-team-analysis-loading error">赛后分析暂时连接不上，请稍后刷新。</div>';
+  }
+}
+
+function matchPreviewKickoff(value) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return '开球时间待定';
+  return new Intl.DateTimeFormat('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    month: 'numeric',
+    day: 'numeric',
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date).replaceAll('/', '月').replace(',', '日');
+}
+
+function matchPreviewCountdown(value) {
+  const kickoff = new Date(value).getTime();
+  if (!Number.isFinite(kickoff)) return '等待赛程确认';
+  const diff = kickoff - Date.now();
+  if (diff <= 0) return '比赛已经开始';
+  const totalMinutes = Math.floor(diff / 60000);
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor(totalMinutes % 1440 / 60);
+  const minutes = totalMinutes % 60;
+  return days ? `还有 ${days} 天 ${hours} 小时` : `还有 ${hours} 小时 ${minutes} 分`;
+}
+
+function updateMatchPreviewCountdown() {
+  const target = $('#match-preview-countdown');
+  if (target && matchPreviewData?.match?.kickoff) {
+    target.textContent = matchPreviewCountdown(matchPreviewData.match.kickoff);
+  }
+}
+
+function matchPreviewSectionTitle(text) {
+  const head = el('header', 'match-preview-section-head');
+  head.appendChild(el('h3', null, text));
+  return head;
+}
+
+function renderMatchPreview(data) {
+  const root = $('#match-preview-home');
+  if (!root) return;
+  root.textContent = '';
+  matchPreviewData = data;
+  const match = data.match || {};
+
+  const hero = el('header', 'match-preview-hero');
+  const heroCopy = el('div', 'match-preview-hero-copy');
+  heroCopy.append(
+    el('span', 'match-preview-kicker', 'BLUE MOON · MATCH PREVIEW'),
+    el('h2', null, '蓝月比赛前瞻'),
+    el('p', null, data.headline || '下一场对手怎么踢，曼城该怎么应对。'),
+  );
+  const fixture = el('div', 'match-preview-fixture');
+  fixture.append(
+    el('span', null, `${match.competition || '赛事'} · ${match.venue || '比赛场地待定'}`),
+    el('strong', null, `${match.opponent || '对手'} vs ${match.city || '曼城'}`),
+    el('b', null, `北京时间 ${matchPreviewKickoff(match.kickoff)}`),
+    el('em', null, matchPreviewCountdown(match.kickoff)),
+  );
+  fixture.querySelector('em').id = 'match-preview-countdown';
+  hero.append(heroCopy, fixture);
+
+  const report = el('article', 'match-preview-report');
+  const standfirst = el('section', 'match-preview-standfirst');
+  standfirst.append(el('span', null, '先说结论'), el('p', null, data.standfirst || '前瞻正在整理。'));
+  if (data.verdicts?.length) {
+    const list = el('ol');
+    for (const verdict of data.verdicts) list.appendChild(el('li', null, verdict));
+    standfirst.appendChild(list);
+  }
+  report.appendChild(standfirst);
+
+  const profile = el('section', 'match-preview-opponent');
+  profile.appendChild(matchPreviewSectionTitle('对手速写'));
+  const profileGrid = el('div', 'match-preview-opponent-grid');
+  for (const [label, value] of [
+    ['主教练', data.opponent?.coach],
+    ['基础阵型', data.opponent?.base_shape],
+    ['联赛位置', data.opponent?.league_position],
+    ['开季战绩', data.opponent?.league_record],
+  ]) {
+    const item = el('div');
+    item.append(el('span', null, label), el('strong', null, value || '待更新'));
+    profileGrid.appendChild(item);
+  }
+  profile.append(profileGrid, el('p', null, data.opponent?.summary || ''));
+  report.appendChild(profile);
+
+  const numbers = el('section', 'match-preview-numbers');
+  numbers.appendChild(matchPreviewSectionTitle('前5轮，波尔图踢出了什么'));
+  const numberGrid = el('div', 'match-preview-number-grid');
+  for (const stat of data.season_numbers || []) {
+    const card = el('div', 'match-preview-number');
+    card.append(el('span', null, stat.label), el('strong', null, stat.value), el('small', null, stat.note));
+    numberGrid.appendChild(card);
+  }
+  numbers.appendChild(numberGrid);
+  report.appendChild(numbers);
+
+  const form = el('section', 'match-preview-form');
+  form.appendChild(matchPreviewSectionTitle('最近5场'));
+  const formList = el('div', 'match-preview-form-list');
+  for (const item of data.recent_form || []) {
+    const row = el('article', 'match-preview-form-row');
+    const score = el('b', null, item.score || '—');
+    const copy = el('div');
+    copy.append(
+      el('span', null, `${item.date || ''} · ${item.home ? '主场' : '客场'}`),
+      el('strong', null, `${item.home ? '波尔图' : item.opponent} ${item.score || ''} ${item.home ? item.opponent : '波尔图'}`),
+      el('p', null, item.note || ''),
+    );
+    row.append(el('i', `result-${item.result === '胜' ? 'win' : item.result === '负' ? 'loss' : 'draw'}`, item.result || '—'), copy, score);
+    formList.appendChild(row);
+  }
+  form.appendChild(formList);
+  report.appendChild(form);
+
+  const danger = el('section', 'match-preview-danger');
+  danger.appendChild(matchPreviewSectionTitle('最需要盯住的人'));
+  const dangerGrid = el('div', 'match-preview-danger-grid');
+  for (const player of data.danger_players || []) {
+    const card = el('article', 'match-preview-danger-card');
+    const head = el('header');
+    const name = el('div');
+    name.append(el('strong', null, player.name), el('span', null, player.role));
+    head.append(name, el('b', null, player.output));
+    card.append(head, el('p', null, player.why));
+    dangerGrid.appendChild(card);
+  }
+  danger.appendChild(dangerGrid);
+  report.appendChild(danger);
+
+  const longform = el('section', 'match-preview-longform');
+  longform.appendChild(matchPreviewSectionTitle('战术长文｜波尔图怎么踢，曼城怎么拆'));
+  const body = el('div', 'match-preview-longform-body');
+  for (const item of data.sections || []) {
+    const part = el('section', `match-preview-part tone-${item.tone || 'plain'}`);
+    part.appendChild(el('h4', null, item.heading));
+    for (const paragraph of item.paragraphs || []) part.appendChild(el('p', null, paragraph));
+    body.appendChild(part);
+  }
+  longform.appendChild(body);
+  report.appendChild(longform);
+
+  if (data.likely_shape) {
+    const lineup = el('section', 'match-preview-lineup');
+    lineup.appendChild(matchPreviewSectionTitle(data.likely_shape.title || '对手近期主力框架'));
+    lineup.append(
+      el('strong', null, data.likely_shape.formation || '阵型待定'),
+      el('p', null, data.likely_shape.lineup || ''),
+      el('small', null, data.likely_shape.note || ''),
+    );
+    report.appendChild(lineup);
+  }
+
+  const sourceNote = el('footer', 'match-preview-source-note');
+  sourceNote.appendChild(document.createTextNode(data.provider_note || '公开比赛资料综合整理。'));
+  if (data.sources?.length) {
+    const links = el('span');
+    links.appendChild(document.createTextNode(' 核对：'));
+    data.sources.forEach((source, index) => {
+      if (index) links.appendChild(document.createTextNode(' · '));
+      const link = el('a', null, source.label || '来源');
+      link.href = source.url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      links.appendChild(link);
+    });
+    sourceNote.appendChild(links);
+  }
+  report.appendChild(sourceNote);
+  root.append(hero, report);
+  $('#updated-at').textContent = `前瞻更新于 ${firstTeamAnalysisDate(data.generated_at, true)}`;
+  clearInterval(matchPreviewCountdownTimer);
+  matchPreviewCountdownTimer = setInterval(updateMatchPreviewCountdown, 60000);
+}
+
+async function loadMatchPreviewHome() {
+  const root = $('#match-preview-home');
+  const cached = matchPreviewData || readMatchPreviewCache();
+  if (cached?.match && cached?.sections?.length) renderMatchPreview(cached);
+  else root.innerHTML = '<div class="first-team-analysis-loading">正在读取波尔图比赛前瞻…</div>';
+  try {
+    const data = await matchPreviewApi();
+    if (!cached || data.checked_at !== cached.checked_at) renderMatchPreview(data);
+    else matchPreviewData = data;
+  } catch {
+    if (!cached?.match) root.innerHTML = '<div class="first-team-analysis-loading error">比赛前瞻暂时连接不上，请稍后刷新。</div>';
   }
 }
 
@@ -6240,6 +6487,14 @@ let featureGuideTimer = null;
 
 function featureGuideDefinition() {
   const destinations = {
+    preview: {
+      icon: '🔎',
+      kicker: 'BLUE MOON · PRE-MATCH',
+      title: '蓝月比赛前瞻',
+      text: '下一场先看对手怎么踢、哪里强、哪里能打。',
+      action: '去看比赛前瞻',
+      href: './?view=preview',
+    },
     analysis: {
       icon: '🧠',
       kicker: 'BLUE MOON · TACTICS',
@@ -6257,23 +6512,29 @@ function featureGuideDefinition() {
       href: './?view=loans',
     },
   };
+  if (PAGE_VIEW === 'preview') return {
+    eyebrow: '赛后回来复盘',
+    title: '看完前瞻，赛后再看哪里说中了',
+    text: '从实际站位、机会和换人重新拆一遍。',
+    items: [destinations.analysis, destinations.loans],
+  };
   if (PAGE_VIEW === 'analysis') return {
     eyebrow: '还有一个栏目',
     title: '看完一线队，也别漏掉外租小将',
     text: '他们离开曼城，不等于离开视线。',
-    items: [destinations.loans],
+    items: [destinations.preview, destinations.loans],
   };
   if (PAGE_VIEW === 'loans') return {
     eyebrow: '还有一个栏目',
     title: '外租之外，复盘曼城这一场',
     text: '比分只是结果，真正的问题藏在比赛结构里。',
-    items: [destinations.analysis],
+    items: [destinations.preview, destinations.analysis],
   };
   return {
-    eyebrow: '两个重点栏目',
-    title: '除了社媒，这两处也值得常看',
-    text: '一个复盘曼城一线队，一个追踪在外成长的小将。',
-    items: [destinations.analysis, destinations.loans],
+    eyebrow: '三个重点栏目',
+    title: '赛前、赛后和外租，都放在一起了',
+    text: '先看对手，赛后复盘，再追踪在外成长的小将。',
+    items: [destinations.preview, destinations.analysis, destinations.loans],
   };
 }
 
@@ -6575,6 +6836,7 @@ function bind() {
   $('#btn-refresh').onclick = () => {
     if (IS_LOAN_PAGE) return loadLoanWatchHome();
     if (IS_ANALYSIS_PAGE) return loadFirstTeamAnalysisHome();
+    if (IS_PREVIEW_PAGE) return loadMatchPreviewHome();
     return loadData(true);
   };
   $('#btn-trigger').onclick = triggerCloudFetch;
@@ -6620,6 +6882,7 @@ function bind() {
     if (document.hidden) return;
     if (IS_LOAN_PAGE) loadLoanWatchHome();
     else if (IS_ANALYSIS_PAGE) loadFirstTeamAnalysisHome();
+    else if (IS_PREVIEW_PAGE) loadMatchPreviewHome();
     else loadData(true);
   });
   updateSrcBtn();
@@ -6658,6 +6921,8 @@ if (IS_LOAN_PAGE) {
   });
 } else if (IS_ANALYSIS_PAGE) {
   loadFirstTeamAnalysisHome();
+} else if (IS_PREVIEW_PAGE) {
+  loadMatchPreviewHome();
 } else {
   loadData(false).finally(() => {
     const surveyId = requestedSurveyId();

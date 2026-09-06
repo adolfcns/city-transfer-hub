@@ -13,7 +13,7 @@ const USER_AGENT = 'Mozilla/5.0 (compatible; CityTransferHub/1.0; +https://adolf
 const MAX_MATCHES = 12;
 const BOOTSTRAP_MATCHES = 5;
 const DAILY_LIMIT = 40;
-const TACTICAL_LONGFORM_VERSION = 6;
+const TACTICAL_LONGFORM_VERSION = 7;
 const PROVIDER_NOTE = '比赛事实、评分、阵型、射门图及 xG 来自 FotMob 公开比赛数据；中文战术复盘由本站撰写。';
 
 const MATCH_TACTICAL_CONTEXT = Object.freeze({
@@ -706,12 +706,19 @@ function buildTacticalLongform({
   const nextSteps = [];
   if (formationContext) {
     nextSteps.push(`继续让安德森和恩佐搭档，就要明确一个人向前接应时，另一个人留在球后。这样既能让谢尔基靠近哈兰德，也能避免一次传球失误就把中路完全让出来。`);
+  } else if (possession >= 65 && (!hasXg || xgLead < 1)) {
+    nextSteps.push(`第一步是让中场和边路的接应点错开。边锋拉住宽度，前腰站到对方中场身后，边后卫再决定套边还是留在球后；继续把三个人放在同一条边线上，只会让控球越来越安全、进攻越来越慢。`);
+  } else if (opponentOpenPlayXg >= 0.8 || opponentBigChances >= 3) {
+    nextSteps.push(`第一步是把球后的保护补齐。一个中场前插时，另一个人要守住中路，至少留三名后场球员应付第一脚反击，不能让对手一过中线就直接面对中卫。`);
+  } else {
+    nextSteps.push(`下一场先保留这一场运转顺畅的开场结构，同时把前15分钟的向前传球、丢球后反抢和弱侧接应作为重点。对手一旦换了压迫方式，场上站位也要跟着调。`);
   }
   if (firstTacticalSub && firstTacticalSub.minute >= 65 && quietBeforeFirstSub?.xg < 0.3) {
     nextSteps.push(`第二个要改的是反应速度。下半场十分钟左右如果射门和禁区触球明显掉下去，就该先调站位，或者更早换上福登；等到 ${firstTacticalSub.minute} 分钟才动，留给调整起效的时间太少。`);
   }
   if (opponentSetPieceXg >= 0.5) {
-    nextSteps.push(`第三个是定位球。对手靠定位球做出 ${opponentSetPieceXg.toFixed(2)} xG，这不是一次偶然漏人就能解释的。第一点由谁顶、第二点由谁收、解围后谁先压出去，都需要重新分清。`);
+    const setPieceOrder = nextSteps.length >= 2 ? '第三个' : '另一个';
+    nextSteps.push(`${setPieceOrder}是定位球。对手靠定位球做出 ${opponentSetPieceXg.toFixed(2)} xG，这不是一次偶然漏人就能解释的。第一点由谁顶、第二点由谁收、解围后谁先压出去，都需要重新分清。`);
   }
   const openingParagraphs = [
     formationLine,
