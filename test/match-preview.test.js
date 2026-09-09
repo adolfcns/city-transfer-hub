@@ -73,6 +73,19 @@ test('前瞻用直接中文说明战术，不使用空泛或过度防御措辞',
   assert.ok(data.sources.length >= 4);
 });
 
+test('曼市德比前瞻改成直接中文，不保留总结提示腔', () => {
+  const derby = data.more_previews.find((preview) => preview.match.id === 5795452);
+  const copy = [
+    derby.headline,
+    derby.standfirst,
+    ...derby.verdicts,
+    derby.opponent.summary,
+    ...derby.sections.flatMap((section) => [section.heading, ...section.paragraphs]),
+  ].join(' ');
+  assert.doesNotMatch(copy, /值得注意的是|更重要的是|真正的开关|真正的下一步|最危险的错误|看起来只是|不是退缩|突然打疯了|综上所述|归根结底/);
+  assert.match(app, /el\('span', null, '这场看什么'\)/);
+});
+
 test('前瞻底部接入独立赛前讨论，支持评论点赞和回复', () => {
   assert.match(app, /matchDiscussionSection\('preview', match\)/);
   assert.match(app, /开球前，你怎么看/);

@@ -4294,7 +4294,7 @@ function matchPreviewReport(data) {
 
   const report = el('article', 'match-preview-report');
   const standfirst = el('section', 'match-preview-standfirst');
-  standfirst.append(el('span', null, '先说结论'), el('p', null, data.standfirst || '前瞻正在整理。'));
+  standfirst.append(el('span', null, '这场看什么'), el('p', null, data.standfirst || '前瞻正在整理。'));
   if (data.verdicts?.length) {
     const list = el('ol');
     for (const verdict of data.verdicts) list.appendChild(el('li', null, verdict));
