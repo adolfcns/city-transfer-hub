@@ -7,6 +7,8 @@ const app = readFileSync(new URL('../static/app.js', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../static/style.css', import.meta.url), 'utf8');
 const data = JSON.parse(readFileSync(new URL('../data/match-preview.json', import.meta.url), 'utf8'));
 const research = JSON.parse(readFileSync(new URL('../config/match-preview-research.json', import.meta.url), 'utf8'));
+const publication = JSON.parse(readFileSync(new URL('../config/match-analysis-publication.json', import.meta.url), 'utf8'));
+const analysisCollector = readFileSync(new URL('../scripts/fetch-first-team-analysis.js', import.meta.url), 'utf8');
 const pagesWorker = readFileSync(new URL('../cloudflare/pages-worker.js', import.meta.url), 'utf8');
 const backupWorker = readFileSync(new URL('../scripts/cloudflare-worker.js', import.meta.url), 'utf8');
 
@@ -30,13 +32,17 @@ test('波尔图前瞻包含赛程、近况、重点球员和完整战术拆解',
   assert.match(data.sections.map((section) => section.heading).join(' '), /怎么踢|压迫|最强|口子|曼城拿球|曼城无球|换人|开场15分钟/);
 });
 
-test('曼市德比前瞻与波尔图前瞻并列，并把曼联放在首位主推', () => {
+test('曼市德比前瞻保留，已经结束的波尔图前瞻会自动退出页面', () => {
   assert.equal(data.featured_preview_id, 5795452);
   assert.equal(data.more_previews.length, 1);
   const derby = data.more_previews[0];
   assert.equal(derby.match.id, 5795452);
   assert.equal(derby.match.opponent, '曼联');
   assert.equal(derby.match.kickoff, '2026-09-13T15:30:00.000Z');
+  assert.equal(data.expires_at, '2026-09-08T21:30:00.000Z');
+  assert.match(app, /function matchPreviewExpiresAt\(preview\)/);
+  assert.match(app, /MATCH_PREVIEW_DEFAULT_DURATION_MS/);
+  assert.match(app, /matchPreviewExpiresAt\(preview\) > now/);
   assert.equal(derby.badge, '曼市德比');
   assert.equal(derby.recent_form.length, 5);
   assert.ok(derby.season_numbers.length >= 6);
@@ -45,8 +51,8 @@ test('曼市德比前瞻与波尔图前瞻并列，并把曼联放在首位主�
   assert.match(JSON.stringify(derby), /卡里克|4-2-3-1|3-2-5|布鲁诺|姆贝乌莫|双后腰|弱侧|边路夹击|换人/);
 });
 
-test('两篇前瞻都能独立折叠，投票与评论按比赛编号隔离', () => {
-  assert.match(app, /function matchPreviewEntries\(data\)/);
+test('仍在赛程中的前瞻能独立折叠，投票与评论按比赛编号隔离', () => {
+  assert.match(app, /function matchPreviewEntries\(data, now = Date\.now\(\)\)/);
   assert.match(app, /function matchPreviewAccordion\(data, featuredId\)/);
   assert.match(app, /match-preview-accordion\$\{isFeatured \? ' featured' : ''\}/);
   assert.match(app, /details\.open = data\.default_open === true/);
@@ -80,6 +86,17 @@ test('以后前瞻固定优先使用战术长文与视频，并用近期比赛�
   assert.match(sources, /Football Made Simple/);
   assert.match(workflow, /最近5场实际比赛核对/);
   assert.match(workflow, /有球打法、无球打法、最强点、最容易被打的位置/);
+});
+
+test('赛后分析等待专业长文，并逐条回看对应前瞻后再公开', () => {
+  const workflow = research.post_match_workflow.join(' ');
+  assert.match(workflow, /Sky Blue Times/);
+  assert.match(workflow, /逐条回看前瞻/);
+  assert.match(workflow, /暂缓发布/);
+  assert.equal(publication.mode, 'curated_only');
+  assert.deepEqual(publication.published_match_ids, ['5795442']);
+  assert.match(analysisCollector, /waiting for a curated tactical review/);
+  assert.match(analysisCollector, /releasedMatchIds/);
 });
 
 test('前瞻底部有可改票的实时胜负投票', () => {

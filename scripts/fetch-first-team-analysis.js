@@ -5,6 +5,7 @@ import { fetch } from 'undici';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const OUTPUT_PATH = resolve(ROOT, 'data', 'first-team-analysis.json');
+const PUBLICATION_POLICY_PATH = resolve(ROOT, 'config', 'match-analysis-publication.json');
 const FOTMOB_API = 'https://www.fotmob.com/api/data';
 const TEAM_ID = 8456;
 const TEAM_NAME = 'Manchester City';
@@ -1008,6 +1009,9 @@ function needsRefresh(previousMatch, fixture, now) {
 
 export async function buildFirstTeamAnalysisData({ now = new Date() } = {}) {
   const previous = await loadPrevious();
+  const publicationPolicy = await readJsonFile(PUBLICATION_POLICY_PATH);
+  const curatedOnly = publicationPolicy?.mode === 'curated_only';
+  const releasedMatchIds = new Set((publicationPolicy?.published_match_ids || []).map(String));
   const budget = createBudget(previous, now);
   const previousById = new Map((previous?.matches || []).map(upgradeStoredTacticalLongform).map((match) => [String(match.id), match]));
   let teamData;
@@ -1027,6 +1031,10 @@ export async function buildFirstTeamAnalysisData({ now = new Date() } = {}) {
   let fetched = 0;
   for (const fixture of fixtures) {
     const prior = previousById.get(String(fixture.id));
+    if (!prior && curatedOnly && !releasedMatchIds.has(String(fixture.id))) {
+      console.log(`First-team match ${fixture.id} is waiting for a curated tactical review.`);
+      continue;
+    }
     if (!needsRefresh(prior, fixture, now)) continue;
     if (bootstrap && fetched >= BOOTSTRAP_MATCHES) continue;
     try {

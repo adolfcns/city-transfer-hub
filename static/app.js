@@ -2975,15 +2975,29 @@ async function firstTeamAnalysisApi() {
   return data;
 }
 
-function matchPreviewEntries(data) {
+const MATCH_PREVIEW_DEFAULT_DURATION_MS = 150 * 60 * 1000;
+
+function allMatchPreviewEntries(data) {
   return [data, ...(Array.isArray(data?.more_previews) ? data.more_previews : [])]
     .filter((preview) => preview?.match && Array.isArray(preview.sections) && preview.sections.length);
+}
+
+function matchPreviewExpiresAt(preview) {
+  const explicit = Date.parse(preview?.expires_at || preview?.match?.expires_at || '');
+  if (Number.isFinite(explicit)) return explicit;
+  const kickoff = Date.parse(preview?.match?.kickoff || '');
+  return Number.isFinite(kickoff) ? kickoff + MATCH_PREVIEW_DEFAULT_DURATION_MS : Infinity;
+}
+
+function matchPreviewEntries(data, now = Date.now()) {
+  return allMatchPreviewEntries(data)
+    .filter((preview) => matchPreviewExpiresAt(preview) > now);
 }
 
 function readMatchPreviewCache() {
   try {
     const data = JSON.parse(localStorage.getItem(MATCH_PREVIEW_CACHE_KEY) || 'null');
-    return matchPreviewEntries(data).length ? data : null;
+    return allMatchPreviewEntries(data).length ? data : null;
   } catch {
     return null;
   }
@@ -2999,7 +3013,7 @@ async function matchPreviewApi() {
   const response = await fetch(`${MATCH_PREVIEW_URL}?t=${Date.now()}`, { cache: 'no-store' });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const data = await response.json();
-  if (!matchPreviewEntries(data).length) throw new Error('bad_match_preview_data');
+  if (!allMatchPreviewEntries(data).length) throw new Error('bad_match_preview_data');
   writeMatchPreviewCache(data);
   return data;
 }
@@ -4258,6 +4272,11 @@ function matchPreviewCountdown(value) {
 }
 
 function updateMatchPreviewCountdown() {
+  const visibleCount = $$('.match-preview-accordion').length;
+  if (matchPreviewData && matchPreviewEntries(matchPreviewData).length !== visibleCount) {
+    renderMatchPreview(matchPreviewData);
+    return;
+  }
   $$('.match-preview-accordion-countdown').forEach((target) => {
     target.textContent = matchPreviewCountdown(target.dataset.kickoff);
   });
@@ -4438,6 +4457,12 @@ function renderMatchPreview(data) {
   root.textContent = '';
   matchPreviewData = data;
   const previews = matchPreviewEntries(data);
+  if (!previews.length) {
+    root.appendChild(el('div', 'first-team-analysis-loading', '本场已经结束，下一场前瞻正在准备。'));
+    $('#updated-at').textContent = '等待下一场比赛前瞻';
+    clearInterval(matchPreviewCountdownTimer);
+    return;
+  }
   const featuredId = data.featured_preview_id || previews[0]?.match?.id;
 
   const hero = el('header', 'match-preview-hero');
@@ -4445,11 +4470,11 @@ function renderMatchPreview(data) {
   heroCopy.append(
     el('span', 'match-preview-kicker', 'BLUE MOON · MATCH PREVIEW'),
     el('h2', null, '蓝月比赛前瞻'),
-    el('p', null, '先闯巨龙球场，再去老特拉福德。两场比赛都能点开看完整战术长文。'),
+    el('p', null, '下一场对手怎么踢、曼城怎么应对，点开看完整战术长文。'),
   );
   const status = el('div', 'match-preview-hero-status');
   status.append(
-    el('span', null, '未来两战'),
+    el('span', null, previews.length > 1 ? '未来赛程' : '下一场'),
     el('strong', null, `${previews.length} 篇`),
     el('b', null, '战术前瞻已就位'),
   );
