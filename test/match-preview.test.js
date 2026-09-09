@@ -47,8 +47,12 @@ test('曼市德比前瞻保留，已经结束的波尔图前瞻会自动退出�
   assert.equal(derby.recent_form.length, 5);
   assert.ok(derby.season_numbers.length >= 6);
   assert.ok(derby.danger_players.length >= 5);
-  assert.ok(derby.sections.length >= 8);
-  assert.match(JSON.stringify(derby), /卡里克|4-2-3-1|3-2-5|布鲁诺|姆贝乌莫|双后腰|弱侧|边路夹击|换人/);
+  assert.ok(derby.sections.length >= 9);
+  assert.match(JSON.stringify(derby), /卡里克|马雷斯卡|4-2-3-1|3-2-5|布鲁诺|姆贝乌莫|双后腰|弱侧|边路夹击|换人/);
+  const cityPlan = derby.sections.at(-1);
+  assert.match(cityPlan.heading, /曼城可能怎么踢/);
+  assert.match(cityPlan.paragraphs.join(' '), /四场正式比赛|70%控球|3-2-5|4-4-2|安德森|哈兰德|球后/);
+  assert.match(JSON.stringify(derby.sources), /英超官网.*马雷斯卡|Coaches' Voice/);
 });
 
 test('仍在赛程中的前瞻能独立折叠，投票与评论按比赛编号隔离', () => {
@@ -86,6 +90,8 @@ test('以后前瞻固定优先使用战术长文与视频，并用近期比赛�
   assert.match(sources, /Football Made Simple/);
   assert.match(workflow, /最近5场实际比赛核对/);
   assert.match(workflow, /有球打法、无球打法、最强点、最容易被打的位置/);
+  assert.match(workflow, /曼城可能怎么踢/);
+  assert.match(workflow, /曼城本赛季最近3至5场正式比赛/);
 });
 
 test('赛后分析等待专业长文，并逐条回看对应前瞻后再公开', () => {
