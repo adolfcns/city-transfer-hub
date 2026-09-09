@@ -1013,7 +1013,10 @@ export async function buildFirstTeamAnalysisData({ now = new Date() } = {}) {
   const curatedOnly = publicationPolicy?.mode === 'curated_only';
   const releasedMatchIds = new Set((publicationPolicy?.published_match_ids || []).map(String));
   const budget = createBudget(previous, now);
-  const previousById = new Map((previous?.matches || []).map(upgradeStoredTacticalLongform).map((match) => [String(match.id), match]));
+  const previousMatches = (previous?.matches || [])
+    .map(upgradeStoredTacticalLongform)
+    .filter((match) => !curatedOnly || releasedMatchIds.has(String(match.id)));
+  const previousById = new Map(previousMatches.map((match) => [String(match.id), match]));
   let teamData;
   try {
     teamData = await fetchJson(`${FOTMOB_API}/teams?id=${TEAM_ID}&ccode3=USA`, { budget });

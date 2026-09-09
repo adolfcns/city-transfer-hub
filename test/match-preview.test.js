@@ -94,9 +94,11 @@ test('赛后分析等待专业长文，并逐条回看对应前瞻后再公开',
   assert.match(workflow, /逐条回看前瞻/);
   assert.match(workflow, /暂缓发布/);
   assert.equal(publication.mode, 'curated_only');
-  assert.deepEqual(publication.published_match_ids, ['5795442']);
+  assert.ok(publication.published_match_ids.includes('5795442'));
+  assert.ok(!publication.published_match_ids.includes('6106286'));
   assert.match(analysisCollector, /waiting for a curated tactical review/);
   assert.match(analysisCollector, /releasedMatchIds/);
+  assert.match(analysisCollector, /filter\(\(match\) => !curatedOnly \|\| releasedMatchIds\.has\(String\(match\.id\)\)\)/);
 });
 
 test('前瞻底部有可改票的实时胜负投票', () => {
