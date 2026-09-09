@@ -5,6 +5,7 @@ import { buildMatchAnalysis, flattenTeamStats } from '../scripts/fetch-first-tea
 
 const APP_SOURCE = readFileSync(new URL('../static/app.js', import.meta.url), 'utf8');
 const STORED_ANALYSIS = JSON.parse(readFileSync(new URL('../data/first-team-analysis.json', import.meta.url), 'utf8'));
+const CURATED_ANALYSIS = JSON.parse(readFileSync(new URL('../config/match-analysis-curated.json', import.meta.url), 'utf8'));
 
 function fixtureDetails() {
   return {
@@ -212,4 +213,16 @@ test('每场赛后复盘底部都有独立评论区，支持点赞和回复', ()
   assert.match(APP_SOURCE, /id: `\$\{isPreview \? 'match_preview' : 'match_review'\}_\$\{matchId\}`/);
   assert.match(APP_SOURCE, /action: 'like', comment_id: commentId/);
   assert.match(APP_SOURCE, /parent_id: activeReplyTarget\?\.id \|\| ''/);
+});
+
+test('波尔图复盘使用人工整理的战术长文并保留原比赛评论编号', () => {
+  const porto = CURATED_ANALYSIS.matches['6106286'];
+  const article = JSON.stringify(porto.tactical_longform);
+  assert.equal(porto.tactical_longform.version, 8);
+  assert.equal(porto.tactical_longform.sections.length, 8);
+  assert.match(porto.tactical_longform.title, /哈兰德|马雷斯卡/);
+  assert.match(article, /4-2-3-1/);
+  assert.match(article, /换人复盘/);
+  assert.doesNotMatch(article, /FC Porto用三中卫|左路降到 41%|让对手拿到 0 次绝佳机会/);
+  assert.match(APP_SOURCE, /match_review/);
 });

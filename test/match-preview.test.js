@@ -95,7 +95,7 @@ test('赛后分析等待专业长文，并逐条回看对应前瞻后再公开',
   assert.match(workflow, /暂缓发布/);
   assert.equal(publication.mode, 'curated_only');
   assert.ok(publication.published_match_ids.includes('5795442'));
-  assert.ok(!publication.published_match_ids.includes('6106286'));
+  assert.ok(publication.published_match_ids.includes('6106286'));
   assert.match(analysisCollector, /waiting for a curated tactical review/);
   assert.match(analysisCollector, /releasedMatchIds/);
   assert.match(analysisCollector, /filter\(\(match\) => !curatedOnly \|\| releasedMatchIds\.has\(String\(match\.id\)\)\)/);

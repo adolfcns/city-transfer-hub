@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "generated_at": "2026-09-06T05:42:13.682Z",
-  "checked_at": "2026-09-06T03:41:25.248Z",
+  "generated_at": "2026-09-09T07:33:12.685Z",
+  "checked_at": "2026-09-09T07:39:22.322Z",
   "team_id": 8456,
   "season_start": "2026-07-01T00:00:00Z",
   "provider_usage": {
-    "date": "2026-09-06",
-    "requests": 40,
+    "date": "2026-09-09",
+    "requests": 11,
     "limit": 40
   },
   "provider": {
@@ -14,9 +14,849 @@
     "url": "https://www.fotmob.com",
     "note": "比赛事实、评分、阵型、射门图及 xG 来自 FotMob 公开比赛数据；中文战术复盘由本站撰写。"
   },
-  "total": 7,
-  "latest_match_id": "5795442",
+  "total": 8,
+  "latest_match_id": "6106286",
   "matches": [
+    {
+      "id": "6106286",
+      "date": "2026-09-08T19:00:00.000Z",
+      "analysed_at": "2026-09-09T07:33:12.685Z",
+      "competition": "Champions League",
+      "is_home": false,
+      "city": {
+        "name": "曼城",
+        "name_en": "Manchester City",
+        "score": 2
+      },
+      "opponent": {
+        "name": "FC Porto",
+        "name_en": "FC Porto",
+        "score": 0
+      },
+      "score": "0-2",
+      "result": "胜",
+      "headline": "2比0赢在哈兰德，过程没有比分那么轻松",
+      "verdict": "曼城把波尔图限制在 0 次射正，自己做出约 2.3 xG，赢球没有争议。问题出在 1比0 之后：出球开始冒险，中场距离被拉开，比赛一度回到波尔图喜欢的节奏。",
+      "analysis": [
+        {
+          "key": "control",
+          "title": "控场",
+          "text": "控球率 64%，完成 589 (93%) 次准确传球，成功率 93%。球权与机会产出基本形成了正向关系。"
+        },
+        {
+          "key": "attack",
+          "title": "进攻",
+          "text": "20 次射门、10 次射正、6 次绝佳机会、29 次禁区触球，累计 2.32 xG，最终打进 2 球。把优势更早变成进球，比赛会轻松得多。"
+        },
+        {
+          "key": "defence",
+          "title": "防守",
+          "text": "对手得到 5 次射门、0 次射正、0 次绝佳机会和 8 次禁区触球；将对手限制在 0.28 xG，防守端总体可控。"
+        },
+        {
+          "key": "turning",
+          "title": "关键节点",
+          "text": "47′ 哈兰德（恩佐·费尔南德斯助攻）；90′ 哈兰德（拉扬·艾特-努里助攻）"
+        }
+      ],
+      "stats": [
+        {
+          "key": "BallPossesion",
+          "label": "控球率",
+          "city": 64,
+          "opponent": 36,
+          "suffix": "%"
+        },
+        {
+          "key": "expected_goals",
+          "label": "预期进球",
+          "city": 2.32,
+          "opponent": 0.28,
+          "suffix": ""
+        },
+        {
+          "key": "total_shots",
+          "label": "射门",
+          "city": 20,
+          "opponent": 5,
+          "suffix": ""
+        },
+        {
+          "key": "ShotsOnTarget",
+          "label": "射正",
+          "city": 10,
+          "opponent": 0,
+          "suffix": ""
+        },
+        {
+          "key": "big_chance",
+          "label": "绝佳机会",
+          "city": 6,
+          "opponent": 0,
+          "suffix": ""
+        },
+        {
+          "key": "touches_opp_box",
+          "label": "禁区触球",
+          "city": 29,
+          "opponent": 8,
+          "suffix": ""
+        }
+      ],
+      "goals": [
+        {
+          "minute": 47,
+          "player": "哈兰德",
+          "player_en": "Erling Haaland",
+          "assist": "恩佐·费尔南德斯",
+          "type": "Header"
+        },
+        {
+          "minute": 90,
+          "player": "哈兰德",
+          "player_en": "Erling Haaland",
+          "assist": "拉扬·艾特-努里",
+          "type": "Goal"
+        }
+      ],
+      "top_players": [
+        {
+          "id": "737066",
+          "name": "哈兰德",
+          "name_en": "Erling Haaland",
+          "rating": 8.93,
+          "position": "ST",
+          "player_url": "https://www.fotmob.com/players/737066/erling-haaland",
+          "man_of_the_match": true,
+          "metrics": [
+            {
+              "key": "expected_goals",
+              "label": "预期进球",
+              "value": "1.33"
+            },
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.05"
+            },
+            {
+              "key": "total_shots",
+              "label": "射门",
+              "value": "6"
+            }
+          ]
+        },
+        {
+          "id": "1137705",
+          "name": "恩佐·费尔南德斯",
+          "name_en": "Enzo Fernández",
+          "rating": 8.34,
+          "position": "DM",
+          "player_url": "https://www.fotmob.com/players/1137705/enzo-fern-ndez",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.6"
+            },
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "3"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "11"
+            }
+          ]
+        },
+        {
+          "id": "844425",
+          "name": "格伊",
+          "name_en": "Marc Guéhi",
+          "rating": 7.9,
+          "position": "CB",
+          "player_url": "https://www.fotmob.com/players/844425/marc-gu-hi",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "defensive_actions",
+              "label": "防守贡献",
+              "value": "8"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "8"
+            },
+            {
+              "key": "clearances",
+              "label": "解围",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": "1561552",
+          "name": "布阿迪",
+          "name_en": "Ayyoub Bouaddi",
+          "rating": 7.47,
+          "position": "DM",
+          "player_url": "https://www.fotmob.com/players/1561552/ayyoub-bouaddi",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.05"
+            },
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "0"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "4"
+            }
+          ]
+        },
+        {
+          "id": "933845",
+          "name": "拉扬·艾特-努里",
+          "name_en": "Rayan Aït-Nouri",
+          "rating": 7.34,
+          "position": "",
+          "player_url": "https://www.fotmob.com/players/933845/rayan-a-t-nouri",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.09"
+            },
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "2"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "1"
+            }
+          ]
+        }
+      ],
+      "tactical_data": {
+        "lineup": {
+          "city_coach": "马雷斯卡",
+          "city_coach_en": "Enzo Maresca",
+          "city_formation": "4-2-3-1",
+          "opponent_formation": "4-3-3",
+          "city_starting_xi": [
+            {
+              "id": "618878",
+              "name": "多纳鲁马",
+              "name_en": "Gianluigi Donnarumma",
+              "position_id": 11,
+              "rating": 6.7
+            },
+            {
+              "id": "955529",
+              "name": "马特乌斯·努内斯",
+              "name_en": "Matheus Nunes",
+              "position_id": 32,
+              "rating": 7.1
+            },
+            {
+              "id": "844425",
+              "name": "格伊",
+              "name_en": "Marc Guéhi",
+              "position_id": 34,
+              "rating": 7.9
+            },
+            {
+              "id": "614006",
+              "name": "鲁本·迪亚斯",
+              "name_en": "Rúben Dias",
+              "position_id": 36,
+              "rating": 7.3
+            },
+            {
+              "id": "1070712",
+              "name": "Joško Gvardiol",
+              "name_en": "Joško Gvardiol",
+              "position_id": 38,
+              "rating": 7.2
+            },
+            {
+              "id": "1561552",
+              "name": "布阿迪",
+              "name_en": "Ayyoub Bouaddi",
+              "position_id": 64,
+              "rating": 7.5
+            },
+            {
+              "id": "1137705",
+              "name": "恩佐·费尔南德斯",
+              "name_en": "Enzo Fernández",
+              "position_id": 66,
+              "rating": 8.3
+            },
+            {
+              "id": "815006",
+              "name": "福登",
+              "name_en": "Phil Foden",
+              "position_id": 83,
+              "rating": 7.1
+            },
+            {
+              "id": "1104053",
+              "name": "谢尔基",
+              "name_en": "Rayan Cherki",
+              "position_id": 85,
+              "rating": 7.1
+            },
+            {
+              "id": "933576",
+              "name": "塞梅尼奥",
+              "name_en": "Antoine Semenyo",
+              "position_id": 87,
+              "rating": 6.9
+            },
+            {
+              "id": "737066",
+              "name": "哈兰德",
+              "name_en": "Erling Haaland",
+              "position_id": 115,
+              "rating": 8.9
+            }
+          ],
+          "opponent_starting_xi": [
+            {
+              "id": "795630",
+              "name": "Diogo Costa",
+              "name_en": "Diogo Costa",
+              "position_id": 11,
+              "rating": 8.2
+            },
+            {
+              "id": "1387439",
+              "name": "Alberto Costa",
+              "name_en": "Alberto Costa",
+              "position_id": 32,
+              "rating": 6.2
+            },
+            {
+              "id": "902383",
+              "name": "Nehuén Pérez",
+              "name_en": "Nehuén Pérez",
+              "position_id": 34,
+              "rating": 6.3
+            },
+            {
+              "id": "1021834",
+              "name": "Jakub Kiwior",
+              "name_en": "Jakub Kiwior",
+              "position_id": 36,
+              "rating": 6.3
+            },
+            {
+              "id": "1404949",
+              "name": "Martim Fernandes",
+              "name_en": "Martim Fernandes",
+              "position_id": 38,
+              "rating": 6.5
+            },
+            {
+              "id": "664226",
+              "name": "Pablo Rosario",
+              "name_en": "Pablo Rosario",
+              "position_id": 73,
+              "rating": 6
+            },
+            {
+              "id": "1186684",
+              "name": "Alan Varela",
+              "name_en": "Alan Varela",
+              "position_id": 75,
+              "rating": 6.4
+            },
+            {
+              "id": "1116734",
+              "name": "Gabriel Veiga",
+              "name_en": "Gabriel Veiga",
+              "position_id": 77,
+              "rating": 6.9
+            },
+            {
+              "id": "1580427",
+              "name": "William Gomes",
+              "name_en": "William Gomes",
+              "position_id": 103,
+              "rating": 5.8
+            },
+            {
+              "id": "388523",
+              "name": "André Silva",
+              "name_en": "André Silva",
+              "position_id": 105,
+              "rating": 6.1
+            },
+            {
+              "id": "850356",
+              "name": "Pepê",
+              "name_en": "Pepê",
+              "position_id": 107,
+              "rating": 6.4
+            }
+          ],
+          "city_substitutions": [
+            {
+              "minute": 48,
+              "out": "Joško Gvardiol",
+              "out_en": "Joško Gvardiol",
+              "in": "胡桑诺夫",
+              "in_en": "Abdukodir Khusanov",
+              "out_position_id": 1,
+              "in_position_id": 1,
+              "reason": "tactical"
+            },
+            {
+              "minute": 62,
+              "out": "谢尔基",
+              "out_en": "Rayan Cherki",
+              "in": "埃利奥特·安德森",
+              "in_en": "Elliot Anderson",
+              "out_position_id": 2,
+              "in_position_id": 2,
+              "reason": "tactical"
+            },
+            {
+              "minute": 62,
+              "out": "塞梅尼奥",
+              "out_en": "Antoine Semenyo",
+              "in": "伊利曼·恩迪亚耶",
+              "in_en": "Iliman Ndiaye",
+              "out_position_id": 3,
+              "in_position_id": 3,
+              "reason": "tactical"
+            },
+            {
+              "minute": 75,
+              "out": "布阿迪",
+              "out_en": "Ayyoub Bouaddi",
+              "in": "拉扬·艾特-努里",
+              "in_en": "Rayan Aït-Nouri",
+              "out_position_id": 2,
+              "in_position_id": 1,
+              "reason": "tactical"
+            },
+            {
+              "minute": 75,
+              "out": "福登",
+              "out_en": "Phil Foden",
+              "in": "马特奥·科瓦契奇",
+              "in_en": "Mateo Kovačić",
+              "out_position_id": 2,
+              "in_position_id": 2,
+              "reason": "tactical"
+            }
+          ]
+        },
+        "shots": {
+          "available": true,
+          "total": 20,
+          "xg": 2.53,
+          "inside_box": 13,
+          "outside_box": 7,
+          "open_play": 16,
+          "open_play_xg": 2.25,
+          "set_piece": 4,
+          "set_piece_xg": 0.28,
+          "high_quality": 2,
+          "first_half": {
+            "shots": 6,
+            "xg": 1.42
+          },
+          "second_half": {
+            "shots": 14,
+            "xg": 1.11
+          },
+          "timeline": [
+            {
+              "minute": 16,
+              "xg": 0.02,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "FastBreak",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 21,
+              "xg": 0.28,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 27,
+              "xg": 0.07,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 29,
+              "xg": 0.13,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 32,
+              "xg": 0.53,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 32,
+              "xg": 0.39,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 47,
+              "xg": 0.23,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Goal"
+            },
+            {
+              "minute": 53,
+              "xg": 0.03,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 66,
+              "xg": 0.06,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 69,
+              "xg": 0.12,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 77,
+              "xg": 0.07,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 83,
+              "xg": 0.08,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 85,
+              "xg": 0.13,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "FastBreak",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 90,
+              "xg": 0.02,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 90,
+              "xg": 0.06,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "FromCorner",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 90,
+              "xg": 0.14,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "FromCorner",
+              "event_type": "Goal"
+            },
+            {
+              "minute": 90,
+              "xg": 0.04,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "FreeKick",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 90,
+              "xg": 0.02,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 90,
+              "xg": 0.05,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "FromCorner",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 90,
+              "xg": 0.06,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "FastBreak",
+              "event_type": "AttemptSaved"
+            }
+          ]
+        },
+        "opponent_shots": {
+          "available": true,
+          "total": 5,
+          "xg": 0.28,
+          "inside_box": 3,
+          "outside_box": 2,
+          "open_play": 4,
+          "open_play_xg": 0.26,
+          "set_piece": 1,
+          "set_piece_xg": 0.02,
+          "high_quality": 0,
+          "first_half": {
+            "shots": 0,
+            "xg": 0
+          },
+          "second_half": {
+            "shots": 5,
+            "xg": 0.28
+          },
+          "timeline": [
+            {
+              "minute": 57,
+              "xg": 0.08,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 62,
+              "xg": 0.03,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 63,
+              "xg": 0.02,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "SetPiece",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 76,
+              "xg": 0.12,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 84,
+              "xg": 0.04,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            }
+          ]
+        },
+        "attacking_zones": {
+          "city": {
+            "total": {
+              "left": 37,
+              "center": 35,
+              "right": 28
+            },
+            "first_half": {
+              "left": 34,
+              "center": 31,
+              "right": 35
+            },
+            "second_half": {
+              "left": 41,
+              "center": 41,
+              "right": 18
+            }
+          },
+          "opponent": {
+            "total": {
+              "left": 38,
+              "center": 32,
+              "right": 30
+            },
+            "first_half": {
+              "left": 22,
+              "center": 30,
+              "right": 48
+            },
+            "second_half": {
+              "left": 46,
+              "center": 34,
+              "right": 20
+            }
+          }
+        }
+      },
+      "tactical_longform": {
+        "version": 8,
+        "title": "2比0赢在哈兰德，马雷斯卡还欠一段完整的控制",
+        "standfirst": "上半场曼城把机会一批批送到门前，迪奥戈·科斯塔撑住了波尔图；下半场刚进球，场面却松了。马雷斯卡的换人最后收住了比赛，但中间那段摇晃，比分没有替他遮掉。",
+        "problems": [
+          "1比0 之后，曼城把一场阵地战踢成了来回冲刺。波尔图的 5 次射门全在下半场，主队重新找回了压迫和推进的感觉。",
+          "左侧出球被连续追咬。格瓦迪奥尔和多纳鲁马都出现过危险处理；胡桑诺夫上场后先把风险压了下去，曼城的前场进攻也短暂安静下来。",
+          "20 次射门、10 次射正、6 次绝佳机会，只换来哈兰德的两球。科斯塔确实扑得出色，曼城也让他忙了太久。"
+        ],
+        "sections": [
+          {
+            "heading": "一、开场的4-2-3-1，先把中路站稳",
+            "paragraphs": [
+              "曼城首发按 4-2-3-1 展开：布阿迪和恩佐搭档中场，谢尔基站在哈兰德身后，福登与塞梅尼奥分居两侧。马雷斯卡没有用安德森做最靠后的接应点，而是把第一次欧冠首发交给布阿迪。这个选择让恩佐可以多往前一步，靠近谢尔基和哈兰德。",
+              "法里奥利的波尔图还是 4-3-3。安德烈·席尔瓦守住中路回传，两个边锋从外向内压迫中卫，维加和瓦雷拉随时准备顶向曼城的双后腰。赛前担心的边路围抢确实出现了：球一旦被赶到边后卫脚下，波尔图马上把空间压窄，逼曼城回传或冒险走中间。",
+              "开场十几分钟，曼城的出球并不顺。格伊给布阿迪的一脚短传被抢，威廉·戈麦斯随即在禁区前制造险情。波尔图的计划很清楚：先切断后腰转身的时间，再等曼城后场自己把球送进压力里。"
+            ]
+          },
+          {
+            "heading": "二、曼城怎么拆掉第一道压迫",
+            "paragraphs": [
+              "曼城后来不再执着于同一侧的短传。恩佐往边线靠，谢尔基回到中场线之间，福登也会进内线接第三脚。波尔图的中前卫只要被带离原位，布阿迪就能把球送到另一侧，曼城随即攻击尚未站稳的四后卫。",
+              "布阿迪的价值在接球前就能看出来：下一步往哪传，他心里有数。他全场 7 次夺回球权，丢球后也能马上把第二点捡回来。18 岁的欧冠首秀放在巨龙球场，他没有躲在中卫身边刷安全球，这让曼城的中场没有被波尔图的强度冲散。",
+              "上半场中段以后，波尔图的第一道压迫越来越难回到位。曼城在 21 到 32 分钟连续制造好机会，迪奥戈·科斯塔接连扑救，半场前把比分守在 0比0。场面已经偏向曼城，只差把最后一下做完。"
+            ]
+          },
+          {
+            "heading": "三、20脚射门，为什么等到47分钟才进",
+            "paragraphs": [
+              "曼城全场 20 次射门、10 次射正，FotMob 记为 2.32-0.28 xG，Opta 的模型是 2.31-0.22。两套模型的判断一致：曼城做出了足够多的好机会，波尔图几乎没有真正威胁球门。差别在科斯塔扑得太好，曼城几次近距离处理也不够干脆。",
+              "47 分钟的进球没有绕弯。谢尔基把球留在场内并送给恩佐，恩佐获得抬头传中的时间，哈兰德从中卫身前突然加速，头球打进。前腰先固定防线，中场随后到位，中锋攻击六码区，这条线路比上半场外围来回转移更直接。",
+              "哈兰德全场触球不多，却有 6 次射门和约 1.5 xG。法里奥利赛后说，面对这样的中锋，半米空间都不能给。波尔图大部分时间守住了禁区中心，两次漏掉哈兰德，比赛就结束了。"
+            ]
+          },
+          {
+            "heading": "四、比赛怎么变了：领先后反而踢乱了",
+            "paragraphs": [
+              "进球后本该是曼城最容易控住比赛的时候，场面却往相反方向走。波尔图把中场和边锋压得更高，曼城后场几次传球没有把人吸出来，先把自己逼进了死角。多纳鲁马的处理开始犹豫，前场拿不到连续的第二点，攻防之间越拉越长。",
+              "波尔图的 5 次射门全部来自下半场。数量不算多，质量也只有 0.22 xG，但主队已经把曼城从舒服的阵地控制里赶了出来。曼城的防线一共造了 7 次越位，格伊和鲁本·迪亚斯把禁区中路守住，才没有让这段失控变成真正的射正。",
+              "这段比赛最该让马雷斯卡回去细看。领先以后球还在脚下，节奏却没有稳住。中场接不到后场第一脚，前锋也保不住第二点，比赛很快变成两边轮流冲。"
+            ]
+          },
+          {
+            "heading": "五、赛前担心的事，哪些真的发生了",
+            "paragraphs": [
+              "前瞻里最担心的是波尔图把曼城赶进边路，再用边锋、中前卫和边后卫三个人合围。开场阶段，这套办法确实逼出了曼城的几次险球；下半场波尔图提高压迫后，同样的问题又回来了一次。",
+              "前瞻里给出的破解方法，是先用第三人越过强侧夹击，再尽快转向弱侧。曼城上半场最好的机会，基本都出现在第一道压迫被拆掉以后。波尔图四后卫向一侧移动，另一边的福登或塞梅尼奥便能得到接球空间。",
+              "另一项担心没有变成失球：波尔图抢回球后的第一脚很快，但最后进入禁区时缺少质量。格伊和迪亚斯没有跟着球乱跑，防线敢一起向前压，主队因此 7 次落入越位。这个风险很高，这一晚执行得也很整齐。"
+            ]
+          },
+          {
+            "heading": "六、换人复盘：先补后场，再把比赛收回来",
+            "paragraphs": [
+              "马雷斯卡在 48 分钟就用胡桑诺夫换下格瓦迪奥尔。左侧处理变得简单，波尔图没有再从同一个点连续抢到球；曼城接下来十几分钟也只有 1 次射门。这次换人先解决了丢球风险，没有马上补回出球层次。",
+              "62 分钟，安德森和恩迪亚耶同时换下谢尔基、塞梅尼奥。安德森上来后更多留在球后，先把波尔图的第二点和反击入口堵住；恩迪亚耶负责把主队边后卫往回带。这个调整没有马上带来射门，却把中场重新缝在了一起。",
+              "75 分钟再上科瓦契奇和艾特-努里，是第二步。科瓦契奇帮助曼城熬过第一下压迫，艾特-努里则直接参与了补时阶段的第二球。五个换人名额没有简单堆前锋：先稳住中路，再用新鲜的边路冲击结束比赛，顺序是对的。"
+            ]
+          },
+          {
+            "heading": "七、下一场，马雷斯卡具体该改什么",
+            "paragraphs": [
+              "第一，左侧需要准备一条更快的出球线路。对手把格瓦迪奥尔或边后卫压在边线时，布阿迪要更早落到接应角度，谢尔基也得站在下一脚能收到球的位置。三个人都在等球，压力只会一路退到门将脚下。",
+              "第二，领先后的前十五分钟要有人给比赛降速。恩佐前插时，另一名中场留在中卫身前；边锋丢球后先封回中路的线路，别让前后场同时向两个方向跑。曼城这场没有因此丢球，换到更强的对手面前，约 0.3 xG 的险情也可能改掉比分。",
+              "第三，别把所有终结都留给哈兰德。6 次绝佳机会只进 2 个，科斯塔有功，二点包抄和禁区边缘的选择也能更好。哈兰德把两次最难防的机会吃掉了，其他人得替他分一点压力。"
+            ]
+          },
+          {
+            "heading": "八、这场2比0，赢得合理，也留了题",
+            "paragraphs": [
+              "曼城的上半场方案有效：双后腰撑住出球，谢尔基在两线之间接应，恩佐获得向前处理球的自由。科斯塔拖住了比分，哈兰德下半场很快把优势兑现。",
+              "法里奥利也没有白准备。波尔图两次把曼城逼进边路和后场混乱，只是前锋线没把压迫换成高质量射门。马雷斯卡的调整最后赢了这一回合，中间那段十几分钟仍然需要回去细看。",
+              "2比0是场面应得的结果，过程却没有从头稳到尾。哈兰德解决了比分，下一步要解决的是：领先以后，曼城能不能继续按自己的速度踢。"
+            ]
+          }
+        ],
+        "sources": [
+          {
+            "label": "Opta数据复盘",
+            "url": "https://theanalyst.com/articles/porto-vs-man-city-stats-champions-league-09-2026"
+          },
+          {
+            "label": "Sky Sports赛报与点评",
+            "url": "https://www.skysports.com/football/fc-porto-vs-man-city/report/577600"
+          },
+          {
+            "label": "卫报比赛记录",
+            "url": "https://www.theguardian.com/football/2026/sep/08/porto-manchester-city-champions-league-match-report"
+          },
+          {
+            "label": "City Xtra赛报与球员观察",
+            "url": "https://cityxtra.co.uk/match-coverage/match-report-player-ratings-fc-porto-0-2-manchester-city-uefa-champions-league"
+          },
+          {
+            "label": "法里奥利赛后发布会",
+            "url": "https://www.abola.pt/noticias/elogios-a-diogo-costa-e-ao-monstro-nehuen-e-a-arbitragem-tudo-o-que-disse-farioli-2026090820554098822"
+          },
+          {
+            "label": "TFA波尔图体系分析",
+            "url": "https://totalfootballanalysis.com/head-coach-analysis/francesco-farioli-tactics-porto-2025-2026-tactical-analysis-tactics"
+          },
+          {
+            "label": "Assoanalisti战术报告",
+            "url": "https://assoanalisti.it/analisi-tattica-calcio-come-gioca-il-porto-match-analysis-di-francesco-farioli/"
+          }
+        ],
+        "source_note": "比赛主数据采用 FotMob（xG 2.32-0.28）；Opta 模型为 2.31-0.22。战术部分结合赛前波尔图体系报告、比赛记录和双方赛后发言整理。"
+      }
+    },
     {
       "id": "5795442",
       "date": "2026-09-05T14:00:00.000Z",
@@ -861,7 +1701,7 @@
     {
       "id": "5795429",
       "date": "2026-08-28T19:00:00.000Z",
-      "analysed_at": "2026-09-06T03:01:19.978Z",
+      "analysed_at": "2026-09-09T07:33:12.685Z",
       "competition": "Premier League",
       "is_home": false,
       "city": {
@@ -877,7 +1717,7 @@
       "score": "1-4",
       "result": "胜",
       "headline": "从控场到机会，这场胜利有数据支撑",
-      "verdict": "曼城明显掌握球权，控球率 72% 对 28%；全场 xG 2.21-0.66，机会质量明显占优。比分是 4-1，但判断比赛不能只看结果。",
+      "verdict": "曼城明显掌握球权，控球率 72% 对 28%；全场 xG 2.21-0.66，机会质量明显占优。最终比分 4-1。",
       "analysis": [
         {
           "key": "control",
@@ -897,7 +1737,7 @@
         {
           "key": "turning",
           "title": "关键节点",
-          "text": "17′ 哈兰德（塞梅尼奥助攻）；54′ 谢尔基（福登助攻）；59′ 谢尔基（格瓦迪奥尔助攻）；84′ 哈兰德（福登助攻）"
+          "text": "17′ 哈兰德（塞梅尼奥助攻）；54′ 谢尔基（福登助攻）；59′ 谢尔基（Joško Gvardiol助攻）；84′ 哈兰德（福登助攻）"
         }
       ],
       "stats": [
@@ -963,7 +1803,7 @@
           "minute": 59,
           "player": "谢尔基",
           "player_en": "Rayan Cherki",
-          "assist": "格瓦迪奥尔",
+          "assist": "Joško Gvardiol",
           "type": "Goal"
         },
         {
@@ -1108,120 +1948,218 @@
       ],
       "tactical_data": {
         "lineup": {
+          "city_coach": "马雷斯卡",
+          "city_coach_en": "Enzo Maresca",
           "city_formation": "4-2-3-1",
           "opponent_formation": "3-4-2-1",
           "city_starting_xi": [
             {
               "id": "618878",
               "name": "多纳鲁马",
-              "name_en": "Gianluigi Donnarumma"
+              "name_en": "Gianluigi Donnarumma",
+              "position_id": 11,
+              "rating": 6
             },
             {
               "id": "1362998",
               "name": "胡桑诺夫",
-              "name_en": "Abdukodir Khusanov"
+              "name_en": "Abdukodir Khusanov",
+              "position_id": 32,
+              "rating": 7.7
             },
             {
               "id": "614006",
               "name": "鲁本·迪亚斯",
-              "name_en": "Rúben Dias"
+              "name_en": "Rúben Dias",
+              "position_id": 34,
+              "rating": 8
             },
             {
               "id": "844425",
               "name": "格伊",
-              "name_en": "Marc Guéhi"
+              "name_en": "Marc Guéhi",
+              "position_id": 36,
+              "rating": 7.9
             },
             {
               "id": "1070712",
-              "name": "格瓦迪奥尔",
-              "name_en": "Josko Gvardiol"
+              "name": "Joško Gvardiol",
+              "name_en": "Joško Gvardiol",
+              "position_id": 38,
+              "rating": 7.7
             },
             {
               "id": "1300526",
               "name": "奥赖利",
-              "name_en": "Nico O'Reilly"
+              "name_en": "Nico O'Reilly",
+              "position_id": 64,
+              "rating": 6.9
             },
             {
               "id": "1089691",
               "name": "埃利奥特·安德森",
-              "name_en": "Elliot Anderson"
+              "name_en": "Elliot Anderson",
+              "position_id": 66,
+              "rating": 8.2
             },
             {
               "id": "815006",
               "name": "福登",
-              "name_en": "Phil Foden"
+              "name_en": "Phil Foden",
+              "position_id": 83,
+              "rating": 8.9
             },
             {
               "id": "1104053",
               "name": "谢尔基",
-              "name_en": "Rayan Cherki"
+              "name_en": "Rayan Cherki",
+              "position_id": 85,
+              "rating": 9.1
             },
             {
               "id": "933576",
               "name": "塞梅尼奥",
-              "name_en": "Antoine Semenyo"
+              "name_en": "Antoine Semenyo",
+              "position_id": 87,
+              "rating": 7.9
             },
             {
               "id": "737066",
               "name": "哈兰德",
-              "name_en": "Erling Haaland"
+              "name_en": "Erling Haaland",
+              "position_id": 115,
+              "rating": 8.9
             }
           ],
           "opponent_starting_xi": [
             {
               "id": "719330",
               "name": "Dean Henderson",
-              "name_en": "Dean Henderson"
+              "name_en": "Dean Henderson",
+              "position_id": 11,
+              "rating": 5.8
             },
             {
               "id": "1664722",
               "name": "Jaydee Canvot",
-              "name_en": "Jaydee Canvot"
+              "name_en": "Jaydee Canvot",
+              "position_id": 33,
+              "rating": 5.2
             },
             {
               "id": "950829",
               "name": "Chris Richards",
-              "name_en": "Chris Richards"
+              "name_en": "Chris Richards",
+              "position_id": 35,
+              "rating": 5.7
             },
             {
               "id": "664444",
               "name": "Takehiro Tomiyasu",
-              "name_en": "Takehiro Tomiyasu"
+              "name_en": "Takehiro Tomiyasu",
+              "position_id": 37,
+              "rating": 5.7
             },
             {
               "id": "1477878",
               "name": "Anan Khalaili",
-              "name_en": "Anan Khalaili"
+              "name_en": "Anan Khalaili",
+              "position_id": 62,
+              "rating": 7.7
             },
             {
               "id": "1296650",
               "name": "Adam Wharton",
-              "name_en": "Adam Wharton"
+              "name_en": "Adam Wharton",
+              "position_id": 64,
+              "rating": 6.6
             },
             {
               "id": "621515",
               "name": "Daichi Kamada",
-              "name_en": "Daichi Kamada"
+              "name_en": "Daichi Kamada",
+              "position_id": 66,
+              "rating": 6.8
             },
             {
               "id": "1120224",
               "name": "Tyrick Mitchell",
-              "name_en": "Tyrick Mitchell"
+              "name_en": "Tyrick Mitchell",
+              "position_id": 68,
+              "rating": 6.2
             },
             {
               "id": "1047676",
               "name": "Yéremi Pino",
-              "name_en": "Yéremi Pino"
+              "name_en": "Yéremi Pino",
+              "position_id": 84,
+              "rating": 7.4
             },
             {
               "id": "860920",
               "name": "Edward Nketiah",
-              "name_en": "Edward Nketiah"
+              "name_en": "Edward Nketiah",
+              "position_id": 86,
+              "rating": 6.5
             },
             {
               "id": "821100",
               "name": "Jørgen Strand Larsen",
-              "name_en": "Jørgen Strand Larsen"
+              "name_en": "Jørgen Strand Larsen",
+              "position_id": 105,
+              "rating": 6.6
+            }
+          ],
+          "city_substitutions": [
+            {
+              "minute": 75,
+              "out": "Joško Gvardiol",
+              "out_en": "Joško Gvardiol",
+              "in": "马特奥·科瓦契奇",
+              "in_en": "Mateo Kovačić",
+              "out_position_id": 1,
+              "in_position_id": 2,
+              "reason": "tactical"
+            },
+            {
+              "minute": 82,
+              "out": "埃利奥特·安德森",
+              "out_en": "Elliot Anderson",
+              "in": "布阿迪",
+              "in_en": "Ayyoub Bouaddi",
+              "out_position_id": 2,
+              "in_position_id": 2,
+              "reason": "tactical"
+            },
+            {
+              "minute": 82,
+              "out": "谢尔基",
+              "out_en": "Rayan Cherki",
+              "in": "麦卡杜",
+              "in_en": "Ryan McAidoo",
+              "out_position_id": 2,
+              "in_position_id": 3,
+              "reason": "tactical"
+            },
+            {
+              "minute": 89,
+              "out": "胡桑诺夫",
+              "out_en": "Abdukodir Khusanov",
+              "in": "Kaden Braithwaite",
+              "in_en": "Kaden Braithwaite",
+              "out_position_id": 1,
+              "in_position_id": 1,
+              "reason": "tactical"
+            },
+            {
+              "minute": 89,
+              "out": "奥赖利",
+              "out_en": "Nico O'Reilly",
+              "in": "维托尔·雷斯",
+              "in_en": "Vitor Reis",
+              "out_position_id": 1,
+              "in_position_id": 1,
+              "reason": "tactical"
             }
           ]
         },
@@ -1243,7 +2181,161 @@
           "second_half": {
             "shots": 8,
             "xg": 0.48
-          }
+          },
+          "timeline": [
+            {
+              "minute": 7,
+              "xg": 0.03,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "FromCorner",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 7,
+              "xg": 0.09,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "FromCorner",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 7,
+              "xg": 0.22,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "FromCorner",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 8,
+              "xg": 0.17,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 17,
+              "xg": 0.08,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Goal"
+            },
+            {
+              "minute": 21,
+              "xg": 0.24,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 22,
+              "xg": 0.02,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 28,
+              "xg": 0.6,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 38,
+              "xg": 0.04,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 44,
+              "xg": 0.1,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 45,
+              "xg": 0.14,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 47,
+              "xg": 0.02,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 48,
+              "xg": 0.02,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "FromCorner",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 53,
+              "xg": 0.03,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "FromCorner",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 54,
+              "xg": 0.16,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Goal"
+            },
+            {
+              "minute": 56,
+              "xg": 0,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "SetPiece",
+              "event_type": "Goal"
+            },
+            {
+              "minute": 59,
+              "xg": 0.04,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "Goal"
+            },
+            {
+              "minute": 83,
+              "xg": 0.1,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "FastBreak",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 84,
+              "xg": 0.1,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Goal"
+            }
+          ]
         },
         "opponent_shots": {
           "available": true,
@@ -1263,7 +2355,81 @@
           "second_half": {
             "shots": 2,
             "xg": 0.36
-          }
+          },
+          "timeline": [
+            {
+              "minute": 2,
+              "xg": 0.05,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 3,
+              "xg": 0.05,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "FromCorner",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 5,
+              "xg": 0.02,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "IndividualPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 33,
+              "xg": 0.05,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "SetPiece",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 34,
+              "xg": 0.09,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 39,
+              "xg": 0.04,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "SetPiece",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 45,
+              "xg": 0.02,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 50,
+              "xg": 0.31,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 56,
+              "xg": 0.05,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "FreeKick",
+              "event_type": "Post"
+            }
+          ]
         },
         "attacking_zones": {
           "city": {
@@ -1307,6 +2473,7 @@
         "title": "马雷斯卡对水晶宫怎么布置，又是怎么调整的？",
         "standfirst": "从开场站位讲起，再看进攻路线、防守漏洞和换人效果。",
         "problems": [
+          "下半场前 30 分钟只做出 6 次射门、0.27 xG，马雷斯卡到 75 分钟才第一次主动换人，慢了。",
           "水晶宫拿到 3 次绝佳机会、0.66 xG。球赢了，防守却一点也不稳。",
           "5 次绝佳机会只进 4 个。机会已经到了门前，最后一脚的处理也需要球员提高。",
           "下半场只有 0.48 xG。领先以后，球队把主动权踢没了一截。"
@@ -1316,8 +2483,9 @@
             "heading": "一、先把马雷斯卡的开场站位说清",
             "paragraphs": [
               "马雷斯卡开场摆出 4-2-3-1，水晶宫是 3-4-2-1。思路是双后腰稳住出球，前腰去接两条线之间的球，两名边锋负责把防线撑开。",
+              "从开场落位看，后腰线是奥赖利、埃利奥特·安德森，身前一排是福登、谢尔基、塞梅尼奥，最前面是哈兰德。",
               "水晶宫用两名前腰站在曼城双后腰两侧，正好盯着出球的接应点。曼城如果只在双后腰脚下横传，推进会很慢；破法是边后卫或前腰主动落下来，先多造出一个接球点。",
-              "曼城最后拿到 72% 控球，完成 731 次准确传球。球大部分时间在曼城脚下，xG 只领先 1.55，控球没有压成决定性的机会优势。"
+              "曼城最后拿到 72% 控球，完成 731 次准确传球，成功率 93%。球大部分时间在曼城脚下，xG 只领先 1.55，控球没有压成决定性的机会优势。"
             ]
           },
           {
@@ -1332,6 +2500,7 @@
           {
             "heading": "三、进攻为什么会卡住",
             "paragraphs": [
+              "下半场开局，46分钟到第一次主动换人的 75 分钟，曼城只有 6 次射门、0.27 xG。球队能够推进到前场，控球却停在外围，没能连续变成真正的机会。",
               "曼城做出 2.21 xG，其中运动战和反击是 1.81，定位球是 0.40。其中 1 脚的单次 xG 不低于 0.30。",
               "5 次绝佳机会只进 4 个。机会已经做出来，最后一脚没有处理好，这是球员执行问题。"
             ]
@@ -1339,8 +2508,9 @@
           {
             "heading": "四、比赛怎么变了：水晶宫的调整有没有奏效",
             "paragraphs": [
-              "上半场曼城做出11次射门、1.73 xG，下半场是8次、0.48 xG。中场以后进攻明显降速，对手收窄空间后，曼城没有及时换一条推进路线。",
-              "水晶宫上半场有7次射门、0.30 xG，下半场是2次、0.36 xG。曼城下半场限制住了对手的大部分推进，防守调整起到了作用。"
+              "把比赛切成每15分钟来看，曼城进攻最有威胁的是16到30分钟：4次射门、0.94 xG。全场质量最高的一批机会集中在这里，回看时应该盯住机会出现前的接应层次和最后一次向前传球。",
+              "水晶宫最危险的是46到60分钟，做出2次射门、0.36 xG。这是曼城控制力最松的一段，压迫高度、球后人数和边路保护都要拿出来重新看。",
+              "下半场开局15分钟，曼城是6次射门、0.27 xG，对手是2次、0.36 xG；最后15分钟则变成曼城2次、0.20 xG，对手0次、0.00 xG。比赛有没有被重新控制住，从这两段的变化最容易看出来。"
             ]
           },
           {
@@ -1353,19 +2523,26 @@
           {
             "heading": "六、换人复盘：马雷斯卡动得早不早，换完有没有用",
             "paragraphs": [
-              "这一场的旧数据没有留下完整换人时间，本节暂缺。"
+              "马雷斯卡这场的换人是：75分钟Joško Gvardiol下，马特奥·科瓦契奇上；82分钟埃利奥特·安德森下，布阿迪上；82分钟谢尔基下，麦卡杜上；89分钟胡桑诺夫下，Kaden Braithwaite上；89分钟奥赖利下，维托尔·雷斯上。",
+              "马特奥·科瓦契奇换下Joško Gvardiol前15分钟，曼城有 0 次射门、0.00 xG；换人后15分钟是 2 次射门、0.20 xG。换人后的这段时间，进攻有了起色。",
+              "下半场进攻已经卡了一阵，马雷斯卡到 75 分钟才第一次主动动人。这个调整偏慢。",
+              "82分钟布阿迪换下埃利奥特·安德森。这次调整以后，两边的威胁变化不大。",
+              "82分钟麦卡杜换下谢尔基。这次调整以后，两边的威胁变化不大。",
+              "89分钟Kaden Braithwaite换下胡桑诺夫。这次调整以后，两边的威胁变化不大。",
+              "89分钟维托尔·雷斯换下奥赖利。这次调整以后，两边的威胁变化不大。"
             ]
           },
           {
             "heading": "七、下一场，马雷斯卡具体该改什么",
             "paragraphs": [
-              "第一步是把球后的保护补齐。一个中场前插时，另一个人要守住中路，至少留三名后场球员应付第一脚反击，不能让对手一过中线就直接面对中卫。"
+              "第一步是把球后的保护补齐。一个中场前插时，另一个人要守住中路，至少留三名后场球员应付第一脚反击，不能让对手一过中线就直接面对中卫。",
+              "第二个要改的是反应速度。下半场十分钟左右如果射门和禁区触球明显掉下去，就该先调站位，或者更早换上福登；等到 75 分钟才动，留给调整起效的时间太少。"
             ]
           },
           {
             "heading": "八、最后总结：这场球真正留下了什么",
             "paragraphs": [
-              "马雷斯卡需要改的地方很清楚：禁区保护让对手拿到太多大机会，这是防守安排的问题。",
+              "马雷斯卡需要改的地方很清楚：禁区保护让对手拿到太多大机会，这是防守安排的问题；场面发闷以后换得偏晚，这是临场问题。",
               "球员执行同样有问题：5 次绝佳机会只进 4 个，战术已经把机会做出来，最后一下仍要由球员完成。",
               "4-1赢了，但下一场如果还是让对手拿到 3 次绝佳机会，未必还能这么收场。"
             ]
@@ -1378,7 +2555,7 @@
     {
       "id": "5795370",
       "date": "2026-08-23T13:00:00.000Z",
-      "analysed_at": "2026-09-06T03:01:19.978Z",
+      "analysed_at": "2026-09-09T07:33:12.685Z",
       "competition": "Premier League",
       "is_home": true,
       "city": {
@@ -1394,7 +2571,7 @@
       "score": "2-1",
       "result": "胜",
       "headline": "从控场到机会，这场胜利有数据支撑",
-      "verdict": "曼城明显掌握球权，控球率 66% 对 34%；全场 xG 2.25-0.65，机会质量明显占优。比分是 2-1，但判断比赛不能只看结果。",
+      "verdict": "曼城明显掌握球权，控球率 66% 对 34%；全场 xG 2.25-0.65，机会质量明显占优。最终比分 2-1。",
       "analysis": [
         {
           "key": "control",
@@ -1611,120 +2788,208 @@
       ],
       "tactical_data": {
         "lineup": {
+          "city_coach": "马雷斯卡",
+          "city_coach_en": "Enzo Maresca",
           "city_formation": "4-2-3-1",
           "opponent_formation": "4-2-3-1",
           "city_starting_xi": [
             {
               "id": "618878",
               "name": "多纳鲁马",
-              "name_en": "Gianluigi Donnarumma"
+              "name_en": "Gianluigi Donnarumma",
+              "position_id": 11,
+              "rating": 7.8
             },
             {
               "id": "1288450",
               "name": "里科·刘易斯",
-              "name_en": "Rico Lewis"
+              "name_en": "Rico Lewis",
+              "position_id": 32,
+              "rating": 6.1
             },
             {
               "id": "1362998",
               "name": "胡桑诺夫",
-              "name_en": "Abdukodir Khusanov"
+              "name_en": "Abdukodir Khusanov",
+              "position_id": 34,
+              "rating": 7.7
             },
             {
               "id": "614006",
               "name": "鲁本·迪亚斯",
-              "name_en": "Rúben Dias"
+              "name_en": "Rúben Dias",
+              "position_id": 36,
+              "rating": 7.8
             },
             {
               "id": "1070712",
               "name": "格瓦迪奥尔",
-              "name_en": "Josko Gvardiol"
+              "name_en": "Josko Gvardiol",
+              "position_id": 38,
+              "rating": 8.4
             },
             {
               "id": "1089691",
               "name": "埃利奥特·安德森",
-              "name_en": "Elliot Anderson"
+              "name_en": "Elliot Anderson",
+              "position_id": 64,
+              "rating": 6.7
             },
             {
               "id": "844425",
               "name": "格伊",
-              "name_en": "Marc Guéhi"
+              "name_en": "Marc Guéhi",
+              "position_id": 66,
+              "rating": 8.5
             },
             {
               "id": "815006",
               "name": "福登",
-              "name_en": "Phil Foden"
+              "name_en": "Phil Foden",
+              "position_id": 83,
+              "rating": 7.3
             },
             {
               "id": "1300526",
               "name": "奥赖利",
-              "name_en": "Nico O'Reilly"
+              "name_en": "Nico O'Reilly",
+              "position_id": 85,
+              "rating": 6.8
             },
             {
               "id": "933576",
               "name": "塞梅尼奥",
-              "name_en": "Antoine Semenyo"
+              "name_en": "Antoine Semenyo",
+              "position_id": 87,
+              "rating": 7.4
             },
             {
               "id": "737066",
               "name": "哈兰德",
-              "name_en": "Erling Haaland"
+              "name_en": "Erling Haaland",
+              "position_id": 115,
+              "rating": 7.2
             }
           ],
           "opponent_starting_xi": [
             {
               "id": "1067256",
               "name": "Djordje Petrovic",
-              "name_en": "Djordje Petrovic"
+              "name_en": "Djordje Petrovic",
+              "position_id": 11,
+              "rating": 7.4
             },
             {
               "id": "160447",
               "name": "Adam Smith",
-              "name_en": "Adam Smith"
+              "name_en": "Adam Smith",
+              "position_id": 32,
+              "rating": 6.2
             },
             {
               "id": "959407",
               "name": "James Hill",
-              "name_en": "James Hill"
+              "name_en": "James Hill",
+              "position_id": 34,
+              "rating": 5.9
             },
             {
               "id": "1292092",
               "name": "António Silva",
-              "name_en": "António Silva"
+              "name_en": "António Silva",
+              "position_id": 36,
+              "rating": 6.1
             },
             {
               "id": "1177358",
               "name": "Adrien Truffert",
-              "name_en": "Adrien Truffert"
+              "name_en": "Adrien Truffert",
+              "position_id": 38,
+              "rating": 6.6
             },
             {
               "id": "562724",
               "name": "Lewis Cook",
-              "name_en": "Lewis Cook"
+              "name_en": "Lewis Cook",
+              "position_id": 64,
+              "rating": 6.1
             },
             {
               "id": "1233655",
               "name": "Alex Scott",
-              "name_en": "Alex Scott"
+              "name_en": "Alex Scott",
+              "position_id": 66,
+              "rating": 6.8
             },
             {
               "id": "1478295",
               "name": "Rayan",
-              "name_en": "Rayan"
+              "name_en": "Rayan",
+              "position_id": 83,
+              "rating": 6.2
             },
             {
               "id": "794253",
               "name": "Justin Kluivert",
-              "name_en": "Justin Kluivert"
+              "name_en": "Justin Kluivert",
+              "position_id": 85,
+              "rating": 7.2
             },
             {
               "id": "789630",
               "name": "Marcus Tavernier",
-              "name_en": "Marcus Tavernier"
+              "name_en": "Marcus Tavernier",
+              "position_id": 87,
+              "rating": 7.6
             },
             {
               "id": "1098096",
               "name": "Evanilson",
-              "name_en": "Evanilson"
+              "name_en": "Evanilson",
+              "position_id": 115,
+              "rating": 7.3
+            }
+          ],
+          "city_substitutions": [
+            {
+              "minute": 57,
+              "out": "里科·刘易斯",
+              "out_en": "Rico Lewis",
+              "in": "马特乌斯·努内斯",
+              "in_en": "Matheus Nunes",
+              "out_position_id": 1,
+              "in_position_id": 1,
+              "reason": "tactical"
+            },
+            {
+              "minute": 63,
+              "out": "埃利奥特·安德森",
+              "out_en": "Elliot Anderson",
+              "in": "马特奥·科瓦契奇",
+              "in_en": "Mateo Kovacic",
+              "out_position_id": 2,
+              "in_position_id": 2,
+              "reason": "injury"
+            },
+            {
+              "minute": 63,
+              "out": "奥赖利",
+              "out_en": "Nico O'Reilly",
+              "in": "谢尔基",
+              "in_en": "Rayan Cherki",
+              "out_position_id": 1,
+              "in_position_id": 2,
+              "reason": "tactical"
+            },
+            {
+              "minute": 82,
+              "out": "福登",
+              "out_en": "Phil Foden",
+              "in": "Jack Grealish",
+              "in_en": "Jack Grealish",
+              "out_position_id": 2,
+              "in_position_id": 3,
+              "reason": "tactical"
             }
           ]
         },
@@ -1746,7 +3011,113 @@
           "second_half": {
             "shots": 7,
             "xg": 1.76
-          }
+          },
+          "timeline": [
+            {
+              "minute": 4,
+              "xg": 0.17,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 5,
+              "xg": 0.07,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "FromCorner",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 8,
+              "xg": 0.07,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 33,
+              "xg": 0.05,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 39,
+              "xg": 0.04,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 44,
+              "xg": 0.08,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "FromCorner",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 51,
+              "xg": 0.77,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "FromCorner",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 67,
+              "xg": 0.06,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 68,
+              "xg": 0.05,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 72,
+              "xg": 0.07,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 75,
+              "xg": 0.49,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 84,
+              "xg": 0.12,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "FromCorner",
+              "event_type": "Goal"
+            },
+            {
+              "minute": 90,
+              "xg": 0.19,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Goal"
+            }
+          ]
         },
         "opponent_shots": {
           "available": true,
@@ -1766,7 +3137,49 @@
           "second_half": {
             "shots": 1,
             "xg": 0.1
-          }
+          },
+          "timeline": [
+            {
+              "minute": 14,
+              "xg": 0.04,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 26,
+              "xg": 0.34,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Goal"
+            },
+            {
+              "minute": 40,
+              "xg": 0.06,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "FastBreak",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 41,
+              "xg": 0.11,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 79,
+              "xg": 0.1,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "SetPiece",
+              "event_type": "AttemptSaved"
+            }
+          ]
         },
         "attacking_zones": {
           "city": {
@@ -1817,8 +3230,9 @@
             "heading": "一、先把马雷斯卡的开场站位说清",
             "paragraphs": [
               "马雷斯卡开场摆出 4-2-3-1，伯恩茅斯是 4-2-3-1。思路是双后腰稳住出球，前腰去接两条线之间的球，两名边锋负责把防线撑开。",
+              "从开场落位看，后腰线是埃利奥特·安德森、格伊，身前一排是福登、奥赖利、塞梅尼奥，最前面是哈兰德。",
               "4-2-3-1对4-2-3-1，胜负点不在阵型名字，而在谁能先把球送到对方中场身后。",
-              "曼城最后拿到 66% 控球，完成 584 次准确传球。球大部分时间在曼城脚下，xG 只领先 1.60，控球没有压成决定性的机会优势。"
+              "曼城最后拿到 66% 控球，完成 584 次准确传球，成功率 89%。球大部分时间在曼城脚下，xG 只领先 1.60，控球没有压成决定性的机会优势。"
             ]
           },
           {
@@ -1833,6 +3247,7 @@
           {
             "heading": "三、进攻为什么会卡住",
             "paragraphs": [
+              "下半场开局，46分钟到第一次主动换人的 57 分钟，曼城只有 1 次射门、0.77 xG。球队能够推进到前场，控球却停在外围，没能连续变成真正的机会。",
               "曼城做出 2.25 xG，其中运动战和反击是 1.21，定位球是 1.04。其中 2 脚的单次 xG 不低于 0.30。",
               "4 次绝佳机会只进 2 个。机会已经做出来，最后一脚没有处理好，这是球员执行问题。"
             ]
@@ -1840,8 +3255,9 @@
           {
             "heading": "四、比赛怎么变了：伯恩茅斯的调整有没有奏效",
             "paragraphs": [
-              "上半场曼城做出6次射门、0.49 xG，下半场是7次、1.76 xG。中场后的调整让进攻提了速，球队把更多球送进了真正危险的位置。",
-              "伯恩茅斯上半场有4次射门、0.55 xG，下半场是1次、0.10 xG。曼城下半场限制住了对手的大部分推进，防守调整起到了作用。"
+              "把比赛切成每15分钟来看，曼城进攻最有威胁的是46到60分钟：1次射门、0.77 xG。全场质量最高的一批机会集中在这里，回看时应该盯住机会出现前的接应层次和最后一次向前传球。",
+              "伯恩茅斯最危险的是16到30分钟，做出1次射门、0.34 xG。这是曼城控制力最松的一段，压迫高度、球后人数和边路保护都要拿出来重新看。",
+              "下半场开局15分钟，曼城是1次射门、0.77 xG，对手是0次、0.00 xG；最后15分钟则变成曼城2次、0.31 xG，对手1次、0.10 xG。比赛有没有被重新控制住，从这两段的变化最容易看出来。"
             ]
           },
           {
@@ -1854,7 +3270,10 @@
           {
             "heading": "六、换人复盘：马雷斯卡动得早不早，换完有没有用",
             "paragraphs": [
-              "这一场的旧数据没有留下完整换人时间，本节暂缺。"
+              "马雷斯卡这场的换人是：57分钟里科·刘易斯下，马特乌斯·努内斯上；63分钟埃利奥特·安德森下，马特奥·科瓦契奇上（被动换人）；63分钟奥赖利下，谢尔基上；82分钟福登下，Jack Grealish上。",
+              "马特乌斯·努内斯换下里科·刘易斯前15分钟，曼城有 1 次射门、0.77 xG；换人后15分钟是 2 次射门、0.11 xG。场面没有立刻出现明显变化。",
+              "63分钟谢尔基换下奥赖利。此后曼城做出 0.98 xG，对手是 0.10。到终场前，主动权仍在曼城这边。",
+              "82分钟Jack Grealish换下福登。此后曼城做出 0.31 xG，对手是 0.00。到终场前，主动权仍在曼城这边。"
             ]
           },
           {
@@ -1879,7 +3298,7 @@
     {
       "id": "5793186",
       "date": "2026-08-16T14:00:00.000Z",
-      "analysed_at": "2026-09-06T03:01:19.978Z",
+      "analysed_at": "2026-09-09T07:33:12.685Z",
       "competition": "Community Shield",
       "is_home": false,
       "city": {
@@ -1895,7 +3314,7 @@
       "score": "3-0",
       "result": "负",
       "headline": "失利不只看结果，更要看优势为何没有建立",
-      "verdict": "曼城拥有更多球权，控球率 59% 对 41%；全场 xG 1.12-2.16，机会质量落后于对手。比分是 0-3，但判断比赛不能只看结果。",
+      "verdict": "曼城拥有更多球权，控球率 59% 对 41%；全场 xG 1.12-2.16，机会质量落后于对手。最终比分 0-3。",
       "analysis": [
         {
           "key": "control",
@@ -2097,120 +3516,228 @@
       ],
       "tactical_data": {
         "lineup": {
+          "city_coach": "马雷斯卡",
+          "city_coach_en": "Enzo Maresca",
           "city_formation": "4-2-3-1",
           "opponent_formation": "4-3-3",
           "city_starting_xi": [
             {
               "id": "618878",
               "name": "多纳鲁马",
-              "name_en": "Gianluigi Donnarumma"
+              "name_en": "Gianluigi Donnarumma",
+              "position_id": 11,
+              "rating": 5.7
             },
             {
               "id": "1362998",
               "name": "胡桑诺夫",
-              "name_en": "Abdukodir Khusanov"
+              "name_en": "Abdukodir Khusanov",
+              "position_id": 32,
+              "rating": 6.9
             },
             {
               "id": "614006",
               "name": "鲁本·迪亚斯",
-              "name_en": "Rúben Dias"
+              "name_en": "Rúben Dias",
+              "position_id": 34,
+              "rating": 6.6
             },
             {
               "id": "1070712",
               "name": "格瓦迪奥尔",
-              "name_en": "Josko Gvardiol"
+              "name_en": "Josko Gvardiol",
+              "position_id": 36,
+              "rating": 6.8
             },
             {
               "id": "1300526",
               "name": "奥赖利",
-              "name_en": "Nico O'Reilly"
+              "name_en": "Nico O'Reilly",
+              "position_id": 38,
+              "rating": 5.4
             },
             {
               "id": "1089691",
               "name": "埃利奥特·安德森",
-              "name_en": "Elliot Anderson"
+              "name_en": "Elliot Anderson",
+              "position_id": 64,
+              "rating": 6.4
             },
             {
               "id": "239219",
               "name": "马特奥·科瓦契奇",
-              "name_en": "Mateo Kovacic"
+              "name_en": "Mateo Kovacic",
+              "position_id": 66,
+              "rating": 6.3
             },
             {
               "id": "933576",
               "name": "塞梅尼奥",
-              "name_en": "Antoine Semenyo"
+              "name_en": "Antoine Semenyo",
+              "position_id": 83,
+              "rating": 6.5
             },
             {
               "id": "815006",
               "name": "福登",
-              "name_en": "Phil Foden"
+              "name_en": "Phil Foden",
+              "position_id": 85,
+              "rating": 6.2
             },
             {
               "id": "942368",
               "name": "杰里米·多库",
-              "name_en": "Jérémy Doku"
+              "name_en": "Jérémy Doku",
+              "position_id": 87,
+              "rating": 6.3
             },
             {
               "id": "737066",
               "name": "哈兰德",
-              "name_en": "Erling Haaland"
+              "name_en": "Erling Haaland",
+              "position_id": 115,
+              "rating": 5.9
             }
           ],
           "opponent_starting_xi": [
             {
               "id": "562727",
               "name": "David Raya",
-              "name_en": "David Raya"
+              "name_en": "David Raya",
+              "position_id": 11,
+              "rating": 7.9
             },
             {
               "id": "776151",
               "name": "Ben White",
-              "name_en": "Ben White"
+              "name_en": "Ben White",
+              "position_id": 32,
+              "rating": 8.2
             },
             {
               "id": "1298907",
               "name": "Cristhian Mosquera",
-              "name_en": "Cristhian Mosquera"
+              "name_en": "Cristhian Mosquera",
+              "position_id": 34,
+              "rating": 6.8
             },
             {
               "id": "795179",
               "name": "Gabriel",
-              "name_en": "Gabriel"
+              "name_en": "Gabriel",
+              "position_id": 36,
+              "rating": 7.1
             },
             {
               "id": "1105912",
               "name": "Riccardo Calafiori",
-              "name_en": "Riccardo Calafiori"
+              "name_en": "Riccardo Calafiori",
+              "position_id": 38,
+              "rating": 7.6
             },
             {
               "id": "534670",
               "name": "Martin Ødegaard",
-              "name_en": "Martin Ødegaard"
+              "name_en": "Martin Ødegaard",
+              "position_id": 73,
+              "rating": 8.6
             },
             {
               "id": "850354",
               "name": "Bruno Guimarães",
-              "name_en": "Bruno Guimarães"
+              "name_en": "Bruno Guimarães",
+              "position_id": 75,
+              "rating": 6.7
             },
             {
               "id": "1406436",
               "name": "Myles Lewis-Skelly",
-              "name_en": "Myles Lewis-Skelly"
+              "name_en": "Myles Lewis-Skelly",
+              "position_id": 77,
+              "rating": 7.6
             },
             {
               "id": "1084981",
               "name": "Noni Madueke",
-              "name_en": "Noni Madueke"
+              "name_en": "Noni Madueke",
+              "position_id": 103,
+              "rating": 6.7
             },
             {
               "id": "749736",
               "name": "Kai Havertz",
-              "name_en": "Kai Havertz"
+              "name_en": "Kai Havertz",
+              "position_id": 105,
+              "rating": 7.7
             },
             {
               "id": "1157237",
               "name": "Christos Tzolis",
-              "name_en": "Christos Tzolis"
+              "name_en": "Christos Tzolis",
+              "position_id": 107,
+              "rating": 8.7
+            }
+          ],
+          "city_substitutions": [
+            {
+              "minute": 46,
+              "out": "杰里米·多库",
+              "out_en": "Jérémy Doku",
+              "in": "Jack Grealish",
+              "in_en": "Jack Grealish",
+              "out_position_id": 3,
+              "in_position_id": 3,
+              "reason": "injury"
+            },
+            {
+              "minute": 53,
+              "out": "哈兰德",
+              "out_en": "Erling Haaland",
+              "in": "奥马尔·马尔穆什",
+              "in_en": "Omar Marmoush",
+              "out_position_id": 3,
+              "in_position_id": 3,
+              "reason": "tactical"
+            },
+            {
+              "minute": 54,
+              "out": "奥赖利",
+              "out_en": "Nico O'Reilly",
+              "in": "格伊",
+              "in_en": "Marc Guéhi",
+              "out_position_id": 1,
+              "in_position_id": 1,
+              "reason": "tactical"
+            },
+            {
+              "minute": 60,
+              "out": "埃利奥特·安德森",
+              "out_en": "Elliot Anderson",
+              "in": "里科·刘易斯",
+              "in_en": "Rico Lewis",
+              "out_position_id": 2,
+              "in_position_id": 1,
+              "reason": "tactical"
+            },
+            {
+              "minute": 60,
+              "out": "福登",
+              "out_en": "Phil Foden",
+              "in": "谢尔基",
+              "in_en": "Rayan Cherki",
+              "out_position_id": 2,
+              "in_position_id": 2,
+              "reason": "tactical"
+            },
+            {
+              "minute": 79,
+              "out": "马特奥·科瓦契奇",
+              "out_en": "Mateo Kovacic",
+              "in": "Nico González",
+              "in_en": "Nico González",
+              "out_position_id": 2,
+              "in_position_id": 2,
+              "reason": "tactical"
             }
           ]
         },
@@ -2232,7 +3759,105 @@
           "second_half": {
             "shots": 7,
             "xg": 0.43
-          }
+          },
+          "timeline": [
+            {
+              "minute": 20,
+              "xg": 0.03,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 36,
+              "xg": 0.3,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 40,
+              "xg": 0.15,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 40,
+              "xg": 0.19,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 41,
+              "xg": 0.02,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "FromCorner",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 50,
+              "xg": 0.04,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 57,
+              "xg": 0.07,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 59,
+              "xg": 0.03,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 73,
+              "xg": 0.02,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 81,
+              "xg": 0.05,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 90,
+              "xg": 0.04,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 90,
+              "xg": 0.17,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            }
+          ]
         },
         "opponent_shots": {
           "available": true,
@@ -2252,7 +3877,81 @@
           "second_half": {
             "shots": 3,
             "xg": 1.17
-          }
+          },
+          "timeline": [
+            {
+              "minute": 1,
+              "xg": 0.27,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Goal"
+            },
+            {
+              "minute": 28,
+              "xg": 0.42,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Goal"
+            },
+            {
+              "minute": 41,
+              "xg": 0.02,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 43,
+              "xg": 0.13,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 45,
+              "xg": 0.11,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 45,
+              "xg": 0.04,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 48,
+              "xg": 0.74,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Goal"
+            },
+            {
+              "minute": 63,
+              "xg": 0.07,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 80,
+              "xg": 0.37,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            }
+          ]
         },
         "attacking_zones": {
           "city": {
@@ -2304,8 +4003,9 @@
             "heading": "一、先把马雷斯卡的开场站位说清",
             "paragraphs": [
               "马雷斯卡开场摆出 4-2-3-1，阿森纳是 4-3-3。思路是双后腰稳住出球，前腰去接两条线之间的球，两名边锋负责把防线撑开。",
+              "从开场落位看，后腰线是埃利奥特·安德森、马特奥·科瓦契奇，身前一排是塞梅尼奥、福登、杰里米·多库，最前面是哈兰德。",
               "阿森纳用三中场守住中路，曼城的前腰需要不断换位，把对方后腰从位置上带走；否则双后腰会有球，却找不到向前的线路。",
-              "曼城最后拿到 59% 控球，完成 519 次准确传球。球大部分时间在曼城脚下，xG 反而落后 1.04，控球没有压成决定性的机会优势。"
+              "曼城最后拿到 59% 控球，完成 519 次准确传球，成功率 89%。球大部分时间在曼城脚下，xG 反而落后 1.04，控球没有压成决定性的机会优势。"
             ]
           },
           {
@@ -2320,6 +4020,7 @@
           {
             "heading": "三、进攻为什么会卡住",
             "paragraphs": [
+              "下半场开局，46分钟到第一次主动换人的 53 分钟，曼城只有 1 次射门、0.04 xG。球队能够推进到前场，控球却停在外围，没能连续变成真正的机会。",
               "曼城做出 1.12 xG，其中运动战和反击是 1.10，定位球是 0.02。",
               "1 次绝佳机会只进 0 个。机会已经做出来，最后一脚没有处理好，这是球员执行问题。"
             ]
@@ -2327,8 +4028,9 @@
           {
             "heading": "四、比赛怎么变了：阿森纳的调整有没有奏效",
             "paragraphs": [
-              "上半场曼城做出5次射门、0.69 xG，下半场是7次、0.43 xG。两段比赛的机会产出接近，场面没有因为中场休息发生彻底变化。",
-              "阿森纳上半场有6次射门、0.99 xG，下半场是3次、1.17 xG。曼城下半场限制住了对手的大部分推进，防守调整起到了作用。"
+              "把比赛切成每15分钟来看，曼城进攻最有威胁的是31分钟到半场：4次射门、0.66 xG。全场质量最高的一批机会集中在这里，回看时应该盯住机会出现前的接应层次和最后一次向前传球。",
+              "阿森纳最危险的是46到60分钟，做出1次射门、0.74 xG。这是曼城控制力最松的一段，压迫高度、球后人数和边路保护都要拿出来重新看。",
+              "下半场开局15分钟，曼城是3次射门、0.14 xG，对手是1次、0.74 xG；最后15分钟则变成曼城3次、0.26 xG，对手1次、0.37 xG。比赛有没有被重新控制住，从这两段的变化最容易看出来。"
             ]
           },
           {
@@ -2341,7 +4043,13 @@
           {
             "heading": "六、换人复盘：马雷斯卡动得早不早，换完有没有用",
             "paragraphs": [
-              "这一场的旧数据没有留下完整换人时间，本节暂缺。"
+              "马雷斯卡这场的换人是：46分钟杰里米·多库下，Jack Grealish上（被动换人）；53分钟哈兰德下，奥马尔·马尔穆什上；54分钟奥赖利下，格伊上；60分钟埃利奥特·安德森下，里科·刘易斯上；60分钟福登下，谢尔基上；79分钟马特奥·科瓦契奇下，Nico González上。",
+              "奥马尔·马尔穆什换下哈兰德前15分钟，曼城有 1 次射门、0.04 xG；换人后15分钟是 2 次射门、0.10 xG。场面没有立刻出现明显变化。",
+              "进攻刚开始发闷，马雷斯卡就在 53 分钟动手，反应及时。",
+              "54分钟格伊换下奥赖利。这次调整以后，两边的威胁变化不大。",
+              "60分钟里科·刘易斯换下埃利奥特·安德森。这次调整以后，两边的威胁变化不大。",
+              "60分钟谢尔基换下福登。这次调整以后，两边的威胁变化不大。",
+              "79分钟Nico González换下马特奥·科瓦契奇。这次调整以后，两边的威胁变化不大。"
             ]
           },
           {
@@ -2366,7 +4074,7 @@
     {
       "id": "5862945",
       "date": "2026-08-09T11:00:00.000Z",
-      "analysed_at": "2026-09-06T03:01:19.978Z",
+      "analysed_at": "2026-09-09T07:33:12.685Z",
       "competition": "Club Friendlies",
       "is_home": true,
       "city": {
@@ -2382,7 +4090,7 @@
       "score": "3-1",
       "result": "胜",
       "headline": "结果拿下，过程仍有值得复盘之处",
-      "verdict": "曼城没有依靠控球建立绝对优势，控球率 54% 对 46%；全场 xG 0.00-0.00，双方机会质量接近。比分是 3-1，但判断比赛不能只看结果。",
+      "verdict": "曼城没有依靠控球建立绝对优势，控球率 54% 对 46%；全场 xG 0.00-0.00，双方机会质量接近。最终比分 3-1。",
       "analysis": [
         {
           "key": "control",
@@ -2606,120 +4314,218 @@
       ],
       "tactical_data": {
         "lineup": {
+          "city_coach": "主教练",
+          "city_coach_en": "",
           "city_formation": "4-2-3-1",
           "opponent_formation": "4-4-2",
           "city_starting_xi": [
             {
               "id": "618878",
               "name": "多纳鲁马",
-              "name_en": "Gianluigi Donnarumma"
+              "name_en": "Gianluigi Donnarumma",
+              "position_id": 11,
+              "rating": 6.5
             },
             {
               "id": "955529",
               "name": "马特乌斯·努内斯",
-              "name_en": "Matheus Nunes"
+              "name_en": "Matheus Nunes",
+              "position_id": 32,
+              "rating": 7.3
             },
             {
               "id": "614006",
               "name": "鲁本·迪亚斯",
-              "name_en": "Rúben Dias"
+              "name_en": "Rúben Dias",
+              "position_id": 34,
+              "rating": 7.5
             },
             {
               "id": "1580952",
               "name": "维托尔·雷斯",
-              "name_en": "Vitor Reis"
+              "name_en": "Vitor Reis",
+              "position_id": 36,
+              "rating": 6.3
             },
             {
               "id": "1070712",
               "name": "格瓦迪奥尔",
-              "name_en": "Josko Gvardiol"
+              "name_en": "Josko Gvardiol",
+              "position_id": 38,
+              "rating": 7.1
             },
             {
               "id": "239219",
               "name": "马特奥·科瓦契奇",
-              "name_en": "Mateo Kovacic"
+              "name_en": "Mateo Kovacic",
+              "position_id": 64,
+              "rating": 7
             },
             {
               "id": "868344",
               "name": "蒂贾尼·赖因德斯",
-              "name_en": "Tijjani Reijnders"
+              "name_en": "Tijjani Reijnders",
+              "position_id": 66,
+              "rating": 7.2
             },
             {
               "id": "1174337",
               "name": "萨维尼奥",
-              "name_en": "Savinho"
+              "name_en": "Savinho",
+              "position_id": 83,
+              "rating": 7.9
             },
             {
               "id": "815006",
               "name": "福登",
-              "name_en": "Phil Foden"
+              "name_en": "Phil Foden",
+              "position_id": 85,
+              "rating": 7.7
             },
             {
               "id": "933576",
               "name": "塞梅尼奥",
-              "name_en": "Antoine Semenyo"
+              "name_en": "Antoine Semenyo",
+              "position_id": 87,
+              "rating": 8.4
             },
             {
               "id": "839204",
               "name": "奥马尔·马尔穆什",
-              "name_en": "Omar Marmoush"
+              "name_en": "Omar Marmoush",
+              "position_id": 115,
+              "rating": 8.8
             }
           ],
           "opponent_starting_xi": [
             {
               "id": "177126",
               "name": "Jan Oblak",
-              "name_en": "Jan Oblak"
+              "name_en": "Jan Oblak",
+              "position_id": 11,
+              "rating": 6.1
             },
             {
               "id": "1842329",
               "name": "Jorge Domínguez",
-              "name_en": "Jorge Domínguez"
+              "name_en": "Jorge Domínguez",
+              "position_id": 32,
+              "rating": 7.6
             },
             {
               "id": "609516",
               "name": "Robin Le Normand",
-              "name_en": "Robin Le Normand"
+              "name_en": "Robin Le Normand",
+              "position_id": 34,
+              "rating": 6.4
             },
             {
               "id": "727897",
               "name": "Dávid Hancko",
-              "name_en": "Dávid Hancko"
+              "name_en": "Dávid Hancko",
+              "position_id": 36,
+              "rating": 6.3
             },
             {
               "id": "1531100",
               "name": "Dani Martinez",
-              "name_en": "Dani Martinez"
+              "name_en": "Dani Martinez",
+              "position_id": 38,
+              "rating": 4.4
             },
             {
               "id": "1282015",
               "name": "Carlos Martín",
-              "name_en": "Carlos Martín"
+              "name_en": "Carlos Martín",
+              "position_id": 72,
+              "rating": 5.6
             },
             {
               "id": "184533",
               "name": "Koke",
-              "name_en": "Koke"
+              "name_en": "Koke",
+              "position_id": 74,
+              "rating": 6.1
             },
             {
               "id": "950199",
               "name": "Morten Hjulmand",
-              "name_en": "Morten Hjulmand"
+              "name_en": "Morten Hjulmand",
+              "position_id": 76,
+              "rating": 7
             },
             {
               "id": "1254394",
               "name": "Obed Vargas",
-              "name_en": "Obed Vargas"
+              "name_en": "Obed Vargas",
+              "position_id": 78,
+              "rating": 6
             },
             {
               "id": "1419969",
               "name": "Rodrigo Mendoza",
-              "name_en": "Rodrigo Mendoza"
+              "name_en": "Rodrigo Mendoza",
+              "position_id": 104,
+              "rating": 6.2
             },
             {
               "id": "690516",
               "name": "Ademola Lookman",
-              "name_en": "Ademola Lookman"
+              "name_en": "Ademola Lookman",
+              "position_id": 106,
+              "rating": 5.9
+            }
+          ],
+          "city_substitutions": [
+            {
+              "minute": 46,
+              "out": "维托尔·雷斯",
+              "out_en": "Vitor Reis",
+              "in": "里科·刘易斯",
+              "in_en": "Rico Lewis",
+              "out_position_id": 1,
+              "in_position_id": 1,
+              "reason": "tactical"
+            },
+            {
+              "minute": 61,
+              "out": "马特奥·科瓦契奇",
+              "out_en": "Mateo Kovacic",
+              "in": "Nico González",
+              "in_en": "Nico González",
+              "out_position_id": 2,
+              "in_position_id": 2,
+              "reason": "tactical"
+            },
+            {
+              "minute": 64,
+              "out": "塞梅尼奥",
+              "out_en": "Antoine Semenyo",
+              "in": "迪万·穆巴马",
+              "in_en": "Divin Mubama",
+              "out_position_id": 3,
+              "in_position_id": 3,
+              "reason": "tactical"
+            },
+            {
+              "minute": 77,
+              "out": "奥马尔·马尔穆什",
+              "out_en": "Omar Marmoush",
+              "in": "拉扬·艾特-努里",
+              "in_en": "Rayan Aït-Nouri",
+              "out_position_id": 3,
+              "in_position_id": 1,
+              "reason": "tactical"
+            },
+            {
+              "minute": 83,
+              "out": "萨维尼奥",
+              "out_en": "Savinho",
+              "in": "Claudio Echeverri",
+              "in_en": "Claudio Echeverri",
+              "out_position_id": 3,
+              "in_position_id": 3,
+              "reason": "tactical"
             }
           ]
         },
@@ -2741,7 +4547,8 @@
           "second_half": {
             "shots": 0,
             "xg": 0
-          }
+          },
+          "timeline": []
         },
         "opponent_shots": {
           "available": false,
@@ -2761,7 +4568,8 @@
           "second_half": {
             "shots": 0,
             "xg": 0
-          }
+          },
+          "timeline": []
         },
         "attacking_zones": {
           "city": null,
@@ -2770,18 +4578,19 @@
       },
       "tactical_longform": {
         "version": 8,
-        "title": "马雷斯卡对马德里竞技怎么布置，又是怎么调整的？",
+        "title": "主教练对马德里竞技怎么布置，又是怎么调整的？",
         "standfirst": "从开场站位讲起，再看进攻路线、防守漏洞和换人效果。",
         "problems": [
           "6 次绝佳机会只进 3 个。机会已经到了门前，最后一脚的处理也需要球员提高。"
         ],
         "sections": [
           {
-            "heading": "一、先把马雷斯卡的开场站位说清",
+            "heading": "一、先把主教练的开场站位说清",
             "paragraphs": [
-              "马雷斯卡开场摆出 4-2-3-1，马德里竞技是 4-4-2。思路是双后腰稳住出球，前腰去接两条线之间的球，两名边锋负责把防线撑开。",
+              "主教练开场摆出 4-2-3-1，马德里竞技是 4-4-2。思路是双后腰稳住出球，前腰去接两条线之间的球，两名边锋负责把防线撑开。",
+              "从开场落位看，后腰线是马特奥·科瓦契奇、蒂贾尼·赖因德斯，身前一排是萨维尼奥、福登、塞梅尼奥，最前面是奥马尔·马尔穆什。",
               "马德里竞技的两名前锋先封中路，两排四人再守住宽度。曼城双后腰拿球不难，难的是把第一脚向前传送到对手中场身后。",
-              "曼城最后拿到 54% 控球，完成 474 次准确传球。球大部分时间在曼城脚下，高质量机会仍然有限，控球没有压成决定性的机会优势。"
+              "曼城最后拿到 54% 控球，完成 474 次准确传球，成功率 92%。球大部分时间在曼城脚下，高质量机会仍然有限，控球没有压成决定性的机会优势。"
             ]
           },
           {
@@ -2795,6 +4604,7 @@
           {
             "heading": "三、进攻为什么会卡住",
             "paragraphs": [
+              "下半场开局，46分钟到第一次主动换人的 46 分钟，曼城只有 0 次射门、0.00 xG。球队能够推进到前场，控球却停在外围，没能连续变成真正的机会。",
               "曼城有 16 次射门、6 次绝佳机会。",
               "6 次绝佳机会只进 3 个。机会已经做出来，最后一脚没有处理好，这是球员执行问题。"
             ]
@@ -2814,13 +4624,13 @@
             ]
           },
           {
-            "heading": "六、换人复盘：马雷斯卡动得早不早，换完有没有用",
+            "heading": "六、换人复盘：主教练动得早不早，换完有没有用",
             "paragraphs": [
-              "这一场的旧数据没有留下完整换人时间，本节暂缺。"
+              "主教练这场的换人是：46分钟维托尔·雷斯下，里科·刘易斯上；61分钟马特奥·科瓦契奇下，Nico González上；64分钟塞梅尼奥下，迪万·穆巴马上；77分钟奥马尔·马尔穆什下，拉扬·艾特-努里上；83分钟萨维尼奥下，Claudio Echeverri上。"
             ]
           },
           {
-            "heading": "七、下一场，马雷斯卡具体该改什么",
+            "heading": "七、下一场，主教练具体该改什么",
             "paragraphs": [
               "下一场先保留这一场运转顺畅的开场结构，同时把前15分钟的向前传球、丢球后反抢和弱侧接应作为重点。对手一旦换了压迫方式，场上站位也要跟着调。"
             ]
@@ -2828,7 +4638,7 @@
           {
             "heading": "八、最后总结：这场球真正留下了什么",
             "paragraphs": [
-              "马雷斯卡这场的开场方案和临场处理没有暴露明显硬伤。",
+              "主教练这场的开场方案和临场处理没有暴露明显硬伤。",
               "球员执行同样有问题：6 次绝佳机会只进 3 个，战术已经把机会做出来，最后一下仍要由球员完成。",
               "3-1赢了，但下一场如果还是让对手拿到 1 次绝佳机会，未必还能这么收场。"
             ]
@@ -2841,7 +4651,7 @@
     {
       "id": "5862944",
       "date": "2026-08-05T11:00:00.000Z",
-      "analysed_at": "2026-09-06T03:01:19.978Z",
+      "analysed_at": "2026-09-09T07:33:12.685Z",
       "competition": "Club Friendlies",
       "is_home": false,
       "city": {
@@ -2857,7 +4667,7 @@
       "score": "1-3",
       "result": "胜",
       "headline": "结果拿下，过程仍有值得复盘之处",
-      "verdict": "曼城没有依靠控球建立绝对优势，控球率 50% 对 50%；全场 xG 0.00-0.00，双方机会质量接近。比分是 3-1，但判断比赛不能只看结果。",
+      "verdict": "曼城没有依靠控球建立绝对优势，控球率 50% 对 50%；全场 xG 0.00-0.00，双方机会质量接近。最终比分 3-1。",
       "analysis": [
         {
           "key": "control",
@@ -2950,120 +4760,278 @@
       "top_players": [],
       "tactical_data": {
         "lineup": {
+          "city_coach": "主教练",
+          "city_coach_en": "",
           "city_formation": "4-2-3-1",
           "opponent_formation": "4-4-2",
           "city_starting_xi": [
             {
               "id": "618878",
               "name": "多纳鲁马",
-              "name_en": "Gianluigi Donnarumma"
+              "name_en": "Gianluigi Donnarumma",
+              "position_id": 11,
+              "rating": null
             },
             {
               "id": "1288450",
               "name": "里科·刘易斯",
-              "name_en": "Rico Lewis"
+              "name_en": "Rico Lewis",
+              "position_id": 32,
+              "rating": null
             },
             {
               "id": "1362998",
               "name": "胡桑诺夫",
-              "name_en": "Abdukodir Khusanov"
+              "name_en": "Abdukodir Khusanov",
+              "position_id": 34,
+              "rating": null
             },
             {
               "id": "614006",
               "name": "鲁本·迪亚斯",
-              "name_en": "Rúben Dias"
+              "name_en": "Rúben Dias",
+              "position_id": 36,
+              "rating": null
             },
             {
               "id": "1070712",
               "name": "格瓦迪奥尔",
-              "name_en": "Josko Gvardiol"
+              "name_en": "Josko Gvardiol",
+              "position_id": 38,
+              "rating": null
             },
             {
               "id": "868344",
               "name": "蒂贾尼·赖因德斯",
-              "name_en": "Tijjani Reijnders"
+              "name_en": "Tijjani Reijnders",
+              "position_id": 64,
+              "rating": null
             },
             {
               "id": "239219",
               "name": "马特奥·科瓦契奇",
-              "name_en": "Mateo Kovacic"
+              "name_en": "Mateo Kovacic",
+              "position_id": 66,
+              "rating": null
             },
             {
               "id": "933576",
               "name": "塞梅尼奥",
-              "name_en": "Antoine Semenyo"
+              "name_en": "Antoine Semenyo",
+              "position_id": 83,
+              "rating": null
             },
             {
               "id": "815006",
               "name": "福登",
-              "name_en": "Phil Foden"
+              "name_en": "Phil Foden",
+              "position_id": 85,
+              "rating": null
             },
             {
               "id": "933845",
               "name": "拉扬·艾特-努里",
-              "name_en": "Rayan Aït-Nouri"
+              "name_en": "Rayan Aït-Nouri",
+              "position_id": 87,
+              "rating": null
             },
             {
               "id": "1203658",
               "name": "迪万·穆巴马",
-              "name_en": "Divin Mubama"
+              "name_en": "Divin Mubama",
+              "position_id": 115,
+              "rating": null
             }
           ],
           "opponent_starting_xi": [
             {
               "id": "848068",
               "name": "Bum-Keun Song",
-              "name_en": "Bum-Keun Song"
+              "name_en": "Bum-Keun Song",
+              "position_id": 11,
+              "rating": null
             },
             {
               "id": "828273",
               "name": "Moon-Hwan Kim",
-              "name_en": "Moon-Hwan Kim"
+              "name_en": "Moon-Hwan Kim",
+              "position_id": 32,
+              "rating": null
             },
             {
               "id": "852168",
               "name": "Yazan Abu Al-Arab",
-              "name_en": "Yazan Abu Al-Arab"
+              "name_en": "Yazan Abu Al-Arab",
+              "position_id": 34,
+              "rating": null
             },
             {
               "id": "1232264",
               "name": "Gi-Hyuk Lee",
-              "name_en": "Gi-Hyuk Lee"
+              "name_en": "Gi-Hyuk Lee",
+              "position_id": 36,
+              "rating": null
             },
             {
               "id": "1232940",
               "name": "Jeong-Won Eo",
-              "name_en": "Jeong-Won Eo"
+              "name_en": "Jeong-Won Eo",
+              "position_id": 38,
+              "rating": null
             },
             {
               "id": "954131",
               "name": "Dong-Gyeong Lee",
-              "name_en": "Dong-Gyeong Lee"
+              "name_en": "Dong-Gyeong Lee",
+              "position_id": 72,
+              "rating": null
             },
             {
               "id": "1232490",
               "name": "Bong-Soo Kim",
-              "name_en": "Bong-Soo Kim"
+              "name_en": "Bong-Soo Kim",
+              "position_id": 74,
+              "rating": null
             },
             {
               "id": "925867",
               "name": "Tae-Joon Park",
-              "name_en": "Tae-Joon Park"
+              "name_en": "Tae-Joon Park",
+              "position_id": 76,
+              "rating": null
             },
             {
               "id": "734964",
               "name": "Dae-Won Kim",
-              "name_en": "Dae-Won Kim"
+              "name_en": "Dae-Won Kim",
+              "position_id": 78,
+              "rating": null
             },
             {
               "id": "783680",
               "name": "Matheus Oliveira Santos",
-              "name_en": "Matheus Oliveira Santos"
+              "name_en": "Matheus Oliveira Santos",
+              "position_id": 104,
+              "rating": null
             },
             {
               "id": "1354250",
               "name": "Yago Cariello",
-              "name_en": "Yago Cariello"
+              "name_en": "Yago Cariello",
+              "position_id": 106,
+              "rating": null
+            }
+          ],
+          "city_substitutions": [
+            {
+              "minute": 46,
+              "out": "多纳鲁马",
+              "out_en": "Gianluigi Donnarumma",
+              "in": "Marcus Bettinelli",
+              "in_en": "Marcus Bettinelli",
+              "out_position_id": 0,
+              "in_position_id": 0,
+              "reason": "tactical"
+            },
+            {
+              "minute": 46,
+              "out": "胡桑诺夫",
+              "out_en": "Abdukodir Khusanov",
+              "in": "Max Alleyne",
+              "in_en": "Max Alleyne",
+              "out_position_id": 1,
+              "in_position_id": 1,
+              "reason": "tactical"
+            },
+            {
+              "minute": 46,
+              "out": "鲁本·迪亚斯",
+              "out_en": "Rúben Dias",
+              "in": "斯蒂芬·姆富尼",
+              "in_en": "Stephen Mfuni",
+              "out_position_id": 1,
+              "in_position_id": 1,
+              "reason": "tactical"
+            },
+            {
+              "minute": 46,
+              "out": "格瓦迪奥尔",
+              "out_en": "Josko Gvardiol",
+              "in": "维托尔·雷斯",
+              "in_en": "Vitor Reis",
+              "out_position_id": 1,
+              "in_position_id": 1,
+              "reason": "tactical"
+            },
+            {
+              "minute": 46,
+              "out": "马特奥·科瓦契奇",
+              "out_en": "Mateo Kovacic",
+              "in": "Nico González",
+              "in_en": "Nico González",
+              "out_position_id": 2,
+              "in_position_id": 2,
+              "reason": "tactical"
+            },
+            {
+              "minute": 46,
+              "out": "塞梅尼奥",
+              "out_en": "Antoine Semenyo",
+              "in": "萨维尼奥",
+              "in_en": "Savinho",
+              "out_position_id": 3,
+              "in_position_id": 3,
+              "reason": "tactical"
+            },
+            {
+              "minute": 61,
+              "out": "里科·刘易斯",
+              "out_en": "Rico Lewis",
+              "in": "马特乌斯·努内斯",
+              "in_en": "Matheus Nunes",
+              "out_position_id": 1,
+              "in_position_id": 1,
+              "reason": "tactical"
+            },
+            {
+              "minute": 62,
+              "out": "蒂贾尼·赖因德斯",
+              "out_en": "Tijjani Reijnders",
+              "in": "Jaden Heskey",
+              "in_en": "Jaden Heskey",
+              "out_position_id": 2,
+              "in_position_id": 2,
+              "reason": "tactical"
+            },
+            {
+              "minute": 62,
+              "out": "福登",
+              "out_en": "Phil Foden",
+              "in": "Claudio Echeverri",
+              "in_en": "Claudio Echeverri",
+              "out_position_id": 2,
+              "in_position_id": 3,
+              "reason": "tactical"
+            },
+            {
+              "minute": 62,
+              "out": "拉扬·艾特-努里",
+              "out_en": "Rayan Aït-Nouri",
+              "in": "Jeremy Monga",
+              "in_en": "Jeremy Monga",
+              "out_position_id": 1,
+              "in_position_id": 3,
+              "reason": "tactical"
+            },
+            {
+              "minute": 62,
+              "out": "迪万·穆巴马",
+              "out_en": "Divin Mubama",
+              "in": "奥马尔·马尔穆什",
+              "in_en": "Omar Marmoush",
+              "out_position_id": 3,
+              "in_position_id": 3,
+              "reason": "tactical"
             }
           ]
         },
@@ -3085,7 +5053,8 @@
           "second_half": {
             "shots": 0,
             "xg": 0
-          }
+          },
+          "timeline": []
         },
         "opponent_shots": {
           "available": false,
@@ -3105,7 +5074,8 @@
           "second_half": {
             "shots": 0,
             "xg": 0
-          }
+          },
+          "timeline": []
         },
         "attacking_zones": {
           "city": null,
@@ -3114,16 +5084,17 @@
       },
       "tactical_longform": {
         "version": 8,
-        "title": "马雷斯卡对K联赛全明星怎么布置，又是怎么调整的？",
+        "title": "主教练对K联赛全明星怎么布置，又是怎么调整的？",
         "standfirst": "从开场站位讲起，再看进攻路线、防守漏洞和换人效果。",
         "problems": [
           "开场方案运转顺畅，临场调整也维持了比赛主动权。"
         ],
         "sections": [
           {
-            "heading": "一、先把马雷斯卡的开场站位说清",
+            "heading": "一、先把主教练的开场站位说清",
             "paragraphs": [
-              "马雷斯卡开场摆出 4-2-3-1，K联赛全明星是 4-4-2。思路是双后腰稳住出球，前腰去接两条线之间的球，两名边锋负责把防线撑开。",
+              "主教练开场摆出 4-2-3-1，K联赛全明星是 4-4-2。思路是双后腰稳住出球，前腰去接两条线之间的球，两名边锋负责把防线撑开。",
+              "从开场落位看，后腰线是蒂贾尼·赖因德斯、马特奥·科瓦契奇，身前一排是塞梅尼奥、福登、拉扬·艾特-努里，最前面是迪万·穆巴马。",
               "K联赛全明星的两名前锋先封中路，两排四人再守住宽度。曼城双后腰拿球不难，难的是把第一脚向前传送到对手中场身后。",
               "曼城最后拿到 0% 控球，完成 — 次准确传球。球大部分时间在曼城脚下，高质量机会仍然有限，控球没有压成决定性的机会优势。"
             ]
@@ -3139,6 +5110,7 @@
           {
             "heading": "三、进攻为什么会卡住",
             "paragraphs": [
+              "下半场开局，46分钟到第一次主动换人的 46 分钟，曼城只有 0 次射门、0.00 xG。球队能够推进到前场，控球却停在外围，没能连续变成真正的机会。",
               "曼城有 0 次射门、0 次绝佳机会。",
               "球权不少，真正能让对手门将难受的机会却没有跟着涨。"
             ]
@@ -3158,13 +5130,13 @@
             ]
           },
           {
-            "heading": "六、换人复盘：马雷斯卡动得早不早，换完有没有用",
+            "heading": "六、换人复盘：主教练动得早不早，换完有没有用",
             "paragraphs": [
-              "这一场的旧数据没有留下完整换人时间，本节暂缺。"
+              "主教练这场的换人是：46分钟多纳鲁马下，Marcus Bettinelli上；46分钟胡桑诺夫下，Max Alleyne上；46分钟鲁本·迪亚斯下，斯蒂芬·姆富尼上；46分钟格瓦迪奥尔下，维托尔·雷斯上；46分钟马特奥·科瓦契奇下，Nico González上；46分钟塞梅尼奥下，萨维尼奥上；61分钟里科·刘易斯下，马特乌斯·努内斯上；62分钟蒂贾尼·赖因德斯下，Jaden Heskey上；62分钟福登下，Claudio Echeverri上；62分钟拉扬·艾特-努里下，Jeremy Monga上；62分钟迪万·穆巴马下，奥马尔·马尔穆什上。"
             ]
           },
           {
-            "heading": "七、下一场，马雷斯卡具体该改什么",
+            "heading": "七、下一场，主教练具体该改什么",
             "paragraphs": [
               "下一场先保留这一场运转顺畅的开场结构，同时把前15分钟的向前传球、丢球后反抢和弱侧接应作为重点。对手一旦换了压迫方式，场上站位也要跟着调。"
             ]
@@ -3172,7 +5144,7 @@
           {
             "heading": "八、最后总结：这场球真正留下了什么",
             "paragraphs": [
-              "马雷斯卡这场的开场方案和临场处理没有暴露明显硬伤。",
+              "主教练这场的开场方案和临场处理没有暴露明显硬伤。",
               "球员把主要机会兑现了，结果和场面基本对得上。",
               "3-1赢了，但下一场如果还是让对手拿到 0 次绝佳机会，未必还能这么收场。"
             ]
@@ -3185,7 +5157,7 @@
     {
       "id": "5406269",
       "date": "2026-08-01T11:30:00.000Z",
-      "analysed_at": "2026-09-06T03:01:19.978Z",
+      "analysed_at": "2026-09-09T07:33:12.685Z",
       "competition": "Club Friendlies",
       "is_home": true,
       "city": {
@@ -3201,7 +5173,7 @@
       "score": "1-1",
       "result": "平",
       "headline": "比分停住了，比赛里的得失更值得看",
-      "verdict": "曼城拥有更多球权，控球率 64% 对 36%；全场 xG 0.00-0.00，双方机会质量接近。比分是 1-1，但判断比赛不能只看结果。",
+      "verdict": "曼城拥有更多球权，控球率 64% 对 36%；全场 xG 0.00-0.00，双方机会质量接近。最终比分 1-1。",
       "analysis": [
         {
           "key": "control",
@@ -3406,120 +5378,248 @@
       ],
       "tactical_data": {
         "lineup": {
+          "city_coach": "主教练",
+          "city_coach_en": "",
           "city_formation": "4-2-3-1",
           "opponent_formation": "3-5-2",
           "city_starting_xi": [
             {
               "id": "618878",
               "name": "多纳鲁马",
-              "name_en": "Gianluigi Donnarumma"
+              "name_en": "Gianluigi Donnarumma",
+              "position_id": 11,
+              "rating": 7.3
             },
             {
               "id": "1288450",
               "name": "里科·刘易斯",
-              "name_en": "Rico Lewis"
+              "name_en": "Rico Lewis",
+              "position_id": 32,
+              "rating": 7.4
             },
             {
               "id": "1362998",
               "name": "胡桑诺夫",
-              "name_en": "Abdukodir Khusanov"
+              "name_en": "Abdukodir Khusanov",
+              "position_id": 34,
+              "rating": 7.2
             },
             {
               "id": "1070712",
               "name": "格瓦迪奥尔",
-              "name_en": "Josko Gvardiol"
+              "name_en": "Josko Gvardiol",
+              "position_id": 36,
+              "rating": 6.2
             },
             {
               "id": "1613300",
               "name": "斯蒂芬·姆富尼",
-              "name_en": "Stephen Mfuni"
+              "name_en": "Stephen Mfuni",
+              "position_id": 38,
+              "rating": 6.4
             },
             {
               "id": "239219",
               "name": "马特奥·科瓦契奇",
-              "name_en": "Mateo Kovacic"
+              "name_en": "Mateo Kovacic",
+              "position_id": 64,
+              "rating": 6.7
             },
             {
               "id": "868344",
               "name": "蒂贾尼·赖因德斯",
-              "name_en": "Tijjani Reijnders"
+              "name_en": "Tijjani Reijnders",
+              "position_id": 66,
+              "rating": 6.7
             },
             {
               "id": "933576",
               "name": "塞梅尼奥",
-              "name_en": "Antoine Semenyo"
+              "name_en": "Antoine Semenyo",
+              "position_id": 83,
+              "rating": 8
             },
             {
               "id": "815006",
               "name": "福登",
-              "name_en": "Phil Foden"
+              "name_en": "Phil Foden",
+              "position_id": 85,
+              "rating": 6.9
             },
             {
               "id": "1174337",
               "name": "萨维尼奥",
-              "name_en": "Savinho"
+              "name_en": "Savinho",
+              "position_id": 87,
+              "rating": 7
             },
             {
               "id": "1203658",
               "name": "迪万·穆巴马",
-              "name_en": "Divin Mubama"
+              "name_en": "Divin Mubama",
+              "position_id": 115,
+              "rating": 7.1
             }
           ],
           "opponent_starting_xi": [
             {
               "id": "772168",
               "name": "Josep Martínez",
-              "name_en": "Josep Martínez"
+              "name_en": "Josep Martínez",
+              "position_id": 11,
+              "rating": 7.2
             },
             {
               "id": "611223",
               "name": "Benjamin Pavard",
-              "name_en": "Benjamin Pavard"
+              "name_en": "Benjamin Pavard",
+              "position_id": 33,
+              "rating": 7.9
             },
             {
               "id": "889535",
               "name": "Yann Aurel Bisseck",
-              "name_en": "Yann Aurel Bisseck"
+              "name_en": "Yann Aurel Bisseck",
+              "position_id": 35,
+              "rating": 6.5
             },
             {
               "id": "940829",
               "name": "Carlos Augusto",
-              "name_en": "Carlos Augusto"
+              "name_en": "Carlos Augusto",
+              "position_id": 37,
+              "rating": 6.2
             },
             {
               "id": "1254297",
               "name": "Andy Diouf",
-              "name_en": "Andy Diouf"
+              "name_en": "Andy Diouf",
+              "position_id": 71,
+              "rating": 6.1
             },
             {
               "id": "541820",
               "name": "Nicolò Barella",
-              "name_en": "Nicolò Barella"
+              "name_en": "Nicolò Barella",
+              "position_id": 73,
+              "rating": 6.1
             },
             {
               "id": "1410437",
               "name": "Aleksandar Stankovic",
-              "name_en": "Aleksandar Stankovic"
+              "name_en": "Aleksandar Stankovic",
+              "position_id": 75,
+              "rating": 7.7
             },
             {
               "id": "73167",
               "name": "Henrikh Mkhitaryan",
-              "name_en": "Henrikh Mkhitaryan"
+              "name_en": "Henrikh Mkhitaryan",
+              "position_id": 77,
+              "rating": 6.7
             },
             {
               "id": "605224",
               "name": "Federico Dimarco",
-              "name_en": "Federico Dimarco"
+              "name_en": "Federico Dimarco",
+              "position_id": 79,
+              "rating": 6.4
             },
             {
               "id": "1367618",
               "name": "Francesco Pio Esposito",
-              "name_en": "Francesco Pio Esposito"
+              "name_en": "Francesco Pio Esposito",
+              "position_id": 104,
+              "rating": 6.7
             },
             {
               "id": "1814609",
               "name": "Jamal Iddrissou",
-              "name_en": "Jamal Iddrissou"
+              "name_en": "Jamal Iddrissou",
+              "position_id": 106,
+              "rating": 6.5
+            }
+          ],
+          "city_substitutions": [
+            {
+              "minute": 46,
+              "out": "格瓦迪奥尔",
+              "out_en": "Josko Gvardiol",
+              "in": "Max Alleyne",
+              "in_en": "Max Alleyne",
+              "out_position_id": 1,
+              "in_position_id": 1,
+              "reason": "tactical"
+            },
+            {
+              "minute": 46,
+              "out": "斯蒂芬·姆富尼",
+              "out_en": "Stephen Mfuni",
+              "in": "拉扬·艾特-努里",
+              "in_en": "Rayan Aït-Nouri",
+              "out_position_id": 1,
+              "in_position_id": 1,
+              "reason": "tactical"
+            },
+            {
+              "minute": 46,
+              "out": "马特奥·科瓦契奇",
+              "out_en": "Mateo Kovacic",
+              "in": "维托尔·雷斯",
+              "in_en": "Vitor Reis",
+              "out_position_id": 2,
+              "in_position_id": 1,
+              "reason": "tactical"
+            },
+            {
+              "minute": 46,
+              "out": "蒂贾尼·赖因德斯",
+              "out_en": "Tijjani Reijnders",
+              "in": "Nico González",
+              "in_en": "Nico González",
+              "out_position_id": 2,
+              "in_position_id": 2,
+              "reason": "tactical"
+            },
+            {
+              "minute": 46,
+              "out": "迪万·穆巴马",
+              "out_en": "Divin Mubama",
+              "in": "麦卡杜",
+              "in_en": "Ryan McAidoo",
+              "out_position_id": 3,
+              "in_position_id": 3,
+              "reason": "tactical"
+            },
+            {
+              "minute": 68,
+              "out": "塞梅尼奥",
+              "out_en": "Antoine Semenyo",
+              "in": "Claudio Echeverri",
+              "in_en": "Claudio Echeverri",
+              "out_position_id": 3,
+              "in_position_id": 3,
+              "reason": "tactical"
+            },
+            {
+              "minute": 68,
+              "out": "福登",
+              "out_en": "Phil Foden",
+              "in": "Mahamadou Sangaré",
+              "in_en": "Mahamadou Sangaré",
+              "out_position_id": 2,
+              "in_position_id": 3,
+              "reason": "tactical"
+            },
+            {
+              "minute": 78,
+              "out": "萨维尼奥",
+              "out_en": "Savinho",
+              "in": "Kaden Braithwaite",
+              "in_en": "Kaden Braithwaite",
+              "out_position_id": 3,
+              "in_position_id": 1,
+              "reason": "tactical"
             }
           ]
         },
@@ -3541,7 +5641,8 @@
           "second_half": {
             "shots": 0,
             "xg": 0
-          }
+          },
+          "timeline": []
         },
         "opponent_shots": {
           "available": false,
@@ -3561,7 +5662,8 @@
           "second_half": {
             "shots": 0,
             "xg": 0
-          }
+          },
+          "timeline": []
         },
         "attacking_zones": {
           "city": null,
@@ -3570,18 +5672,19 @@
       },
       "tactical_longform": {
         "version": 8,
-        "title": "马雷斯卡对国际米兰怎么布置，又是怎么调整的？",
+        "title": "主教练对国际米兰怎么布置，又是怎么调整的？",
         "standfirst": "从开场站位讲起，再看进攻路线、防守漏洞和换人效果。",
         "problems": [
           "3 次绝佳机会只进 1 个。机会已经到了门前，最后一脚的处理也需要球员提高。"
         ],
         "sections": [
           {
-            "heading": "一、先把马雷斯卡的开场站位说清",
+            "heading": "一、先把主教练的开场站位说清",
             "paragraphs": [
-              "马雷斯卡开场摆出 4-2-3-1，国际米兰是 3-5-2。思路是双后腰稳住出球，前腰去接两条线之间的球，两名边锋负责把防线撑开。",
+              "主教练开场摆出 4-2-3-1，国际米兰是 3-5-2。思路是双后腰稳住出球，前腰去接两条线之间的球，两名边锋负责把防线撑开。",
+              "从开场落位看，后腰线是马特奥·科瓦契奇、蒂贾尼·赖因德斯，身前一排是塞梅尼奥、福登、萨维尼奥，最前面是迪万·穆巴马。",
               "4-2-3-1对3-5-2，胜负点不在阵型名字，而在谁能先把球送到对方中场身后。",
-              "曼城最后拿到 64% 控球，完成 623 次准确传球。球大部分时间在曼城脚下，高质量机会仍然有限，控球没有压成决定性的机会优势。"
+              "曼城最后拿到 64% 控球，完成 623 次准确传球，成功率 93%。球大部分时间在曼城脚下，高质量机会仍然有限，控球没有压成决定性的机会优势。"
             ]
           },
           {
@@ -3595,6 +5698,7 @@
           {
             "heading": "三、进攻为什么会卡住",
             "paragraphs": [
+              "下半场开局，46分钟到第一次主动换人的 46 分钟，曼城只有 0 次射门、0.00 xG。球队能够推进到前场，控球却停在外围，没能连续变成真正的机会。",
               "曼城有 24 次射门、3 次绝佳机会。",
               "3 次绝佳机会只进 1 个。机会已经做出来，最后一脚没有处理好，这是球员执行问题。"
             ]
@@ -3614,13 +5718,13 @@
             ]
           },
           {
-            "heading": "六、换人复盘：马雷斯卡动得早不早，换完有没有用",
+            "heading": "六、换人复盘：主教练动得早不早，换完有没有用",
             "paragraphs": [
-              "这一场的旧数据没有留下完整换人时间，本节暂缺。"
+              "主教练这场的换人是：46分钟格瓦迪奥尔下，Max Alleyne上；46分钟斯蒂芬·姆富尼下，拉扬·艾特-努里上；46分钟马特奥·科瓦契奇下，维托尔·雷斯上；46分钟蒂贾尼·赖因德斯下，Nico González上；46分钟迪万·穆巴马下，麦卡杜上；68分钟塞梅尼奥下，Claudio Echeverri上；68分钟福登下，Mahamadou Sangaré上；78分钟萨维尼奥下，Kaden Braithwaite上。"
             ]
           },
           {
-            "heading": "七、下一场，马雷斯卡具体该改什么",
+            "heading": "七、下一场，主教练具体该改什么",
             "paragraphs": [
               "下一场先保留这一场运转顺畅的开场结构，同时把前15分钟的向前传球、丢球后反抢和弱侧接应作为重点。对手一旦换了压迫方式，场上站位也要跟着调。"
             ]
@@ -3628,7 +5732,7 @@
           {
             "heading": "八、最后总结：这场球真正留下了什么",
             "paragraphs": [
-              "马雷斯卡这场的开场方案和临场处理没有暴露明显硬伤。",
+              "主教练这场的开场方案和临场处理没有暴露明显硬伤。",
               "球员执行同样有问题：3 次绝佳机会只进 1 个，战术已经把机会做出来，最后一下仍要由球员完成。",
               "1-1已经把问题写在比分上：只拿球不够，得让阵型更快把球送进真正危险的地方。"
             ]

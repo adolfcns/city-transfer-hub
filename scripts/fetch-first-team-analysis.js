@@ -6,6 +6,7 @@ import { fetch } from 'undici';
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const OUTPUT_PATH = resolve(ROOT, 'data', 'first-team-analysis.json');
 const PUBLICATION_POLICY_PATH = resolve(ROOT, 'config', 'match-analysis-publication.json');
+const CURATED_REVIEWS_PATH = resolve(ROOT, 'config', 'match-analysis-curated.json');
 const FOTMOB_API = 'https://www.fotmob.com/api/data';
 const TEAM_ID = 8456;
 const TEAM_NAME = 'Manchester City';
@@ -878,10 +879,24 @@ function upgradeStoredTacticalLongform(match, force = false) {
   };
 }
 
+function applyCuratedMatchReview(match, curatedReviews) {
+  const curated = curatedReviews?.matches?.[String(match?.id || '')];
+  if (!curated) return match;
+  return {
+    ...match,
+    ...(curated.headline ? { headline: curated.headline } : {}),
+    ...(curated.verdict ? { verdict: curated.verdict } : {}),
+    ...(curated.tactical_longform ? { tactical_longform: curated.tactical_longform } : {}),
+  };
+}
+
 async function rebuildStoredLongforms() {
   const previous = await readJsonFile(OUTPUT_PATH);
   if (!previous?.matches?.length) throw new Error('No stored first-team analysis to rebuild');
-  const matches = previous.matches.map((match) => upgradeStoredTacticalLongform(match, true));
+  const curatedReviews = await readJsonFile(CURATED_REVIEWS_PATH);
+  const matches = previous.matches
+    .map((match) => upgradeStoredTacticalLongform(match, true))
+    .map((match) => applyCuratedMatchReview(match, curatedReviews));
   await writeFile(OUTPUT_PATH, `${JSON.stringify({
     ...previous,
     generated_at: new Date().toISOString(),
@@ -1010,11 +1025,13 @@ function needsRefresh(previousMatch, fixture, now) {
 export async function buildFirstTeamAnalysisData({ now = new Date() } = {}) {
   const previous = await loadPrevious();
   const publicationPolicy = await readJsonFile(PUBLICATION_POLICY_PATH);
+  const curatedReviews = await readJsonFile(CURATED_REVIEWS_PATH);
   const curatedOnly = publicationPolicy?.mode === 'curated_only';
   const releasedMatchIds = new Set((publicationPolicy?.published_match_ids || []).map(String));
   const budget = createBudget(previous, now);
   const previousMatches = (previous?.matches || [])
     .map(upgradeStoredTacticalLongform)
+    .map((match) => applyCuratedMatchReview(match, curatedReviews))
     .filter((match) => !curatedOnly || releasedMatchIds.has(String(match.id)));
   const previousById = new Map(previousMatches.map((match) => [String(match.id), match]));
   let teamData;
@@ -1043,7 +1060,10 @@ export async function buildFirstTeamAnalysisData({ now = new Date() } = {}) {
     try {
       const details = await fetchJson(`${FOTMOB_API}/matchDetails?matchId=${encodeURIComponent(fixture.id)}`, { budget });
       if (!details?.header?.status?.finished) continue;
-      analyses.set(String(fixture.id), buildMatchAnalysis(details, fixture, now));
+      analyses.set(
+        String(fixture.id),
+        applyCuratedMatchReview(buildMatchAnalysis(details, fixture, now), curatedReviews),
+      );
       fetched += 1;
       changed = true;
     } catch (error) {
@@ -1052,6 +1072,7 @@ export async function buildFirstTeamAnalysisData({ now = new Date() } = {}) {
   }
 
   const matches = [...analyses.values()]
+    .map((match) => applyCuratedMatchReview(match, curatedReviews))
     .filter((match) => new Date(match.date).getTime() >= new Date(SEASON_START).getTime())
     .sort((a, b) => String(b.date).localeCompare(String(a.date)))
     .slice(0, MAX_MATCHES);
