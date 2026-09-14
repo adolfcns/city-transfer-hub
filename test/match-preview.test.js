@@ -21,38 +21,27 @@ test('比赛前瞻是独立且显眼的第四个页面', () => {
   assert.match(css, /body\[data-page="preview"\] \.container/);
 });
 
-test('波尔图前瞻包含赛程、近况、重点球员和完整战术拆解', () => {
-  assert.equal(data.match.id, 6106286);
-  assert.equal(data.match.opponent, '波尔图');
-  assert.equal(data.match.kickoff, '2026-09-08T19:00:00.000Z');
+test('桑德兰前瞻包含赛程、近况、重点球员和完整战术拆解', () => {
+  assert.equal(data.match.id, 5795461);
+  assert.equal(data.match.opponent, '桑德兰');
+  assert.equal(data.match.kickoff, '2026-09-20T13:00:00.000Z');
   assert.equal(data.recent_form.length, 5);
   assert.ok(data.season_numbers.length >= 6);
   assert.ok(data.danger_players.length >= 5);
-  assert.ok(data.sections.length >= 8);
-  assert.match(data.sections.map((section) => section.heading).join(' '), /怎么踢|压迫|最强|口子|曼城拿球|曼城无球|换人|开场15分钟/);
+  assert.ok(data.sections.length >= 9);
+  assert.match(data.sections.map((section) => section.heading).join(' '), /摆大巴|门球|4-4-2|扎卡|定位球|口子|曼城拿球|曼城丢球|开场15分钟/);
 });
 
-test('曼市德比前瞻保留，已经结束的波尔图前瞻会自动退出页面', () => {
-  assert.equal(data.featured_preview_id, 5795452);
-  assert.equal(data.more_previews.length, 1);
-  const derby = data.more_previews[0];
-  assert.equal(derby.match.id, 5795452);
-  assert.equal(derby.match.opponent, '曼联');
-  assert.equal(derby.match.kickoff, '2026-09-13T15:30:00.000Z');
-  assert.equal(data.expires_at, '2026-09-08T21:30:00.000Z');
+test('已经结束的曼市德比前瞻已移除，只展示下一场桑德兰', () => {
+  assert.equal(data.featured_preview_id, 5795461);
+  assert.equal(data.more_previews.length, 0);
+  assert.equal(data.expires_at, '2026-09-20T15:30:00.000Z');
+  assert.equal(data.default_open, true);
+  assert.doesNotMatch(JSON.stringify(data), /曼市德比|老特拉福德|卡里克/);
   assert.match(app, /function matchPreviewExpiresAt\(preview\)/);
   assert.match(app, /MATCH_PREVIEW_DEFAULT_DURATION_MS/);
   assert.match(app, /matchPreviewExpiresAt\(preview\) > now/);
-  assert.equal(derby.badge, '曼市德比');
-  assert.equal(derby.recent_form.length, 5);
-  assert.ok(derby.season_numbers.length >= 6);
-  assert.ok(derby.danger_players.length >= 5);
-  assert.ok(derby.sections.length >= 9);
-  assert.match(JSON.stringify(derby), /卡里克|马雷斯卡|4-2-3-1|3-2-5|布鲁诺|姆贝乌莫|双后腰|弱侧|边路夹击|换人/);
-  const cityPlan = derby.sections.at(-1);
-  assert.match(cityPlan.heading, /曼城可能怎么踢/);
-  assert.match(cityPlan.paragraphs.join(' '), /四场正式比赛|70%控球|3-2-5|4-4-2|安德森|哈兰德|球后/);
-  assert.match(JSON.stringify(derby.sources), /英超官网.*马雷斯卡|Coaches' Voice/);
+  assert.match(JSON.stringify(data), /勒布里斯|4-2-3-1|4-4-2|扎卡|穆基耶莱|布罗比|弱侧|第二点|定位球/);
 });
 
 test('仍在赛程中的前瞻能独立折叠，投票与评论按比赛编号隔离', () => {
@@ -68,19 +57,18 @@ test('仍在赛程中的前瞻能独立折叠，投票与评论按比赛编号�
 
 test('前瞻用直接中文说明战术，不使用空泛或过度防御措辞', () => {
   const copy = JSON.stringify(data);
-  assert.match(copy, /第三人|弱侧|边路围抢|维加|迪奥戈·科斯塔|老特拉福德/);
+  assert.match(copy, /第三人|弱侧|门球|扎卡|穆基耶莱|勒布里斯|第二点/);
   assert.doesNotMatch(copy, /作为一个AI|仅供参考|不能说明|不能代替|不代表|先不下结论|先不硬评|背锅/);
   assert.ok(data.sources.length >= 4);
 });
 
-test('曼市德比前瞻改成直接中文，不保留总结提示腔', () => {
-  const derby = data.more_previews.find((preview) => preview.match.id === 5795452);
+test('桑德兰前瞻使用直接中文，不保留总结提示腔', () => {
   const copy = [
-    derby.headline,
-    derby.standfirst,
-    ...derby.verdicts,
-    derby.opponent.summary,
-    ...derby.sections.flatMap((section) => [section.heading, ...section.paragraphs]),
+    data.headline,
+    data.standfirst,
+    ...data.verdicts,
+    data.opponent.summary,
+    ...data.sections.flatMap((section) => [section.heading, ...section.paragraphs]),
   ].join(' ');
   assert.doesNotMatch(copy, /值得注意的是|更重要的是|真正的开关|真正的下一步|最危险的错误|看起来只是|不是退缩|突然打疯了|综上所述|归根结底/);
   assert.match(app, /el\('span', null, '这场看什么'\)/);
