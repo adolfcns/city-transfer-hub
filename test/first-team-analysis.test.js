@@ -226,3 +226,18 @@ test('波尔图复盘使用人工整理的战术长文并保留原比赛评论�
   assert.doesNotMatch(article, /FC Porto用三中卫|左路降到 41%|让对手拿到 0 次绝佳机会/);
   assert.match(APP_SOURCE, /match_review/);
 });
+
+test('曼市德比赛后分析包含八段战术复盘和真实射门图', () => {
+  const derby = CURATED_ANALYSIS.matches['5795452'];
+  const article = JSON.stringify(derby.tactical_longform);
+  assert.equal(derby.tactical_longform.version, 8);
+  assert.equal(derby.tactical_longform.sections.length, 8);
+  assert.equal(derby.tactical_longform.charts.length, 2);
+  assert.match(article, /4-4-1/);
+  assert.match(article, /恩迪亚耶/);
+  assert.match(article, /60分钟/);
+  assert.match(article, /1\.10比1\.00/);
+  assert.doesNotMatch(article, /背锅|分锅|这口锅/);
+  assert.match(APP_SOURCE, /firstTeamTacticalCharts/);
+  assert.match(APP_SOURCE, /document\.createElement\('picture'\)/);
+});

@@ -1,0 +1,47 @@
+{
+  "match": {
+    "competition": "Premier League",
+    "date": "2026-09-13",
+    "venue": "Old Trafford",
+    "end_minute": 95,
+    "city": { "name": "曼城", "color": "#6CABDD", "score": 1 },
+    "opponent": { "name": "曼联", "color": "#DA291C", "score": 0 }
+  },
+  "source": {
+    "provider": "FotMob",
+    "checked_at": "2026-09-16T09:56:09Z",
+    "url": "https://www.fotmob.com/matches/manchester-united-vs-manchester-city/2juc7h#5795452"
+  },
+  "story": {
+    "xg_title": "十人曼城只射6脚，却做出两次0.4+ xG机会",
+    "shot_title": "曼联16脚有10脚来自禁区外"
+  },
+  "reported_totals": {
+    "city_xg": 1.10,
+    "opponent_xg": 1.00
+  },
+  "shots": [
+    { "team": "city", "minute": 3, "added": 0, "player": "恩佐·费尔南德斯", "xg": 0.052, "x": 80.49, "y": 56.67, "outcome": "blocked", "note": "" },
+    { "team": "opponent", "minute": 7, "added": 0, "player": "利桑德罗·马丁内斯", "xg": 0.028, "xgot": 0.010, "x": 81.73, "y": 66.77, "outcome": "saved", "note": "" },
+    { "team": "opponent", "minute": 11, "added": 0, "player": "马特乌斯·库尼亚", "xg": 0.040, "x": 76.63, "y": 27.26, "outcome": "off_target", "note": "" },
+    { "team": "opponent", "minute": 21, "added": 0, "player": "拉什福德", "xg": 0.031, "x": 87.33, "y": 64.50, "outcome": "blocked", "note": "" },
+    { "team": "city", "minute": 27, "added": 0, "player": "谢尔基", "xg": 0.034, "x": 81.01, "y": 52.24, "outcome": "blocked", "note": "" },
+    { "team": "opponent", "minute": 42, "added": 0, "player": "马奎尔", "xg": 0.065, "x": 76.41, "y": 24.68, "outcome": "off_target", "note": "" },
+    { "team": "opponent", "minute": 45, "added": 0, "player": "拉什福德", "xg": 0.038, "x": 72.87, "y": 55.52, "outcome": "woodwork", "note": "任意球击中门柱" },
+    { "team": "opponent", "minute": 47, "added": 0, "player": "达洛特", "xg": 0.020, "x": 77.81, "y": 48.09, "outcome": "off_target", "note": "" },
+    { "team": "opponent", "minute": 51, "added": 0, "player": "梅努", "xg": 0.029, "x": 77.59, "y": 58.15, "outcome": "woodwork", "note": "禁区外射门击中门柱" },
+    { "team": "opponent", "minute": 52, "added": 0, "player": "拉什福德", "xg": 0.047, "x": 94.67, "y": 68.73, "outcome": "blocked", "note": "" },
+    { "team": "opponent", "minute": 55, "added": 0, "player": "姆贝乌莫", "xg": 0.021, "x": 82.55, "y": 26.64, "outcome": "off_target", "note": "" },
+    { "team": "opponent", "minute": 56, "added": 0, "player": "马特乌斯·库尼亚", "xg": 0.034, "x": 86.29, "y": 30.86, "outcome": "off_target", "note": "" },
+    { "team": "city", "minute": 60, "added": 0, "player": "哈兰德", "xg": 0.442, "xgot": 0.764, "x": 97.74, "y": 43.33, "outcome": "goal", "note": "格瓦迪奥尔传中，后点左脚破门" },
+    { "team": "city", "minute": 69, "added": 0, "player": "恩佐·费尔南德斯", "xg": 0.125, "xgot": 0.201, "x": 82.45, "y": 52.13, "outcome": "saved", "note": "拉门斯扑救，皮球碰到门柱" },
+    { "team": "opponent", "minute": 70, "added": 0, "player": "布鲁诺·费尔南德斯", "xg": 0.029, "xgot": 0.040, "x": 79.52, "y": 26.33, "outcome": "saved", "note": "" },
+    { "team": "opponent", "minute": 71, "added": 0, "player": "谢什科", "xg": 0.059, "x": 75.12, "y": 55.49, "outcome": "blocked", "note": "" },
+    { "team": "opponent", "minute": 73, "added": 0, "player": "姆贝乌莫", "xg": 0.055, "x": 91.91, "y": 44.19, "outcome": "off_target", "note": "" },
+    { "team": "city", "minute": 76, "added": 0, "player": "哈兰德", "xg": 0.425, "x": 91.82, "y": 52.35, "outcome": "off_target", "note": "禁区内错过扩大比分的机会" },
+    { "team": "city", "minute": 83, "added": 0, "player": "格瓦迪奥尔", "xg": 0.019, "x": 75.02, "y": 58.15, "outcome": "blocked", "note": "" },
+    { "team": "opponent", "minute": 86, "added": 0, "player": "马特乌斯·库尼亚", "xg": 0.034, "x": 77.59, "y": 55.49, "outcome": "blocked", "note": "" },
+    { "team": "opponent", "minute": 86, "added": 0, "player": "马奎尔", "xg": 0.057, "x": 92.56, "y": 54.15, "outcome": "off_target", "note": "" },
+    { "team": "opponent", "minute": 90, "added": 5, "player": "姆贝乌莫", "xg": 0.412, "xgot": 0.225, "x": 89.14, "y": 42.34, "outcome": "saved", "note": "禁区内射门被多纳鲁马扑出" }
+  ]
+}

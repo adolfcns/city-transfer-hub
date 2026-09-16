@@ -44,6 +44,7 @@ const PLAYER_ZH = Object.freeze({
   'Elliot Anderson': '埃利奥特·安德森',
   'Marc Guéhi': '格伊',
   'Josko Gvardiol': '格瓦迪奥尔',
+  'Joško Gvardiol': '格瓦迪奥尔',
   'Rayan Cherki': '谢尔基',
   'Enzo Fernández': '恩佐·费尔南德斯',
   'Enzo Fernandez': '恩佐·费尔南德斯',
@@ -85,6 +86,9 @@ const TEAM_ZH = Object.freeze({
   'Atletico Madrid': '马德里竞技',
   'K-League All Stars': 'K联赛全明星',
   'Inter': '国际米兰',
+  'Manchester United': '曼联',
+  'Man United': '曼联',
+  'Man Utd': '曼联',
 });
 
 const COACH_ZH = Object.freeze({

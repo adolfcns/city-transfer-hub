@@ -4001,6 +4001,40 @@ function firstTeamTopPlayerCard(player) {
   return link;
 }
 
+function firstTeamTacticalCharts(longform) {
+  const charts = (longform.charts || []).filter((chart) => chart?.landscape || chart?.mobile);
+  if (!charts.length) return null;
+  const section = el('section', 'first-team-tactical-charts');
+  section.appendChild(el('h5', null, '比赛数据图'));
+  for (const chart of charts) {
+    const figure = el('figure', 'first-team-tactical-chart');
+    const picture = document.createElement('picture');
+    if (chart.mobile) {
+      const source = document.createElement('source');
+      source.media = '(max-width: 760px)';
+      source.srcset = chart.mobile;
+      picture.appendChild(source);
+    }
+    const image = document.createElement('img');
+    image.src = chart.landscape || chart.mobile;
+    image.alt = chart.alt || chart.title || '比赛数据图';
+    image.loading = 'lazy';
+    image.decoding = 'async';
+    picture.appendChild(image);
+    const caption = document.createElement('figcaption');
+    caption.appendChild(el('strong', null, chart.title || '比赛数据图'));
+    if (chart.caption) caption.appendChild(el('p', null, chart.caption));
+    const original = el('a', null, '查看原图 ↗');
+    original.href = chart.landscape || chart.mobile;
+    original.target = '_blank';
+    original.rel = 'noopener noreferrer';
+    caption.appendChild(original);
+    figure.append(picture, caption);
+    section.appendChild(figure);
+  }
+  return section;
+}
+
 function firstTeamTacticalLongform(match) {
   const longform = match.tactical_longform || {};
   const section = el('section', 'first-team-tactical-longform');
@@ -4019,6 +4053,8 @@ function firstTeamTacticalLongform(match) {
     problems.appendChild(list);
     section.appendChild(problems);
   }
+  const charts = firstTeamTacticalCharts(longform);
+  if (charts) section.appendChild(charts);
   const body = el('div', 'first-team-tactical-longform-body');
   for (const item of longform.sections || []) {
     const coachFocus = /开场|换人|教练/.test(item.heading || '') ? ' coach-focus' : '';

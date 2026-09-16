@@ -3086,6 +3086,15 @@ body[data-page="analysis"] .container { max-width: 1060px; }
 .first-team-tactical-problems > strong { color: #a53e38; font-size: 14px; font-weight: 950; }
 .first-team-tactical-problems ul { margin: 8px 0 0; padding-left: 21px; display: grid; gap: 7px; }
 .first-team-tactical-problems li { color: #593f3d; font-size: 13px; font-weight: 750; line-height: 1.65; }
+.first-team-tactical-charts { margin: 20px 22px 0; display: grid; gap: 14px; }
+.first-team-tactical-charts > h5 { color: #123b57; font-size: 17px; font-weight: 950; }
+.first-team-tactical-chart { overflow: hidden; border: 1px solid #c6dce6; border-radius: 12px; background: #f8f5ed; }
+.first-team-tactical-chart picture, .first-team-tactical-chart img { display: block; width: 100%; }
+.first-team-tactical-chart img { height: auto; background: #f8f5ed; }
+.first-team-tactical-chart figcaption { padding: 11px 13px 13px; border-top: 1px solid #d9e6eb; background: #fff; }
+.first-team-tactical-chart figcaption strong { display: block; color: #153a54; font-size: 13px; font-weight: 950; }
+.first-team-tactical-chart figcaption p { margin-top: 3px; color: #5d7788; font-size: 11px; font-weight: 650; line-height: 1.6; }
+.first-team-tactical-chart figcaption a { display: inline-block; margin-top: 6px; color: #117daa; font-size: 9px; font-weight: 900; text-decoration: underline; text-underline-offset: 2px; }
 .first-team-tactical-longform-body { max-width: 790px; margin: 0 auto; padding: 24px 28px 12px; }
 .first-team-tactical-longform-part { padding: 0 0 24px; }
 .first-team-tactical-longform-part + .first-team-tactical-longform-part { padding-top: 3px; border-top: 1px solid #e1edf2; }
@@ -3172,6 +3181,12 @@ body[data-page="analysis"] .container { max-width: 1060px; }
   .first-team-tactical-problems > strong { font-size: 13px; }
   .first-team-tactical-problems ul { margin-top: 6px; padding-left: 18px; gap: 6px; }
   .first-team-tactical-problems li { font-size: 12px; line-height: 1.65; }
+  .first-team-tactical-charts { margin: 13px 10px 0; gap: 10px; }
+  .first-team-tactical-charts > h5 { font-size: 15px; }
+  .first-team-tactical-chart { border-radius: 9px; }
+  .first-team-tactical-chart figcaption { padding: 9px 10px 11px; }
+  .first-team-tactical-chart figcaption strong { font-size: 12px; }
+  .first-team-tactical-chart figcaption p { font-size: 10px; line-height: 1.55; }
   .first-team-tactical-longform-body { padding: 17px 14px 7px; }
   .first-team-tactical-longform-part { padding-bottom: 18px; }
   .first-team-tactical-longform-part h5 { margin: 14px 0 7px; font-size: 17px; }

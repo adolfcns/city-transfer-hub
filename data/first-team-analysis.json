@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "generated_at": "2026-09-09T07:33:12.685Z",
-  "checked_at": "2026-09-09T07:39:22.322Z",
+  "generated_at": "2026-09-16T10:07:16.995Z",
+  "checked_at": "2026-09-16T10:02:28.422Z",
   "team_id": 8456,
   "season_start": "2026-07-01T00:00:00Z",
   "provider_usage": {
-    "date": "2026-09-09",
-    "requests": 11,
+    "date": "2026-09-16",
+    "requests": 2,
     "limit": 40
   },
   "provider": {
@@ -14,9 +14,796 @@
     "url": "https://www.fotmob.com",
     "note": "比赛事实、评分、阵型、射门图及 xG 来自 FotMob 公开比赛数据；中文战术复盘由本站撰写。"
   },
-  "total": 8,
-  "latest_match_id": "6106286",
+  "total": 9,
+  "latest_match_id": "5795452",
   "matches": [
+    {
+      "id": "5795452",
+      "date": "2026-09-13T15:30:00.000Z",
+      "analysed_at": "2026-09-16T10:02:28.422Z",
+      "competition": "Premier League",
+      "is_home": false,
+      "city": {
+        "name": "曼城",
+        "name_en": "Manchester City",
+        "score": 1
+      },
+      "opponent": {
+        "name": "曼联",
+        "name_en": "Manchester United",
+        "score": 0
+      },
+      "score": "0-1",
+      "result": "胜",
+      "headline": "十个人赢下德比，关键是半场换了一种踢法",
+      "verdict": "福登23分钟染红以前，曼城的中场已经有些松：安德森独自拖后，恩佐和谢尔基站得太高。半场休息时，马雷斯卡换上恩迪亚耶，收成4-4-1，出球也改为直接找哈兰德和两翼。60分钟的制胜球，正是这套新办法打出来的。",
+      "analysis": [
+        {
+          "key": "control",
+          "title": "控场",
+          "text": "控球率 45%，完成 331 (82%) 次准确传球，成功率 82%。球权与机会产出基本形成了正向关系。"
+        },
+        {
+          "key": "attack",
+          "title": "进攻",
+          "text": "6 次射门、2 次射正、2 次绝佳机会、16 次禁区触球，累计 1.10 xG，最终打进 1 球。把优势更早变成进球，比赛会轻松得多。"
+        },
+        {
+          "key": "defence",
+          "title": "防守",
+          "text": "对手得到 16 次射门、3 次射正、1 次绝佳机会和 28 次禁区触球；将对手限制在 1.00 xG，防守端总体可控，门将完成 3 次扑救。"
+        },
+        {
+          "key": "turning",
+          "title": "关键节点",
+          "text": "60′ 哈兰德"
+        }
+      ],
+      "stats": [
+        {
+          "key": "BallPossesion",
+          "label": "控球率",
+          "city": 45,
+          "opponent": 55,
+          "suffix": "%"
+        },
+        {
+          "key": "expected_goals",
+          "label": "预期进球",
+          "city": 1.1,
+          "opponent": 1,
+          "suffix": ""
+        },
+        {
+          "key": "total_shots",
+          "label": "射门",
+          "city": 6,
+          "opponent": 16,
+          "suffix": ""
+        },
+        {
+          "key": "ShotsOnTarget",
+          "label": "射正",
+          "city": 2,
+          "opponent": 3,
+          "suffix": ""
+        },
+        {
+          "key": "big_chance",
+          "label": "绝佳机会",
+          "city": 2,
+          "opponent": 1,
+          "suffix": ""
+        },
+        {
+          "key": "touches_opp_box",
+          "label": "禁区触球",
+          "city": 16,
+          "opponent": 28,
+          "suffix": ""
+        }
+      ],
+      "goals": [
+        {
+          "minute": 60,
+          "player": "哈兰德",
+          "player_en": "Erling Haaland",
+          "assist": null,
+          "type": "Goal"
+        }
+      ],
+      "top_players": [
+        {
+          "id": "955529",
+          "name": "马特乌斯·努内斯",
+          "name_en": "Matheus Nunes",
+          "rating": 8.09,
+          "position": "RB",
+          "player_url": "https://www.fotmob.com/players/955529/matheus-nunes",
+          "man_of_the_match": true,
+          "metrics": [
+            {
+              "key": "defensive_actions",
+              "label": "防守贡献",
+              "value": "11"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "8"
+            },
+            {
+              "key": "clearances",
+              "label": "解围",
+              "value": "5"
+            }
+          ]
+        },
+        {
+          "id": "737066",
+          "name": "哈兰德",
+          "name_en": "Erling Haaland",
+          "rating": 8.07,
+          "position": "ST",
+          "player_url": "https://www.fotmob.com/players/737066/erling-haaland",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "expected_goals",
+              "label": "预期进球",
+              "value": "0.87"
+            },
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.01"
+            },
+            {
+              "key": "total_shots",
+              "label": "射门",
+              "value": "2"
+            }
+          ]
+        },
+        {
+          "id": "618878",
+          "name": "多纳鲁马",
+          "name_en": "Gianluigi Donnarumma",
+          "rating": 7.82,
+          "position": "GK",
+          "player_url": "https://www.fotmob.com/players/618878/gianluigi-donnarumma",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "saves",
+              "label": "扑救",
+              "value": "3"
+            },
+            {
+              "key": "goals_prevented",
+              "label": "阻止失球",
+              "value": "0.28"
+            },
+            {
+              "key": "accurate_passes",
+              "label": "传球",
+              "value": "24/41"
+            }
+          ]
+        },
+        {
+          "id": "1070712",
+          "name": "格瓦迪奥尔",
+          "name_en": "Joško Gvardiol",
+          "rating": 7.76,
+          "position": "LB",
+          "player_url": "https://www.fotmob.com/players/1070712/jo-ko-gvardiol",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "defensive_actions",
+              "label": "防守贡献",
+              "value": "7"
+            },
+            {
+              "key": "recoveries",
+              "label": "夺回球权",
+              "value": "3"
+            },
+            {
+              "key": "clearances",
+              "label": "解围",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": "1089691",
+          "name": "埃利奥特·安德森",
+          "name_en": "Elliot Anderson",
+          "rating": 7.47,
+          "position": "DM",
+          "player_url": "https://www.fotmob.com/players/1089691/elliot-anderson",
+          "man_of_the_match": false,
+          "metrics": [
+            {
+              "key": "expected_assists",
+              "label": "预期助攻",
+              "value": "0.01"
+            },
+            {
+              "key": "chances_created",
+              "label": "创造机会",
+              "value": "0"
+            },
+            {
+              "key": "passes_into_final_third",
+              "label": "进入三区",
+              "value": "5"
+            }
+          ]
+        }
+      ],
+      "tactical_data": {
+        "lineup": {
+          "city_coach": "马雷斯卡",
+          "city_coach_en": "Enzo Maresca",
+          "city_formation": "4-1-4-1",
+          "opponent_formation": "4-2-3-1",
+          "city_starting_xi": [
+            {
+              "id": "618878",
+              "name": "多纳鲁马",
+              "name_en": "Gianluigi Donnarumma",
+              "position_id": 11,
+              "rating": 7.8
+            },
+            {
+              "id": "955529",
+              "name": "马特乌斯·努内斯",
+              "name_en": "Matheus Nunes",
+              "position_id": 32,
+              "rating": 8.1
+            },
+            {
+              "id": "844425",
+              "name": "格伊",
+              "name_en": "Marc Guéhi",
+              "position_id": 34,
+              "rating": 7.2
+            },
+            {
+              "id": "614006",
+              "name": "鲁本·迪亚斯",
+              "name_en": "Rúben Dias",
+              "position_id": 36,
+              "rating": 7
+            },
+            {
+              "id": "1070712",
+              "name": "格瓦迪奥尔",
+              "name_en": "Joško Gvardiol",
+              "position_id": 38,
+              "rating": 7.8
+            },
+            {
+              "id": "1089691",
+              "name": "埃利奥特·安德森",
+              "name_en": "Elliot Anderson",
+              "position_id": 65,
+              "rating": 7.5
+            },
+            {
+              "id": "815006",
+              "name": "福登",
+              "name_en": "Phil Foden",
+              "position_id": 82,
+              "rating": 4.7
+            },
+            {
+              "id": "1104053",
+              "name": "谢尔基",
+              "name_en": "Rayan Cherki",
+              "position_id": 84,
+              "rating": 6.3
+            },
+            {
+              "id": "1137705",
+              "name": "恩佐·费尔南德斯",
+              "name_en": "Enzo Fernández",
+              "position_id": 86,
+              "rating": 7.4
+            },
+            {
+              "id": "933576",
+              "name": "塞梅尼奥",
+              "name_en": "Antoine Semenyo",
+              "position_id": 88,
+              "rating": 6.6
+            },
+            {
+              "id": "737066",
+              "name": "哈兰德",
+              "name_en": "Erling Haaland",
+              "position_id": 115,
+              "rating": 8.1
+            }
+          ],
+          "opponent_starting_xi": [
+            {
+              "id": "1178602",
+              "name": "Senne Lammens",
+              "name_en": "Senne Lammens",
+              "position_id": 11,
+              "rating": 6.5
+            },
+            {
+              "id": "751550",
+              "name": "Diogo Dalot",
+              "name_en": "Diogo Dalot",
+              "position_id": 32,
+              "rating": 7.1
+            },
+            {
+              "id": "255610",
+              "name": "Harry Maguire",
+              "name_en": "Harry Maguire",
+              "position_id": 34,
+              "rating": 6.9
+            },
+            {
+              "id": "847983",
+              "name": "Lisandro Martínez",
+              "name_en": "Lisandro Martínez",
+              "position_id": 36,
+              "rating": 7.1
+            },
+            {
+              "id": "1526560",
+              "name": "Patrick Dorgu",
+              "name_en": "Patrick Dorgu",
+              "position_id": 38,
+              "rating": 7.3
+            },
+            {
+              "id": "465960",
+              "name": "Youri Tielemans",
+              "name_en": "Youri Tielemans",
+              "position_id": 64,
+              "rating": 6.9
+            },
+            {
+              "id": "1292810",
+              "name": "Kobbie Mainoo",
+              "name_en": "Kobbie Mainoo",
+              "position_id": 66,
+              "rating": 8
+            },
+            {
+              "id": "923312",
+              "name": "Bryan Mbeumo",
+              "name_en": "Bryan Mbeumo",
+              "position_id": 83,
+              "rating": 6.2
+            },
+            {
+              "id": "422685",
+              "name": "Bruno Fernandes",
+              "name_en": "Bruno Fernandes",
+              "position_id": 85,
+              "rating": 6.9
+            },
+            {
+              "id": "696365",
+              "name": "Marcus Rashford",
+              "name_en": "Marcus Rashford",
+              "position_id": 87,
+              "rating": 6.9
+            },
+            {
+              "id": "863098",
+              "name": "Matheus Cunha",
+              "name_en": "Matheus Cunha",
+              "position_id": 115,
+              "rating": 6.4
+            }
+          ],
+          "city_substitutions": [
+            {
+              "minute": 46,
+              "out": "谢尔基",
+              "out_en": "Rayan Cherki",
+              "in": "伊利曼·恩迪亚耶",
+              "in_en": "Iliman Ndiaye",
+              "out_position_id": 2,
+              "in_position_id": 3,
+              "reason": "tactical"
+            },
+            {
+              "minute": 82,
+              "out": "恩佐·费尔南德斯",
+              "out_en": "Enzo Fernández",
+              "in": "奥赖利",
+              "in_en": "Nico O'Reilly",
+              "out_position_id": 2,
+              "in_position_id": 1,
+              "reason": "tactical"
+            }
+          ]
+        },
+        "shots": {
+          "available": true,
+          "total": 6,
+          "xg": 1.1,
+          "inside_box": 2,
+          "outside_box": 4,
+          "open_play": 3,
+          "open_play_xg": 0.62,
+          "set_piece": 3,
+          "set_piece_xg": 0.48,
+          "high_quality": 2,
+          "first_half": {
+            "shots": 2,
+            "xg": 0.09
+          },
+          "second_half": {
+            "shots": 4,
+            "xg": 1.01
+          },
+          "timeline": [
+            {
+              "minute": 3,
+              "xg": 0.05,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 27,
+              "xg": 0.03,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "FromCorner",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 60,
+              "xg": 0.44,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Goal"
+            },
+            {
+              "minute": 69,
+              "xg": 0.12,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "FastBreak",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 76,
+              "xg": 0.42,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "SetPiece",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 83,
+              "xg": 0.02,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "FromCorner",
+              "event_type": "AttemptSaved"
+            }
+          ]
+        },
+        "opponent_shots": {
+          "available": true,
+          "total": 16,
+          "xg": 1,
+          "inside_box": 6,
+          "outside_box": 10,
+          "open_play": 10,
+          "open_play_xg": 0.8,
+          "set_piece": 6,
+          "set_piece_xg": 0.2,
+          "high_quality": 1,
+          "first_half": {
+            "shots": 5,
+            "xg": 0.2
+          },
+          "second_half": {
+            "shots": 11,
+            "xg": 0.8
+          },
+          "timeline": [
+            {
+              "minute": 7,
+              "xg": 0.03,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "SetPiece",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 11,
+              "xg": 0.04,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "FastBreak",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 21,
+              "xg": 0.03,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "IndividualPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 42,
+              "xg": 0.06,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 45,
+              "xg": 0.04,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "FreeKick",
+              "event_type": "Post"
+            },
+            {
+              "minute": 47,
+              "xg": 0.02,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "FromCorner",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 51,
+              "xg": 0.03,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "Post"
+            },
+            {
+              "minute": 52,
+              "xg": 0.05,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "FastBreak",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 55,
+              "xg": 0.02,
+              "on_target": false,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 56,
+              "xg": 0.03,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 70,
+              "xg": 0.03,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "IndividualPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 71,
+              "xg": 0.06,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "FastBreak",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 73,
+              "xg": 0.06,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 86,
+              "xg": 0.03,
+              "on_target": true,
+              "inside_box": false,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            },
+            {
+              "minute": 86,
+              "xg": 0.06,
+              "on_target": false,
+              "inside_box": true,
+              "situation": "FromCorner",
+              "event_type": "Miss"
+            },
+            {
+              "minute": 90,
+              "xg": 0.41,
+              "on_target": true,
+              "inside_box": true,
+              "situation": "RegularPlay",
+              "event_type": "AttemptSaved"
+            }
+          ]
+        },
+        "attacking_zones": {
+          "city": {
+            "total": {
+              "left": 33,
+              "center": 28,
+              "right": 39
+            },
+            "first_half": {
+              "left": 41,
+              "center": 26,
+              "right": 33
+            },
+            "second_half": {
+              "left": 23,
+              "center": 31,
+              "right": 46
+            }
+          },
+          "opponent": {
+            "total": {
+              "left": 41,
+              "center": 29,
+              "right": 30
+            },
+            "first_half": {
+              "left": 41,
+              "center": 26,
+              "right": 33
+            },
+            "second_half": {
+              "left": 39,
+              "center": 33,
+              "right": 28
+            }
+          }
+        }
+      },
+      "tactical_longform": {
+        "version": 8,
+        "title": "少一人以后反而踢明白了：马雷斯卡用4-4-1和长球拿下德比",
+        "standfirst": "福登23分钟的红牌打碎了开场方案，也逼马雷斯卡做出取舍。曼城放下从后场一层层传出去的想法，把阵型收紧，用哈兰德争第一点、恩迪亚耶接第二点。这场不光守住了，半场休息后还换对了进攻路线。",
+        "problems": [
+          "十一打十一时，安德森身边的接应不够。恩佐频繁跑到左边或顶到前锋线，谢尔基也站得很高，中路一丢球就只剩安德森面对反击。",
+          "福登在22分23秒的报复动作直接领到红牌。压迫和出球原本还有调整空间，这一下却把整场比赛改成了十人应战。",
+          "曼城把曼联的大部分射门赶到了禁区外，但拉什福德、梅努两次击中门柱，补时又让姆贝乌莫得到0.41 xG的近距离机会。比赛一直悬到最后一扑。"
+        ],
+        "charts": [
+          {
+            "title": "十人曼城只射6脚，却做出两次0.4+ xG机会",
+            "caption": "曼城总射门少了10次，累计xG仍以1.10比1.00领先。哈兰德60分钟的进球和76分钟的机会，是两条最明显的台阶。",
+            "landscape": "./analysis/5795452/01-xg-race-landscape.svg",
+            "mobile": "./analysis/5795452/01-xg-race-mobile.svg",
+            "alt": "曼联0比1曼城累计预期进球走势，曼城6次射门累计1.10 xG，曼联16次射门累计1.00 xG"
+          },
+          {
+            "title": "曼联16脚有10脚来自禁区外",
+            "caption": "曼联的两次门柱也都是低xG远射或任意球。曼城两次最大的机会都在禁区内，哈兰德一进一失。",
+            "landscape": "./analysis/5795452/02-shot-map-landscape.svg",
+            "mobile": "./analysis/5795452/02-shot-map-mobile.svg",
+            "alt": "曼联0比1曼城射门地图，曼联多数射门来自禁区外，曼城高质量机会集中在禁区内"
+          }
+        ],
+        "sections": [
+          {
+            "heading": "一、开场更像4-1-4-1，问题在安德森身边",
+            "paragraphs": [
+              "阵容表可以写成4-2-3-1，也可以写成4-1-4-1。曼城拿球时更接近后者：安德森单独站在中卫身前，恩佐和谢尔基是两名八号位；无球压迫时，恩佐会回到安德森旁边，站位又像4-2-3-1。这场的问题就出在有球阶段，安德森身边经常没人。",
+              "马雷斯卡开场的压迫其实准备得很细。福登从外向内压利桑德罗，哈兰德在马奎尔和门将拉门斯之间移动，同时用身位挡住回传给马奎尔的线路。恩佐、谢尔基分别盯梅努和蒂勒曼斯，安德森照顾布鲁诺，鲁本·迪亚斯随时前顶库尼亚。",
+              "曼联因此很难从中路把球带出去，拉门斯多次只能开长球。格伊和迪亚斯对第一点的处理很稳，曼城能在前场重新拿回球。开场布置里，压迫是有效的；拿到球以后，中场的距离却没有跟上。"
+            ]
+          },
+          {
+            "heading": "二、好压迫下面，藏着一个空中场",
+            "paragraphs": [
+              "恩佐的活动范围太大。他有时拉到左边线，有时直接顶到哈兰德附近，谢尔基又常在前腰位置等球。两个人同时离开，安德森就成了唯一的中路接应点。曼联只要围住他，曼城的后场传球便会横着走，推进速度也慢下来。",
+              "这还影响了丢球后的保护。曼联抢回球，可以直接穿过中间找布鲁诺、库尼亚，再把球分给拉什福德。努内斯为了参与高位压迫要向多尔古顶出去，格伊随之向右补位，拉什福德便得到面对努内斯的一对一空间。曼联上半场最像样的威胁，大多从这一侧开始。",
+              "红牌前，曼联已有3次射门，曼城只有恩佐开场那1脚。两边xG都不高，比赛走势却在提醒马雷斯卡：双八号位都想往前，单后腰会被留在身后。"
+            ]
+          },
+          {
+            "heading": "三、23分钟红牌以后，曼城先乱了半场",
+            "paragraphs": [
+              "22分23秒，福登踢向布鲁诺，被直接罚下。曼城立刻落成4-4-1，哈兰德留在最前面，塞梅尼奥回到左侧，谢尔基和恩佐在右侧、中路之间补位置。人数少了一个，开场那套人盯人高压也只能停下来。",
+              "问题没有马上消失。恩佐仍会跑得太高，后场为了避开曼联的围抢，只能把直线球送到他脚下；他一旦背身丢球，安德森身前还是一大片空地。曼联多一人后开始把阵型推成2-2-6或2-3-5，布鲁诺和库尼亚站到曼城中场线身后，拉什福德则继续在左边找努内斯。",
+              "曼城熬过了上半场。拉什福德45分钟的任意球击中门柱，马雷斯卡也因抗议吃到黄牌。场面已经摆在眼前：原来的传球方式在十人局面下走不通。"
+            ]
+          },
+          {
+            "heading": "四、比赛怎么变了：半场休息后，马雷斯卡直接绕过中场",
+            "paragraphs": [
+              "中场休息时，恩迪亚耶换下谢尔基。曼城继续站4-4-1，但两条线靠得更近，恩佐也不再到处往前跑。无球时先把中路堵住，等曼联把球传到边路再横移；后面需要守住比赛时，一侧边锋退到边后卫高度，阵型又会变成5-3-1。",
+              "有球时的变化更直接。多纳鲁马不再反复从中卫和安德森脚下寻找短传，他开始把球送向哈兰德。哈兰德负责第一点，恩迪亚耶和塞梅尼奥从两边靠近争第二点。这样踢少了传控，却把曼联的压迫甩到球后，也不再让空荡的中场决定每一次攻防。",
+              "恩迪亚耶上场后的数据很能说明他的作用：6次尝试过人，并赢得5次犯规。曼城需要喘气时，他能把球带出二三十米；需要守住边路时，他又能回到努内斯身前。马雷斯卡这次换人同时解决了推进和防守两个问题。"
+            ]
+          },
+          {
+            "heading": "五、60分钟的进球，就是半场方案的完整演示",
+            "paragraphs": [
+              "这次进攻从多纳鲁马的长球开始。哈兰德争到第一点，恩迪亚耶收下第二点后向前带，曼城没有再把球送回后场，而是继续把进攻推向曼联的防线。球最终来到格瓦迪奥尔一侧，他的传中经过折射滑到后点，哈兰德左脚把球送进球门。",
+              "这条线路一共做了四件事：长球越过曼联的前场压迫，哈兰德把中卫留在中路，恩迪亚耶带球让曼联后腰转身，格瓦迪奥尔从弱侧送出传中。曼城少一人，却在这个回合里始终让球向前走。",
+              "进球最初被判越位，VAR随后改判有效，赛后判罚仍有争议。战术部分倒很清楚：马雷斯卡半场要求球队踢得更直接，制胜球正是长球、第二点、带球和弱侧传中连起来的结果。"
+            ]
+          },
+          {
+            "heading": "六、曼联多一人，为什么16脚只有1.00 xG",
+            "paragraphs": [
+              "曼联拿到55%控球，完成的传球比曼城多94次，也把五六个人推到曼城最后一线。16次射门里只有6次来自禁区内，10次在禁区外起脚，最终只有3次射正。人数优势换来了射门数量，却很少把曼城的中卫从禁区中心拉开。",
+              "卡里克上半场没有固定中锋，布鲁诺和库尼亚更多站在曼城中场线背后，拉什福德、姆贝乌莫再向内移动。这样的站位能在中路堆人，也让禁区里少了一个持续压住中卫的点。曼城收窄以后，格伊和迪亚斯守住门前，安德森和恩佐堵住回做，曼联很多回合最后只能在外围结束。",
+              "谢什科67分钟上场后，曼联终于有了更明确的禁区支点，但高质量机会来得太晚。补时阶段，姆贝乌莫获得全场曼联最好的一脚，单次xG达到0.41，多纳鲁马把球扑出。此前两次中柱看着吓人，合计只有约0.07 xG；曼联压到门前的机会太少。"
+            ]
+          },
+          {
+            "heading": "七、赢球以后，马雷斯卡具体该改什么",
+            "paragraphs": [
+              "先处理十一打十一时的中场距离。安德森继续单独拖后没有问题，但恩佐和另一名八号位不能同时离开他。恩佐往左侧或禁区里跑时，谢尔基要有人回到中场接球；谢尔基站高时，恩佐就得留在安德森附近。少这一层接应，曼城的控球会自己把中路掏空。",
+              "再保留这场有效的高位压迫。福登、哈兰德和中场的盯人关系很清楚，曼联开场很难从后场推进。后续要改的是压迫后的球后站位：努内斯向前顶多尔古时，右侧中场必须及时补住拉什福德内切的通道，不能每次都让格伊大范围横移。",
+              "最后是纪律。福登的动作让球队付出了七十多分钟十人作战的代价。半场调整救回了比赛，但这套4-4-1和长球方案更适合少一人的特殊局面。对桑德兰重新回到十一人，马雷斯卡仍得把安德森、恩佐和前腰之间的距离调好。"
+            ]
+          },
+          {
+            "heading": "八、这场1比0，功劳在半场那次改法",
+            "paragraphs": [
+              "马雷斯卡的开场方案有两面。人盯人压迫切断了曼联的出球，中场站位却给安德森留了太多工作。红牌发生后，这个问题更明显，曼城也一度只能被动退守。",
+              "他的应对很准。恩迪亚耶换下谢尔基，4-4-1收窄，恩佐回到队形里，多纳鲁马直接找哈兰德。曼城把一场需要苦守的比赛重新变成了自己也能制造机会的比赛，1.10比1.00的xG和两次0.4以上的机会都从这次改变里来。",
+              "努内斯、格伊、迪亚斯和格瓦迪奥尔守住禁区，多纳鲁马扑掉最后一脚，安德森跑了11.6公里。十个人能在老特拉福德赢球，靠的是这些执行，也靠教练在半场承认原路走不通，换了一条路。"
+            ]
+          }
+        ],
+        "sources": [
+          {
+            "label": "Coaches' Voice战术复盘",
+            "url": "https://learning.coachesvoice.com/cv/man-united-man-city-tactics-september-2026/"
+          },
+          {
+            "label": "FourFourTwo战术分析",
+            "url": "https://www.fourfourtwo.com/tactic/manchester-citys-new-midfield-was-a-mess-but-the-tactical-story-of-their-win-vs-manchester-united-is-how-enzo-marescas-plan-reined-a-certain-key-player-in"
+          },
+          {
+            "label": "Opta比赛数据与事件",
+            "url": "https://theanalyst.com/articles/man-utd-vs-man-city-stats-premier-league-09-2026"
+          },
+          {
+            "label": "曼城官方数据复盘",
+            "url": "https://www.mancity.com/news/mens/manchester-derby-old-trafford-stats-september-2026-63925064"
+          },
+          {
+            "label": "FotMob比赛页",
+            "url": "https://www.fotmob.com/matches/manchester-united-vs-manchester-city/2juc7h#5795452"
+          }
+        ],
+        "source_note": "比赛主数据与逐次射门采用FotMob（曼城xG 1.10，曼联1.00）；战术部分结合Coaches' Voice、FourFourTwo、Opta和曼城官方复盘整理。"
+      }
+    },
     {
       "id": "6106286",
       "date": "2026-09-08T19:00:00.000Z",
