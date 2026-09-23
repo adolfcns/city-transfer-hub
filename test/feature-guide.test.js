@@ -6,25 +6,23 @@ const html = fs.readFileSync('static/index.html', 'utf8');
 const app = fs.readFileSync('static/app.js', 'utf8');
 const css = fs.readFileSync('static/style.css', 'utf8');
 
-test('首页同时突出赛前、赛后与蓝月在外三个入口', () => {
+test('首页同时突出赛前、赛后、蓝月在外与国家队追踪四个入口', () => {
   assert.match(html, /class="loan-page-hero-link preview" href="\.\/\?view=preview"/);
   assert.match(html, /<h2>蓝月比赛前瞻<\/h2>/);
   assert.match(html, /class="loan-page-hero-link analysis" href="\.\/\?view=analysis"/);
   assert.match(html, /<h2>蓝月赛后分析<\/h2>/);
   assert.match(html, /class="loan-page-hero-link" href="\.\/\?view=loans"/);
   assert.match(html, /<h2>外租小将入口<\/h2>/);
-  assert.match(css, /\.feature-hero-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3/);
+  assert.match(html, /class="loan-page-hero-link internationals" href="\.\/\?view=internationals"/);
+  assert.match(html, /<h2>国家队出征<\/h2>/);
+  assert.match(css, /\.feature-hero-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2/);
 });
 
-test('四个页面分别提供栏目引导并按页面每四小时展示一次', () => {
-  assert.match(app, /FEATURE_GUIDE_INTERVAL_MS = 4 \* 60 \* 60 \* 1000/);
-  assert.match(app, /FEATURE_GUIDE_STORAGE_PREFIX = 'cth_feature_guide_4h_v1'/);
-  assert.match(app, /return `\$\{FEATURE_GUIDE_STORAGE_PREFIX\}_\$\{PAGE_VIEW\}`/);
-  assert.match(app, /if \(PAGE_VIEW === 'preview'\)[\s\S]*?items: \[destinations\.analysis, destinations\.loans\]/);
-  assert.match(app, /if \(PAGE_VIEW === 'analysis'\)[\s\S]*?items: \[destinations\.preview, destinations\.loans\]/);
-  assert.match(app, /if \(PAGE_VIEW === 'loans'\)[\s\S]*?items: \[destinations\.preview, destinations\.analysis\]/);
-  assert.match(app, /items: \[destinations\.preview, destinations\.analysis, destinations\.loans\]/);
-  assert.match(app, /scheduleFeatureGuide\(\);/);
-  assert.match(css, /\.feature-guide-box/);
-  assert.match(css, /@media \(max-width: 560px\)[\s\S]*?\.feature-guide-grid\s*\{[^}]*grid-template-columns:\s*1fr/);
+test('所有自动弹窗关闭，评论和投票仍可由用户主动打开', () => {
+  const startup = app.slice(app.lastIndexOf('// ---------------- 启动 ----------------'));
+  assert.doesNotMatch(startup, /scheduleFeatureGuide\(\)/);
+  assert.doesNotMatch(startup, /scheduleWindowFinaleNotice\(\)/);
+  assert.doesNotMatch(startup, /showRecoveryNotice\(\)/);
+  assert.match(startup, /requestedSurveyId\(\)/);
+  assert.match(app, /openComments/);
 });

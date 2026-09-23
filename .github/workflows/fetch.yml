@@ -29,6 +29,7 @@ jobs:
           LOAN_DATA_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data/loan-watch.json
           SOCIAL_STATUS_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data/social-status.json
           FIRST_TEAM_ANALYSIS_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data/first-team-analysis.json
+          INTERNATIONAL_DUTY_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data/international-duty.json
         run: |
           if [ "$GITHUB_EVENT_NAME" != "schedule" ]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
@@ -41,6 +42,7 @@ jobs:
             { name: 'Loan-watch', url: process.env.LOAN_DATA_URL, maxAge: 90 * 60 * 1000, fields: ['checked_at', 'generated_at'] },
             { name: 'Social', url: process.env.SOCIAL_STATUS_URL, maxAge: 50 * 60 * 1000, fields: ['last_success'] },
             { name: 'First-team analysis', url: process.env.FIRST_TEAM_ANALYSIS_URL, maxAge: 50 * 60 * 1000, fields: ['checked_at', 'generated_at'] },
+            { name: 'International duty', url: process.env.INTERNATIONAL_DUTY_URL, maxAge: 50 * 60 * 1000, fields: ['checked_at', 'generated_at'] },
           ];
           let shouldRun = false;
           for (const check of checks) {
@@ -127,6 +129,13 @@ jobs:
           BASE="https://${GITHUB_REPOSITORY_OWNER}.github.io/${REPO_NAME}"
           export PREV_FIRST_TEAM_ANALYSIS_URL="${BASE}/data/first-team-analysis.json"
           node scripts/fetch-first-team-analysis.js
+
+      - name: Update international appearances
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          BASE="https://${GITHUB_REPOSITORY_OWNER}.github.io/${REPO_NAME}"
+          export PREV_INTERNATIONAL_DUTY_URL="${BASE}/data/international-duty.json"
+          node scripts/fetch-international-duty.js
 
       - name: Update the nine-source social feed
         env:

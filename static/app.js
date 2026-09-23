@@ -3,10 +3,11 @@
 
 // ---------------- 配置 ----------------
 const REQUESTED_PAGE_VIEW = new URLSearchParams(window.location.search).get('view');
-const PAGE_VIEW = ['loans', 'analysis', 'preview'].includes(REQUESTED_PAGE_VIEW) ? REQUESTED_PAGE_VIEW : 'social';
+const PAGE_VIEW = ['loans', 'analysis', 'preview', 'internationals'].includes(REQUESTED_PAGE_VIEW) ? REQUESTED_PAGE_VIEW : 'social';
 const IS_LOAN_PAGE = PAGE_VIEW === 'loans';
 const IS_ANALYSIS_PAGE = PAGE_VIEW === 'analysis';
 const IS_PREVIEW_PAGE = PAGE_VIEW === 'preview';
+const IS_INTERNATIONALS_PAGE = PAGE_VIEW === 'internationals';
 const SOCIAL_SOURCE_KEYS = new Set([
   'city_xtra', 'bajkowski', 'samlee', 'gaughan', 'fpl_maine_road',
   'etihad_intel', 'mcfcous', 'city_report', 'tolmie',
@@ -48,6 +49,8 @@ const FIRST_TEAM_ANALYSIS_URL = './data/first-team-analysis.json';
 const FIRST_TEAM_ANALYSIS_CACHE_KEY = 'cth_first_team_analysis_cache_v1';
 const MATCH_PREVIEW_URL = './data/match-preview.json';
 const MATCH_PREVIEW_CACHE_KEY = 'cth_match_preview_cache_v1';
+const INTERNATIONAL_DUTY_URL = './data/international-duty.json';
+const INTERNATIONAL_DUTY_CACHE_KEY = 'cth_international_duty_cache_v1';
 const MATCH_PREVIEW_POLL_OPTIONS = Object.freeze([
   { key: 'win', label: '稳了，能拿下' },
   { key: 'unsure', label: '不好说，先看开场' },
@@ -1506,12 +1509,12 @@ function renderPrayerCount(localCount, globalCount = null, syncState = 'loading'
     totalLine.append('全站已汇集 ', el('b', 'prayer-count-number', `${compactCount(globalCount)} 次`), '蓝月好运');
     const goalLine = el('span', 'prayer-goal');
     goalLine.append('距 ', el('b', '', `${compactCount(goal)} 次`), '还差 ', el('b', '', `${compactCount(remaining)} 次`));
-    accessible = `为曼城九月全胜敲个木鱼。全站已汇集 ${globalCount} 次蓝月好运。距离 ${goal} 次还差 ${remaining} 次。`;
+    accessible = `为曼城十月全胜敲个木鱼。全站已汇集 ${globalCount} 次蓝月好运。距离 ${goal} 次还差 ${remaining} 次。`;
     countNode.replaceChildren(totalLine, goalLine);
   } else {
     const status = syncState === 'error' ? '全站同步暂不可用' : '全站次数加载中';
     countNode.textContent = status;
-    accessible = `为曼城九月全胜敲个木鱼。${syncState === 'error' ? '全站同步暂不可用。' : '全站次数加载中。'}`;
+    accessible = `为曼城十月全胜敲个木鱼。${syncState === 'error' ? '全站同步暂不可用。' : '全站次数加载中。'}`;
   }
   button.title = accessible;
   button.setAttribute('aria-label', accessible);
@@ -1565,7 +1568,7 @@ function bindPrayer() {
     requestAnimationFrame(() => button.classList.add('hit'));
     setTimeout(() => button.classList.remove('hit'), 360);
     try { navigator.vibrate?.(30); } catch { /* 部分浏览器不支持轻触震动 */ }
-    toast('咚！正在为九月全胜送出蓝月好运…');
+    toast('咚！正在为十月全胜送出蓝月好运…');
     try {
       // 写入只请求已成功读取的同一个入口，网络超时时不跨入口重试，避免重复 +1。
       const res = await fetchPrayer(activeEndpoint, 'POST');
@@ -1580,7 +1583,7 @@ function bindPrayer() {
         const achieved = globalCount > 0 && globalCount % step === 0;
         toast(achieved
           ? `蓝月好运突破 ${globalCount.toLocaleString('zh-CN')} 次！💙`
-          : `收到！这是全站第 ${globalCount.toLocaleString('zh-CN')} 声九月全胜木鱼 💙`);
+          : `收到！这是全站第 ${globalCount.toLocaleString('zh-CN')} 声十月全胜木鱼 💙`);
       } else if (res.status === 429) toast('好运收到啦，稍慢一点再敲 💙');
       else {
         syncState = 'error';
@@ -1801,6 +1804,7 @@ function configurePageMode() {
   const loanHome = $('#loan-watch-home');
   const analysisHome = $('#first-team-analysis-home');
   const previewHome = $('#match-preview-home');
+  const internationalsHome = $('#international-duty-home');
   const stadium = $('#stadium-hero');
   const focusZone = $('#focus-zone');
   const filterbar = $('.filterbar');
@@ -1809,6 +1813,7 @@ function configurePageMode() {
   const socialTab = $('#page-social');
   const previewTab = $('#page-preview');
   const analysisTab = $('#page-analysis');
+  const internationalsTab = $('#page-internationals');
   const loansTab = $('#page-loans');
   const title = $('#site-title');
   const slogan = $('#brand-slogan-copy');
@@ -1816,8 +1821,9 @@ function configurePageMode() {
   socialTab.classList.toggle('active', PAGE_VIEW === 'social');
   previewTab.classList.toggle('active', IS_PREVIEW_PAGE);
   analysisTab.classList.toggle('active', IS_ANALYSIS_PAGE);
+  internationalsTab.classList.toggle('active', IS_INTERNATIONALS_PAGE);
   loansTab.classList.toggle('active', IS_LOAN_PAGE);
-  for (const [view, tab] of [['social', socialTab], ['preview', previewTab], ['analysis', analysisTab], ['loans', loansTab]]) {
+  for (const [view, tab] of [['social', socialTab], ['preview', previewTab], ['analysis', analysisTab], ['internationals', internationalsTab], ['loans', loansTab]]) {
     if (PAGE_VIEW === view) tab.setAttribute('aria-current', 'page');
     else tab.removeAttribute('aria-current');
   }
@@ -1832,6 +1838,7 @@ function configurePageMode() {
     loanHome.hidden = true;
     analysisHome.hidden = true;
     previewHome.hidden = false;
+    internationalsHome.hidden = true;
     stadium.hidden = true;
     focusZone.hidden = true;
     filterbar.hidden = true;
@@ -1852,6 +1859,7 @@ function configurePageMode() {
     loanHome.hidden = true;
     analysisHome.hidden = false;
     previewHome.hidden = true;
+    internationalsHome.hidden = true;
     stadium.hidden = true;
     focusZone.hidden = true;
     filterbar.hidden = true;
@@ -1872,6 +1880,7 @@ function configurePageMode() {
     loanHome.hidden = false;
     analysisHome.hidden = true;
     previewHome.hidden = true;
+    internationalsHome.hidden = true;
     stadium.hidden = false;
     focusZone.hidden = true;
     filterbar.hidden = true;
@@ -1882,6 +1891,27 @@ function configurePageMode() {
     return;
   }
 
+  if (IS_INTERNATIONALS_PAGE) {
+    document.title = '国家队追踪｜曼城与阿森纳国脚出场时间';
+    title.textContent = '国家队追踪';
+    slogan.textContent = '曼城与阿森纳，国家队赛程一页看完 💙';
+    $('#updated-at').textContent = '正在加载国家队赛程…';
+    $('#btn-refresh').title = '刷新国家队出场数据';
+    socialHome.hidden = true;
+    loanHome.hidden = true;
+    analysisHome.hidden = true;
+    previewHome.hidden = true;
+    internationalsHome.hidden = false;
+    stadium.hidden = true;
+    focusZone.hidden = true;
+    filterbar.hidden = true;
+    librarybar.hidden = true;
+    feed.hidden = true;
+    $('#footer-primary').textContent = '征召与赛程来自俱乐部及国家队公开信息；赛果、名单与出场分钟来自 FotMob。';
+    $('#footer-secondary').textContent = '国家队追踪 · 曼城与阿森纳成年国脚对比';
+    return;
+  }
+
   document.title = '曼城社媒｜跟队记者与蓝月消息源';
   title.textContent = '曼城社媒';
   slogan.textContent = '点击右侧看外租小将表现';
@@ -1889,6 +1919,7 @@ function configurePageMode() {
   loanHome.hidden = true;
   analysisHome.hidden = true;
   previewHome.hidden = true;
+  internationalsHome.hidden = true;
   stadium.hidden = true;
   focusZone.hidden = true;
   filterbar.hidden = false;
@@ -3015,6 +3046,30 @@ async function matchPreviewApi() {
   const data = await response.json();
   if (!allMatchPreviewEntries(data).length) throw new Error('bad_match_preview_data');
   writeMatchPreviewCache(data);
+  return data;
+}
+
+function readInternationalDutyCache() {
+  try {
+    const data = JSON.parse(localStorage.getItem(INTERNATIONAL_DUTY_CACHE_KEY) || 'null');
+    return Array.isArray(data?.clubs) ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeInternationalDutyCache(data) {
+  try {
+    localStorage.setItem(INTERNATIONAL_DUTY_CACHE_KEY, JSON.stringify(data));
+  } catch { /* 隐私模式或空间不足时继续使用在线数据 */ }
+}
+
+async function internationalDutyApi() {
+  const response = await fetch(`${INTERNATIONAL_DUTY_URL}?t=${Date.now()}`, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  if (!Array.isArray(data.clubs) || !data.clubs.length) throw new Error('bad_international_duty_data');
+  writeInternationalDutyCache(data);
   return data;
 }
 
@@ -4538,6 +4593,174 @@ async function loadMatchPreviewHome() {
     else matchPreviewData = data;
   } catch {
     if (!matchPreviewEntries(cached).length) root.innerHTML = '<div class="first-team-analysis-loading error">比赛前瞻暂时连接不上，请稍后刷新。</div>';
+  }
+}
+
+let internationalDutyData = null;
+
+function internationalDutyKickoff(value) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return '开球时间待定';
+  const formatted = new Intl.DateTimeFormat('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    month: 'numeric',
+    day: 'numeric',
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date).replaceAll('/', '月').replace(',', '日');
+  return formatted.replace(/^(\d+)月(\d+)日?\s*/, '$1月$2日 ');
+}
+
+function internationalAppearanceClass(status) {
+  if (status === '首发') return 'started';
+  if (status === '替补登场') return 'subbed-on';
+  if (status === '替补未登场' || status === '未进名单') return 'unused';
+  return 'pending';
+}
+
+function internationalAppearanceText(appearance) {
+  if (appearance.status === '首发' || appearance.status === '替补登场') {
+    return `${appearance.status} · ${Number(appearance.minutes || 0)}分钟`;
+  }
+  return appearance.status || '待更新';
+}
+
+function internationalFixtureCard(fixture) {
+  const link = el(fixture.url ? 'a' : 'div', `international-fixture ${fixture.status === '完场' ? 'completed' : ''}`);
+  if (fixture.url) {
+    link.href = fixture.url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+  }
+
+  const head = el('div', 'international-fixture-head');
+  const date = el('div', 'international-fixture-date');
+  date.append(
+    el('strong', null, internationalDutyKickoff(fixture.kickoff_at)),
+    el('small', null, '北京时间'),
+  );
+  const score = el('div', `international-fixture-score ${fixture.status === '完场' ? 'final' : ''}`);
+  score.append(
+    el('strong', null, fixture.score || fixture.status || '未开赛'),
+    el('small', null, fixture.status === '完场' ? `完场 · ${fixture.competition || '国家队比赛'}` : (fixture.competition || '国家队比赛')),
+  );
+  head.append(date, score);
+
+  const matchup = el('div', 'international-fixture-matchup');
+  matchup.append(
+    el('span', null, fixture.home),
+    el('b', null, fixture.status === '完场' && fixture.score ? fixture.score : 'vs'),
+    el('span', null, fixture.away),
+  );
+
+  const appearances = el('div', 'international-appearances');
+  for (const appearance of fixture.appearances || []) {
+    const item = el('span', `international-appearance ${internationalAppearanceClass(appearance.status)}`);
+    item.append(el('b', null, appearance.name), el('small', null, internationalAppearanceText(appearance)));
+    appearances.appendChild(item);
+  }
+  link.append(head, matchup, appearances);
+  return link;
+}
+
+function renderInternationalDuty(data) {
+  internationalDutyData = data;
+  const root = $('#international-duty-home');
+  root.textContent = '';
+
+  const hero = el('header', 'international-duty-hero');
+  const copy = el('div', 'international-duty-hero-copy');
+  copy.append(
+    el('span', 'international-duty-kicker', 'INTERNATIONAL DUTY · CITY vs ARSENAL'),
+    el('h2', null, data.title || '国家队出征·曼城 vs 阿森纳'),
+    el('p', null, '两队进入成年国家队名单的球员放在同一页：每场赛程、首发替补和实际出场分钟都能直接对照。'),
+  );
+  const summary = el('div', 'international-duty-summary');
+  const summaryItems = (data.clubs || []).map((club) => [
+    club.name,
+    `${club.summary?.players ?? 0}人入选 · ${club.summary?.minutes ?? 0}分钟`,
+  ]);
+  for (const [value, label] of summaryItems) {
+    const item = el('span');
+    item.append(el('strong', null, value), el('small', null, label));
+    summary.appendChild(item);
+  }
+  hero.append(copy, summary);
+
+  const note = el('aside', 'international-duty-note');
+  note.append(
+    el('strong', null, '成年国家队全部收录'),
+    el('span', null, '包括欧国联、非洲杯预选赛和国际友谊赛；预计完赛1小时后更新首发、替补和出场分钟。青年队不列入本次对比。'),
+  );
+
+  const comparison = el('section', 'international-club-comparison');
+  for (const club of data.clubs || []) {
+    const column = el('section', `international-club-column ${club.key || ''}`);
+    const clubHead = el('header', 'international-club-head');
+    const clubName = el('div', 'international-club-name');
+    clubName.append(el('i', null, club.badge || '⚽'), el('div'));
+    clubName.lastChild.append(el('h3', null, club.name), el('small', null, club.name_en || ''));
+    const clubStats = el('div', 'international-club-stats');
+    for (const [value, label] of [
+      [club.summary?.players ?? 0, '人入选'],
+      [club.summary?.matches ?? 0, '场赛程'],
+      [club.summary?.minutes ?? 0, '分钟'],
+    ]) {
+      const stat = el('span');
+      stat.append(el('b', null, value), el('small', null, label));
+      clubStats.appendChild(stat);
+    }
+    clubHead.append(clubName, clubStats);
+
+    const grid = el('div', 'international-duty-grid');
+    for (const team of club.teams || []) {
+      const card = el('article', 'international-team-card');
+      const header = el('header', 'international-team-head');
+      const identity = el('div', 'international-team-identity');
+      identity.append(el('i', null, team.flag || '🌍'), el('div', null));
+      identity.lastChild.append(el('h3', null, team.name), el('small', null, team.name_en || ''));
+      const players = el('div', 'international-player-list');
+      for (const player of team.players || []) players.appendChild(el('span', null, player.name));
+      header.append(identity, players);
+
+      const fixtures = el('div', 'international-fixture-list');
+      for (const fixture of team.fixtures || []) fixtures.appendChild(internationalFixtureCard(fixture));
+      card.append(header, fixtures);
+      grid.appendChild(card);
+    }
+    column.append(clubHead, grid);
+    comparison.appendChild(column);
+  }
+
+  const source = el('footer', 'international-duty-source');
+  source.append(document.createTextNode('征召与赛程：'));
+  for (const [index, item] of (data.sources || []).entries()) {
+    if (index) source.append(document.createTextNode('、'));
+    const sourceLink = el('a', null, item.label || '公开赛程');
+    sourceLink.href = item.url || '#';
+    sourceLink.target = '_blank';
+    sourceLink.rel = 'noopener noreferrer';
+    source.append(sourceLink);
+  }
+  source.append(document.createTextNode(' · 赛果、名单与分钟：FotMob'));
+
+  root.append(hero, note, comparison, source);
+  $('#updated-at').textContent = `国家队数据更新于 ${firstTeamAnalysisDate(data.checked_at || data.generated_at, true)}`;
+}
+
+async function loadInternationalDutyHome() {
+  const root = $('#international-duty-home');
+  const cached = internationalDutyData || readInternationalDutyCache();
+  if (cached?.clubs?.length) renderInternationalDuty(cached);
+  else root.innerHTML = '<div class="first-team-analysis-loading">正在读取国家队赛程与出场数据…</div>';
+  try {
+    const data = await internationalDutyApi();
+    if (!cached || data.checked_at !== cached.checked_at) renderInternationalDuty(data);
+    else internationalDutyData = data;
+  } catch {
+    if (!cached?.clubs?.length) root.innerHTML = '<div class="first-team-analysis-loading error">国家队出场数据暂时连接不上，请稍后刷新。</div>';
   }
 }
 
@@ -7071,6 +7294,7 @@ function bind() {
     if (IS_LOAN_PAGE) return loadLoanWatchHome();
     if (IS_ANALYSIS_PAGE) return loadFirstTeamAnalysisHome();
     if (IS_PREVIEW_PAGE) return loadMatchPreviewHome();
+    if (IS_INTERNATIONALS_PAGE) return loadInternationalDutyHome();
     return loadData(true);
   };
   $('#btn-trigger').onclick = triggerCloudFetch;
@@ -7117,6 +7341,7 @@ function bind() {
     if (IS_LOAN_PAGE) loadLoanWatchHome();
     else if (IS_ANALYSIS_PAGE) loadFirstTeamAnalysisHome();
     else if (IS_PREVIEW_PAGE) loadMatchPreviewHome();
+    else if (IS_INTERNATIONALS_PAGE) loadInternationalDutyHome();
     else loadData(true);
   });
   updateSrcBtn();
@@ -7145,7 +7370,7 @@ bind();
 bindPrayer();
 recordRequestedShareVisit();
 renderFocusZone();
-scheduleFeatureGuide();
+// 用户已经熟悉各栏目：不再自动展示栏目引导、夏窗终章或恢复公告。
 if (IS_LOAN_PAGE) {
   updateWinterWindowCountdown();
   setInterval(updateWinterWindowCountdown, 1000);
@@ -7157,6 +7382,8 @@ if (IS_LOAN_PAGE) {
   loadFirstTeamAnalysisHome();
 } else if (IS_PREVIEW_PAGE) {
   loadMatchPreviewHome();
+} else if (IS_INTERNATIONALS_PAGE) {
+  loadInternationalDutyHome();
 } else {
   loadData(false).finally(() => {
     const surveyId = requestedSurveyId();

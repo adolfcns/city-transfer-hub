@@ -188,7 +188,7 @@ body[data-page="social"] .container { max-width: 920px; }
     linear-gradient(135deg, rgba(255,255,255,.98), rgba(224,243,251,.96));
   box-shadow: 0 8px 22px rgba(39,82,105,.08);
 }
-.feature-hero-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.feature-hero-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .loan-page-hero-link {
   min-height: 90px; padding: 14px 17px; display: flex; align-items: center; justify-content: space-between; gap: 18px;
   color: #18364d; text-decoration: none; cursor: pointer; transition: background .16s, transform .16s;
@@ -196,6 +196,9 @@ body[data-page="social"] .container { max-width: 920px; }
 .loan-page-hero-link + .loan-page-hero-link { border-left: 1px solid #a9d3e5; }
 .loan-page-hero-link.analysis { background: linear-gradient(135deg, rgba(234,247,252,.82), rgba(255,249,230,.72)); }
 .loan-page-hero-link.preview { background: linear-gradient(135deg, rgba(220,243,252,.94), rgba(235,239,255,.82)); }
+.loan-page-hero-link.internationals { background: linear-gradient(135deg, rgba(236,246,255,.9), rgba(236,241,255,.82)); }
+.loan-page-hero-link:nth-child(n+3) { border-top: 1px solid #a9d3e5; }
+.loan-page-hero-link:nth-child(odd) { border-left: 0; }
 .loan-page-hero-link:hover {
   background: rgba(255,255,255,.42); color: #18364d; text-decoration: none;
 }
@@ -217,7 +220,7 @@ body[data-page="social"] .librarybar { margin-top: 0; }
 body[data-page="social"] .badge-tier { min-width: 0; padding-inline: 7px; }
 
 @media (max-width: 560px) {
-  .page-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 2px; border-radius: 9px; }
+  .page-tabs { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; padding: 2px; border-radius: 9px; }
   .page-tab { min-height: 30px; padding: 5px 4px; border-radius: 7px; font-size: 9px; }
   .page-tab::after { margin-left: 3px; font-size: 8px; }
   .topbar-right { align-self: center; }
@@ -2999,6 +3002,120 @@ body[data-page="preview"] .container { max-width: 1060px; }
 }
 
 /* ============ 蓝月赛后分析：一线队独立页面 ============ */
+/* ============ 国家队追踪 · 曼城与阿森纳 ============ */
+body[data-page="internationals"] .container { max-width: 1320px; }
+.international-duty-home { color: #17384f; }
+.international-duty-hero {
+  min-height: 150px; padding: 25px 28px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 24px;
+  border: 1px solid #8fc8e2; border-radius: 20px;
+  background:
+    radial-gradient(circle at 88% 2%, rgba(57,135,201,.24), transparent 34%),
+    linear-gradient(135deg, #fafdff 0%, #e4f4fb 55%, #edf0ff 100%);
+  box-shadow: 0 12px 30px rgba(35,83,111,.1);
+}
+.international-duty-kicker { color: #257ea7; font-size: 10px; font-weight: 950; letter-spacing: .14em; }
+.international-duty-hero h2 { margin-top: 6px; color: #12364f; font-size: 32px; font-weight: 950; line-height: 1.25; }
+.international-duty-hero p { max-width: 670px; margin-top: 7px; color: #5b788c; font-size: 13px; font-weight: 700; line-height: 1.65; }
+.international-duty-summary { display: grid; grid-template-columns: repeat(2, minmax(112px, 1fr)); overflow: hidden; border: 1px solid #b7d8e8; border-radius: 13px; background: rgba(255,255,255,.78); }
+.international-duty-summary span { min-width: 88px; padding: 12px 10px; display: grid; justify-items: center; gap: 2px; }
+.international-duty-summary span + span { border-left: 1px solid #d4e6ee; }
+.international-duty-summary strong { color: #126f9a; font-size: 23px; font-weight: 950; }
+.international-duty-summary small { color: #668294; font-size: 9px; font-weight: 850; }
+.international-duty-note {
+  margin: 10px 0; padding: 11px 15px; display: flex; align-items: center; gap: 12px;
+  border: 1px solid #c8dfea; border-radius: 11px; background: #f6fbfd;
+}
+.international-duty-note strong { color: #176f98; font-size: 12px; font-weight: 950; white-space: nowrap; }
+.international-duty-note span { color: #617d8f; font-size: 10px; font-weight: 700; line-height: 1.55; }
+.international-club-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 14px; }
+.international-club-column { overflow: hidden; border: 1px solid #b9d8e7; border-radius: 17px; background: rgba(246,251,253,.82); }
+.international-club-column.arsenal { border-color: #e7c6ca; background: rgba(255,248,248,.86); }
+.international-club-head { padding: 15px 16px; display: flex; justify-content: space-between; align-items: center; gap: 14px; border-bottom: 1px solid #cfe3ec; background: linear-gradient(135deg, #e5f5fb, #f8fcfe); }
+.international-club-column.arsenal .international-club-head { border-bottom-color: #ecd6d9; background: linear-gradient(135deg, #fff0f1, #fffafa); }
+.international-club-name { display: flex; align-items: center; gap: 9px; }
+.international-club-name > i { font-size: 25px; font-style: normal; }
+.international-club-name h3 { color: #103851; font-size: 21px; font-weight: 950; }
+.international-club-name small { display: block; margin-top: 1px; color: #78909d; font-size: 8px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.international-club-stats { display: flex; align-items: center; gap: 5px; }
+.international-club-stats span { min-width: 57px; padding: 6px 7px; display: grid; justify-items: center; border: 1px solid #c6e0ec; border-radius: 9px; background: rgba(255,255,255,.85); }
+.international-club-column.arsenal .international-club-stats span { border-color: #edd2d5; }
+.international-club-stats b { color: #146f99; font-size: 15px; font-weight: 950; }
+.international-club-column.arsenal .international-club-stats b { color: #b82837; }
+.international-club-stats small { color: #738b99; font-size: 7px; font-weight: 850; }
+.international-duty-grid { padding: 10px; display: grid; grid-template-columns: 1fr; gap: 9px; }
+.international-team-card { overflow: hidden; border: 1px solid #b9d8e7; border-radius: 15px; background: rgba(255,255,255,.94); box-shadow: 0 7px 20px rgba(40,82,104,.07); }
+.international-team-head { padding: 14px 15px 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px solid #dbe9ef; background: linear-gradient(135deg, #f4fbfe, #eef4fb); }
+.international-team-identity { display: flex; align-items: center; gap: 9px; }
+.international-team-identity > i { font-size: 27px; font-style: normal; line-height: 1; }
+.international-team-identity h3 { color: #123851; font-size: 18px; font-weight: 950; }
+.international-team-identity small { display: block; margin-top: 1px; color: #7891a0; font-size: 8px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.international-player-list { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+.international-player-list span { padding: 4px 7px; border-radius: 999px; background: #dff1f8; color: #126e98; font-size: 9px; font-weight: 900; white-space: nowrap; }
+.international-fixture-list { display: grid; }
+.international-fixture {
+  padding: 12px 14px; display: grid; gap: 8px; color: #17384f; text-decoration: none; transition: background .16s;
+}
+.international-fixture:not(a) { cursor: default; }
+.international-fixture + .international-fixture { border-top: 1px solid #e0ebf0; }
+.international-fixture:hover { background: #f4fbfe; color: #17384f; text-decoration: none; }
+.international-fixture-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+.international-fixture-date { display: grid; gap: 1px; }
+.international-fixture-date strong { color: #1b6f98; font-size: 11px; font-weight: 950; }
+.international-fixture-date small { color: #879ca8; font-size: 7px; font-weight: 750; }
+.international-fixture-score { display: grid; justify-items: end; gap: 1px; }
+.international-fixture-score strong { color: #6e8797; font-size: 11px; font-weight: 950; }
+.international-fixture-score.final strong { color: #123851; font-size: 17px; }
+.international-fixture-score small { color: #8a9da8; font-size: 7px; font-weight: 800; }
+.international-fixture-matchup { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
+.international-fixture-matchup span { color: #17384f; font-size: 14px; font-weight: 950; }
+.international-fixture-matchup span:last-child { text-align: right; }
+.international-fixture-matchup b { color: #2b8bb4; font-size: 10px; font-weight: 950; }
+.international-appearances { display: flex; flex-wrap: wrap; gap: 5px; }
+.international-appearance { min-width: 0; padding: 6px 8px; display: grid; gap: 1px; border: 1px solid #d6e6ed; border-radius: 8px; background: #f8fbfc; }
+.international-appearance b { color: #294c61; font-size: 9px; font-weight: 950; }
+.international-appearance small { color: #728b99; font-size: 7px; font-weight: 750; }
+.international-appearance.started, .international-appearance.subbed-on { border-color: #a9d9c1; background: #effaf4; }
+.international-appearance.started small, .international-appearance.subbed-on small { color: #267451; }
+.international-appearance.unused { border-color: #e1e6e9; background: #f6f7f8; opacity: .82; }
+.international-duty-source { margin: 12px 2px 0; color: #78909d; font-size: 9px; line-height: 1.6; }
+.international-duty-source a { color: #177da9; font-weight: 850; }
+
+@media (max-width: 760px) {
+  body[data-page="internationals"] .container { padding: 8px 8px 54px; }
+  .international-duty-hero { min-height: 0; padding: 15px 13px; grid-template-columns: 1fr; gap: 11px; border-radius: 14px; }
+  .international-duty-kicker { font-size: 7px; }
+  .international-duty-hero h2 { margin-top: 4px; font-size: 23px; }
+  .international-duty-hero p { margin-top: 4px; font-size: 10px; line-height: 1.55; }
+  .international-duty-summary { grid-template-columns: repeat(2, 1fr); }
+  .international-duty-summary span { min-width: 0; padding: 8px 4px; }
+  .international-duty-summary strong { font-size: 18px; }
+  .international-duty-summary small { font-size: 7px; }
+  .international-duty-note { margin: 7px 0; padding: 8px 10px; align-items: flex-start; gap: 7px; }
+  .international-duty-note strong { font-size: 9px; }
+  .international-duty-note span { font-size: 8px; }
+  .international-club-comparison { grid-template-columns: 1fr; gap: 9px; }
+  .international-club-column { border-radius: 13px; }
+  .international-club-head { padding: 10px 11px; gap: 8px; }
+  .international-club-name > i { font-size: 21px; }
+  .international-club-name h3 { font-size: 18px; }
+  .international-club-stats { gap: 3px; }
+  .international-club-stats span { min-width: 48px; padding: 5px 4px; }
+  .international-club-stats b { font-size: 13px; }
+  .international-duty-grid { padding: 7px; grid-template-columns: 1fr; gap: 7px; }
+  .international-team-card { border-radius: 12px; }
+  .international-team-head { padding: 11px 11px 9px; align-items: flex-start; }
+  .international-team-identity > i { font-size: 23px; }
+  .international-team-identity h3 { font-size: 16px; }
+  .international-player-list { max-width: 62%; gap: 3px; }
+  .international-player-list span { padding: 3px 6px; font-size: 8px; }
+  .international-fixture { padding: 10px 11px; gap: 7px; }
+  .international-fixture-date strong { font-size: 10px; }
+  .international-fixture-matchup span { font-size: 13px; }
+  .international-appearance { padding: 5px 7px; }
+  .international-appearance b { font-size: 8px; }
+  .international-appearance small { font-size: 6.5px; }
+}
+
 body[data-page="analysis"] .container { max-width: 1060px; }
 .first-team-analysis-home { color: #17384f; }
 .first-team-analysis-loading {

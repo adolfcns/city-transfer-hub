@@ -4,10 +4,12 @@ import fs from 'node:fs';
 
 const index = fs.readFileSync('static/index.html', 'utf8');
 
-test('右下角木鱼改为九月全胜小狗互动并保留全站计数', () => {
+test('右下角木鱼改为十月全胜小狗互动并保留全站计数', () => {
   const app = fs.readFileSync('static/app.js', 'utf8');
   const style = fs.readFileSync('static/style.css', 'utf8');
-  assert.match(index, /为9月全胜，敲个木鱼/);
+  assert.match(index, /为10月全胜，敲个木鱼/);
+  assert.doesNotMatch(index, /为9月全胜/);
+  assert.match(app, /十月全胜/);
   assert.doesNotMatch(index, /咚一下，给蓝月攒满胜利好运/);
   assert.match(index, /assets\/city-dog-muyu\.png/);
   assert.doesNotMatch(index, /id="city-prayer"[^>]*hidden/);
