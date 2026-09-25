@@ -3074,8 +3074,12 @@ body[data-page="internationals"] .container { max-width: 1320px; }
 .international-player-summary:hover { background: #f7fbfd; }
 .international-player-rank { color: #91a3ad; font-size: 9px; font-weight: 900; text-align: center; }
 .international-player-identity { min-width: 0; display: grid; gap: 1px; }
+.international-player-name-line { min-width: 0; display: flex; align-items: center; gap: 6px; }
+.international-player-name-line > strong { min-width: 0; flex: 0 1 auto; }
 .international-player-identity strong { overflow: hidden; color: #17384f; font-size: 14px; font-weight: 950; text-overflow: ellipsis; white-space: nowrap; }
 .international-player-identity small { overflow: hidden; color: #8397a3; font-size: 8px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.international-player-injury { flex: 0 0 auto; padding: 3px 6px; border: 1px solid #b9dec9; border-radius: 999px; background: #eff9f3; color: #28734e; font-size: 7px; font-weight: 950; line-height: 1; white-space: nowrap; }
+.international-player-injury.injured { border-color: #efb7bc; background: #fff0f1; color: #b32734; }
 .international-player-country { min-width: 0; display: flex; align-items: center; gap: 6px; }
 .international-player-country i { font-size: 17px; font-style: normal; }
 .international-player-country span { overflow: hidden; color: #496a7d; font-size: 10px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
@@ -3143,6 +3147,8 @@ body[data-page="internationals"] .container { max-width: 1320px; }
   .international-player-identity { grid-column: 2; grid-row: 1; }
   .international-player-identity strong { font-size: 12px; }
   .international-player-identity small { display: none; }
+  .international-player-name-line { gap: 4px; }
+  .international-player-injury { padding: 2px 4px; font-size: 6px; }
   .international-player-country { grid-column: 2; grid-row: 2; gap: 3px; }
   .international-player-country i { font-size: 12px; }
   .international-player-country span { font-size: 7px; }

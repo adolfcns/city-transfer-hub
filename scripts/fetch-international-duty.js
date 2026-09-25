@@ -10,6 +10,7 @@ const FOTMOB_API = 'https://www.fotmob.com/api/data';
 const USER_AGENT = 'Mozilla/5.0 (compatible; CityTransferHub/1.0)';
 const POST_MATCH_DELAY_MS = 3 * 60 * 60 * 1000;
 const RETRY_INTERVAL_MS = 6 * 60 * 60 * 1000;
+const INJURY_REFRESH_MS = 6 * 60 * 60 * 1000;
 
 function normalizeName(value) {
   return String(value || '')
@@ -87,6 +88,61 @@ function previousFixtures(previous) {
     }
   }
   return map;
+}
+
+function previousClubs(previous) {
+  return new Map((previous?.clubs || []).map((club) => [club.key, club]));
+}
+
+function needsInjuryRefresh(previousClub, now) {
+  const checked = new Date(previousClub?.injury_checked_at || 0).getTime();
+  return !Number.isFinite(checked) || now.getTime() - checked >= INJURY_REFRESH_MS;
+}
+
+function injuryReturnText(value) {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  if (/^doubtful$/i.test(text)) return '出战成疑';
+  if (/^out for season$/i.test(text)) return '赛季报销';
+  const match = text.match(/^(Early|Mid|Late)\s+([A-Za-z]+)\s+(\d{4})$/i);
+  if (!match) return text;
+  const part = { early: '上旬', mid: '中旬', late: '下旬' }[match[1].toLowerCase()];
+  const month = {
+    january: 1, february: 2, march: 3, april: 4, may: 5, june: 6,
+    july: 7, august: 8, september: 9, october: 10, november: 11, december: 12,
+  }[match[2].toLowerCase()];
+  return month ? `预计${match[3]}年${month}月${part}复出` : text;
+}
+
+function squadMembers(teamData) {
+  return (teamData?.squad?.squad || []).flatMap((group) => group.members || []);
+}
+
+function injuryForPlayer(members, player, checkedAt) {
+  const aliases = [player.name_en, ...(player.aliases || [])].map(normalizeName);
+  const member = members.find((item) => aliases.includes(normalizeName(item.name)));
+  const injured = Boolean(member?.injured || member?.injury);
+  const expectedReturn = member?.injury?.expectedReturn || null;
+  return {
+    injured,
+    status: injured ? 'injured' : 'clear',
+    label: injured ? `受伤${expectedReturn ? ` · ${injuryReturnText(expectedReturn)}` : ''}` : '暂无伤情',
+    expected_return: expectedReturn,
+    checked_at: checkedAt,
+  };
+}
+
+function previousInjuryForPlayer(previousClub, player) {
+  const previousPlayer = (previousClub?.players || []).find((item) => (
+    normalizeName(item.name_en || item.name) === normalizeName(player.name_en || player.name)
+  ));
+  return previousPlayer?.injury || {
+    injured: false,
+    status: 'clear',
+    label: '暂无伤情',
+    expected_return: null,
+    checked_at: previousClub?.injury_checked_at || null,
+  };
 }
 
 async function fetchJson(url, attempts = 3) {
@@ -210,6 +266,7 @@ function playerMatches(club) {
       players.push({
         name: player.name,
         name_en: player.name_en,
+        aliases: player.aliases || [],
         national_team: team.name,
         national_team_en: team.name_en,
         flag: team.flag,
@@ -243,12 +300,21 @@ function clubSummary(club) {
   };
 }
 
-export async function buildInternationalDuty(config, previous = null, now = new Date(), fetcher = fetchJson, scheduleFetcher = fetchJson) {
+export async function buildInternationalDuty(
+  config,
+  previous = null,
+  now = new Date(),
+  fetcher = fetchJson,
+  scheduleFetcher = fetchJson,
+  teamFetcher = fetchJson,
+) {
   const previousMap = previousFixtures(previous);
+  const previousClubMap = previousClubs(previous);
   const detailCache = new Map();
   const scheduleCache = new Map();
   let detailRequests = 0;
   let scheduleRequests = 0;
+  let injuryRequests = 0;
   const checkedAt = now.toISOString();
   const clubs = [];
 
@@ -293,6 +359,31 @@ export async function buildInternationalDuty(config, previous = null, now = new 
     }
     const club = { ...clubConfig, teams };
     club.players = playerMatches(club);
+    const priorClub = previousClubMap.get(club.key);
+    if (club.fotmob_id && needsInjuryRefresh(priorClub, now)) {
+      try {
+        injuryRequests += 1;
+        const teamData = await teamFetcher(`${FOTMOB_API}/teams?id=${encodeURIComponent(club.fotmob_id)}&ccode3=GBR`);
+        const members = squadMembers(teamData);
+        club.players = club.players.map((player) => ({
+          ...player,
+          injury: injuryForPlayer(members, player, checkedAt),
+        }));
+        club.injury_checked_at = checkedAt;
+      } catch {
+        club.players = club.players.map((player) => ({
+          ...player,
+          injury: previousInjuryForPlayer(priorClub, player),
+        }));
+        club.injury_checked_at = priorClub?.injury_checked_at || null;
+      }
+    } else {
+      club.players = club.players.map((player) => ({
+        ...player,
+        injury: previousInjuryForPlayer(priorClub, player),
+      }));
+      club.injury_checked_at = priorClub?.injury_checked_at || null;
+    }
     club.summary = clubSummary(club);
     clubs.push(club);
   }
@@ -315,13 +406,15 @@ export async function buildInternationalDuty(config, previous = null, now = new 
       matches: uniqueMatches.size,
       completed: completedMatches.size,
       minutes: clubs.reduce((sum, club) => sum + club.summary.minutes, 0),
+      injured: clubs.reduce((sum, club) => sum + club.players.filter((player) => player.injury?.injured).length, 0),
     },
     clubs,
     fetch: {
-      requests: detailRequests + scheduleRequests,
+      requests: detailRequests + scheduleRequests + injuryRequests,
       match_detail_requests: detailRequests,
       schedule_resolution_requests: scheduleRequests,
-      policy: '预计完赛1小时后抓取一次；未完场时6小时后再试',
+      injury_requests: injuryRequests,
+      policy: '预计完赛1小时后抓取一次；未完场时6小时后再试；俱乐部伤情每6小时刷新',
     },
   };
 }

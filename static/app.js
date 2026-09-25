@@ -4691,7 +4691,12 @@ function internationalPlayerCard(entry, rank) {
   const summary = el('summary', 'international-player-summary');
   const ranking = el('span', 'international-player-rank', String(rank));
   const identity = el('div', 'international-player-identity');
-  identity.append(el('strong', null, entry.player.name), el('small', null, entry.player.name_en || ''));
+  const nameLine = el('div', 'international-player-name-line');
+  const injury = entry.player.injury || { injured: false, label: '暂无伤情' };
+  const injuryTag = el('span', `international-player-injury ${injury.injured ? 'injured' : 'clear'}`, injury.label || (injury.injured ? '受伤' : '暂无伤情'));
+  if (injury.expected_return) injuryTag.title = `预计复出：${injury.expected_return}`;
+  nameLine.append(el('strong', null, entry.player.name), injuryTag);
+  identity.append(nameLine, el('small', null, entry.player.name_en || ''));
   const country = el('div', 'international-player-country');
   country.append(el('i', null, entry.player.flag || '🌍'), el('span', null, entry.player.national_team || '国家队'));
   const played = el('div', 'international-player-played');
@@ -4740,7 +4745,7 @@ function renderInternationalDuty(data) {
   const note = el('aside', 'international-duty-note');
   note.append(
     el('strong', null, '球员才是主角'),
-    el('span', null, '国家队只作为球员旁边的标签；比赛预计结束1小时后更新首发、替补和实际分钟。为保证三队可比，本页不混入纯青训梯队征召。'),
+    el('span', null, '国家队只作为球员旁边的标签；比赛预计结束1小时后更新首发、替补和实际分钟，伤情每6小时核对一次。为保证三队可比，本页不混入纯青训梯队征召。'),
   );
 
   const totals = el('section', 'international-club-totals');
@@ -4835,7 +4840,7 @@ function renderInternationalDuty(data) {
     sourceLink.rel = 'noopener noreferrer';
     source.append(sourceLink);
   }
-  source.append(document.createTextNode(' · 赛果、名单与分钟：FotMob'));
+  source.append(document.createTextNode(' · 赛果、名单、分钟与俱乐部伤情：FotMob'));
 
   root.append(hero, note, totals, recent, board, source);
   $('#updated-at').textContent = `国家队数据更新于 ${firstTeamAnalysisDate(data.checked_at || data.generated_at, true)}`;

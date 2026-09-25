@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "title": "国家队出场时间·三强对比",
   "window": "2026年9—10月国家队比赛日",
   "sources": [
@@ -9,7 +9,7 @@
   ],
   "clubs": [
     {
-      "key": "city", "name": "曼城", "name_en": "Manchester City", "badge": "🔵",
+      "key": "city", "name": "曼城", "name_en": "Manchester City", "badge": "🔵", "fotmob_id": 8456,
       "teams": [
         {
           "key": "algeria", "name": "阿尔及利亚", "name_en": "Algeria", "flag": "🇩🇿",
@@ -147,7 +147,7 @@
       ]
     },
     {
-      "key": "arsenal", "name": "阿森纳", "name_en": "Arsenal", "badge": "🔴",
+      "key": "arsenal", "name": "阿森纳", "name_en": "Arsenal", "badge": "🔴", "fotmob_id": 9825,
       "teams": [
         {
           "key": "england", "name": "英格兰", "name_en": "England", "flag": "🏴",
@@ -251,7 +251,7 @@
       ]
     },
     {
-      "key": "liverpool", "name": "利物浦", "name_en": "Liverpool", "badge": "🔴",
+      "key": "liverpool", "name": "利物浦", "name_en": "Liverpool", "badge": "🔴", "fotmob_id": 8650,
       "teams": [
         {
           "key": "netherlands", "name": "荷兰", "name_en": "Netherlands", "flag": "🇳🇱",
@@ -270,7 +270,7 @@
         },
         {
           "key": "greece", "name": "希腊", "name_en": "Greece", "flag": "🇬🇷",
-          "players": [{ "name": "齐米卡斯", "name_en": "Kostas Tsimikas", "aliases": ["Kostas Tsimikas"] }],
+          "players": [{ "name": "齐米卡斯", "name_en": "Kostas Tsimikas", "aliases": ["Kostas Tsimikas", "Konstantinos Tsimikas"] }],
           "fixtures": [
             { "id": "5181826", "kickoff_at": "2026-09-24T18:45:00Z", "home": "塞尔维亚", "away": "希腊", "home_en": "Serbia", "away_en": "Greece", "competition": "欧国联" },
             { "id": "5181828", "kickoff_at": "2026-09-27T18:45:00Z", "home": "德国", "away": "希腊", "home_en": "Germany", "away_en": "Greece", "competition": "欧国联" },

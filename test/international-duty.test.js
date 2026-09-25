@@ -22,15 +22,67 @@ test('国家队页面收录曼城、阿森纳和利物浦一线队国脚', async
   assert.equal(liverpool.teams.length, 14);
   assert.equal(allMatches.size, 68);
 
-  const data = await buildInternationalDuty(config, null, new Date('2026-09-23T12:00:00Z'), async () => {
-    throw new Error('赛前不应请求详情');
-  });
-  assert.equal(data.fetch.requests, 0);
+  const data = await buildInternationalDuty(
+    config,
+    null,
+    new Date('2026-09-23T12:00:00Z'),
+    async () => { throw new Error('赛前不应请求详情'); },
+    async () => { throw new Error('赛前不应解析赛程'); },
+    async () => ({ squad: { squad: [] } }),
+  );
+  assert.equal(data.fetch.requests, 3);
+  assert.equal(data.fetch.injury_requests, 3);
   assert.equal(data.summary.players, 52);
   assert.equal(data.summary.matches, 68);
   assert.deepEqual(data.clubs.map((club) => club.summary.players), [17, 15, 20]);
   assert.deepEqual(data.clubs.map((club) => club.players.length), [17, 15, 20]);
   assert.ok(data.clubs.every((club) => club.teams.every((team) => team.fixtures.every((fixture) => fixture.status === '未开赛'))));
+});
+
+test('每名球员显示伤情并把俱乐部伤病请求限制为每六小时一次', async () => {
+  const injuryConfig = {
+    version: 3,
+    title: '伤情测试',
+    clubs: [{
+      key: 'arsenal', name: '阿森纳', name_en: 'Arsenal', badge: '🔴', fotmob_id: 9825,
+      teams: [{
+        key: 'netherlands', name: '荷兰', name_en: 'Netherlands', flag: '🇳🇱',
+        players: [{ name: '廷贝尔', name_en: 'Jurrien Timber', aliases: ['Jurriën Timber'] }],
+        fixtures: [],
+      }],
+    }],
+  };
+  const teamData = {
+    squad: { squad: [{ title: 'defenders', members: [{ name: 'Jurriën Timber', injured: true, injury: { expectedReturn: 'Doubtful' } }] }] },
+  };
+  const first = await buildInternationalDuty(
+    injuryConfig,
+    null,
+    new Date('2026-09-25T02:00:00Z'),
+    async () => ({}),
+    async () => ({}),
+    async () => teamData,
+  );
+  assert.equal(first.fetch.injury_requests, 1);
+  assert.equal(first.summary.injured, 1);
+  assert.deepEqual(first.clubs[0].players[0].injury, {
+    injured: true,
+    status: 'injured',
+    label: '受伤 · 出战成疑',
+    expected_return: 'Doubtful',
+    checked_at: '2026-09-25T02:00:00.000Z',
+  });
+
+  const cached = await buildInternationalDuty(
+    injuryConfig,
+    first,
+    new Date('2026-09-25T04:00:00Z'),
+    async () => ({}),
+    async () => ({}),
+    async () => { throw new Error('六小时内不应再次请求伤情'); },
+  );
+  assert.equal(cached.fetch.injury_requests, 0);
+  assert.equal(cached.clubs[0].players[0].injury.label, '受伤 · 出战成疑');
 });
 
 test('完赛约一小时后写入首发状态和实际分钟', async () => {
@@ -75,8 +127,10 @@ test('国家队追踪按球员展示三队总时间对比并定时更新', () =>
   assert.match(app, /loadInternationalDutyHome/);
   assert.match(app, /球员出场时间榜/);
   assert.match(app, /俱乐部累计出场时间/);
+  assert.match(app, /international-player-injury/);
   assert.match(css, /\.international-player-board/);
   assert.match(css, /\.international-club-totals/);
+  assert.match(css, /\.international-player-injury\.injured/);
   assert.match(css, /body\[data-page="internationals"\]/);
   assert.match(workflow, /Update international appearances/);
   assert.match(workflow, /PREV_INTERNATIONAL_DUTY_URL/);
