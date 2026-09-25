@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "title": "国家队出征·曼城 vs 阿森纳",
+  "title": "国家队出场时间·三强对比",
   "window": "2026年9—10月国家队比赛日",
   "sources": [
     { "club": "city", "label": "曼城官方国家队赛程", "url": "https://www.mancity.com/news/mens/international-break-explainer-september-october-2026-63925599" },
-    { "club": "arsenal", "label": "阿森纳本期成年国家队名单与赛程", "url": "https://dailycannon.com/2026/09/arsenal-september-october-international-fixtures/" }
+    { "club": "arsenal", "label": "阿森纳本期成年国家队名单与赛程", "url": "https://dailycannon.com/2026/09/arsenal-september-october-international-fixtures/" },
+    { "club": "liverpool", "label": "利物浦官方国家队赛程", "url": "https://www.liverpoolfc.com/news/internationals-guide-when-and-where-liverpool-players-are-action" }
   ],
   "clubs": [
     {
@@ -245,6 +246,157 @@
             { "id": "5924776", "kickoff_at": "2026-09-25T10:00:00Z", "home": "澳大利亚", "away": "巴西", "home_en": "Australia", "away_en": "Brazil", "competition": "国际友谊赛" },
             { "id": "5924777", "kickoff_at": "2026-09-29T10:00:00Z", "home": "澳大利亚", "away": "巴西", "home_en": "Australia", "away_en": "Brazil", "competition": "国际友谊赛" },
             { "id": "5985687", "kickoff_at": "2026-10-03T10:00:00Z", "home": "印度", "away": "巴西", "home_en": "India", "away_en": "Brazil", "competition": "国际友谊赛" }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "liverpool", "name": "利物浦", "name_en": "Liverpool", "badge": "🔴",
+      "teams": [
+        {
+          "key": "netherlands", "name": "荷兰", "name_en": "Netherlands", "flag": "🇳🇱",
+          "players": [
+            { "name": "弗林蓬", "name_en": "Jeremie Frimpong", "aliases": ["Jeremie Frimpong"] },
+            { "name": "加克波", "name_en": "Cody Gakpo", "aliases": ["Cody Gakpo"] },
+            { "name": "赫拉芬贝赫", "name_en": "Ryan Gravenberch", "aliases": ["Ryan Gravenberch"] },
+            { "name": "范迪克", "name_en": "Virgil van Dijk", "aliases": ["Virgil van Dijk"] }
+          ],
+          "fixtures": [
+            { "id": "5181825", "kickoff_at": "2026-09-24T18:45:00Z", "home": "荷兰", "away": "德国", "home_en": "Netherlands", "away_en": "Germany", "competition": "欧国联" },
+            { "id": "5181827", "kickoff_at": "2026-09-27T16:00:00Z", "home": "塞尔维亚", "away": "荷兰", "home_en": "Serbia", "away_en": "Netherlands", "competition": "欧国联" },
+            { "id": "5181830", "kickoff_at": "2026-10-01T18:45:00Z", "home": "希腊", "away": "荷兰", "home_en": "Greece", "away_en": "Netherlands", "competition": "欧国联" },
+            { "id": "5181832", "kickoff_at": "2026-10-04T18:45:00Z", "home": "荷兰", "away": "塞尔维亚", "home_en": "Netherlands", "away_en": "Serbia", "competition": "欧国联" }
+          ]
+        },
+        {
+          "key": "greece", "name": "希腊", "name_en": "Greece", "flag": "🇬🇷",
+          "players": [{ "name": "齐米卡斯", "name_en": "Kostas Tsimikas", "aliases": ["Kostas Tsimikas"] }],
+          "fixtures": [
+            { "id": "5181826", "kickoff_at": "2026-09-24T18:45:00Z", "home": "塞尔维亚", "away": "希腊", "home_en": "Serbia", "away_en": "Greece", "competition": "欧国联" },
+            { "id": "5181828", "kickoff_at": "2026-09-27T18:45:00Z", "home": "德国", "away": "希腊", "home_en": "Germany", "away_en": "Greece", "competition": "欧国联" },
+            { "id": "5181830", "kickoff_at": "2026-10-01T18:45:00Z", "home": "希腊", "away": "荷兰", "home_en": "Greece", "away_en": "Netherlands", "competition": "欧国联" },
+            { "id": "5181831", "kickoff_at": "2026-10-04T18:45:00Z", "home": "希腊", "away": "德国", "home_en": "Greece", "away_en": "Germany", "competition": "欧国联" }
+          ]
+        },
+        {
+          "key": "germany", "name": "德国", "name_en": "Germany", "flag": "🇩🇪",
+          "players": [{ "name": "维尔茨", "name_en": "Florian Wirtz", "aliases": ["Florian Wirtz"] }],
+          "fixtures": [
+            { "id": "5181829", "kickoff_at": "2026-10-01T18:45:00Z", "home": "德国", "away": "塞尔维亚", "home_en": "Germany", "away_en": "Serbia", "competition": "欧国联" },
+            { "id": "5181831", "kickoff_at": "2026-10-04T18:45:00Z", "home": "希腊", "away": "德国", "home_en": "Greece", "away_en": "Germany", "competition": "欧国联" }
+          ]
+        },
+        {
+          "key": "wales", "name": "威尔士", "name_en": "Wales", "flag": "🏴",
+          "players": [{ "name": "刘易斯·库马斯", "name_en": "Lewis Koumas", "aliases": ["Lewis Koumas"] }],
+          "fixtures": [
+            { "id": "5181862", "kickoff_at": "2026-09-24T18:45:00Z", "home": "葡萄牙", "away": "威尔士", "home_en": "Portugal", "away_en": "Wales", "competition": "欧国联" },
+            { "id": "5181863", "kickoff_at": "2026-09-27T16:00:00Z", "home": "丹麦", "away": "威尔士", "home_en": "Denmark", "away_en": "Wales", "competition": "欧国联" },
+            { "id": "5181866", "kickoff_at": "2026-10-01T18:45:00Z", "home": "威尔士", "away": "挪威", "home_en": "Wales", "away_en": "Norway", "competition": "欧国联" },
+            { "id": "5181868", "kickoff_at": "2026-10-04T18:45:00Z", "home": "威尔士", "away": "丹麦", "home_en": "Wales", "away_en": "Denmark", "competition": "欧国联" }
+          ]
+        },
+        {
+          "key": "france", "name": "法国", "name_en": "France", "flag": "🇫🇷",
+          "players": [
+            { "name": "巴尔科拉", "name_en": "Bradley Barcola", "aliases": ["Bradley Barcola"] },
+            { "name": "杰雷米·雅凯", "name_en": "Jeremy Jacquet", "aliases": ["Jeremy Jacquet"] }
+          ],
+          "fixtures": [
+            { "id": "5181789", "kickoff_at": "2026-09-25T18:45:00Z", "home": "土耳其", "away": "法国", "home_en": "Turkiye", "away_en": "France", "competition": "欧国联" },
+            { "id": "5181790", "kickoff_at": "2026-09-28T18:45:00Z", "home": "比利时", "away": "法国", "home_en": "Belgium", "away_en": "France", "competition": "欧国联" },
+            { "id": "5181793", "kickoff_at": "2026-10-02T18:45:00Z", "home": "法国", "away": "意大利", "home_en": "France", "away_en": "Italy", "competition": "欧国联" },
+            { "id": "5181794", "kickoff_at": "2026-10-05T18:45:00Z", "home": "法国", "away": "比利时", "home_en": "France", "away_en": "Belgium", "competition": "欧国联" }
+          ]
+        },
+        {
+          "key": "georgia", "name": "格鲁吉亚", "name_en": "Georgia", "flag": "🇬🇪",
+          "players": [{ "name": "马马尔达什维利", "name_en": "Giorgi Mamardashvili", "aliases": ["Giorgi Mamardashvili"] }],
+          "fixtures": [
+            { "id": "5181800", "kickoff_at": "2026-09-25T16:00:00Z", "home": "格鲁吉亚", "away": "北爱尔兰", "home_en": "Georgia", "away_en": "Northern Ireland", "competition": "欧国联" },
+            { "id": "5181802", "kickoff_at": "2026-09-28T16:00:00Z", "home": "格鲁吉亚", "away": "乌克兰", "home_en": "Georgia", "away_en": "Ukraine", "competition": "欧国联" },
+            { "id": "5181804", "kickoff_at": "2026-10-02T18:45:00Z", "home": "匈牙利", "away": "格鲁吉亚", "home_en": "Hungary", "away_en": "Georgia", "competition": "欧国联" },
+            { "id": "5181806", "kickoff_at": "2026-10-05T18:45:00Z", "home": "北爱尔兰", "away": "格鲁吉亚", "home_en": "Northern Ireland", "away_en": "Georgia", "competition": "欧国联" }
+          ]
+        },
+        {
+          "key": "hungary", "name": "匈牙利", "name_en": "Hungary", "flag": "🇭🇺",
+          "players": [
+            { "name": "科尔克兹", "name_en": "Milos Kerkez", "aliases": ["Milos Kerkez"] },
+            { "name": "阿明·佩奇", "name_en": "Armin Pecsi", "aliases": ["Armin Pecsi", "Armin Pécsi"] },
+            { "name": "索博斯洛伊", "name_en": "Dominik Szoboszlai", "aliases": ["Dominik Szoboszlai"] }
+          ],
+          "fixtures": [
+            { "id": "5181801", "kickoff_at": "2026-09-25T18:45:00Z", "home": "匈牙利", "away": "乌克兰", "home_en": "Hungary", "away_en": "Ukraine", "competition": "欧国联" },
+            { "id": "5181803", "kickoff_at": "2026-09-28T18:45:00Z", "home": "北爱尔兰", "away": "匈牙利", "home_en": "Northern Ireland", "away_en": "Hungary", "competition": "欧国联" },
+            { "id": "5181804", "kickoff_at": "2026-10-02T18:45:00Z", "home": "匈牙利", "away": "格鲁吉亚", "home_en": "Hungary", "away_en": "Georgia", "competition": "欧国联" },
+            { "id": "5181807", "kickoff_at": "2026-10-05T18:45:00Z", "home": "乌克兰", "away": "匈牙利", "home_en": "Ukraine", "away_en": "Hungary", "competition": "欧国联" }
+          ]
+        },
+        {
+          "key": "sweden", "name": "瑞典", "name_en": "Sweden", "flag": "🇸🇪",
+          "players": [{ "name": "伊萨克", "name_en": "Alexander Isak", "aliases": ["Alexander Isak"] }],
+          "fixtures": [
+            { "id": "5181838", "kickoff_at": "2026-09-25T18:45:00Z", "home": "瑞典", "away": "罗马尼亚", "home_en": "Sweden", "away_en": "Romania", "competition": "欧国联" },
+            { "id": "5181840", "kickoff_at": "2026-09-28T18:45:00Z", "home": "瑞典", "away": "波兰", "home_en": "Sweden", "away_en": "Poland", "competition": "欧国联" },
+            { "id": "5181841", "kickoff_at": "2026-10-02T18:45:00Z", "home": "波黑", "away": "瑞典", "home_en": "Bosnia and Herzegovina", "away_en": "Sweden", "competition": "欧国联" },
+            { "id": "5181844", "kickoff_at": "2026-10-05T18:45:00Z", "home": "罗马尼亚", "away": "瑞典", "home_en": "Romania", "away_en": "Sweden", "competition": "欧国联" }
+          ]
+        },
+        {
+          "key": "northern-ireland", "name": "北爱尔兰", "name_en": "Northern Ireland", "flag": "🇬🇧",
+          "players": [{ "name": "基兰·莫里森", "name_en": "Kieran Morrison", "aliases": ["Kieran Morrison"] }],
+          "fixtures": [
+            { "id": "5181800", "kickoff_at": "2026-09-25T16:00:00Z", "home": "格鲁吉亚", "away": "北爱尔兰", "home_en": "Georgia", "away_en": "Northern Ireland", "competition": "欧国联" },
+            { "id": "5181803", "kickoff_at": "2026-09-28T18:45:00Z", "home": "北爱尔兰", "away": "匈牙利", "home_en": "Northern Ireland", "away_en": "Hungary", "competition": "欧国联" },
+            { "id": "5181805", "kickoff_at": "2026-10-02T18:45:00Z", "home": "乌克兰", "away": "北爱尔兰", "home_en": "Ukraine", "away_en": "Northern Ireland", "competition": "欧国联" },
+            { "id": "5181806", "kickoff_at": "2026-10-05T18:45:00Z", "home": "北爱尔兰", "away": "格鲁吉亚", "home_en": "Northern Ireland", "away_en": "Georgia", "competition": "欧国联" }
+          ]
+        },
+        {
+          "key": "england", "name": "英格兰", "name_en": "England", "flag": "🏴",
+          "players": [{ "name": "恩古莫哈", "name_en": "Rio Ngumoha", "aliases": ["Rio Ngumoha"] }],
+          "fixtures": [
+            { "id": "5181850", "kickoff_at": "2026-09-26T18:45:00Z", "home": "英格兰", "away": "西班牙", "home_en": "England", "away_en": "Spain", "competition": "欧国联" },
+            { "id": "5181851", "kickoff_at": "2026-09-29T18:45:00Z", "home": "捷克", "away": "英格兰", "home_en": "Czechia", "away_en": "England", "competition": "欧国联" },
+            { "id": "5181853", "kickoff_at": "2026-10-03T16:00:00Z", "home": "克罗地亚", "away": "英格兰", "home_en": "Croatia", "away_en": "England", "competition": "欧国联" },
+            { "id": "5181856", "kickoff_at": "2026-10-06T18:45:00Z", "home": "英格兰", "away": "捷克", "home_en": "England", "away_en": "Czechia", "competition": "欧国联" }
+          ]
+        },
+        {
+          "key": "spain", "name": "西班牙", "name_en": "Spain", "flag": "🇪🇸",
+          "players": [{ "name": "维克托·穆尼奥斯", "name_en": "Victor Munoz", "aliases": ["Victor Munoz", "Víctor Muñoz"] }],
+          "fixtures": [
+            { "id": "5181850", "kickoff_at": "2026-09-26T18:45:00Z", "home": "英格兰", "away": "西班牙", "home_en": "England", "away_en": "Spain", "competition": "欧国联" },
+            { "id": "5181852", "kickoff_at": "2026-09-29T18:45:00Z", "home": "西班牙", "away": "克罗地亚", "home_en": "Spain", "away_en": "Croatia", "competition": "欧国联" },
+            { "id": "5181854", "kickoff_at": "2026-10-03T18:45:00Z", "home": "西班牙", "away": "捷克", "home_en": "Spain", "away_en": "Czechia", "competition": "欧国联" },
+            { "id": "5181855", "kickoff_at": "2026-10-06T18:45:00Z", "home": "克罗地亚", "away": "西班牙", "home_en": "Croatia", "away_en": "Spain", "competition": "欧国联" }
+          ]
+        },
+        {
+          "key": "argentina", "name": "阿根廷", "name_en": "Argentina", "flag": "🇦🇷",
+          "players": [{ "name": "麦卡利斯特", "name_en": "Alexis Mac Allister", "aliases": ["Alexis Mac Allister"] }],
+          "fixtures": [
+            { "id": "6266052", "kickoff_at": "2026-09-29T23:00:00Z", "home": "阿根廷", "away": "玻利维亚", "home_en": "Argentina", "away_en": "Bolivia", "competition": "国际友谊赛" },
+            { "id": "6162939", "kickoff_at": "2026-10-03T20:00:00Z", "home": "阿根廷", "away": "布基纳法索", "home_en": "Argentina", "away_en": "Burkina Faso", "competition": "国际友谊赛" },
+            { "id": "6266053", "kickoff_at": "2026-10-06T20:00:00Z", "home": "阿根廷", "away": "贝宁", "home_en": "Argentina", "away_en": "Benin", "competition": "国际友谊赛" }
+          ]
+        },
+        {
+          "key": "uruguay", "name": "乌拉圭", "name_en": "Uruguay", "flag": "🇺🇾",
+          "players": [{ "name": "罗纳德·阿劳霍", "name_en": "Ronald Araujo", "aliases": ["Ronald Araujo", "Ronald Araújo"] }],
+          "fixtures": [
+            { "id": "6280194", "kickoff_at": "2026-09-24T10:05:00Z", "home": "日本", "away": "乌拉圭", "home_en": "Japan", "away_en": "Uruguay", "competition": "国际友谊赛" },
+            { "id": "6210557", "kickoff_at": "2026-09-28T11:00:00Z", "home": "韩国", "away": "乌拉圭", "home_en": "South Korea", "away_en": "Uruguay", "competition": "国际友谊赛" },
+            { "id": "6162940", "kickoff_at": "2026-10-06T13:00:00Z", "home": "印度", "away": "乌拉圭", "home_en": "India", "away_en": "Uruguay", "competition": "国际友谊赛" }
+          ]
+        },
+        {
+          "key": "zimbabwe", "name": "津巴布韦", "name_en": "Zimbabwe", "flag": "🇿🇼",
+          "players": [{ "name": "艾萨克·马巴亚", "name_en": "Isaac Mabaya", "aliases": ["Isaac Mabaya"] }],
+          "fixtures": [
+            { "id": "6040260", "kickoff_at": "2026-09-24T19:00:00Z", "home": "塞拉利昂", "away": "津巴布韦", "home_en": "Sierra Leone", "away_en": "Zimbabwe", "competition": "非洲杯预选赛" },
+            { "id": "6040262", "kickoff_at": "2026-09-28T16:00:00Z", "home": "津巴布韦", "away": "民主刚果", "home_en": "Zimbabwe", "away_en": "DR Congo", "competition": "非洲杯预选赛" }
           ]
         }
       ]

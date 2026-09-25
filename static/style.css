@@ -3016,7 +3016,7 @@ body[data-page="internationals"] .container { max-width: 1320px; }
 .international-duty-kicker { color: #257ea7; font-size: 10px; font-weight: 950; letter-spacing: .14em; }
 .international-duty-hero h2 { margin-top: 6px; color: #12364f; font-size: 32px; font-weight: 950; line-height: 1.25; }
 .international-duty-hero p { max-width: 670px; margin-top: 7px; color: #5b788c; font-size: 13px; font-weight: 700; line-height: 1.65; }
-.international-duty-summary { display: grid; grid-template-columns: repeat(2, minmax(112px, 1fr)); overflow: hidden; border: 1px solid #b7d8e8; border-radius: 13px; background: rgba(255,255,255,.78); }
+.international-duty-summary { display: grid; grid-template-columns: repeat(3, minmax(112px, 1fr)); overflow: hidden; border: 1px solid #b7d8e8; border-radius: 13px; background: rgba(255,255,255,.78); }
 .international-duty-summary span { min-width: 88px; padding: 12px 10px; display: grid; justify-items: center; gap: 2px; }
 .international-duty-summary span + span { border-left: 1px solid #d4e6ee; }
 .international-duty-summary strong { color: #126f9a; font-size: 23px; font-weight: 950; }
@@ -3027,56 +3027,79 @@ body[data-page="internationals"] .container { max-width: 1320px; }
 }
 .international-duty-note strong { color: #176f98; font-size: 12px; font-weight: 950; white-space: nowrap; }
 .international-duty-note span { color: #617d8f; font-size: 10px; font-weight: 700; line-height: 1.55; }
-.international-club-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 14px; }
-.international-club-column { overflow: hidden; border: 1px solid #b9d8e7; border-radius: 17px; background: rgba(246,251,253,.82); }
-.international-club-column.arsenal { border-color: #e7c6ca; background: rgba(255,248,248,.86); }
-.international-club-head { padding: 15px 16px; display: flex; justify-content: space-between; align-items: center; gap: 14px; border-bottom: 1px solid #cfe3ec; background: linear-gradient(135deg, #e5f5fb, #f8fcfe); }
-.international-club-column.arsenal .international-club-head { border-bottom-color: #ecd6d9; background: linear-gradient(135deg, #fff0f1, #fffafa); }
-.international-club-name { display: flex; align-items: center; gap: 9px; }
-.international-club-name > i { font-size: 25px; font-style: normal; }
-.international-club-name h3 { color: #103851; font-size: 21px; font-weight: 950; }
-.international-club-name small { display: block; margin-top: 1px; color: #78909d; font-size: 8px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
-.international-club-stats { display: flex; align-items: center; gap: 5px; }
-.international-club-stats span { min-width: 57px; padding: 6px 7px; display: grid; justify-items: center; border: 1px solid #c6e0ec; border-radius: 9px; background: rgba(255,255,255,.85); }
-.international-club-column.arsenal .international-club-stats span { border-color: #edd2d5; }
-.international-club-stats b { color: #146f99; font-size: 15px; font-weight: 950; }
-.international-club-column.arsenal .international-club-stats b { color: #b82837; }
-.international-club-stats small { color: #738b99; font-size: 7px; font-weight: 850; }
-.international-duty-grid { padding: 10px; display: grid; grid-template-columns: 1fr; gap: 9px; }
-.international-team-card { overflow: hidden; border: 1px solid #b9d8e7; border-radius: 15px; background: rgba(255,255,255,.94); box-shadow: 0 7px 20px rgba(40,82,104,.07); }
-.international-team-head { padding: 14px 15px 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px solid #dbe9ef; background: linear-gradient(135deg, #f4fbfe, #eef4fb); }
-.international-team-identity { display: flex; align-items: center; gap: 9px; }
-.international-team-identity > i { font-size: 27px; font-style: normal; line-height: 1; }
-.international-team-identity h3 { color: #123851; font-size: 18px; font-weight: 950; }
-.international-team-identity small { display: block; margin-top: 1px; color: #7891a0; font-size: 8px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-.international-player-list { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
-.international-player-list span { padding: 4px 7px; border-radius: 999px; background: #dff1f8; color: #126e98; font-size: 9px; font-weight: 900; white-space: nowrap; }
-.international-fixture-list { display: grid; }
-.international-fixture {
-  padding: 12px 14px; display: grid; gap: 8px; color: #17384f; text-decoration: none; transition: background .16s;
-}
-.international-fixture:not(a) { cursor: default; }
-.international-fixture + .international-fixture { border-top: 1px solid #e0ebf0; }
-.international-fixture:hover { background: #f4fbfe; color: #17384f; text-decoration: none; }
-.international-fixture-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
-.international-fixture-date { display: grid; gap: 1px; }
-.international-fixture-date strong { color: #1b6f98; font-size: 11px; font-weight: 950; }
-.international-fixture-date small { color: #879ca8; font-size: 7px; font-weight: 750; }
-.international-fixture-score { display: grid; justify-items: end; gap: 1px; }
-.international-fixture-score strong { color: #6e8797; font-size: 11px; font-weight: 950; }
-.international-fixture-score.final strong { color: #123851; font-size: 17px; }
-.international-fixture-score small { color: #8a9da8; font-size: 7px; font-weight: 800; }
-.international-fixture-matchup { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
-.international-fixture-matchup span { color: #17384f; font-size: 14px; font-weight: 950; }
-.international-fixture-matchup span:last-child { text-align: right; }
-.international-fixture-matchup b { color: #2b8bb4; font-size: 10px; font-weight: 950; }
-.international-appearances { display: flex; flex-wrap: wrap; gap: 5px; }
-.international-appearance { min-width: 0; padding: 6px 8px; display: grid; gap: 1px; border: 1px solid #d6e6ed; border-radius: 8px; background: #f8fbfc; }
-.international-appearance b { color: #294c61; font-size: 9px; font-weight: 950; }
-.international-appearance small { color: #728b99; font-size: 7px; font-weight: 750; }
-.international-appearance.started, .international-appearance.subbed-on { border-color: #a9d9c1; background: #effaf4; }
-.international-appearance.started small, .international-appearance.subbed-on small { color: #267451; }
-.international-appearance.unused { border-color: #e1e6e9; background: #f6f7f8; opacity: .82; }
+.international-club-totals, .international-recent, .international-player-board { overflow: hidden; border: 1px solid #b9d8e7; border-radius: 17px; background: rgba(255,255,255,.9); box-shadow: 0 8px 22px rgba(40,82,104,.06); }
+.international-club-totals { margin-bottom: 10px; }
+.international-club-totals-head, .international-recent-head, .international-player-board-head { padding: 13px 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; border-bottom: 1px solid #d9e8ee; background: linear-gradient(135deg, #f3fbfe, #f8fbfd); }
+.international-club-totals-head strong, .international-recent-head strong, .international-player-board-head strong { color: #123851; font-size: 16px; font-weight: 950; }
+.international-club-totals-head span, .international-recent-head span, .international-player-board-head span { color: #78909d; font-size: 9px; font-weight: 800; }
+.international-club-total-rows { padding: 7px 14px 10px; }
+.international-club-total { --club-color: #2188b8; padding: 9px 2px; display: grid; grid-template-columns: 170px minmax(180px, 1fr) 112px; align-items: center; gap: 14px; }
+.international-club-total.arsenal { --club-color: #d84955; }
+.international-club-total.liverpool { --club-color: #bf1730; }
+.international-club-total + .international-club-total { border-top: 1px solid #e4edf1; }
+.international-club-total-label { min-width: 0; display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 7px; }
+.international-club-total-label i { grid-row: 1 / 3; font-size: 19px; font-style: normal; }
+.international-club-total-label strong { color: #17384f; font-size: 14px; font-weight: 950; }
+.international-club-total-label small { color: #7c929f; font-size: 8px; font-weight: 800; }
+.international-club-total-bar { height: 10px; overflow: hidden; border-radius: 999px; background: #e8f0f3; }
+.international-club-total-bar i { height: 100%; display: block; border-radius: inherit; background: var(--club-color); box-shadow: 0 2px 7px color-mix(in srgb, var(--club-color) 30%, transparent); }
+.international-club-total-value { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 5px; }
+.international-club-total-value strong { color: var(--club-color); font-size: 25px; font-weight: 950; line-height: 1; }
+.international-club-total-value small { color: #718a98; font-size: 8px; font-weight: 850; }
+.international-recent { margin-bottom: 10px; }
+.international-recent-grid { padding: 10px; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 7px; }
+.international-recent-player { --club-color: #2188b8; padding: 9px 11px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid #cfe2eb; border-left: 4px solid var(--club-color); border-radius: 10px; background: #fbfdfe; }
+.international-recent-player.arsenal { --club-color: #d84955; }
+.international-recent-player.liverpool { --club-color: #bf1730; }
+.international-recent-player > div { min-width: 0; display: grid; gap: 2px; }
+.international-recent-player > div:last-child { flex: 0 0 auto; justify-items: end; }
+.international-recent-player strong { overflow: hidden; color: #17384f; font-size: 12px; font-weight: 950; text-overflow: ellipsis; white-space: nowrap; }
+.international-recent-player > div:last-child strong { color: var(--club-color); font-size: 19px; }
+.international-recent-player small { color: #718a98; font-size: 7.5px; font-weight: 800; }
+.international-recent-empty { grid-column: 1 / -1; padding: 8px; color: #78909d; font-size: 10px; text-align: center; }
+.international-player-board-head > div:first-child { display: grid; gap: 2px; }
+.international-player-filters { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
+.international-player-filters button { padding: 6px 9px; border: 1px solid #bed9e6; border-radius: 999px; background: #fff; color: #527286; font-size: 9px; font-weight: 900; cursor: pointer; }
+.international-player-filters button.active { border-color: #2085b3; background: #e7f5fb; color: #146f99; }
+.international-player-column-head { padding: 7px 42px 7px 50px; display: grid; grid-template-columns: minmax(200px, 1.5fr) minmax(120px, 1fr) 82px 68px 92px; gap: 10px; border-bottom: 1px solid #dfeaf0; color: #8196a2; font-size: 8px; font-weight: 900; }
+.international-player-column-head span:nth-last-child(-n+2) { text-align: right; }
+.international-player-board-list { display: grid; }
+.international-player-card { --club-color: #2188b8; background: rgba(255,255,255,.92); }
+.international-player-card.arsenal { --club-color: #d84955; }
+.international-player-card.liverpool { --club-color: #bf1730; }
+.international-player-card + .international-player-card { border-top: 1px solid #e0ebf0; }
+.international-player-card[hidden] { display: none; }
+.international-player-summary { padding: 10px 14px; display: grid; grid-template-columns: 26px minmax(200px,1.5fr) minmax(120px,1fr) 82px 68px 92px 18px; align-items: center; gap: 10px; cursor: pointer; list-style: none; }
+.international-player-summary::-webkit-details-marker { display: none; }
+.international-player-summary:hover { background: #f7fbfd; }
+.international-player-rank { color: #91a3ad; font-size: 9px; font-weight: 900; text-align: center; }
+.international-player-identity { min-width: 0; display: grid; gap: 1px; }
+.international-player-identity strong { overflow: hidden; color: #17384f; font-size: 14px; font-weight: 950; text-overflow: ellipsis; white-space: nowrap; }
+.international-player-identity small { overflow: hidden; color: #8397a3; font-size: 8px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.international-player-country { min-width: 0; display: flex; align-items: center; gap: 6px; }
+.international-player-country i { font-size: 17px; font-style: normal; }
+.international-player-country span { overflow: hidden; color: #496a7d; font-size: 10px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+.international-player-club { justify-self: start; padding: 4px 7px; border-radius: 999px; background: color-mix(in srgb, var(--club-color) 10%, white); color: var(--club-color); font-size: 8px; font-weight: 950; white-space: nowrap; }
+.international-player-played, .international-player-minutes { display: grid; justify-items: end; gap: 1px; }
+.international-player-played strong { color: #34576b; font-size: 14px; font-weight: 950; }
+.international-player-minutes strong { color: var(--club-color); font-size: 20px; font-weight: 950; }
+.international-player-played small, .international-player-minutes small { color: #8094a0; font-size: 7px; font-weight: 800; }
+.international-player-chevron { color: #6e8b9c; font-size: 15px; transition: transform .18s; }
+.international-player-card[open] .international-player-chevron { transform: rotate(180deg); }
+.international-player-matches { padding: 0 14px 12px 50px; background: #f4f9fb; }
+.international-player-matches-head { padding: 9px 0 7px; display: flex; justify-content: space-between; gap: 10px; }
+.international-player-matches-head strong { color: #1e688d; font-size: 10px; font-weight: 950; }
+.international-player-matches-head span { color: #7b929f; font-size: 8px; font-weight: 800; }
+.international-player-match { padding: 8px 10px; display: grid; grid-template-columns: 185px minmax(0,1fr) 118px; align-items: center; gap: 12px; border: 1px solid #d3e4ec; border-radius: 9px; background: #fff; color: #17384f; text-decoration: none; }
+.international-player-match + .international-player-match { margin-top: 5px; }
+.international-player-match:hover { border-color: #9ccbe0; color: #17384f; text-decoration: none; }
+.international-player-match > div { min-width: 0; display: grid; gap: 1px; }
+.international-player-match-date strong, .international-player-match-game strong { overflow: hidden; font-size: 10px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+.international-player-match small { color: #8498a3; font-size: 7px; font-weight: 750; }
+.international-player-match-appearance { justify-items: end; }
+.international-player-match-appearance strong { color: #748b98; font-size: 13px; font-weight: 950; }
+.international-player-match.started .international-player-match-appearance strong, .international-player-match.subbed-on .international-player-match-appearance strong { color: #20835b; }
+.international-player-match.unused { opacity: .72; }
 .international-duty-source { margin: 12px 2px 0; color: #78909d; font-size: 9px; line-height: 1.6; }
 .international-duty-source a { color: #177da9; font-weight: 850; }
 
@@ -3086,34 +3109,61 @@ body[data-page="internationals"] .container { max-width: 1320px; }
   .international-duty-kicker { font-size: 7px; }
   .international-duty-hero h2 { margin-top: 4px; font-size: 23px; }
   .international-duty-hero p { margin-top: 4px; font-size: 10px; line-height: 1.55; }
-  .international-duty-summary { grid-template-columns: repeat(2, 1fr); }
+  .international-duty-summary { grid-template-columns: repeat(3, 1fr); }
   .international-duty-summary span { min-width: 0; padding: 8px 4px; }
   .international-duty-summary strong { font-size: 18px; }
   .international-duty-summary small { font-size: 7px; }
   .international-duty-note { margin: 7px 0; padding: 8px 10px; align-items: flex-start; gap: 7px; }
   .international-duty-note strong { font-size: 9px; }
   .international-duty-note span { font-size: 8px; }
-  .international-club-comparison { grid-template-columns: 1fr; gap: 9px; }
-  .international-club-column { border-radius: 13px; }
-  .international-club-head { padding: 10px 11px; gap: 8px; }
-  .international-club-name > i { font-size: 21px; }
-  .international-club-name h3 { font-size: 18px; }
-  .international-club-stats { gap: 3px; }
-  .international-club-stats span { min-width: 48px; padding: 5px 4px; }
-  .international-club-stats b { font-size: 13px; }
-  .international-duty-grid { padding: 7px; grid-template-columns: 1fr; gap: 7px; }
-  .international-team-card { border-radius: 12px; }
-  .international-team-head { padding: 11px 11px 9px; align-items: flex-start; }
-  .international-team-identity > i { font-size: 23px; }
-  .international-team-identity h3 { font-size: 16px; }
-  .international-player-list { max-width: 62%; gap: 3px; }
-  .international-player-list span { padding: 3px 6px; font-size: 8px; }
-  .international-fixture { padding: 10px 11px; gap: 7px; }
-  .international-fixture-date strong { font-size: 10px; }
-  .international-fixture-matchup span { font-size: 13px; }
-  .international-appearance { padding: 5px 7px; }
-  .international-appearance b { font-size: 8px; }
-  .international-appearance small { font-size: 6.5px; }
+  .international-club-totals, .international-recent, .international-player-board { border-radius: 13px; }
+  .international-club-totals-head, .international-recent-head, .international-player-board-head { padding: 10px 11px; }
+  .international-club-totals-head strong, .international-recent-head strong, .international-player-board-head strong { font-size: 13px; }
+  .international-club-totals-head span, .international-recent-head span, .international-player-board-head span { font-size: 7px; }
+  .international-club-total-rows { padding: 4px 9px 7px; }
+  .international-club-total { padding: 8px 1px; grid-template-columns: minmax(92px,1fr) auto; gap: 5px 8px; }
+  .international-club-total-label i { font-size: 15px; }
+  .international-club-total-label strong { font-size: 11px; }
+  .international-club-total-label small { font-size: 6.5px; }
+  .international-club-total-bar { grid-column: 1 / -1; grid-row: 2; height: 7px; }
+  .international-club-total-value { justify-self: end; grid-template-columns: auto auto; white-space: nowrap; }
+  .international-club-total-value strong { font-size: 20px; }
+  .international-club-total-value small { font-size: 6.5px; }
+  .international-recent-grid { padding: 7px; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; }
+  .international-recent-player { padding: 7px 8px; gap: 6px; }
+  .international-recent-player strong { font-size: 10px; }
+  .international-recent-player > div:last-child strong { font-size: 16px; }
+  .international-recent-player small { font-size: 6.5px; }
+  .international-player-board-head { align-items: flex-start; flex-direction: column; }
+  .international-player-filters { width: 100%; justify-content: flex-start; }
+  .international-player-filters button { padding: 5px 7px; font-size: 8px; }
+  .international-player-column-head { display: none; }
+  .international-player-summary { padding: 9px 8px; grid-template-columns: 20px minmax(0,1fr) auto 16px; grid-template-rows: auto auto; gap: 2px 7px; }
+  .international-player-rank { grid-row: 1 / 3; font-size: 7px; }
+  .international-player-identity { grid-column: 2; grid-row: 1; }
+  .international-player-identity strong { font-size: 12px; }
+  .international-player-identity small { display: none; }
+  .international-player-country { grid-column: 2; grid-row: 2; gap: 3px; }
+  .international-player-country i { font-size: 12px; }
+  .international-player-country span { font-size: 7px; }
+  .international-player-club { grid-column: 3; grid-row: 1; padding: 3px 5px; font-size: 7px; }
+  .international-player-played { display: none; }
+  .international-player-minutes { grid-column: 3; grid-row: 2; display: flex; align-items: baseline; gap: 3px; }
+  .international-player-minutes strong { font-size: 16px; }
+  .international-player-minutes small { font-size: 6px; }
+  .international-player-chevron { grid-column: 4; grid-row: 1 / 3; }
+  .international-player-matches { padding: 0 7px 8px 27px; }
+  .international-player-matches-head { padding: 7px 1px 5px; }
+  .international-player-matches-head strong { font-size: 8px; }
+  .international-player-matches-head span { font-size: 6.5px; }
+  .international-player-match { padding: 7px 8px; grid-template-columns: 88px minmax(0,1fr) 67px; gap: 7px; }
+  .international-player-match-date strong, .international-player-match-game strong { font-size: 8px; }
+  .international-player-match small { font-size: 6px; }
+  .international-player-match-appearance strong { font-size: 11px; }
+}
+
+@media (max-width: 460px) {
+  .international-recent-grid { grid-template-columns: 1fr; }
 }
 
 body[data-page="analysis"] .container { max-width: 1060px; }

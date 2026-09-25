@@ -50,9 +50,14 @@ function playerAppearance(details, teamConfig, player) {
 
   const flattened = flattenPlayerStats(details?.content?.playerStats?.[String(squadPlayer.id)]);
   const minutesValue = Number(flattened.minutes_played);
-  const minutes = Number.isFinite(minutesValue) ? Math.max(0, Math.round(minutesValue)) : 0;
   const events = squadPlayer?.performance?.substitutionEvents || [];
   const cameOn = events.some((event) => event?.type === 'subIn');
+  const subOut = events.find((event) => event?.type === 'subOut');
+  const subIn = events.find((event) => event?.type === 'subIn');
+  const fallbackMinutes = starter
+    ? (Number.isFinite(Number(subOut?.time)) ? Number(subOut.time) : 90)
+    : (cameOn && Number.isFinite(Number(subIn?.time)) ? Math.max(0, 90 - Number(subIn.time)) : 0);
+  const minutes = Number.isFinite(minutesValue) ? Math.max(0, Math.round(minutesValue)) : fallbackMinutes;
   const status = starter ? '首发' : (minutes > 0 || cameOn ? '替补登场' : '替补未登场');
   return { name: player.name, name_en: player.name_en, status, minutes };
 }
@@ -140,7 +145,10 @@ function baseFixture(fixture, team, previous, now) {
 }
 
 function shouldFetchFixture(fixture, previous, now) {
-  if (previous?.status === '完场') return false;
+  const hasImpossibleStarterMinutes = (previous?.appearances || []).some((appearance) => (
+    appearance.status === '首发' && Number(appearance.minutes) === 0
+  ));
+  if (previous?.status === '完场' && !hasImpossibleStarterMinutes) return false;
   const dueAt = new Date(fixture.kickoff_at).getTime() + POST_MATCH_DELAY_MS;
   if (!Number.isFinite(dueAt) || now.getTime() < dueAt) return false;
   const attemptedAt = new Date(previous?.last_attempted_at || 0).getTime();
@@ -175,18 +183,63 @@ function hydrateCompletedFixture(base, details, team, checkedAt) {
   };
 }
 
+function playerMatches(club) {
+  const players = [];
+  for (const team of club.teams || []) {
+    for (const player of team.players || []) {
+      const matches = (team.fixtures || []).map((fixture) => {
+        const appearance = (fixture.appearances || []).find((item) => (
+          normalizeName(item.name_en || item.name) === normalizeName(player.name_en || player.name)
+        ));
+        return {
+          id: fixture.id || null,
+          url: fixture.url || null,
+          kickoff_at: fixture.kickoff_at,
+          home: fixture.home,
+          away: fixture.away,
+          competition: fixture.competition,
+          match_status: fixture.status,
+          score: fixture.score || null,
+          status: appearance?.status || (fixture.status === '完场' ? '待补录' : '未开赛'),
+          minutes: appearance?.minutes !== null && appearance?.minutes !== undefined && Number.isFinite(Number(appearance.minutes))
+            ? Number(appearance.minutes)
+            : null,
+        };
+      });
+      const played = matches.filter((match) => match.status === '首发' || match.status === '替补登场');
+      players.push({
+        name: player.name,
+        name_en: player.name_en,
+        national_team: team.name,
+        national_team_en: team.name_en,
+        flag: team.flag,
+        matches,
+        summary: {
+          minutes: played.reduce((sum, match) => sum + (Number(match.minutes) || 0), 0),
+          appearances: played.length,
+          starts: played.filter((match) => match.status === '首发').length,
+          substitute_appearances: played.filter((match) => match.status === '替补登场').length,
+          unused: matches.filter((match) => match.status === '替补未登场' || match.status === '未进名单').length,
+        },
+      });
+    }
+  }
+  return players;
+}
+
 function clubSummary(club) {
   const fixtures = club.teams.flatMap((team) => team.fixtures || []);
   const matches = new Set(fixtures.map(fixtureStableKey));
   const completed = new Set(fixtures.filter((fixture) => fixture.status === '完场').map(fixtureStableKey));
-  const minutes = fixtures.flatMap((fixture) => fixture.appearances || [])
-    .reduce((sum, appearance) => sum + (Number(appearance.minutes) || 0), 0);
+  const minutes = (club.players || []).reduce((sum, player) => sum + (player.summary?.minutes || 0), 0);
+  const appearances = (club.players || []).reduce((sum, player) => sum + (player.summary?.appearances || 0), 0);
   return {
-    players: club.teams.reduce((sum, team) => sum + team.players.length, 0),
+    players: (club.players || []).length,
     national_teams: club.teams.length,
     matches: matches.size,
     completed: completed.size,
     minutes,
+    appearances,
   };
 }
 
@@ -239,6 +292,7 @@ export async function buildInternationalDuty(config, previous = null, now = new 
       teams.push({ ...team, fixtures });
     }
     const club = { ...clubConfig, teams };
+    club.players = playerMatches(club);
     club.summary = clubSummary(club);
     clubs.push(club);
   }

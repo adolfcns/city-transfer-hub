@@ -4627,42 +4627,90 @@ function internationalAppearanceText(appearance) {
   return appearance.status || '待更新';
 }
 
-function internationalFixtureCard(fixture) {
-  const link = el(fixture.url ? 'a' : 'div', `international-fixture ${fixture.status === '完场' ? 'completed' : ''}`);
-  if (fixture.url) {
-    link.href = fixture.url;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
+function internationalClubPlayers(club) {
+  if (Array.isArray(club.players) && club.players.length) return club.players;
+  return (club.teams || []).flatMap((team) => (team.players || []).map((player) => {
+    const matches = (team.fixtures || []).map((fixture) => {
+      const appearance = (fixture.appearances || []).find((item) => item.name_en === player.name_en || item.name === player.name);
+      return {
+        id: fixture.id,
+        url: fixture.url,
+        kickoff_at: fixture.kickoff_at,
+        home: fixture.home,
+        away: fixture.away,
+        competition: fixture.competition,
+        match_status: fixture.status,
+        score: fixture.score,
+        status: appearance?.status || (fixture.status === '完场' ? '待补录' : '未开赛'),
+        minutes: appearance?.minutes ?? null,
+      };
+    });
+    const played = matches.filter((match) => match.status === '首发' || match.status === '替补登场');
+    return {
+      name: player.name,
+      name_en: player.name_en,
+      national_team: team.name,
+      national_team_en: team.name_en,
+      flag: team.flag,
+      matches,
+      summary: {
+        minutes: played.reduce((sum, match) => sum + (Number(match.minutes) || 0), 0),
+        appearances: played.length,
+        starts: played.filter((match) => match.status === '首发').length,
+        substitute_appearances: played.filter((match) => match.status === '替补登场').length,
+      },
+    };
+  }));
+}
+
+function internationalPlayerMatch(match) {
+  const row = el(match.url ? 'a' : 'div', `international-player-match ${internationalAppearanceClass(match.status)}`);
+  if (match.url) {
+    row.href = match.url;
+    row.target = '_blank';
+    row.rel = 'noopener noreferrer';
   }
-
-  const head = el('div', 'international-fixture-head');
-  const date = el('div', 'international-fixture-date');
-  date.append(
-    el('strong', null, internationalDutyKickoff(fixture.kickoff_at)),
-    el('small', null, '北京时间'),
+  const date = el('div', 'international-player-match-date');
+  date.append(el('strong', null, internationalDutyKickoff(match.kickoff_at)), el('small', null, match.competition || '国家队比赛'));
+  const game = el('div', 'international-player-match-game');
+  game.append(
+    el('strong', null, `${match.home} ${match.score || 'vs'} ${match.away}`),
+    el('small', null, match.match_status === '完场' ? '完场' : (match.match_status || '未开赛')),
   );
-  const score = el('div', `international-fixture-score ${fixture.status === '完场' ? 'final' : ''}`);
-  score.append(
-    el('strong', null, fixture.score || fixture.status || '未开赛'),
-    el('small', null, fixture.status === '完场' ? `完场 · ${fixture.competition || '国家队比赛'}` : (fixture.competition || '国家队比赛')),
+  const appearance = el('div', 'international-player-match-appearance');
+  appearance.append(
+    el('strong', null, match.minutes === null || match.minutes === undefined ? '—' : `${match.minutes}′`),
+    el('small', null, internationalAppearanceText(match)),
   );
-  head.append(date, score);
+  row.append(date, game, appearance);
+  return row;
+}
 
-  const matchup = el('div', 'international-fixture-matchup');
-  matchup.append(
-    el('span', null, fixture.home),
-    el('b', null, fixture.status === '完场' && fixture.score ? fixture.score : 'vs'),
-    el('span', null, fixture.away),
+function internationalPlayerCard(entry, rank) {
+  const details = el('details', `international-player-card ${entry.club.key}`);
+  const summary = el('summary', 'international-player-summary');
+  const ranking = el('span', 'international-player-rank', String(rank));
+  const identity = el('div', 'international-player-identity');
+  identity.append(el('strong', null, entry.player.name), el('small', null, entry.player.name_en || ''));
+  const country = el('div', 'international-player-country');
+  country.append(el('i', null, entry.player.flag || '🌍'), el('span', null, entry.player.national_team || '国家队'));
+  const played = el('div', 'international-player-played');
+  played.append(el('strong', null, String(entry.player.summary?.appearances || 0)), el('small', null, '场出场'));
+  const minutes = el('div', 'international-player-minutes');
+  minutes.append(el('strong', null, String(entry.player.summary?.minutes || 0)), el('small', null, '累计分钟'));
+  const club = el('span', `international-player-club ${entry.club.key}` , entry.club.name);
+  summary.append(ranking, identity, country, club, played, minutes, el('span', 'international-player-chevron', '⌄'));
+
+  const matches = el('div', 'international-player-matches');
+  const heading = el('div', 'international-player-matches-head');
+  heading.append(
+    el('strong', null, `${entry.player.name}的逐场记录`),
+    el('span', null, `${entry.player.summary?.starts || 0}次首发 · ${entry.player.summary?.substitute_appearances || 0}次替补登场`),
   );
-
-  const appearances = el('div', 'international-appearances');
-  for (const appearance of fixture.appearances || []) {
-    const item = el('span', `international-appearance ${internationalAppearanceClass(appearance.status)}`);
-    item.append(el('b', null, appearance.name), el('small', null, internationalAppearanceText(appearance)));
-    appearances.appendChild(item);
-  }
-  link.append(head, matchup, appearances);
-  return link;
+  matches.appendChild(heading);
+  for (const match of entry.player.matches || []) matches.appendChild(internationalPlayerMatch(match));
+  details.append(summary, matches);
+  return details;
 }
 
 function renderInternationalDuty(data) {
@@ -4673,9 +4721,9 @@ function renderInternationalDuty(data) {
   const hero = el('header', 'international-duty-hero');
   const copy = el('div', 'international-duty-hero-copy');
   copy.append(
-    el('span', 'international-duty-kicker', 'INTERNATIONAL DUTY · CITY vs ARSENAL'),
-    el('h2', null, data.title || '国家队出征·曼城 vs 阿森纳'),
-    el('p', null, '两队进入成年国家队名单的球员放在同一页：每场赛程、首发替补和实际出场分钟都能直接对照。'),
+    el('span', 'international-duty-kicker', 'INTERNATIONAL DUTY · CITY vs ARSENAL vs LIVERPOOL'),
+    el('h2', null, data.title || '国家队出场时间·三强对比'),
+    el('p', null, '不再按国家拆开。先比较三家俱乐部一共踢了多少分钟，再逐个看球员每场踢了多久。'),
   );
   const summary = el('div', 'international-duty-summary');
   const summaryItems = (data.clubs || []).map((club) => [
@@ -4691,48 +4739,91 @@ function renderInternationalDuty(data) {
 
   const note = el('aside', 'international-duty-note');
   note.append(
-    el('strong', null, '成年国家队全部收录'),
-    el('span', null, '包括欧国联、非洲杯预选赛和国际友谊赛；预计完赛1小时后更新首发、替补和出场分钟。青年队不列入本次对比。'),
+    el('strong', null, '球员才是主角'),
+    el('span', null, '国家队只作为球员旁边的标签；比赛预计结束1小时后更新首发、替补和实际分钟。为保证三队可比，本页不混入纯青训梯队征召。'),
   );
 
-  const comparison = el('section', 'international-club-comparison');
+  const totals = el('section', 'international-club-totals');
+  const totalsHead = el('header', 'international-club-totals-head');
+  totalsHead.append(el('div', null), el('strong', null, '俱乐部累计出场时间'), el('span', null, '本期国家队比赛合计'));
+  const totalRows = el('div', 'international-club-total-rows');
+  const maxMinutes = Math.max(1, ...(data.clubs || []).map((club) => Number(club.summary?.minutes) || 0));
   for (const club of data.clubs || []) {
-    const column = el('section', `international-club-column ${club.key || ''}`);
-    const clubHead = el('header', 'international-club-head');
-    const clubName = el('div', 'international-club-name');
-    clubName.append(el('i', null, club.badge || '⚽'), el('div'));
-    clubName.lastChild.append(el('h3', null, club.name), el('small', null, club.name_en || ''));
-    const clubStats = el('div', 'international-club-stats');
-    for (const [value, label] of [
-      [club.summary?.players ?? 0, '人入选'],
-      [club.summary?.matches ?? 0, '场赛程'],
-      [club.summary?.minutes ?? 0, '分钟'],
-    ]) {
-      const stat = el('span');
-      stat.append(el('b', null, value), el('small', null, label));
-      clubStats.appendChild(stat);
-    }
-    clubHead.append(clubName, clubStats);
-
-    const grid = el('div', 'international-duty-grid');
-    for (const team of club.teams || []) {
-      const card = el('article', 'international-team-card');
-      const header = el('header', 'international-team-head');
-      const identity = el('div', 'international-team-identity');
-      identity.append(el('i', null, team.flag || '🌍'), el('div', null));
-      identity.lastChild.append(el('h3', null, team.name), el('small', null, team.name_en || ''));
-      const players = el('div', 'international-player-list');
-      for (const player of team.players || []) players.appendChild(el('span', null, player.name));
-      header.append(identity, players);
-
-      const fixtures = el('div', 'international-fixture-list');
-      for (const fixture of team.fixtures || []) fixtures.appendChild(internationalFixtureCard(fixture));
-      card.append(header, fixtures);
-      grid.appendChild(card);
-    }
-    column.append(clubHead, grid);
-    comparison.appendChild(column);
+    const row = el('div', `international-club-total ${club.key}`);
+    const label = el('div', 'international-club-total-label');
+    label.append(el('i', null, club.badge || '⚽'), el('strong', null, club.name), el('small', null, `${club.summary?.players || 0}人入选`));
+    const bar = el('div', 'international-club-total-bar');
+    const fill = el('i');
+    fill.style.width = `${Math.max(3, ((Number(club.summary?.minutes) || 0) / maxMinutes) * 100)}%`;
+    bar.appendChild(fill);
+    const value = el('div', 'international-club-total-value');
+    value.append(el('strong', null, String(club.summary?.minutes || 0)), el('small', null, `分钟 · ${club.summary?.appearances || 0}人次`));
+    row.append(label, bar, value);
+    totalRows.appendChild(row);
   }
+  totals.append(totalsHead, totalRows);
+
+  const playerEntries = (data.clubs || []).flatMap((club) => internationalClubPlayers(club).map((player) => ({ club, player })));
+  const clubOrder = new Map((data.clubs || []).map((club, index) => [club.key, index]));
+  playerEntries.sort((a, b) => (
+    (b.player.summary?.minutes || 0) - (a.player.summary?.minutes || 0)
+    || (b.player.summary?.appearances || 0) - (a.player.summary?.appearances || 0)
+    || (clubOrder.get(a.club.key) || 0) - (clubOrder.get(b.club.key) || 0)
+    || a.player.name.localeCompare(b.player.name, 'zh-CN')
+  ));
+
+  const recentAppearances = playerEntries.flatMap((entry) => (entry.player.matches || [])
+    .filter((match) => match.status === '首发' || match.status === '替补登场')
+    .map((match) => ({ ...entry, match })))
+    .sort((a, b) => new Date(b.match.kickoff_at) - new Date(a.match.kickoff_at))
+    .slice(0, 9);
+  const recent = el('section', 'international-recent');
+  const recentHead = el('header', 'international-recent-head');
+  recentHead.append(el('strong', null, '刚踢完'), el('span', null, '谁出场了、踢了多久'));
+  const recentGrid = el('div', 'international-recent-grid');
+  if (recentAppearances.length) {
+    for (const entry of recentAppearances) {
+      const item = el('article', `international-recent-player ${entry.club.key}`);
+      const who = el('div');
+      who.append(el('strong', null, entry.player.name), el('small', null, `${entry.club.name} · ${entry.player.flag || ''}${entry.player.national_team || ''}`));
+      const time = el('div');
+      time.append(el('strong', null, `${entry.match.minutes || 0}′`), el('small', null, entry.match.status));
+      item.append(who, time);
+      recentGrid.appendChild(item);
+    }
+  } else {
+    recentGrid.appendChild(el('p', 'international-recent-empty', '本期比赛还没产生出场记录。'));
+  }
+  recent.append(recentHead, recentGrid);
+
+  const board = el('section', 'international-player-board');
+  const boardHead = el('header', 'international-player-board-head');
+  const boardTitle = el('div');
+  boardTitle.append(el('strong', null, '球员出场时间榜'), el('span', null, '按本期累计分钟排序，点开球员看逐场记录'));
+  const filters = el('div', 'international-player-filters');
+  const filterItems = [{ key: 'all', name: '全部', players: playerEntries.length }, ...(data.clubs || []).map((club) => ({
+    key: club.key,
+    name: club.name,
+    players: internationalClubPlayers(club).length,
+  }))];
+  for (const item of filterItems) {
+    const button = el('button', item.key === 'all' ? 'active' : '', `${item.name} ${item.players}`);
+    button.type = 'button';
+    button.dataset.club = item.key;
+    button.addEventListener('click', () => {
+      for (const other of filters.querySelectorAll('button')) other.classList.toggle('active', other === button);
+      for (const card of board.querySelectorAll('.international-player-card')) {
+        card.hidden = item.key !== 'all' && !card.classList.contains(item.key);
+      }
+    });
+    filters.appendChild(button);
+  }
+  boardHead.append(boardTitle, filters);
+  const columnHead = el('div', 'international-player-column-head');
+  columnHead.append(el('span', null, '球员'), el('span', null, '国家队'), el('span', null, '俱乐部'), el('span', null, '出场'), el('span', null, '时间'));
+  const list = el('div', 'international-player-board-list');
+  playerEntries.forEach((entry, index) => list.appendChild(internationalPlayerCard(entry, index + 1)));
+  board.append(boardHead, columnHead, list);
 
   const source = el('footer', 'international-duty-source');
   source.append(document.createTextNode('征召与赛程：'));
@@ -4746,7 +4837,7 @@ function renderInternationalDuty(data) {
   }
   source.append(document.createTextNode(' · 赛果、名单与分钟：FotMob'));
 
-  root.append(hero, note, comparison, source);
+  root.append(hero, note, totals, recent, board, source);
   $('#updated-at').textContent = `国家队数据更新于 ${firstTeamAnalysisDate(data.checked_at || data.generated_at, true)}`;
 }
 
