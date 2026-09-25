@@ -71,6 +71,7 @@ test('每名球员显示伤情并把俱乐部伤病请求限制为每六小时�
     label: '受伤 · 出战成疑',
     expected_return: 'Doubtful',
     checked_at: '2026-09-25T02:00:00.000Z',
+    source: 'club',
   });
 
   const cached = await buildInternationalDuty(
@@ -109,7 +110,7 @@ test('完赛约一小时后写入首发状态和实际分钟', async () => {
   assert.equal(data.fetch.requests, 1);
   assert.equal(fixture.status, '完场');
   assert.equal(fixture.score, '2-0');
-  assert.deepEqual(fixture.appearances[0], { name: '哈兰德', name_en: 'Erling Haaland', status: '首发', minutes: 90 });
+  assert.deepEqual(fixture.appearances[0], { name: '哈兰德', name_en: 'Erling Haaland', status: '首发', minutes: 90, injury: null });
   assert.equal(data.clubs[0].players[0].summary.minutes, 90);
   assert.equal(data.clubs[0].summary.minutes, 90);
   assert.equal(data.clubs[0].summary.appearances, 1);
@@ -118,6 +119,49 @@ test('完赛约一小时后写入首发状态和实际分钟', async () => {
   withoutPlayerStats.content.playerStats = {};
   const fallback = await buildInternationalDuty(miniConfig, null, new Date('2026-09-24T22:00:00Z'), async () => withoutPlayerStats);
   assert.equal(fallback.clubs[0].players[0].summary.minutes, 90);
+});
+
+test('比赛中因伤被换下时优先标记伤退，不被滞后的俱乐部名单覆盖', async () => {
+  const injuryConfig = {
+    version: 4,
+    title: '比赛伤退测试',
+    clubs: [{
+      key: 'arsenal', name: '阿森纳', name_en: 'Arsenal', badge: '🔴', fotmob_id: 9825,
+      teams: [{
+        key: 'germany', name: '德国', name_en: 'Germany', flag: '🇩🇪',
+        players: [{ name: '哈弗茨', name_en: 'Kai Havertz', aliases: ['Kai Havertz'] }],
+        fixtures: [{ id: '5181825', kickoff_at: '2026-09-24T18:45:00Z', home: '荷兰', away: '德国', home_en: 'Netherlands', away_en: 'Germany' }],
+      }],
+    }],
+  };
+  const details = {
+    header: { status: { finished: true }, teams: [{ score: 2 }, { score: 2 }] },
+    content: {
+      lineup: {
+        homeTeam: { name: 'Netherlands', starters: [], subs: [] },
+        awayTeam: {
+          name: 'Germany',
+          starters: [{ id: 7, name: 'Kai Havertz', performance: { substitutionEvents: [{ time: 30, type: 'subOut', reason: 'injury' }] } }],
+          subs: [],
+        },
+      },
+      playerStats: { '7': { stats: [{ stats: { minutes: { key: 'minutes_played', stat: { value: 30 } } } }] } },
+    },
+  };
+  const data = await buildInternationalDuty(
+    injuryConfig,
+    null,
+    new Date('2026-09-24T23:00:00Z'),
+    async () => details,
+    async () => ({}),
+    async () => ({ squad: { squad: [{ members: [{ name: 'Kai Havertz', injured: false, injury: null }] }] } }),
+  );
+  const player = data.clubs[0].players[0];
+  assert.equal(player.matches[0].injury.label, '伤退 · 诊断待定');
+  assert.equal(player.injury.injured, true);
+  assert.equal(player.injury.source, 'match');
+  assert.equal(player.injury.minute, 30);
+  assert.equal(data.summary.injured, 1);
 });
 
 test('国家队追踪按球员展示三队总时间对比并定时更新', () => {

@@ -42,12 +42,12 @@ function playerAppearance(details, teamConfig, player) {
   const lineup = details?.content?.lineup;
   const team = [lineup?.homeTeam, lineup?.awayTeam]
     .find((item) => normalizeName(item?.name) === normalizeName(teamConfig.name_en));
-  if (!team) return { name: player.name, name_en: player.name_en, status: '待补录', minutes: null };
+  if (!team) return { name: player.name, name_en: player.name_en, status: '待补录', minutes: null, injury: null };
 
   const starter = (team.starters || []).find((item) => matchesPlayer(item, player));
   const substitute = (team.subs || []).find((item) => matchesPlayer(item, player));
   const squadPlayer = starter || substitute;
-  if (!squadPlayer) return { name: player.name, name_en: player.name_en, status: '未进名单', minutes: 0 };
+  if (!squadPlayer) return { name: player.name, name_en: player.name_en, status: '未进名单', minutes: 0, injury: null };
 
   const flattened = flattenPlayerStats(details?.content?.playerStats?.[String(squadPlayer.id)]);
   const minutesValue = Number(flattened.minutes_played);
@@ -55,12 +55,24 @@ function playerAppearance(details, teamConfig, player) {
   const cameOn = events.some((event) => event?.type === 'subIn');
   const subOut = events.find((event) => event?.type === 'subOut');
   const subIn = events.find((event) => event?.type === 'subIn');
+  const injuryEvent = events.find((event) => /injur/i.test(String(event?.reason || '')));
   const fallbackMinutes = starter
     ? (Number.isFinite(Number(subOut?.time)) ? Number(subOut.time) : 90)
     : (cameOn && Number.isFinite(Number(subIn?.time)) ? Math.max(0, 90 - Number(subIn.time)) : 0);
   const minutes = Number.isFinite(minutesValue) ? Math.max(0, Math.round(minutesValue)) : fallbackMinutes;
   const status = starter ? '首发' : (minutes > 0 || cameOn ? '替补登场' : '替补未登场');
-  return { name: player.name, name_en: player.name_en, status, minutes };
+  return {
+    name: player.name,
+    name_en: player.name_en,
+    status,
+    minutes,
+    injury: injuryEvent ? {
+      injured: true,
+      status: 'match_injury',
+      label: '伤退 · 诊断待定',
+      minute: Number.isFinite(Number(injuryEvent.time)) ? Number(injuryEvent.time) : null,
+    } : null,
+  };
 }
 
 function configClubs(config) {
@@ -129,6 +141,7 @@ function injuryForPlayer(members, player, checkedAt) {
     label: injured ? `受伤${expectedReturn ? ` · ${injuryReturnText(expectedReturn)}` : ''}` : '暂无伤情',
     expected_return: expectedReturn,
     checked_at: checkedAt,
+    source: 'club',
   };
 }
 
@@ -136,13 +149,50 @@ function previousInjuryForPlayer(previousClub, player) {
   const previousPlayer = (previousClub?.players || []).find((item) => (
     normalizeName(item.name_en || item.name) === normalizeName(player.name_en || player.name)
   ));
-  return previousPlayer?.injury || {
+  const previousInjury = previousPlayer?.injury;
+  if (previousInjury?.source === 'match') return {
     injured: false,
     status: 'clear',
     label: '暂无伤情',
     expected_return: null,
     checked_at: previousClub?.injury_checked_at || null,
+    source: 'club',
   };
+  return previousInjury ? { ...previousInjury, source: previousInjury.source || 'club' } : {
+    injured: false,
+    status: 'clear',
+    label: '暂无伤情',
+    expected_return: null,
+    checked_at: previousClub?.injury_checked_at || null,
+    source: 'club',
+  };
+}
+
+function matchInjuryForPlayer(player, checkedAt) {
+  const ordered = [...(player.matches || [])]
+    .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
+  const latestInjuryIndex = ordered.findLastIndex((match) => match.injury?.injured);
+  if (latestInjuryIndex < 0) return null;
+  const laterAppearance = ordered.slice(latestInjuryIndex + 1).some((match) => (
+    match.status === '首发' || match.status === '替补登场'
+  ));
+  if (laterAppearance) return null;
+  const match = ordered[latestInjuryIndex];
+  return {
+    injured: true,
+    status: 'match_injury',
+    label: match.injury.label || '伤退 · 诊断待定',
+    expected_return: null,
+    checked_at: checkedAt,
+    source: 'match',
+    match_id: match.id || null,
+    minute: match.injury.minute ?? null,
+  };
+}
+
+function mergedInjuryForPlayer(player, clubInjury, checkedAt) {
+  if (clubInjury?.injured) return clubInjury;
+  return matchInjuryForPlayer(player, checkedAt) || clubInjury;
 }
 
 async function fetchJson(url, attempts = 3) {
@@ -193,6 +243,7 @@ function baseFixture(fixture, team, previous, now) {
       name_en: player.name_en,
       status: '未开赛',
       minutes: null,
+      injury: null,
     })),
     url: id ? `https://www.fotmob.com/matches/x#${id}` : null,
     ...(previous?.last_attempted_at ? { last_attempted_at: previous.last_attempted_at } : {}),
@@ -200,13 +251,17 @@ function baseFixture(fixture, team, previous, now) {
   };
 }
 
-function shouldFetchFixture(fixture, previous, now) {
+function shouldFetchFixture(fixture, previous, now, forceInjuryBackfill = false) {
   const hasImpossibleStarterMinutes = (previous?.appearances || []).some((appearance) => (
     appearance.status === '首发' && Number(appearance.minutes) === 0
   ));
-  if (previous?.status === '完场' && !hasImpossibleStarterMinutes) return false;
+  const needsInjuryBackfill = previous?.status === '完场' && (
+    forceInjuryBackfill || (previous?.appearances || []).some((appearance) => appearance.injury === undefined)
+  );
+  if (previous?.status === '完场' && !hasImpossibleStarterMinutes && !needsInjuryBackfill) return false;
   const dueAt = new Date(fixture.kickoff_at).getTime() + POST_MATCH_DELAY_MS;
   if (!Number.isFinite(dueAt) || now.getTime() < dueAt) return false;
+  if (needsInjuryBackfill) return true;
   const attemptedAt = new Date(previous?.last_attempted_at || 0).getTime();
   return !Number.isFinite(attemptedAt) || now.getTime() - attemptedAt >= RETRY_INTERVAL_MS;
 }
@@ -260,6 +315,7 @@ function playerMatches(club) {
           minutes: appearance?.minutes !== null && appearance?.minutes !== undefined && Number.isFinite(Number(appearance.minutes))
             ? Number(appearance.minutes)
             : null,
+          injury: appearance?.injury || null,
         };
       });
       const played = matches.filter((match) => match.status === '首发' || match.status === '替补登场');
@@ -310,6 +366,7 @@ export async function buildInternationalDuty(
 ) {
   const previousMap = previousFixtures(previous);
   const previousClubMap = previousClubs(previous);
+  const forceInjuryBackfill = Boolean(previous) && Number(previous?.version || 0) < Number(config?.version || 0);
   const detailCache = new Map();
   const scheduleCache = new Map();
   let detailRequests = 0;
@@ -326,7 +383,7 @@ export async function buildInternationalDuty(
         const prior = previousMap.get(`${clubConfig.key}:${team.key}:${fixtureStableKey(fixture)}`);
         let resolved = { ...fixture, id: prior?.id || fixture.id || null };
         let base = baseFixture(resolved, team, prior, now);
-        if (!shouldFetchFixture(resolved, prior, now)) {
+        if (!shouldFetchFixture(resolved, prior, now, forceInjuryBackfill)) {
           fixtures.push(base);
           continue;
         }
@@ -367,20 +424,20 @@ export async function buildInternationalDuty(
         const members = squadMembers(teamData);
         club.players = club.players.map((player) => ({
           ...player,
-          injury: injuryForPlayer(members, player, checkedAt),
+          injury: mergedInjuryForPlayer(player, injuryForPlayer(members, player, checkedAt), checkedAt),
         }));
         club.injury_checked_at = checkedAt;
       } catch {
         club.players = club.players.map((player) => ({
           ...player,
-          injury: previousInjuryForPlayer(priorClub, player),
+          injury: mergedInjuryForPlayer(player, previousInjuryForPlayer(priorClub, player), checkedAt),
         }));
         club.injury_checked_at = priorClub?.injury_checked_at || null;
       }
     } else {
       club.players = club.players.map((player) => ({
         ...player,
-        injury: previousInjuryForPlayer(priorClub, player),
+        injury: mergedInjuryForPlayer(player, previousInjuryForPlayer(priorClub, player), checkedAt),
       }));
       club.injury_checked_at = priorClub?.injury_checked_at || null;
     }

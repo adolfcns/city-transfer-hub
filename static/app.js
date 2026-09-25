@@ -4745,7 +4745,7 @@ function renderInternationalDuty(data) {
   const note = el('aside', 'international-duty-note');
   note.append(
     el('strong', null, '球员才是主角'),
-    el('span', null, '国家队只作为球员旁边的标签；比赛预计结束1小时后更新首发、替补和实际分钟，伤情每6小时核对一次。为保证三队可比，本页不混入纯青训梯队征召。'),
+    el('span', null, '国家队只作为球员旁边的标签；比赛预计结束1小时后更新首发、替补和实际分钟。比赛中伤退会立即标出，再每6小时核对俱乐部伤情。为保证三队可比，本页不混入纯青训梯队征召。'),
   );
 
   const totals = el('section', 'international-club-totals');
