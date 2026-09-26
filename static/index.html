@@ -35,6 +35,7 @@
           <a class="page-tab" id="page-internationals" href="./?view=internationals">国家队追踪</a>
           <a class="page-tab" id="page-loans" href="./?view=loans">蓝月在外</a>
         </nav>
+        <button class="case-115-entry" id="btn-115-explainer" type="button" aria-haspopup="dialog" aria-controls="case-115-notice">115指控</button>
         <button class="icon-btn" id="btn-status" title="旧版信源状态" hidden>📡</button>
         <button class="icon-btn" id="btn-trigger" title="旧版转会抓取" hidden>⚡</button>
         <button class="icon-btn" id="btn-refresh" title="刷新当前页面数据">⟳</button>
@@ -214,6 +215,65 @@
         <button class="recovery-notice-ok" id="recovery-notice-ok" type="button">知道了</button>
       </div>
     </div>
+  </div>
+
+  <!-- 115 指控说明：首次访问自动展示一次，页头入口可随时重新打开 -->
+  <div class="modal case-115-notice" id="case-115-notice" role="dialog" aria-modal="true"
+       aria-labelledby="case-115-title" aria-describedby="case-115-lead" hidden>
+    <article class="modal-box case-115-box">
+      <button class="case-115-close" id="case-115-close" type="button" aria-label="关闭115指控说明">×</button>
+      <span class="case-115-kicker">曼城与英超财务案</span>
+      <h2 id="case-115-title">关于115指控你可能需要知道的</h2>
+      <p class="case-115-lead" id="case-115-lead">115不是115套不同的操作。很多指控来自同一件事，只是跨了不同赛季，又触犯了不同条款。</p>
+
+      <section class="case-115-section" aria-labelledby="case-115-breakdown-title">
+        <h3 id="case-115-breakdown-title">115项是怎么分的</h3>
+        <div class="case-115-counts">
+          <div class="case-115-count-card">
+            <b>54</b>
+            <div><strong>财务资料是否真实</strong><span>赞助收入、关联方和运营成本都在这里。这是整件事最重的一组。</span></div>
+          </div>
+          <div class="case-115-count-card">
+            <b>14</b>
+            <div><strong>教练和球员报酬是否报全</strong><span>公开报道主要提到曼奇尼的第二份合同，以及亚亚·图雷方面的额外付款。</span></div>
+          </div>
+          <div class="case-115-count-card">
+            <b>12</b>
+            <div><strong>FFP与PSR</strong><span>5项欧足联规则、7项英超盈利规则。前面的账目如果被认定有问题，这部分通常也会跟着成立。</span></div>
+          </div>
+          <div class="case-115-count-card">
+            <b>35</b>
+            <div><strong>没有充分配合调查</strong><span>这是程序问题，会让处罚更难往轻里走。它本身不回答赞助款到底来自谁。</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="case-115-section case-115-appeal" aria-labelledby="case-115-appeal-title">
+        <h3 id="case-115-appeal-title">还能翻盘吗</h3>
+        <p>能上诉，但别把2020年那次CAS翻盘直接套过来。这一次走英超自己的上诉程序，也没有当年的五年追诉时限可以直接照搬。</p>
+        <div class="case-115-odds" aria-label="本站对不同上诉结果的主观判断">
+          <span><b>约10%</b><small>接近全面翻盘</small></span>
+          <span><b>20%至30%</b><small>核心指控明显缩水</small></span>
+          <span><b>40%至60%</b><small>责任仍在，处罚变轻</small></span>
+        </div>
+        <p>这不是官方概率，只是本站按现在公开的材料估算。剩下的可能，就是定性和处罚都没有明显变化。114项也不是114条互不相干的证据链，上诉如果推翻一个关键前提，可能连带打掉一批指控。</p>
+      </section>
+
+      <aside class="case-115-status">
+        <strong>现在走到哪了</strong>
+        <p>截至2026年9月26日，多家媒体称独立委员会认定114项成立。消息可信度不低，但完整裁决仍未公布，处罚也没有落地，外界还不知道唯一没成立的是哪一项。曼城表示程序仍在继续，并预计上诉。</p>
+      </aside>
+
+      <div class="case-115-sources" aria-label="资料来源">
+        <span>想核对原文：</span>
+        <a href="https://www.premierleague.com/en/news/3045970" target="_blank" rel="noopener">英超指控原文</a>
+        <a href="https://www.bbc.co.uk/sport/football/articles/cvgvrz8zpvro" target="_blank" rel="noopener">BBC拆分</a>
+        <a href="https://www.tas-cas.org/generated/assets/lists/feb900ba-1137-4b78-a9ff-d68af7869087/CAS_Award_6785___internet__.pdf" target="_blank" rel="noopener">2020年CAS裁决</a>
+        <a href="https://www.theguardian.com/football/2026/sep/25/manchester-city-found-guilty-of-breaking-premier-leagues-financial-fair-play-rules" target="_blank" rel="noopener">最新进展</a>
+      </div>
+
+      <button class="case-115-ok" id="case-115-ok" type="button">看明白了</button>
+    </article>
   </div>
 
   <!-- 一键抓取设置面板 -->

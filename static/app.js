@@ -97,6 +97,8 @@ const FEATURE_GUIDE_STORAGE_PREFIX = 'cth_feature_guide_4h_v1';
 const FEATURE_GUIDE_INTERVAL_MS = 4 * 60 * 60 * 1000;
 const FEATURE_GUIDE_DELAY_MS = 2200;
 const RECOVERY_NOTICE_KEY = 'cth_recovery_notice_20260807';
+const CASE_115_NOTICE_KEY = 'cth_case_115_notice_20260926_v1';
+const CASE_115_NOTICE_DELAY_MS = 900;
 // 布阿迪交易已进入 Here we go 阶段，暂时撤下重点传闻卡片；保留数据与逻辑，方便后续恢复。
 const FOCUS_RUMOR_STRIP_ENABLED = false;
 const FOCUS_SURVEY_ORDER = Object.freeze([
@@ -7036,6 +7038,50 @@ function showRecoveryNotice() {
   setTimeout(() => $('#recovery-notice-ok')?.focus(), 0);
 }
 
+let case115NoticeTimer = null;
+
+function case115NoticeIsOpen() {
+  const notice = $('#case-115-notice');
+  return Boolean(notice && !notice.hidden);
+}
+
+function showCase115Notice() {
+  const notice = $('#case-115-notice');
+  if (!notice) return;
+  notice.hidden = false;
+  document.body.classList.add('case-115-open');
+  setTimeout(() => $('#case-115-close')?.focus(), 0);
+}
+
+function scheduleCase115Notice(delay = CASE_115_NOTICE_DELAY_MS) {
+  try {
+    if (localStorage.getItem(CASE_115_NOTICE_KEY) === 'seen') return;
+  } catch { /* 禁用本机存储时仍展示一次 */ }
+  clearTimeout(case115NoticeTimer);
+  case115NoticeTimer = setTimeout(() => {
+    const anotherOverlay = document.querySelector('.comment-overlay, .survey-overlay, .modal:not([hidden]):not(#case-115-notice)');
+    if (document.hidden || anotherOverlay) {
+      scheduleCase115Notice(1000);
+      return;
+    }
+    showCase115Notice();
+  }, delay);
+}
+
+function openCase115Notice() {
+  clearTimeout(case115NoticeTimer);
+  showCase115Notice();
+}
+
+function dismissCase115Notice() {
+  const notice = $('#case-115-notice');
+  if (!notice) return;
+  notice.hidden = true;
+  document.body.classList.remove('case-115-open');
+  try { localStorage.setItem(CASE_115_NOTICE_KEY, 'seen'); }
+  catch { /* 禁用本机存储时，本次访问内仍可关闭 */ }
+}
+
 let featureGuideTimer = null;
 
 function featureGuideDefinition() {
@@ -7355,6 +7401,7 @@ function bind() {
     if (event.key === 'Escape' && !$('#feature-guide')?.hidden) dismissFeatureGuide();
     if (event.key === 'Escape' && !$('#window-finale-notice')?.hidden) dismissWindowFinaleNotice();
     if (event.key === 'Escape' && !$('#recovery-notice')?.hidden) dismissRecoveryNotice();
+    if (event.key === 'Escape' && case115NoticeIsOpen()) dismissCase115Notice();
   });
   document.querySelectorAll('#lang-seg button').forEach((button) => {
     button.classList.toggle('active', button.dataset.lang === state.filters.lang);
@@ -7394,6 +7441,7 @@ function bind() {
     return loadData(true);
   };
   $('#btn-trigger').onclick = triggerCloudFetch;
+  $('#btn-115-explainer').onclick = openCase115Notice;
   // 一键收藏：复制网址 + 按设备给出最短收藏路径（浏览器不允许网页直接写书签）
   $('#btn-fav').onclick = async () => {
     try { await navigator.clipboard.writeText(window.location.href.split('#')[0]); } catch { /* 剪贴板不可用则只提示 */ }
@@ -7410,6 +7458,11 @@ function bind() {
   $('#recovery-notice-ok').onclick = dismissRecoveryNotice;
   $('#recovery-notice').addEventListener('click', (event) => {
     if (event.target === $('#recovery-notice')) dismissRecoveryNotice();
+  });
+  $('#case-115-close').onclick = dismissCase115Notice;
+  $('#case-115-ok').onclick = dismissCase115Notice;
+  $('#case-115-notice').addEventListener('click', (event) => {
+    if (event.target === $('#case-115-notice')) dismissCase115Notice();
   });
   $('#window-finale-close').onclick = dismissWindowFinaleNotice;
   $('#window-finale-ok').onclick = dismissWindowFinaleNotice;
@@ -7467,6 +7520,8 @@ bindPrayer();
 recordRequestedShareVisit();
 renderFocusZone();
 // 用户已经熟悉各栏目：不再自动展示栏目引导、夏窗终章或恢复公告。
+// 115 指控说明属于当前专题，仅首次访问自动出现一次，之后可从页头重新打开。
+scheduleCase115Notice();
 if (IS_LOAN_PAGE) {
   updateWinterWindowCountdown();
   setInterval(updateWinterWindowCountdown, 1000);

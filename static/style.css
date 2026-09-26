@@ -155,6 +155,205 @@ code { background: rgba(108,171,221,.15); padding: 0 5px; border-radius: 4px; fo
   box-shadow: 0 8px 24px rgba(42,83,106,.08);
 }
 
+/* ============ 115 指控说明 ============ */
+.case-115-entry {
+  flex: none;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid #b68a2e;
+  border-radius: 999px;
+  background: #fff7df;
+  color: #77520a;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(119, 82, 10, .08);
+  white-space: nowrap;
+}
+.case-115-entry:hover,
+.case-115-entry:focus-visible { background: #f7e7b2; outline: 2px solid rgba(182, 138, 46, .25); outline-offset: 2px; }
+body.case-115-open { overflow: hidden; }
+.case-115-notice {
+  z-index: 150;
+  padding: 20px;
+  background: rgba(8, 28, 43, .68);
+  backdrop-filter: blur(6px);
+}
+.case-115-box {
+  position: relative;
+  width: min(780px, 100%);
+  max-height: min(90vh, 880px);
+  padding: 28px;
+  border: 1px solid #a9cee2;
+  border-radius: 22px;
+  background: #f7fbfd;
+  color: #17364b;
+  box-shadow: 0 24px 80px rgba(4, 24, 39, .3);
+}
+.case-115-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #bfd8e6;
+  border-radius: 50%;
+  background: #fff;
+  color: #3d6176;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+.case-115-close:hover,
+.case-115-close:focus-visible { border-color: #2289bd; color: #116f9d; outline: none; }
+.case-115-kicker {
+  display: block;
+  margin-bottom: 7px;
+  color: #187eae;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .16em;
+}
+.case-115-box h2 {
+  margin: 0;
+  padding-right: 40px;
+  color: #102f44;
+  font-size: clamp(24px, 4vw, 34px);
+  line-height: 1.25;
+}
+.case-115-lead {
+  margin: 12px 0 0;
+  color: #476b80;
+  font-size: 15px;
+  line-height: 1.75;
+}
+.case-115-section { margin-top: 22px; }
+.case-115-section h3 {
+  margin: 0 0 10px;
+  color: #153a51;
+  font-size: 18px;
+}
+.case-115-counts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+.case-115-count-card {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid #d4e5ee;
+  border-radius: 13px;
+  background: #fff;
+}
+.case-115-count-card > b {
+  color: #1684b9;
+  font-size: 28px;
+  line-height: 1;
+}
+.case-115-count-card > div { min-width: 0; }
+.case-115-count-card strong,
+.case-115-count-card span { display: block; }
+.case-115-count-card strong { color: #17384e; font-size: 14px; line-height: 1.4; }
+.case-115-count-card span { margin-top: 4px; color: #587589; font-size: 12px; line-height: 1.55; }
+.case-115-appeal {
+  padding: 17px;
+  border: 1px solid #e4c873;
+  border-radius: 15px;
+  background: #fff9e9;
+}
+.case-115-appeal p {
+  margin: 8px 0 0;
+  color: #536879;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.case-115-odds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 13px;
+}
+.case-115-odds span {
+  padding: 10px 8px;
+  border: 1px solid #ead898;
+  border-radius: 11px;
+  background: rgba(255,255,255,.72);
+  text-align: center;
+}
+.case-115-odds b,
+.case-115-odds small { display: block; }
+.case-115-odds b { color: #926208; font-size: 18px; }
+.case-115-odds small { margin-top: 3px; color: #6d6040; font-size: 11px; }
+.case-115-status {
+  margin-top: 12px;
+  padding: 13px 15px;
+  border-left: 4px solid #2c96c7;
+  border-radius: 0 12px 12px 0;
+  background: #eaf5fa;
+}
+.case-115-status strong { color: #16415a; font-size: 14px; }
+.case-115-status p { margin: 5px 0 0; color: #506f82; font-size: 12px; line-height: 1.65; }
+.case-115-sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 12px;
+  margin-top: 13px;
+  color: #718a98;
+  font-size: 11px;
+}
+.case-115-sources a { color: #147fae; font-weight: 750; }
+.case-115-ok {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 16px;
+  border: 0;
+  border-radius: 12px;
+  background: #177fae;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.case-115-ok:hover,
+.case-115-ok:focus-visible { background: #0e6c98; outline: 3px solid rgba(23, 127, 174, .2); outline-offset: 2px; }
+
+@media (max-width: 720px) {
+  .case-115-entry { min-height: 32px; padding: 0 9px; font-size: 10px; }
+  .case-115-notice { align-items: flex-end; padding: 8px; }
+  .case-115-box { max-height: 92vh; padding: 20px 15px 17px; border-radius: 18px; }
+  .case-115-close { top: 12px; right: 12px; width: 32px; height: 32px; font-size: 21px; }
+  .case-115-box h2 { padding-right: 34px; font-size: 23px; }
+  .case-115-lead { margin-top: 8px; font-size: 13px; line-height: 1.65; }
+  .case-115-section { margin-top: 16px; }
+  .case-115-section h3 { margin-bottom: 8px; font-size: 16px; }
+  .case-115-counts { grid-template-columns: 1fr; gap: 6px; }
+  .case-115-count-card { grid-template-columns: 43px minmax(0, 1fr); gap: 8px; padding: 9px 10px; }
+  .case-115-count-card > b { font-size: 23px; }
+  .case-115-count-card strong { font-size: 13px; }
+  .case-115-count-card span { margin-top: 2px; font-size: 11px; line-height: 1.45; }
+  .case-115-appeal { padding: 12px; }
+  .case-115-appeal p { font-size: 11px; line-height: 1.65; }
+  .case-115-odds { gap: 5px; margin-top: 9px; }
+  .case-115-odds span { padding: 8px 3px; }
+  .case-115-odds b { font-size: 15px; }
+  .case-115-odds small { font-size: 9px; }
+  .case-115-status { padding: 10px 11px; }
+  .case-115-status p { font-size: 10px; line-height: 1.55; }
+  .case-115-sources { gap: 5px 10px; font-size: 10px; }
+  .case-115-ok { min-height: 42px; margin-top: 12px; }
+}
+
+@media (max-width: 420px) {
+  .case-115-entry { width: 50px; padding: 0 4px; font-size: 9px; }
+}
+
 /* ============ 双入口：首页社媒 / 蓝月在外 ============ */
 .page-tabs {
   display: inline-grid; grid-template-columns: repeat(4, minmax(72px, 1fr)); gap: 4px; padding: 3px;
@@ -3391,4 +3590,37 @@ body[data-page="analysis"] .container { max-width: 1060px; }
   .topbar-right .page-tabs { min-width: 0; flex: 1; width: auto; }
   .topbar-right .icon-btn { width: 32px; height: 32px; }
   .match-preview-hero, .match-preview-report { width: 100%; min-width: 0; }
+}
+
+/* 放在主题覆盖之后，确保专题弹窗始终保持浅色阅读版。 */
+.modal.case-115-notice {
+  z-index: 150;
+  padding: 20px;
+  background: rgba(8, 28, 43, .68);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.modal-box.case-115-box {
+  width: min(780px, 100%);
+  max-height: min(90vh, 880px);
+  padding: 28px;
+  border-color: #a9cee2;
+  background: #f7fbfd;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 24px 80px rgba(4, 24, 39, .3);
+}
+
+@media (max-width: 720px) {
+  .modal.case-115-notice { align-items: flex-end; padding: 8px; }
+  .modal-box.case-115-box {
+    width: calc(100vw - 16px);
+    min-width: 0;
+    max-width: calc(100vw - 16px);
+    max-height: 92vh;
+    padding: 20px 15px 17px;
+    overflow-x: hidden;
+  }
+  .case-115-count-card span,
+  .case-115-status p { overflow-wrap: anywhere; }
 }
