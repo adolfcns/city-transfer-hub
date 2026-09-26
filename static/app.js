@@ -1913,7 +1913,7 @@ function configurePageMode() {
   }
 
   document.title = '曼城社媒｜跟队记者与蓝月消息源';
-  title.textContent = '曼城社媒';
+  title.textContent = '众志成城 C.T.I.D';
   slogan.textContent = '点击右侧看外租小将表现';
   socialHome.hidden = false;
   loanHome.hidden = true;
