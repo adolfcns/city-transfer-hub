@@ -1,4 +1,4 @@
-// 曼城社媒首页：抓四个既有来源与五个曼城专属消息源。
+// 曼城社媒首页：抓三名记者与七个曼城专属消息源。
 //
 // 环境变量：
 //   RSSHUB_URL             RSSHub 地址（X 时间线入口）
@@ -32,6 +32,7 @@ export const SOCIAL_SOURCE_KEYS = Object.freeze([
   'mcfcous',
   'city_report',
   'tolmie',
+  'city_chief',
 ]);
 
 export const SOCIAL_SOURCE_LABELS = Object.freeze({
@@ -44,6 +45,7 @@ export const SOCIAL_SOURCE_LABELS = Object.freeze({
   mcfcous: 'mcfcous',
   city_report: 'City Report',
   tolmie: "Tolmie's Hairdoo",
+  city_chief: 'City Chief',
 });
 
 const SOCIAL_DEDICATED_CITY_SOURCE_KEYS = new Set([
@@ -53,6 +55,7 @@ const SOCIAL_DEDICATED_CITY_SOURCE_KEYS = new Set([
   'mcfcous',
   'city_report',
   'tolmie',
+  'city_chief',
 ]);
 
 const SOCIAL_SOURCE_NOTES = Object.freeze({
@@ -62,6 +65,7 @@ const SOCIAL_SOURCE_NOTES = Object.freeze({
   mcfcous: '曼城专属消息源',
   city_report: '曼城资讯聚合',
   tolmie: '蓝月论坛爆料与暗示',
+  city_chief: '曼城独立资讯聚合',
 });
 
 const wait = (ms) => new Promise((done) => setTimeout(done, ms));
@@ -89,7 +93,7 @@ export function selectSocialSources(config) {
 
 export function isSocialPost(source, text, matchers) {
   if (matchers.isExcluded(text)) return false;
-  // 六个曼城专号允许简短爆料和暗示；三名记者还会报道其他球队，需要曼城语义闸门。
+  // 七个曼城专号允许简短爆料和暗示；三名记者还会报道其他球队，需要曼城语义闸门。
   // 除俱乐部名外也认现役球员和教练，避免“哈兰德状态更新”这类未写 MCFC 的帖子漏掉。
   return SOCIAL_DEDICATED_CITY_SOURCE_KEYS.has(source.key) || matchers.isCity(text) || matchers.isCurrentMan(text);
 }

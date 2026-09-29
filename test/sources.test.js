@@ -70,3 +70,21 @@ test('Etihad Intel also gets an independent author search fallback', () => {
     '',
   );
 });
+
+test('City Chief uses the verified X handle and keeps global reply filters', async () => {
+  const YAML = (await import('yaml')).default;
+  const fs = await import('node:fs');
+  const config = YAML.parse(fs.readFileSync('config/sources.yaml', 'utf8'));
+  const source = config.sources.find((item) => item.key === 'city_chief');
+  assert.ok(source);
+  assert.equal(source.handle, 'City_Chief');
+  assert.equal(source.include_replies, undefined);
+  assert.equal(
+    twitterFeedUrl(source, 'http://127.0.0.1:1200/'),
+    'http://127.0.0.1:1200/twitter/user/City_Chief',
+  );
+  assert.equal(
+    twitterKeywordFeedUrl(source, 'http://127.0.0.1:1200/'),
+    'http://127.0.0.1:1200/twitter/keyword/from%3ACity_Chief/forceWebApi=true',
+  );
+});

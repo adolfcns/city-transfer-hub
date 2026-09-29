@@ -24,7 +24,7 @@ test('GitHub 小时任务同时检查外租、社媒与一线队复盘新鲜度�
   assert.match(workflowText, /First-team analysis.+maxAge: 50 \* 60 \* 1000/);
   assert.match(workflowText, /Update first-team post-match analysis/);
   assert.match(workflowText, /node scripts\/fetch-first-team-analysis\.js/);
-  assert.match(workflowText, /Update the nine-source social feed/);
+  assert.match(workflowText, /Update the ten-source social feed/);
   assert.doesNotMatch(workflowText, /Fetch all sources|node scripts\/fetch\.js/);
   const deployWorker = workflow.jobs['fetch-deploy'].steps
     .find((step) => step.name === 'Deploy Cloudflare Worker');

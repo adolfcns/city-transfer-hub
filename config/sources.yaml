@@ -754,6 +754,16 @@ sources:
     handle: City_Xtra
     filter: current+transfer # 仅收现役男足/教练或转会内容；历史回顾、女足由全局策略剔除
 
+  - key: city_chief
+    name: City Chief
+    name_zh: City Chief
+    tier: ITK
+    type: twitter
+    handle: City_Chief
+    keyword_fallback: "from:City_Chief"
+    filter: none        # 曼城专属资讯号，原帖全部收录；回复和纯转推仍按全局规则过滤
+    note_zh: 曼城独立资讯聚合
+
   - key: city_report
     name: City Report
     name_zh: City Report

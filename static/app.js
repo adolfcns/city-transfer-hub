@@ -10,7 +10,7 @@ const IS_PREVIEW_PAGE = PAGE_VIEW === 'preview';
 const IS_INTERNATIONALS_PAGE = PAGE_VIEW === 'internationals';
 const SOCIAL_SOURCE_KEYS = new Set([
   'city_xtra', 'bajkowski', 'samlee', 'gaughan', 'fpl_maine_road',
-  'etihad_intel', 'mcfcous', 'city_report', 'tolmie',
+  'etihad_intel', 'mcfcous', 'city_report', 'tolmie', 'city_chief',
 ]);
 const SOCIAL_SOURCE_LABELS = Object.freeze({
   city_xtra: 'City Xtra',
@@ -22,6 +22,7 @@ const SOCIAL_SOURCE_LABELS = Object.freeze({
   mcfcous: 'mcfcous',
   city_report: 'City Report',
   tolmie: "Tolmie's Hairdoo",
+  city_chief: 'City Chief',
 });
 const SOCIAL_SOURCE_ROLES = Object.freeze({
   city_xtra: '聚合',
@@ -30,6 +31,7 @@ const SOCIAL_SOURCE_ROLES = Object.freeze({
   etihad_intel: 'ITK',
   mcfcous: 'ITK',
   tolmie: 'ITK',
+  city_chief: '聚合',
 });
 const SOCIAL_SOURCE_NOTES = Object.freeze({
   city_xtra: '曼城资讯聚合',
@@ -38,6 +40,7 @@ const SOCIAL_SOURCE_NOTES = Object.freeze({
   etihad_intel: '曼城内幕与转会',
   mcfcous: '曼城专属消息源',
   tolmie: '蓝月论坛爆料与暗示',
+  city_chief: '曼城独立资讯聚合',
 });
 const DATA_URL = './data/social-feed.json';
 const DATA_FALLBACK_URL = './data/items.json';

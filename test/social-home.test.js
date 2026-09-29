@@ -35,23 +35,25 @@ test('社媒、比赛前瞻、赛后分析与蓝月在外使用四个稳定入�
   assert.match(css, /\.loan-page-hero-action/);
 });
 
-test('社媒抓取与前台严格限定九个指定 X 信源', () => {
+test('社媒抓取与前台严格限定十个指定 X 信源', () => {
   assert.deepEqual([...SOCIAL_SOURCE_KEYS], [
     'city_xtra', 'bajkowski', 'samlee', 'gaughan', 'fpl_maine_road',
-    'etihad_intel', 'mcfcous', 'city_report', 'tolmie',
+    'etihad_intel', 'mcfcous', 'city_report', 'tolmie', 'city_chief',
   ]);
   assert.deepEqual(selectSocialSources(config).map((source) => source.key), [...SOCIAL_SOURCE_KEYS]);
   const shippedSourceCode = `${app}\n${fetcher}`;
   for (const name of [
     'City Xtra', 'Simon Bajkowski', 'Sam Lee', 'Jack Gaughan', 'FPL Maine Road',
-    'Etihad Intel', 'mcfcous', 'City Report', "Tolmie's Hairdoo",
+    'Etihad Intel', 'mcfcous', 'City Report', "Tolmie's Hairdoo", 'City Chief',
   ]) assert.match(shippedSourceCode, new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   const matchers = makeMatchers(config);
   const cityXtra = selectSocialSources(config).find((source) => source.key === 'city_xtra');
   const samLee = selectSocialSources(config).find((source) => source.key === 'samlee');
   const tolmie = selectSocialSources(config).find((source) => source.key === 'tolmie');
+  const cityChief = selectSocialSources(config).find((source) => source.key === 'city_chief');
   assert.equal(isSocialPost(cityXtra, 'A short club update without spelling out MCFC.', matchers), true);
   assert.equal(isSocialPost(tolmie, 'Something is moving. Soon. 👀', matchers), true);
+  assert.equal(isSocialPost(cityChief, 'Training today. 🩵', matchers), true);
   assert.equal(isSocialPost(samLee, 'New Erling Haaland fitness update.', matchers), true);
   assert.equal(isSocialPost(samLee, 'Liverpool have made a bid for a winger.', matchers), false);
   assert.match(app, /filter\(\(item\) => SOCIAL_SOURCE_KEYS\.has\(item\.source_key\)\)/);
