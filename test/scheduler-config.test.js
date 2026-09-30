@@ -7,9 +7,12 @@ const workflowText = fs.readFileSync('.github/workflows/fetch.yml', 'utf8');
 const workflow = YAML.parse(workflowText);
 const workerConfig = fs.readFileSync('cloudflare/wrangler.toml', 'utf8');
 
-test('Cloudflare 与 GitHub 每小时检查一次到期赛程', () => {
-  assert.match(workerConfig, /crons\s*=\s*\["15 \* \* \* \*"\]/);
-  assert.deepEqual(workflow.on.schedule, [{ cron: '29 * * * *' }]);
+test('仅在北京时间傍晚到次日早间安排双时刻新鲜度检查', () => {
+  assert.match(workerConfig, /crons\s*=\s*\[\]/);
+  assert.deepEqual(workflow.on.schedule, [
+    { cron: '17 0,9-23 * * *' },
+    { cron: '47 0,9-23 * * *' },
+  ]);
   assert.equal(workflow.concurrency['cancel-in-progress'], true);
 });
 

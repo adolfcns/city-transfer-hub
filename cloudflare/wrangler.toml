@@ -1,11 +1,11 @@
 # Worker「city-trigger」的部署配置（wrangler deploy -c cloudflare/wrangler.toml）
-# 注意：crons 必须在这里声明，否则命令行部署会把控制台里配的定时器抹掉
+# 自动抓取改由 GitHub 的双时刻计划负责；Worker 只保留互动与手动触发接口。
 name = "city-trigger"
 main = "../scripts/cloudflare-worker.js"
 compatibility_date = "2026-01-01"
 
 [triggers]
-crons = ["15 * * * *"]
+crons = []
 
 # D1 绑定由 GitHub Actions 在部署时按当前 Cloudflare 账户动态写入，
 # 避免把其他账户或已经删除的 database_id 固定在仓库中。

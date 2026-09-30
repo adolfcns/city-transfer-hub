@@ -137,7 +137,8 @@ test('按赛程驱动赛后抓取并设置每日安全额度', () => {
   assert.match(workflow, /export PREV_LOAN_WATCH_URL/);
   assert.match(workflow, /node scripts\/fetch-loan-watch\.js/);
   assert.doesNotMatch(workflow, /node scripts\/fetch\.js/);
-  assert.match(workflow, /cron: '29 \* \* \* \*'/);
+  assert.match(workflow, /cron: '17 0,9-23 \* \* \*'/);
+  assert.match(workflow, /cron: '47 0,9-23 \* \* \*'/);
   assert.match(app, /只统计本赛季租借生效后的比赛。/);
   assert.match(app, /赛程表 · 近24小时赛果/);
   assert.match(app, /upcomingSchedule\.open = true/);

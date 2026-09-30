@@ -2,7 +2,10 @@ name: fetch-and-deploy
 
 on:
   schedule:
-    - cron: '29 * * * *'      # 每小时检查外租快照与九源社媒时间线
+    # 北京时间 17:00–次日 08:59（UTC 09:00–00:59）才自动更新。
+    # 每小时安排主检查与错峰补检查；新鲜度门控会跳过重复抓取。
+    - cron: '17 0,9-23 * * *'
+    - cron: '47 0,9-23 * * *'
   workflow_dispatch: {}       # 手动触发按钮
   push:
     branches: [main]
@@ -23,7 +26,7 @@ jobs:
     outputs:
       should_run: ${{ steps.decide.outputs.should_run }}
     steps:
-      - name: Decide whether the hourly backup is needed
+      - name: Decide whether a scheduled refresh is needed
         id: decide
         env:
           LOAN_DATA_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data/loan-watch.json
@@ -65,9 +68,9 @@ jobs:
           )"
           echo "should_run=$DECISION" >> "$GITHUB_OUTPUT"
           if [ "$DECISION" = "true" ]; then
-            echo "Loan, social, or first-team analysis data needs an update; run the hourly job"
+            echo "Loan, social, first-team analysis, or international-duty data needs an update; run the scheduled job"
           else
-            echo "Loan, social, and first-team analysis data are fresh; skip the redundant fetch"
+            echo "All scheduled data is fresh; skip the redundant check"
           fi
 
   fetch-deploy:

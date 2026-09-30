@@ -1103,8 +1103,13 @@ export default {
     return new Response(JSON.stringify({ ok: false, status: res.status }), { status: 502, headers: cors });
   },
 
-  // —— Cloudflare 定时器（Cron Trigger）每 30 分钟自动走这里 ——
+  // 预留给将来重新启用 Cron Trigger；当前 wrangler.toml 不配置自动定时器。
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(triggerGitHub(env));
+    ctx.waitUntil((async () => {
+      const response = await triggerGitHub(env);
+      if (response.status !== 204) {
+        throw new Error(`GitHub workflow dispatch failed: HTTP ${response.status}`);
+      }
+    })());
   },
 };
