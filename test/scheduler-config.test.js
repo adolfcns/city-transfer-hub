@@ -7,12 +7,12 @@ const workflowText = fs.readFileSync('.github/workflows/fetch.yml', 'utf8');
 const workflow = YAML.parse(workflowText);
 const workerConfig = fs.readFileSync('cloudflare/wrangler.toml', 'utf8');
 
-test('仅在北京时间傍晚到次日早间安排双时刻新鲜度检查', () => {
+test('高频争取计划触发机会，但只在北京时间傍晚到次日早间抓取', () => {
   assert.match(workerConfig, /crons\s*=\s*\[\]/);
-  assert.deepEqual(workflow.on.schedule, [
-    { cron: '17 0,9-23 * * *' },
-    { cron: '47 0,9-23 * * *' },
-  ]);
+  assert.deepEqual(workflow.on.schedule, [{ cron: '*/15 * * * *' }]);
+  assert.match(workflowText, /TZ=Asia\/Shanghai date \+%H/);
+  assert.match(workflowText, /"\$BEIJING_HOUR" -ge 9/);
+  assert.match(workflowText, /"\$BEIJING_HOUR" -le 16/);
   assert.equal(workflow.concurrency['cancel-in-progress'], true);
 });
 

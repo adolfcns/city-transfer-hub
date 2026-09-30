@@ -2,10 +2,9 @@ name: fetch-and-deploy
 
 on:
   schedule:
-    # 北京时间 17:00–次日 08:59（UTC 09:00–00:59）才自动更新。
-    # 每小时安排主检查与错峰补检查；新鲜度门控会跳过重复抓取。
-    - cron: '17 0,9-23 * * *'
-    - cron: '47 0,9-23 * * *'
+    # GitHub 的定时任务并不保证准点；每 15 分钟争取一次触发机会。
+    # 下方的新鲜度与北京时间窗口门控保证实际抓取仍约为每小时一次。
+    - cron: '*/15 * * * *'
   workflow_dispatch: {}       # 手动触发按钮
   push:
     branches: [main]
@@ -37,6 +36,14 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" != "schedule" ]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
             echo "Push/manual/Cloudflare dispatch: run normally"
+            exit 0
+          fi
+
+          # 只在北京时间 17:00–次日 08:59 自动抓取；白天的计划检查立即退出。
+          BEIJING_HOUR="$(TZ=Asia/Shanghai date +%H)"
+          if [ "$BEIJING_HOUR" -ge 9 ] && [ "$BEIJING_HOUR" -le 16 ]; then
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "Beijing time ${BEIJING_HOUR}:xx is outside the 17:00–08:59 refresh window"
             exit 0
           fi
 
