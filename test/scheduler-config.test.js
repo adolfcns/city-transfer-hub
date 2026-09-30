@@ -5,6 +5,8 @@ import YAML from 'yaml';
 
 const workflowText = fs.readFileSync('.github/workflows/fetch.yml', 'utf8');
 const workflow = YAML.parse(workflowText);
+const watchdogText = fs.readFileSync('.github/workflows/social-watchdog.yml', 'utf8');
+const watchdog = YAML.parse(watchdogText);
 const workerConfig = fs.readFileSync('cloudflare/wrangler.toml', 'utf8');
 
 test('高频争取计划触发机会，但只在北京时间傍晚到次日早间抓取', () => {
@@ -14,6 +16,15 @@ test('高频争取计划触发机会，但只在北京时间傍晚到次日早�
   assert.match(workflowText, /"\$BEIJING_HOUR" -ge 9/);
   assert.match(workflowText, /"\$BEIJING_HOUR" -le 16/);
   assert.equal(workflow.concurrency['cancel-in-progress'], true);
+});
+
+test('独立看门狗在社媒过期时调用主抓取工作流', () => {
+  assert.deepEqual(watchdog.on.schedule, [{ cron: '7,22,37,52 * * * *' }]);
+  assert.equal(watchdog.permissions.actions, 'write');
+  assert.match(watchdogText, /data\.last_success/);
+  assert.match(watchdogText, /50 \* 60 \* 1000/);
+  assert.match(watchdogText, /actions\/workflows\/fetch\.yml\/dispatches/);
+  assert.match(watchdogText, /TZ=Asia\/Shanghai date \+%H/);
 });
 
 test('GitHub 小时任务同时检查外租、社媒与一线队复盘新鲜度，定时抓取不重复部署互动 Worker', () => {

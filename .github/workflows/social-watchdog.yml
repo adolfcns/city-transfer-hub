@@ -1,0 +1,67 @@
+name: social-refresh-watchdog
+
+on:
+  schedule:
+    # 与主工作流错开，使用独立的 GitHub 定时注册。
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch: {}
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: social-refresh-watchdog
+  cancel-in-progress: true
+
+jobs:
+  dispatch-if-stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check refresh window and social-feed freshness
+        id: decide
+        env:
+          SOCIAL_STATUS_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data/social-status.json
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "dispatch=true" >> "$GITHUB_OUTPUT"
+            echo "Manual watchdog check: dispatch the main workflow"
+            exit 0
+          fi
+
+          BEIJING_HOUR="$(TZ=Asia/Shanghai date +%H)"
+          if [ "$BEIJING_HOUR" -ge 9 ] && [ "$BEIJING_HOUR" -le 16 ]; then
+            echo "dispatch=false" >> "$GITHUB_OUTPUT"
+            echo "Outside the Beijing 17:00–08:59 refresh window"
+            exit 0
+          fi
+
+          DECISION="$(node --input-type=module <<'NODE'
+          try {
+            const response = await fetch(`${process.env.SOCIAL_STATUS_URL}?watchdog=${Date.now()}`, { cache: 'no-store' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            const age = Date.now() - new Date(data.last_success).getTime();
+            const stale = !Number.isFinite(age) || age < 0 || age >= 50 * 60 * 1000;
+            console.error(`Social feed age: ${Number.isFinite(age) ? Math.round(age / 60000) : 'unknown'} minutes`);
+            console.log(stale ? 'true' : 'false');
+          } catch (error) {
+            console.error(`Freshness check failed: ${error.message}; dispatch the main workflow`);
+            console.log('true');
+          }
+          NODE
+          )"
+          echo "dispatch=$DECISION" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch the main fetch workflow
+        if: ${{ steps.decide.outputs.dispatch == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/fetch.yml/dispatches" \
+            --data "{\"ref\":\"${GITHUB_REF_NAME}\"}"
