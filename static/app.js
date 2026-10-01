@@ -70,6 +70,7 @@ const WINDOWS = [
 const WINTER_WINDOW_OPENS_AT = Date.parse('2027-01-01T00:00:00Z');
 const TIER_CLASS = { T0: 't0', T1: 't1', T2: 't2', ITK: 'itk' };
 const BADGE_ZH = {
+  CASE_115: '115案',
   HERE_WE_GO: 'HERE WE GO!',
   OFFICIAL: '官宣',
   EXCLUSIVE: '独家',
@@ -1942,7 +1943,7 @@ function normalizeSocialItem(item) {
   return {
     ...item,
     source_name_zh: SOCIAL_SOURCE_LABELS[item.source_key] || item.source_name_zh || item.source_name,
-    note_zh: SOCIAL_SOURCE_NOTES[item.source_key] || '曼城跟队记者',
+    note_zh: SOCIAL_SOURCE_NOTES[item.source_key] || item.note_zh || '曼城消息源',
   };
 }
 function relTime(iso) {
@@ -2606,6 +2607,13 @@ async function loadData(isRefresh = false) {
   $('#demo-banner').hidden = !state.isDemo;
   $('#twitter-banner').hidden = state.isDemo || data.twitter_enabled !== false;
 
+  // 后台会按配置扩展可信信源池；核心十源之外的账号也应直接进入前台。
+  for (const source of data.sources || []) {
+    if (source?.key) SOCIAL_SOURCE_KEYS.add(source.key);
+  }
+  for (const item of data.items || []) {
+    if (item?.source_key) SOCIAL_SOURCE_KEYS.add(item.source_key);
+  }
   const incomingItems = (data.items || [])
     .filter((item) => SOCIAL_SOURCE_KEYS.has(item.source_key))
     .map(normalizeSocialItem);
@@ -2621,7 +2629,7 @@ async function loadData(isRefresh = false) {
 
   state.items = incomingItems;
   state.totalItems = incomingItems.length;
-  // 社媒首页只保留四个账号近十天内容，不再加载旧转会窗的分页档案。
+  // 社媒首页保留可信 X 信源近十天内容，不再加载旧转会窗的分页档案。
   state.archiveFiles = [];
   state.loadedArchiveFiles = new Set();
   state.archiveLoading = false;

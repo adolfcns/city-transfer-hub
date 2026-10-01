@@ -1,4 +1,4 @@
-// 曼城社媒首页：抓三名记者与七个曼城专属消息源。
+// 曼城社媒首页：抓取转会窗时期使用的完整 X 信源池。
 //
 // 环境变量：
 //   RSSHUB_URL             RSSHub 地址（X 时间线入口）
@@ -22,6 +22,7 @@ const DAYS_KEEP = 10;
 const MAX_ITEMS = 240;
 const REQUEST_DELAY_MS = 2500;
 
+// 这十个账号仍作为首页核心信源优先抓取；其余 X 信源从 sources.yaml 动态补入。
 export const SOCIAL_SOURCE_KEYS = Object.freeze([
   'city_xtra',
   'bajkowski',
@@ -88,12 +89,25 @@ async function loadJson(urlEnv, localFile) {
 
 export function selectSocialSources(config) {
   const sourceByKey = new Map((config.sources || []).map((source) => [source.key, source]));
-  return SOCIAL_SOURCE_KEYS.map((key) => sourceByKey.get(key)).filter(Boolean);
+  const core = SOCIAL_SOURCE_KEYS.map((key) => sourceByKey.get(key)).filter(Boolean);
+  const coreKeys = new Set(core.map((source) => source.key));
+  const additional = (config.sources || [])
+    .filter((source) => source.type === 'twitter' && !coreKeys.has(source.key));
+  return [...core, ...additional];
+}
+
+export function isCase115Post(text) {
+  const value = htmlToText(text || '');
+  if (/\b115\b/i.test(value)) return true;
+  const isCityCase = /\b(?:manchester city|man city|mcfc|cityzens)\b/i.test(value);
+  const hasCaseLanguage = /\b(?:charges?|allegations?|breaches?|independent commission|tribunal|verdict|ruling|appeal|sanctions?|punishment|points? deduction|relegation|expulsion|financial rules?|premier league case)\b/i.test(value);
+  return isCityCase && hasCaseLanguage;
 }
 
 export function isSocialPost(source, text, matchers) {
   if (matchers.isExcluded(text)) return false;
-  // 七个曼城专号允许简短爆料和暗示；三名记者还会报道其他球队，需要曼城语义闸门。
+  // 115 指控相关内容单独放行；曼城专号允许简短爆料和暗示。
+  if (isCase115Post(text)) return true;
   // 除俱乐部名外也认现役球员和教练，避免“哈兰德状态更新”这类未写 MCFC 的帖子漏掉。
   return SOCIAL_DEDICATED_CITY_SOURCE_KEYS.has(source.key) || matchers.isCity(text) || matchers.isCurrentMan(text);
 }
@@ -102,8 +116,8 @@ function normalizeItem(item, sourceByKey) {
   const source = sourceByKey.get(item.source_key);
   return {
     ...item,
-    source_name_zh: SOCIAL_SOURCE_LABELS[item.source_key] || item.source_name_zh || item.source_name,
-    note_zh: SOCIAL_SOURCE_NOTES[source?.key] || '曼城跟队记者',
+    source_name_zh: SOCIAL_SOURCE_LABELS[item.source_key] || source?.name_zh || item.source_name_zh || item.source_name,
+    note_zh: SOCIAL_SOURCE_NOTES[source?.key] || source?.note_zh || item.note_zh || '曼城消息源',
     text: htmlToText(item.text) || item.text,
   };
 }
@@ -122,14 +136,14 @@ export async function buildSocialFeed() {
 
   const config = YAML.parse(await readFile(resolve(ROOT, 'config/sources.yaml'), 'utf8'));
   const sources = selectSocialSources(config);
-  if (sources.length !== SOCIAL_SOURCE_KEYS.length) {
-    const found = new Set(sources.map((source) => source.key));
-    throw new Error(`社媒信源配置不完整：缺少 ${SOCIAL_SOURCE_KEYS.filter((key) => !found.has(key)).join(', ')}`);
+  const foundCore = new Set(sources.map((source) => source.key));
+  if (SOCIAL_SOURCE_KEYS.some((key) => !foundCore.has(key))) {
+    throw new Error(`社媒核心信源配置不完整：缺少 ${SOCIAL_SOURCE_KEYS.filter((key) => !foundCore.has(key)).join(', ')}`);
   }
 
   const matchers = makeMatchers(config);
   const sourceByKey = new Map(sources.map((source) => [source.key, source]));
-  const allowed = new Set(SOCIAL_SOURCE_KEYS);
+  const allowed = new Set(sources.map((source) => source.key));
   const cutoff = Date.now() - DAYS_KEEP * 86400e3;
   const previousSocial = await loadJson('PREV_SOCIAL_FEED_URL', 'social-feed.json');
   const legacy = previousSocial || await loadJson('PREV_LEGACY_DATA_URL', 'items.json');
@@ -156,7 +170,7 @@ export async function buildSocialFeed() {
     const prior = previousStatusByKey.get(source.key);
     if (!rsshubUrl) {
       statuses.push({
-        key: source.key, name: source.name, name_zh: SOCIAL_SOURCE_LABELS[source.key], tier: source.tier,
+        key: source.key, name: source.name, name_zh: SOCIAL_SOURCE_LABELS[source.key] || source.name_zh || source.name, tier: source.tier,
         type: source.type, enabled: false, ok: false, items: 0, admitted: 0,
         last_success: prior?.last_success || null, error: 'TWITTER_AUTH_TOKEN 未启用',
       });
@@ -175,21 +189,24 @@ export async function buildSocialFeed() {
           id,
           source_key: source.key,
           source_name: source.name,
-          source_name_zh: SOCIAL_SOURCE_LABELS[source.key],
+          source_name_zh: SOCIAL_SOURCE_LABELS[source.key] || source.name_zh || source.name,
           tier: source.tier,
           kind: 'tweet',
           text: entry.text,
           text_zh: null,
           url: entry.url,
           published_at: entry.published_at,
-          badges: detectBadges(entry.text),
-          note_zh: SOCIAL_SOURCE_NOTES[source.key] || '曼城跟队记者',
+          badges: [...new Set([
+            ...detectBadges(entry.text),
+            ...(isCase115Post(entry.text) ? ['CASE_115'] : []),
+          ])],
+          note_zh: SOCIAL_SOURCE_NOTES[source.key] || source.note_zh || '曼城消息源',
         });
       }
       const admitted = incoming.length - admittedBefore;
       const empty = entries.length === 0;
       statuses.push({
-        key: source.key, name: source.name, name_zh: SOCIAL_SOURCE_LABELS[source.key], tier: source.tier,
+        key: source.key, name: source.name, name_zh: SOCIAL_SOURCE_LABELS[source.key] || source.name_zh || source.name, tier: source.tier,
         type: source.type, enabled: true, ok: !empty, items: entries.length, admitted,
         last_success: empty ? prior?.last_success || null : new Date().toISOString(),
         error: empty ? '上游返回空时间线，已保留历史' : null,
@@ -197,7 +214,7 @@ export async function buildSocialFeed() {
       console.log(`[social] ${source.key}: 抓 ${entries.length} / 新入 ${admitted}`);
     } catch (error) {
       statuses.push({
-        key: source.key, name: source.name, name_zh: SOCIAL_SOURCE_LABELS[source.key], tier: source.tier,
+        key: source.key, name: source.name, name_zh: SOCIAL_SOURCE_LABELS[source.key] || source.name_zh || source.name, tier: source.tier,
         type: source.type, enabled: true, ok: false, items: 0, admitted: 0,
         last_success: prior?.last_success || null, error: String(error.message || error).slice(0, 200),
       });
@@ -231,7 +248,7 @@ export async function buildSocialFeed() {
   const sourceCatalog = sources.map((source) => ({
     key: source.key,
     name: source.name,
-    name_zh: SOCIAL_SOURCE_LABELS[source.key],
+    name_zh: SOCIAL_SOURCE_LABELS[source.key] || source.name_zh || source.name,
     tier: source.tier,
     type: source.type,
   }));

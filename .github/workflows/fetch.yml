@@ -101,7 +101,7 @@ jobs:
       - name: Install deps
         run: npm ci --no-audit --no-fund
 
-      # 十个指定 X 信源通过本地 RSSHub 读取，不接入 YouTube、Instagram 或图片流。
+      # 可信 X 信源池通过本地 RSSHub 读取，不接入 YouTube、Instagram 或图片流。
       - name: Start RSSHub for the social feed
         if: ${{ env.TWITTER_AUTH_TOKEN != '' }}
         run: |
@@ -147,7 +147,7 @@ jobs:
           export PREV_INTERNATIONAL_DUTY_URL="${BASE}/data/international-duty.json"
           node scripts/fetch-international-duty.js
 
-      - name: Update the ten-source social feed
+      - name: Update the trusted social feed
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
